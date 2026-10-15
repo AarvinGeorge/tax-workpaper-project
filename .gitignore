@@ -1,0 +1,9 @@
+.DS_Store
+node_modules/
+.next/
+dist/
+.vercel/
+.env*
+!.env.example
+*.log
+.superpowers/
