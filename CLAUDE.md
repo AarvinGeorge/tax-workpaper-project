@@ -15,13 +15,11 @@ defines every field). **The packet contains confident mistakes — finding them 
 ## Layout
 - `case-study-project-package/` — the brief and the packet, as delivered. Read-only; never edit.
 - `project-build/` — the app's source.
-- Plans and notes in `docs/`.
+- Plans, notes, research and groundtruth discovery in `docs/`.
 
 ## Working method
 - Process: Superpowers (brainstorm → plan → test-driven build → review → verify). Use the `engineering-method`
   skill once installed, at the "internal tool / prototype" depth: one reviewer of a different model, no deploy ceremony.
 - UI: `impeccable` is this project's design skill (the other two design plugins are disabled here).
 - Deploy: the `vercel` plugin (project scope only).
-- Data is invented, but this case study is confidential to the firm: the repo stays private; never publish the
-  packet or the brief anywhere except the deploy the brief asks for.
 - Never begin building until Aarvin says go.
