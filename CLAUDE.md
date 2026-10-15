@@ -14,6 +14,19 @@ The hand-in must also say how AI was used: keep `docs/decisions.md` (one line pe
 and `docs/ai-usage.md` (what each tool or model did) from day one; both feed the video.
 "Sending sooner is better" — scope to a strong, working core first.
 
+## Deadline and order of work
+**Submit by Fri 16 Oct 2026** (Aarvin, 15 Oct; confirm the hour at session start). One day: every choice favours a
+working, deployed core over breadth. Order:
+1. **Hunt the confident mistakes first (time-boxed).** Read the packet README, then cross-check values, versions,
+   prior years and client answers; log each finding in `docs/ground-truth/` as you go. The findings shape the data
+   model: every number carries its source, its confidence, how it was verified, and the checks it fails.
+2. **Core idea + data model** — brainstorm with Aarvin, one short decision, then build.
+3. **Thin end-to-end slice, deployed early:** load the packet → trace any number to its simulated source document and
+   field → surface every logged mistake → role switcher → saving → live link. Then widen capability in rounds,
+   redeploying after each.
+4. **Last:** the one-page core idea and data model (Archify drawing), the errors write-up, `docs/ai-usage.md`; the video.
+`docs/decisions.md` and `docs/ai-usage.md` are written as each decision or tool use happens, never reconstructed at the end.
+
 ## Layout
 - `case-study-project-package/` — the brief and the packet, as delivered. Read-only; never edit.
 - `project-build/` — the app's source.
