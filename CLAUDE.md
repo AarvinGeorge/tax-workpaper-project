@@ -15,7 +15,7 @@ and `docs/ai-usage.md` (what each tool or model did) from day one; both feed the
 "Sending sooner is better" — scope to a strong, working core first.
 
 ## Deadline and order of work
-**Submit by Fri 16 Oct 2026** (Aarvin, 15 Oct; confirm the hour at session start). One day: every choice favours a
+**Submit by Fri 16 Oct 2026, 21:00 EDT (01:00 UTC Sat 17 Oct)** (Aarvin, 15 Oct). One day: every choice favours a
 working, deployed core over breadth. Order:
 1. **Hunt the confident mistakes first (time-boxed).** Read the packet README, then cross-check values, versions,
    prior years and client answers; log each finding in `docs/ground-truth/` as you go. The findings shape the data

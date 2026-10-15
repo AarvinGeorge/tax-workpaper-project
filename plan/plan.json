@@ -1,0 +1,136 @@
+{
+  "meta": {
+    "project": "Tax workpaper case study",
+    "subtitle": "A web-native workpaper for the invented Okafor-Lindqvist household's 2025 return: every number traced to its source, every packet mistake surfaced. Due Fri 16 Oct 2026, 21:00 EDT.",
+    "mode": "light",
+    "plan_version": "0.1.0",
+    "updated": "2026-10-15T22:35:02Z",
+    "changelog": [
+      {
+        "version": "0.1.0",
+        "date": "2026-10-15",
+        "note": "Plan created. Mistake hunt and industry research started."
+      }
+    ]
+  },
+  "capabilities": [
+    {
+      "id": 1,
+      "name": "Ledger of packet mistakes (ground truth)",
+      "short": "Mistakes",
+      "what": "Every confident mistake in the data packet, with document, field, value, why it is wrong, evidence and tax effect. Raw form of deliverable 3.",
+      "build": "active",
+      "plan": "none",
+      "where": "docs/ground-truth/",
+      "evidence": "docs/ground-truth/README.md: 27 distinct findings with evidence; 5 spot-checked 15 Oct 22:34 UTC."
+    },
+    {
+      "id": 2,
+      "name": "Industry research and plain-language primer",
+      "short": "Research",
+      "what": "What a tax workpaper is, the standards that shape it, existing tools and the patterns worth borrowing.",
+      "build": "done",
+      "plan": "none",
+      "where": "docs/research/industry.md, docs/brief-explained.md",
+      "evidence": "docs/research/industry.md written 15 Oct 22:28 UTC (primer, standards, tools, 15 principles, glossary); gaps marked unverified in the file."
+    },
+    {
+      "id": 3,
+      "name": "Core idea and data model",
+      "short": "Model",
+      "what": "One short decision on the central idea (every number carries source, confidence, verification and failing checks) and the data model behind it.",
+      "build": "not-started",
+      "plan": "none",
+      "where": "No plan yet",
+      "evidence": ""
+    },
+    {
+      "id": 4,
+      "name": "Thin deployed slice",
+      "short": "App",
+      "what": "Load the packet as delivered, trace any number to a simulated source document and field, surface every logged mistake, role switcher, saving, live link.",
+      "build": "not-started",
+      "plan": "none",
+      "where": "No plan yet",
+      "evidence": ""
+    },
+    {
+      "id": 5,
+      "name": "Hand-in documents and video",
+      "short": "Hand-in",
+      "what": "One page on the core idea and data model, the errors write-up, the AI-usage note, the walkthrough video.",
+      "build": "not-started",
+      "plan": "none",
+      "where": "No plan yet",
+      "evidence": ""
+    }
+  ],
+  "plans": {
+    "done": [],
+    "now": [
+      {
+        "name": "Hunt the packet's confident mistakes (time-boxed)",
+        "why": "The brief says the packet contains confident mistakes; the ones found decide what the data model must carry.",
+        "unblocks": "The core-idea brainstorm and the data model.",
+        "stage": "intent",
+        "capability": 1,
+        "tasks": [
+          {
+            "name": "Read the brief and the packet README",
+            "state": "done"
+          },
+          {
+            "name": "Wages, people, credits, retirement, payments",
+            "state": "done",
+            "note": "8 confirmed (4 high) in docs/ground-truth/01-wages-people-credits.md"
+          },
+          {
+            "name": "Investments, crypto, foreign account, K-1s",
+            "state": "done",
+            "note": "5 confirmed in docs/ground-truth/02-investments-foreign-k1.md"
+          },
+          {
+            "name": "Business, rentals, rental sale, depreciation",
+            "state": "done",
+            "note": "10 confirmed (4 high) in docs/ground-truth/03-business-rentals-assets.md; two overlap other areas"
+          },
+          {
+            "name": "California-Texas split, deductions, whole-return math",
+            "state": "done",
+            "note": "6 confirmed in docs/ground-truth/04-state-deductions-integrity.md; line-math checker 0 mismatches on 148 lines"
+          },
+          {
+            "name": "Merge into one ledger and review with Aarvin",
+            "state": "active",
+            "note": "Index and patterns in docs/ground-truth/README.md; 5 high findings spot-checked against printed text"
+          }
+        ],
+        "status": "Hunt finished: 27 distinct mistakes (6 high). Waiting for Aarvin to walk through them.",
+        "updated": "2026-10-15T22:35:02Z"
+      }
+    ],
+    "next": [
+      {
+        "name": "Brainstorm the core idea with Aarvin, then decide",
+        "why": "No code before the idea is agreed (project rule).",
+        "unblocks": "The plan for the thin slice.",
+        "stage": "intent",
+        "capability": 3
+      },
+      {
+        "name": "Build and deploy the thin slice",
+        "why": "A working, deployed core beats breadth with one day available.",
+        "unblocks": "Widening in rounds, each redeployed.",
+        "stage": "intent",
+        "capability": 4
+      },
+      {
+        "name": "Write the hand-in documents and record the video",
+        "why": "Deliverables 2 to 4.",
+        "unblocks": "Submission.",
+        "stage": "intent",
+        "capability": 5
+      }
+    ]
+  }
+}
