@@ -15,7 +15,12 @@ defines every field). **The packet contains confident mistakes — finding them 
 ## Layout
 - `case-study-project-package/` — the brief and the packet, as delivered. Read-only; never edit.
 - `project-build/` — the app's source.
+- `project-build/tests/` — automated tests: one per known packet mistake asserting the app surfaces it, plus
+  Playwright browser tests per role. A mistake that stops being flagged fails a test.
 - Plans, notes, research and groundtruth discovery in `docs/`.
+- `docs/ground-truth/` — the ledger of every confident mistake found in the packet: document, field, value, why it is
+  wrong, evidence. Raw form of deliverable 3; each entry gets a test in `project-build/tests/`.
+- No `evals/` unless the app gains an AI feature (evals score model judgement; this app's results are computed).
 
 ## Working method
 - Process: Superpowers (brainstorm → plan → test-driven build → review → verify). Use the `engineering-method`
