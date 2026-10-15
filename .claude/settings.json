@@ -2,6 +2,14 @@
   "enabledPlugins": {
     "vercel@anthropic-plugin-directory": true,
     "interface-design@interface-design": false,
-    "ui-ux-pro-max@ui-ux-pro-max-skill": false
+    "ui-ux-pro-max@ui-ux-pro-max-skill": false,
+    "job-search-command-center@technical-profile-builder": false
+  },
+  "permissions": {
+    "deny": [
+      "mcp__claude_ai_Gmail",
+      "mcp__claude_ai_Google_Calendar",
+      "mcp__claude_ai_Google_Drive"
+    ]
   }
 }
