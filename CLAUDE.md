@@ -27,4 +27,6 @@ defines every field). **The packet contains confident mistakes — finding them 
   skill once installed, at the "internal tool / prototype" depth: one reviewer of a different model, no deploy ceremony.
 - UI: `impeccable` is this project's design skill (the other two design plugins are disabled here).
 - Deploy: the `vercel` plugin (project scope only).
+- Inspiration: the REA MCP server (`rea-agents@6.5.0`, local scope, this project only) — observe existing web apps'
+  structure, flows and UI patterns for ideas. Learn patterns; never copy another product's code or assets.
 - Never begin building until Aarvin says go.
