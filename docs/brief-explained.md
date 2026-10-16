@@ -28,11 +28,11 @@ Source: `docs/brief.txt` (copy of the PDF) and the packet README (`readme` key i
 ## The data we get
 
 One JSON "packet" for an invented household, the Okafor-Lindqvists, 2025, married filing jointly:
-- **74 documents** (as text records — no page images) and **3,012 extracted values**, each with its source position and a confidence score.
+- **74 documents** (as text records — no page images) and **3,012 extracted values**, each with a source position and a confidence score. The positions are synthetic (README: use them only to place highlights on a rendered page).
 - **Three computed versions of the return** (v1 March, v2 March after a corrected 1099, v3 June after a late K-1). v3 is current.
 - Client questionnaire answers, messages, a call note; the 2024 return and prior preparer's notes; IRS/California account records; firm staff and standards; a timeline to replay the season.
 - **The trap:** "The packet contains confident mistakes." What is *printed* on a document is the truth; what the pipeline *read* and what the engine *computed* can both be wrong — even at 99% confidence. Finding them is part of the job.
-- We don't need to know tax law: every result is computed for us. To show the tax effect of a change, multiply it by the rates the packet gives.
+- We don't need to know tax law: every result is computed for us. To show the tax effect of a change, multiply it by the rates the packet gives. The engine cannot be rerun; where `what_if` holds the engine's own result for the same change, that result is used instead (16 Oct correction; see `docs/packet/readme-explained.md`).
 
 ## What the app must do (grouped)
 

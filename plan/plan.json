@@ -3,13 +3,18 @@
     "project": "Tax workpaper case study",
     "subtitle": "A web-native workpaper for the invented Okafor-Lindqvist household's 2025 return: every number traced to its source, every packet mistake surfaced. Due Fri 16 Oct 2026, 21:00 EDT.",
     "mode": "light",
-    "plan_version": "0.1.0",
-    "updated": "2026-10-15T22:35:02Z",
+    "plan_version": "0.2.0",
+    "updated": "2026-10-16T04:15:05Z",
     "changelog": [
       {
         "version": "0.1.0",
         "date": "2026-10-15",
         "note": "Plan created. Mistake hunt and industry research started."
+      },
+      {
+        "version": "0.2.0",
+        "date": "2026-10-16",
+        "note": "Hunt done; section-by-section discovery started."
       }
     ]
   },
@@ -19,7 +24,7 @@
       "name": "Ledger of packet mistakes (ground truth)",
       "short": "Mistakes",
       "what": "Every confident mistake in the data packet, with document, field, value, why it is wrong, evidence and tax effect. Raw form of deliverable 3.",
-      "build": "active",
+      "build": "done",
       "plan": "none",
       "where": "docs/ground-truth/",
       "evidence": "docs/ground-truth/README.md: 27 distinct findings with evidence; 5 spot-checked 15 Oct 22:34 UTC."
@@ -39,10 +44,10 @@
       "name": "Core idea and data model",
       "short": "Model",
       "what": "One short decision on the central idea (every number carries source, confidence, verification and failing checks) and the data model behind it.",
-      "build": "not-started",
+      "build": "active",
       "plan": "none",
       "where": "No plan yet",
-      "evidence": ""
+      "evidence": "docs/discovery/01–09 with Fable reviews in docs/discovery/reviews/ (16 Oct)"
     },
     {
       "id": 4,
@@ -66,13 +71,12 @@
     }
   ],
   "plans": {
-    "done": [],
-    "now": [
+    "done": [
       {
         "name": "Hunt the packet's confident mistakes (time-boxed)",
         "why": "The brief says the packet contains confident mistakes; the ones found decide what the data model must carry.",
         "unblocks": "The core-idea brainstorm and the data model.",
-        "stage": "intent",
+        "stage": "recorded",
         "capability": 1,
         "tasks": [
           {
@@ -101,17 +105,96 @@
           },
           {
             "name": "Merge into one ledger and review with Aarvin",
-            "state": "active",
-            "note": "Index and patterns in docs/ground-truth/README.md; 5 high findings spot-checked against printed text"
+            "state": "done",
+            "note": "Index in docs/ground-truth/README.md; 5 high findings spot-checked; walked through with Aarvin 15 Oct"
           }
         ],
-        "status": "Hunt finished: 27 distinct mistakes (6 high). Waiting for Aarvin to walk through them.",
-        "updated": "2026-10-15T22:35:02Z"
+        "status": "Hunt finished: 27 distinct mistakes (6 high), ledger in docs/ground-truth/.",
+        "updated": "2026-10-15T22:35:02Z",
+        "period": "15 Oct 2026",
+        "outcome": "27 distinct mistakes (6 high) with evidence; engine arithmetic verified sound"
+      }
+    ],
+    "now": [
+      {
+        "name": "Discovery: what the app must do, section by section",
+        "why": "Aarvin wants each requirement in the brief examined in depth (packet measurements, each role's view, real-world edge cases) before deciding scope.",
+        "unblocks": "The round 1/2/3 scope decision and the data model.",
+        "stage": "grounded",
+        "capability": 3,
+        "tasks": [
+          {
+            "name": "1. Evidence",
+            "state": "done",
+            "note": "written by main session, Fable review found a false zero in my script; fixed"
+          },
+          {
+            "name": "2. Calculation",
+            "state": "done",
+            "note": "written by Opus 5.5, reviewed by Fable 5.1, fixes applied; docs/discovery/ and docs/discovery/reviews/"
+          },
+          {
+            "name": "3. Change",
+            "state": "done",
+            "note": "written by Opus 5.5, reviewed by Fable 5.1, fixes applied; docs/discovery/ and docs/discovery/reviews/"
+          },
+          {
+            "name": "4. Judgment",
+            "state": "done",
+            "note": "written by Opus 5.5, reviewed by Fable 5.1, fixes applied; docs/discovery/ and docs/discovery/reviews/"
+          },
+          {
+            "name": "5. People",
+            "state": "done",
+            "note": "written by Opus 5.5, reviewed by Fable 5.1, fixes applied; docs/discovery/ and docs/discovery/reviews/"
+          },
+          {
+            "name": "6. Filing and after",
+            "state": "done",
+            "note": "written by Opus 5.5, reviewed by Fable 5.1, fixes applied; docs/discovery/ and docs/discovery/reviews/"
+          },
+          {
+            "name": "7. Firm",
+            "state": "done",
+            "note": "written by Opus 5.5, reviewed by Fable 5.1, fixes applied; docs/discovery/ and docs/discovery/reviews/"
+          },
+          {
+            "name": "8. Records a CPA expects",
+            "state": "done",
+            "note": "written by Opus 5.5, reviewed by Fable 5.1, fixes applied; docs/discovery/ and docs/discovery/reviews/"
+          },
+          {
+            "name": "9. Person and place rules (Aarvin's idea)",
+            "state": "done",
+            "note": "docs/discovery/09-person-and-place-rules.md, reviewed and fixed"
+          },
+          {
+            "name": "Packet README recorded verbatim and explained",
+            "state": "done",
+            "note": "docs/packet/; copy verified exact by Fable (16 mutation tests)"
+          },
+          {
+            "name": "Research: Unlimited-OCR fit; local PII redaction",
+            "state": "active",
+            "note": "OCR report done (don't build; design for it); PII research running"
+          },
+          {
+            "name": "Reconcile ledger (docs/ground-truth/reconciliation-queue.md)",
+            "state": "active",
+            "note": "25 items; C05, A06, D04 applied"
+          },
+          {
+            "name": "Walk Aarvin through each section; answer open questions",
+            "state": "todo"
+          }
+        ],
+        "status": "All 9 discovery sections reviewed by a second model and fixed; ledger reconciliation and PII research in progress.",
+        "updated": "2026-10-16T04:15:05Z"
       }
     ],
     "next": [
       {
-        "name": "Brainstorm the core idea with Aarvin, then decide",
+        "name": "Decide the core idea, data model and round scope with Aarvin",
         "why": "No code before the idea is agreed (project rule).",
         "unblocks": "The plan for the thin slice.",
         "stage": "intent",

@@ -20,7 +20,7 @@ Read directly from `printed_content` and v3 lines, script `scratchpad/spot.py`:
 - **GT-C05 holds:** D47 prints "Removed failed 2004 gas furnace … Installed new 3-ton heat pump system … Permit #B25-31877".
 - **GT-B01 holds:** D28 and D29 both print 1,840.00 for the Northlake sweep; v3 has `SchB.1.1` = 1,840 and `SchB.1.2` = 1,840.
 
-Not yet spot-checked: the rest. GT-D04 depends on an FTB rule outside the packet (Oregon "reverse credit") — reviewer to confirm.
+Not yet spot-checked: the rest. GT-D04 was confirmed and revised by the Discovery 9 review (16 Oct): allowed but limited.
 
 ## Index (27 distinct; two duplicates merged)
 
@@ -29,9 +29,9 @@ Not yet spot-checked: the rest. GT-D04 depends on an FTB rule outside the packet
 | GT-A01 | RSU stock sales at $0 basis; stock-plan supplement (D11) ignored → same income taxed twice | high | −15,536 | −2,765 |
 | GT-A02 | California wages include Halvorsen pay earned after the move to Texas | high | 0 | −5,685 |
 | GT-A03 | CA estimated payments include a payment marked "tax year 2024" | high | 0 | refund −3,500 |
-| GT-A06 = GT-C03 | Self-employed health insurance deducted though Erik could join Ngozi's employer plan (qa-25) | high | +3,770 net | +605 |
+| GT-A06 = GT-C03 | Self-employed health insurance deducted though Erik could join Ngozi's employer plan (qa-25) | high | +4,464 (QBI offset not captured) ¹ | +605 |
 | GT-C01 | 1099-K card money counted twice in Schedule C gross receipts | high | −4,402 | −384 |
-| GT-C05 | $11,000 heat-pump replacement deducted as a repair; it's an improvement to depreciate | high | +3,364 | +1,074 |
+| GT-C05 | $11,000 heat-pump replacement deducted as a repair; it's an improvement to depreciate | high | +3,633 ² | +896 ² |
 | GT-A04 | Federal Q4 estimate from the client's guess (4,000), IRS transcript shows 3,000 | med | +1,000 due | — |
 | GT-A05 | Theo's SSN transposed (…3309 vs card …3390) → the July e-file rejection | med | risk | — |
 | GT-B01 | Northlake sweep interest on two forms, counted twice | med | −640 | −127 |
@@ -44,7 +44,7 @@ Not yet spot-checked: the rest. GT-D04 depends on an FTB rule outside the packet
 | GT-D01 | Lonestar payoff interest counted twice (1098 already includes it) | med | +559 | +103 |
 | GT-D02 | Home property tax includes the seller's share credited at closing | med | +1,462 | +332 |
 | GT-D03 | Donated car at the client's Blue Book guess, not the 1098-C sale price | med | +806 | +149 |
-| GT-D04 | CA Schedule S credit for Oregon tax (reverse-credit state; also over limit) | med | 0 | +209 to +844 |
+| GT-D04 | CA Schedule S credit for Oregon tax not limited (allowed for a composite return, but capped) | med | 0 | +209 ³ |
 | GT-B02 | Swedish interest converted at the 2024 FX rate, not 2025 | low | +43 | +9 |
 | GT-B04 | Meridian lot M18 (page 32) never read in either 1099 — the source of the engine's own mismatch warning | low $ / high process | −21 | 0 |
 | GT-C08 | Home-office simplified method blended across two homes | low | +195 | +17 |
@@ -53,6 +53,11 @@ Not yet spot-checked: the rest. GT-D04 depends on an FTB rule outside the packet
 | GT-D06 | Schedule CA column D lines list incomplete inputs (trace gap, numbers right) | low | 0 | 0 |
 | GT-A07 | Little Sprouts tax ID misread at 0.97 confidence | low | 0 | — |
 | GT-A08 | Wrong provider name on Form 2441 | low | 0 | — |
+
+¹ Corrected 16 Oct 04:06 UTC (reconciliation item 2): was +3,770, which used a 24% bracket from outside the packet; the README says the adjustment rate does not capture QBI, so the packet-consistent figure is 14,400 × 0.31 with QBI noted as uncaptured (file 01).
+² Corrected 16 Oct 04:06 UTC (reconciliation item 1): was +3,364 / +1,074 by rates; the packet's own engine result `what_if.hvac_improvement` is the identical change (federal +3,633, CA +896), and an engine result beats the rate estimate. Verified by Fable 5.1 (`docs/packet/reviews/readme-explained-verify.md`) and by the main session.
+
+³ Corrected 16 Oct 04:15 UTC (reconciliation items 3, 22): was "+209 to +844" on the view that no credit is allowed; Schedule S's group-return exception and Oregon's 2025 composite guide make it allowed but limited to ≈ 635.
 
 **The engine's arithmetic is sound:** a line-math checker recomputed 148 of 221 formula lines in each version with 0
 mismatches (and was proven able to fail). Every mistake is a **wrong input, a missed document, or a rule applied too

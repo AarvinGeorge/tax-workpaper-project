@@ -63,6 +63,7 @@ Terms used once and defined here:
 - **Evidence:** D39 p2: "Oregon composite return filed for nonresident shareholders; Oregon tax paid on your behalf 1,580 (paid with the composite return in April 2026; included in box 16D distributions)." 1,580 × 195/365 = 844.1 (matches v3). The Oregon tax was paid by composite return, so to recover California's share the family would need an individual Oregon nonresident return rather than the composite — a decision for the preparer.
 - **Tax effect (est.):** California tax **+844** if disallowed (credit 1:1); **+209** at minimum (844 − 635) under the limitation alone. Federal none.
 - **How a workpaper should surface it:** Credit lines get a "limit" panel: other-state tax, double-taxed income, the limitation fraction and the state-pair eligibility, each with source; a credit that equals the raw tax paid × a day ratio is flagged as "limit not applied".
+- **Correction (16 Oct 04:15 UTC, reconciliation items 3 and 22):** the "Truth: 0" above is withdrawn. The 2025 Schedule S instructions let a California resident claim the credit for their share of tax paid on an Oregon, Arizona or Virginia group (composite) return, and Oregon's 2025 Pub OR-OC (Rev. 02-04-26) says credits for tax paid to another state "aren't allowed on the composite return", so the reverse-credit exception does not bar it here. **Truth: credit allowed but limited to ≈ 635** (the limit arithmetic above stands), with a statement attached; **California tax +209.** The suggestion to file an individual Oregon return is dropped. Sources: Discovery 9 and its Fable 5.1 review (`docs/discovery/reviews/09-person-and-place-rules-review.md`).
 - **Severity:** medium
 
 ### GT-D05 — Federal underpayment penalty ignores excess social security tax as withholding
@@ -100,7 +101,7 @@ Terms used once and defined here:
 
 ## Things the engine already flags (my area)
 - `LOW_CONFIDENCE_READ` (ev-1049, St. Brigid receipt read 1,500 at 0.41) — **right to flag; resolved, no error.** D64: "'$?,500.00' … could be read as 1 or 7". msg-08 (2026-07-01, after v3): "St. Brigid confirmed by phone the gift was 1,500 - matches our bank statement (check #2207, 12/21/2025)". The workpaper should record msg-08 as the evidence that clears the flag.
-- `CA_AMT_NOT_COMPUTED` — right (engine limitation; ISO exercise in July while CA resident is relevant).
+- `CA_AMT_NOT_COMPUTED` — right (engine limitation; ISO relevant: exercise 07-30 was after the 07-14 move, but the 40,000 AMT adjustment is still 100% California-source under FTB Pub 1004 because employment ended 05-16 while resident — corrected 16 Oct, reconciliation item 24).
 - `AMT_CREDIT_CARRYFORWARD`, `DUE_DILIGENCE_REQUIRED` — informational, plausible.
 - Not flagged by the engine: GT-D01, D02, D03, D04, D05, A02, A03, A04 — none has a diagnostic.
 

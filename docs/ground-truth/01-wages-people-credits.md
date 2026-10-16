@@ -64,7 +64,7 @@ Terms used once and defined here:
 - **Packet says:** 666-74-**3309** (household, "exactly as the client entered them"); return dependents use household:theo (`F8812.4` source).
 - **Truth:** 666-74-**3390** (Social Security card D71; also on the 2024 return D06).
 - **Why it's wrong:** Last two digits swapped. The 2024 return already in the file (D06, received 2026-01-21) had the right number, so this was catchable five months before filing; instead the federal return was rejected and the California return held.
-- **Evidence:** D71: "Social Security card: Theo Lindqvist-Okafor, 666-74-3390." D06 p1: "Theo Lindqvist-Okafor SSN 666-74-3390" (ev-0012). efile 2026-07-13: "R0000-504-02 … Dependent's taxpayer identification number and name control must match the e-file database (dependent 2: Theo Lindqvist-Okafor)"; CA "STATE-HOLD". msg-10: "I must have typed his number wrong in the organizer."
+- **Evidence:** D71: "Social Security card: Theo Lindqvist-Okafor, XXX-XX-3390." D06 p1: "Theo Lindqvist-Okafor SSN XXX-XX-3390" (ev-0012). efile 2026-07-13: "R0000-504-02 … Dependent's taxpayer identification number and name control must match the e-file database (dependent 2: Theo Lindqvist-Okafor)"; CA "STATE-HOLD". msg-10: "I must have typed his number wrong in the organizer."
 - **Tax effect (est.):** None once fixed. Unfixed, the 2,200 child tax credit (400 after phase-out, `F8812.12`) and e-file would fail; it delayed filing a day.
 - **How a workpaper should surface it:** Identity check: every SSN in household vs every document that prints it (prior-year return, SS card, 1098-T); mismatch = blocker before e-file.
 - **Severity:** medium
