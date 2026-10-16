@@ -1,0 +1,432 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Direction A: three-pane workpaper</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Instrument+Sans:wght@400;500;600;700&amp;family=Source+Serif+4:opsz,wght@8..60,400;8..60,600&amp;family=IBM+Plex+Mono:wght@400;500&amp;display=swap" rel="stylesheet">
+<style>
+body{margin:0}
+a{color:oklch(0.46 0.15 262)}a:hover{color:oklch(0.36 0.15 262)}
+.wp{--bg:oklch(0.975 0.005 250);--surface:oklch(0.995 0.003 250);--sunk:oklch(0.955 0.006 250);--line:oklch(0.89 0.008 250);--ink:oklch(0.24 0.02 255);--ink2:oklch(0.44 0.02 255);--acc:oklch(0.46 0.15 262);--accsoft:oklch(0.94 0.035 262);--blk:oklch(0.50 0.17 32);--blksoft:oklch(0.955 0.03 32);--wrn:oklch(0.48 0.10 70);--wrnsoft:oklch(0.96 0.045 85);--pas:oklch(0.47 0.09 165);--passoft:oklch(0.955 0.03 165);--hl:oklch(0.91 0.13 100);--paper:oklch(0.99 0.006 90)}
+.wp.dark{--bg:oklch(0.19 0.012 255);--surface:oklch(0.23 0.014 255);--sunk:oklch(0.17 0.012 255);--line:oklch(0.33 0.015 255);--ink:oklch(0.93 0.008 255);--ink2:oklch(0.74 0.012 255);--acc:oklch(0.76 0.11 262);--accsoft:oklch(0.30 0.05 262);--blk:oklch(0.74 0.13 35);--blksoft:oklch(0.28 0.05 32);--wrn:oklch(0.80 0.11 80);--wrnsoft:oklch(0.29 0.04 85);--pas:oklch(0.76 0.09 165);--passoft:oklch(0.27 0.04 165);--hl:oklch(0.55 0.10 100);--paper:oklch(0.26 0.01 90)}
+.wp{font-family:'Instrument Sans',system-ui,sans-serif;color:var(--ink);background:var(--bg);font-size:14px;line-height:1.45;min-height:100vh;display:flex;flex-direction:column}
+.num{font-variant-numeric:tabular-nums;font-feature-settings:"tnum"}
+.mono{font-family:'IBM Plex Mono',monospace;font-size:12px}
+.btn{font:inherit;font-size:13px;border:1px solid var(--line);background:var(--surface);color:var(--ink);border-radius:8px;padding:7px 12px;cursor:pointer;min-height:36px}
+.btn:hover{border-color:var(--ink2)}
+.btn.primary{background:var(--acc);border-color:var(--acc);color:var(--surface)}
+.btn.off,.btn.off:hover{background:var(--sunk);border-color:var(--line);color:var(--ink2);cursor:not-allowed}
+.btn:focus-visible,.row:focus-visible,select:focus-visible{outline:2px solid var(--acc);outline-offset:2px}
+.row{all:unset;box-sizing:border-box;display:flex;gap:10px;align-items:flex-start;width:100%;padding:9px 10px;border-radius:8px;cursor:pointer}
+.row:hover{background:var(--sunk)}
+.row.on{background:var(--accsoft)}
+.row.flat{cursor:default}.row.flat:hover{background:transparent}
+.tag{display:inline-flex;align-items:center;gap:5px;font-size:11.5px;font-weight:600;padding:2px 8px;border-radius:999px;white-space:nowrap}
+.t-blk{color:var(--blk);background:var(--blksoft)}
+.t-wrn{color:var(--wrn);background:var(--wrnsoft)}
+.t-pas{color:var(--pas);background:var(--passoft)}
+.t-acc{color:var(--acc);background:var(--accsoft)}
+.t-eng{color:var(--wrn);background:var(--wrnsoft)}
+.t-mut{color:var(--ink2);background:var(--sunk)}
+.ex{font-size:10.5px;font-weight:600;letter-spacing:.03em;padding:1px 6px;border-radius:999px;border:1px dashed var(--ink2);color:var(--ink2);white-space:nowrap;vertical-align:1px}
+.lbl{font-size:11.5px;font-weight:600;letter-spacing:.04em;text-transform:uppercase;color:var(--ink2)}
+.doc{font-family:'Source Serif 4',Georgia,serif;font-size:15px;line-height:1.65;background:var(--paper);border:1px solid var(--line);border-radius:6px;padding:22px 24px;color:var(--ink)}
+mark{background:var(--hl);color:inherit;padding:1px 2px;border-radius:2px;box-shadow:0 0 0 2px var(--hl)}
+.q{display:grid;grid-template-columns:150px minmax(0,1fr);gap:10px 16px;padding:14px 0;border-top:1px solid var(--line)}
+select{font:inherit;font-size:13px;border:1px solid var(--line);background:var(--surface);color:var(--ink);border-radius:8px;padding:6px 8px;min-height:36px}
+.linkish{color:var(--acc);text-decoration:underline;text-underline-offset:2px;cursor:pointer}
+</style>
+</helmet>
+<div class="{{rootClass}}">
+<header style="display:flex;flex-wrap:wrap;align-items:center;gap:16px;padding:10px 20px;border-bottom:1px solid var(--line);background:var(--surface)">
+<div style="display:flex;align-items:baseline;gap:10px">
+<strong style="font-size:15px;letter-spacing:-.01em">Workpaper</strong>
+<span style="color:var(--ink2)">Okafor-Lindqvist · 2025 · Married filing jointly</span>
+</div>
+<nav aria-label="Progress" style="display:flex;align-items:center;gap:8px;flex:1 1 420px;flex-wrap:wrap">
+<button class="btn" type="button" aria-expanded="{{prog.open}}" onClick="{{toggleProg}}" style="{{prog.btnStyle}}">{{prog.text}}</button>
+<span style="{{prog.clientStyle}}">Your part: answer questions, approve and sign</span>
+</nav>
+<button class="btn" type="button" aria-label="Search and commands" style="{{staffOnly}}">Search or run a command <span class="mono" style="color:var(--ink2)">Ctrl K</span></button>
+<label style="display:flex;align-items:center;gap:6px;font-size:13px;color:var(--ink2)">Viewing as
+<select value="{{role}}" onChange="{{pickRole}}">
+<option value="priya">Priya Raman, preparer</option>
+<option value="marcus">Marcus Bell, preparer</option>
+<option value="daniel">Daniel Ortiz, reviewer</option>
+<option value="helen">Helen Strand, partner</option>
+<option value="sam">Sam Adeyemi, quality reviewer</option>
+<option value="jo">Jo Kimura, administrator</option>
+<option value="ngozi">Ngozi Okafor, client</option>
+<option value="next">Next year’s preparer</option>
+<option value="irs">IRS examiner</option>
+</select>
+</label>
+</header>
+<div style="display:flex;flex-wrap:wrap;align-items:center;gap:8px 18px;padding:8px 20px;border-bottom:1px solid var(--line);background:var(--bg);font-size:13px">
+<span><span style="color:var(--ink2)">Viewing as</span> <strong style="font-weight:600">{{R.label}}</strong></span>
+<span class="num"><span style="color:var(--ink2)">Version</span> {{R.version}} <span class="ex" style="{{R.verExStyle}}">Example</span></span>
+<span><span style="color:var(--ink2)">Stage</span> Review</span>
+<span class="tag t-pas">Saved</span>
+<span style="{{R.snapStyle}}" class="tag t-acc">Filed snapshot, read only</span>
+<span style="flex:1 1 360px;color:var(--ink)">{{R.banner}}</span>
+</div>
+<div role="region" aria-label="Required steps" style="{{prog.listStyle}}">
+<sc-for list="{{steps}}" as="p" hint-placeholder-count="12">
+<span style="display:inline-flex;align-items:center;gap:6px"><span class="tag {{p.tcls}}">{{p.tword}}</span>{{p.name}} <span style="color:var(--ink2)">({{p.note}})</span> <span class="ex" style="{{p.exStyle}}">Example</span></span>
+</sc-for>
+</div>
+<div style="display:flex;flex-wrap:wrap;flex:1;min-height:0">
+<aside aria-label="History" style="flex:0 1 270px;min-width:230px;border-right:1px solid var(--line);background:var(--surface);padding:14px 10px;display:flex;flex-direction:column;gap:18px">
+<div style="{{secA.style}}">
+<div class="lbl" style="padding:0 10px 6px">{{secA.label}} · {{secA.count}} <span class="ex" style="{{secA.exStyle}}">Example</span></div>
+<sc-for list="{{secA.rows}}" as="it" hint-placeholder-count="5">
+<button class="row {{it.on}}" type="button" onClick="{{it.pick}}">
+<span class="tag {{it.tcls}}" style="margin-top:1px">{{it.tword}}</span>
+<span style="display:flex;flex-direction:column;gap:2px;min-width:0"><span style="font-weight:500">{{it.title}}</span><span style="color:var(--ink2);font-size:12.5px">{{it.line}}</span></span>
+</button>
+</sc-for>
+</div>
+<div style="{{secB.style}}">
+<div class="lbl" style="padding:0 10px 6px">{{secB.label}} · {{secB.count}} <span class="ex" style="{{secB.exStyle}}">Example</span></div>
+<sc-for list="{{secB.rows}}" as="it" hint-placeholder-count="4">
+<button class="row {{it.on}}" type="button" onClick="{{it.pick}}">
+<span class="tag {{it.tcls}}" style="margin-top:1px">{{it.tword}}</span>
+<span style="display:flex;flex-direction:column;gap:2px;min-width:0"><span style="font-weight:500">{{it.title}}</span><span style="color:var(--ink2);font-size:12.5px">{{it.line}}</span></span>
+</button>
+</sc-for>
+</div>
+<div style="{{secC.style}}">
+<div class="lbl" style="padding:0 10px 6px">{{secC.label}} · {{secC.count}} <span class="ex" style="{{secC.exStyle}}">Example</span></div>
+<sc-for list="{{secC.rows}}" as="it" hint-placeholder-count="2">
+<button class="row {{it.on}}" type="button" onClick="{{it.pick}}">
+<span class="tag {{it.tcls}}" style="margin-top:1px">{{it.tword}}</span>
+<span style="display:flex;flex-direction:column;gap:2px;min-width:0"><span style="font-weight:500">{{it.title}}</span><span style="color:var(--ink2);font-size:12.5px">{{it.line}}</span></span>
+</button>
+</sc-for>
+</div>
+<div>
+<div class="lbl" style="padding:0 10px 6px">{{auditLabel}}</div>
+<sc-for list="{{audit}}" as="a" hint-placeholder-count="6">
+<div style="display:grid;grid-template-columns:62px minmax(0,1fr);gap:8px;padding:6px 10px;font-size:12.5px"><span class="num" style="color:var(--ink2)">{{a.when}}</span><span><strong style="font-weight:600">{{a.who}}</strong> {{a.what}} <span class="ex" style="{{a.exStyle}}">Example</span></span></div>
+</sc-for>
+</div>
+</aside>
+<main style="flex:999 1 520px;min-width:0;padding:22px 28px;display:flex;flex-direction:column;gap:6px">
+<div style="display:flex;flex-wrap:wrap;align-items:center;gap:10px"><span class="tag {{V.tcls}}">{{V.tword}}</span><span class="mono" style="color:var(--ink2);{{V.internal}}">{{cur.line}}</span></div>
+<h1 style="margin:2px 0 0;font-size:24px;letter-spacing:-.015em;font-weight:600">{{V.title}}</h1>
+<div style="display:flex;flex-wrap:wrap;align-items:baseline;gap:18px;margin:6px 0 10px">
+<span class="num" style="font-size:30px;font-weight:600;letter-spacing:-.02em">{{V.value}}</span><span class="ex" style="{{V.valueEx}}">Example</span><span style="color:var(--ink2);font-size:12.5px;{{V.valueNoteStyle}}">{{V.valueNote}}</span>
+<span class="num" style="color:var(--ink2);{{V.internal}}">should be <strong style="color:var(--ink)">{{cur.should}}</strong></span>
+<span class="num tag t-acc" style="{{V.internal}}">Tax effect {{cur.effect}}</span>
+</div>
+<p style="margin:0 0 8px;max-width:68ch">{{V.why}}</p>
+<div class="q"><span class="lbl">{{V.fromLbl}}</span><span>{{V.from}}</span></div>
+<div class="q" style="{{V.doneStyle}}"><span class="lbl">{{V.doneLbl}}</span><span>{{V.done}}</span></div>
+<div class="q" style="{{V.doneStyle}}"><span class="lbl">{{V.checkedLbl}}</span><span>{{V.checked}} <span class="ex" style="{{V.checkedEx}}">Example</span></span></div>
+<div class="q" style="{{V.openStyle}}"><span class="lbl">{{V.openLbl}}</span><span>{{V.open}}</span></div>
+<div class="q" style="{{mask.style}}"><span class="lbl">Sensitive data</span><span style="display:flex;flex-wrap:wrap;align-items:center;gap:10px"><span>SSNs masked, last 4 shown.</span><button class="btn {{mask.cls}}" type="button" aria-disabled="{{mask.ad}}" onClick="{{mask.go}}">Reveal (logged)</button><span style="color:var(--ink2);font-size:12.5px">{{mask.note}}</span></span></div>
+<div style="display:flex;flex-wrap:wrap;align-items:center;gap:8px;padding-top:14px;border-top:1px solid var(--line)">
+<sc-for list="{{actions}}" as="b" hint-placeholder-count="4">
+<button class="btn {{b.cls}}" type="button" aria-disabled="{{b.ad}}" title="{{b.reason}}" onClick="{{b.go}}">{{b.label}}</button>
+</sc-for>
+<span style="color:var(--ink2);font-size:12.5px;{{noActStyle}}">{{noActText}}</span>
+</div>
+<div style="color:var(--ink2);font-size:12.5px;min-height:18px">{{actMsg}}</div>
+</main>
+<aside aria-label="Source document" style="flex:1 1 420px;min-width:320px;max-width:520px;border-left:1px solid var(--line);background:var(--sunk);padding:18px 20px;display:flex;flex-direction:column;gap:12px">
+<div style="display:flex;justify-content:space-between;align-items:baseline;gap:10px"><span class="lbl">{{V.docLbl}}</span><span class="mono" style="color:var(--ink2)">{{V.docRef}}</span></div>
+<div style="font-weight:600">{{V.docTitle}}</div>
+<div class="doc">{{V.pre}}<mark>{{V.hl}}</mark>{{V.post}}</div>
+<div style="font-size:12.5px;color:var(--ink2);{{staffOnly}}">Highlighted: the exact text this number depends on. Simulated from the packet; a real PDF page drops in here unchanged.</div>
+<div style="border-top:1px solid var(--line);padding-top:12px;display:flex;flex-direction:column;gap:6px;{{V.internal}}">
+<span class="lbl">Where this document landed</span>
+<span>{{cur.landed}}</span>
+</div>
+</aside>
+</div>
+<div style="position:fixed;right:20px;bottom:20px;display:flex;flex-direction:column;align-items:flex-end;gap:10px;z-index:5;{{chatWrapStyle}}">
+<div role="region" aria-label="Ask about this return" style="{{chat.style}}">
+<div style="display:flex;justify-content:space-between;align-items:center;gap:8px;margin-bottom:10px"><strong style="font-size:13px">Ask about this return</strong><span class="tag t-mut">Preview, later round</span></div>
+<div style="font-size:13px;background:var(--sunk);border-radius:8px;padding:8px 10px;margin-bottom:8px">{{chat.q}}</div>
+<div style="font-size:13px;line-height:1.5">{{chat.a1}} <span class="linkish mono" style="{{chat.srcStyle}}">[Source: {{chat.src}}]</span>{{chat.a2}}</div>
+<div style="font-size:12px;color:var(--ink2);margin-top:10px">{{chat.scope}}</div>
+</div>
+<button class="btn primary" type="button" aria-expanded="{{chat.open}}" onClick="{{toggleChat}}">Ask about this return</button>
+</div>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"dark":{"editor":"boolean","default":false},"$preview":{"width":1440,"height":900}}'>
+class Component extends DCLogic {
+  constructor(p){ super(p); this.state = { sel: 'atlas', role: 'daniel', chat: false, msg: '' }; }
+  renderVals() {
+    const data = [
+      { id:'ca-est', t:'blk', title:'California estimates include a 2024 payment', line:'F540NR.72 · CA estimated payments', value:'$14,000', should:'$10,500', effect:'CA refund −$3,500',
+        why:'The September payment was made for tax year 2024. The pipeline read the year correctly, but the engine still added it to 2025 estimates.',
+        from:'D68 FTB Web Pay confirmations, four payments (ev-1068 to ev-1079)', done:'Sum of payments dated in 2025 and January 2026, rule R-CA-ESTIMATED-PAYMENTS', checked:'Agreed to source document: Priya, 12 Mar. Still needed: agreed to third-party record (FTB account).', checkedEx:true, open:'Check failed: one payment is labelled tax year 2024 on the document.',
+        action:'Adjust to $10,500', doc:'D68', page:1, docTitle:'California FTB Web Pay confirmations',
+        pre:'FTB Web Pay confirmations: 2025-01-15 3,000.00 tax year 2024 (estimated payment); 2025-03-28 1,240.00 tax year 2024 (balance due); 2025-04-15 3,500.00 tax year 2025 (estimated payment); 2025-06-16 3,500.00 tax year 2025 (estimated payment); ', hl:'2025-09-15 3,500.00 tax year 2024', post:' (estimated payment); 2026-01-15 3,500.00 tax year 2025 (estimated payment).', landed:'F540NR.72 California estimated payments (4 values). Two 2024 entries correctly excluded.',
+        c:{ title:'Your California payment on 15 Sep 2025', value:'$3,500', why:'Your FTB Web Pay confirmation marks this payment for tax year 2024. We want to count it in the right year.', from:'Your FTB Web Pay confirmations', open:'Confirm the payment was for 2024, or tell us if you meant it for 2025.' } },
+      { id:'atlas', t:'blk', title:'Card sales counted twice in business income', line:'SchC.1 · Gross receipts', value:'$163,700', should:'$151,300', effect:'Federal −$4,402',
+        why:'Atlas paid 12,400 by card through Paywell. The books already include it, and the engine added the 1099-K again.',
+        from:'Books revenue (D14), Forms 1099-NEC and 1099-K (D16 to D21)', done:'Books revenue plus 1099-K amounts not matched to a books deposit', checked:'None yet. Needed: agreed to source document (D15) and agreed to third-party record (Form 1099-K).', open:'Books-to-tax bridge leaves 12,400 unexplained.',
+        action:'Adjust to $151,300', doc:'D15', page:3, docTitle:'Lindqvist Studio, transaction detail',
+        pre:'Deposits detail: Atlas Outdoor Gear paid 41,200.00 in 2025, ', hl:'of which 12,400.00 arrived through Paywell Payments card processing', post:' (deposited gross; processing fees booked to Bank and merchant fees) and 28,800.00 by ACH.', landed:'Nowhere. No line cites this document: unexplained.',
+        x:{ title:'Schedule C gross receipts, line 1', value:'$151,300',
+            why:'Lindqvist Studio gross receipts. The Paywell Form 1099-K amount of 12,400 is card sales from Atlas Outdoor Gear already inside books revenue, so it is counted once.',
+            from:'Books revenue (D14), transaction detail (D15 page 3), Forms 1099-NEC (D16 to D20) and Form 1099-K (D21)', done:'Books revenue 151,300 (D14). The Form 1099-K 12,400 (D21) is inside books revenue (D15 page 3), so it is not added again.',
+            checked:'Engine v3: 163,700; adjusted by the firm to 151,300, reason: the 12,400 Form 1099-K is already inside books revenue. Prepared by Priya Raman; reviewed by Daniel Ortiz; signed by Helen Strand.', checkedEx:true },
+        c:{ title:'Card payments from Atlas Outdoor Gear', value:'$12,400', why:'Atlas paid part of what it owed the studio by card through Paywell. We want to be sure this money is counted once, not twice.', from:'Lindqvist Studio transaction detail and the Paywell form', open:'Were these card payments already part of the studio deposits you gave us?' } },
+      { id:'rsu', t:'blk', title:'RSU shares sold with a zero cost basis', line:'F8949.B.N1 · Corvane RSU lot', value:'$0 basis', should:'$19,100 basis', effect:'Federal −$15,536 (3 lots)',
+        why:'The broker form left the basis blank. The pipeline turned the blank into zero, so income already taxed on the W-2 is taxed again.',
+        from:'D28 Northlake 1099-B, page 3 (basis not reported)', done:'Proceeds minus basis; basis read as 0 at 98% confidence', checked:'None yet. Needed: agreed to source document (D11) and recalculated.', open:'Blank read as zero. The stock plan statement gives the real basis.',
+        action:'Use supplement basis $19,100', doc:'D11', page:2, docTitle:'Corvane stock plan supplemental statement',
+        pre:'Lot RSU-2502: 400 sh acquired 02/15/2025 (vest FMV 47.75) ', hl:'adjusted basis 19,100.00', post:', sold 02/18/2025. Lot RSU-2505: 400 sh acquired 05/15/2025 (vest FMV 47.75) adjusted basis 19,100.00, sold 05/20/2025.', landed:'No line cites the RSU basis on this page (F8949.A.N2, the ESPP lot, does cite D11): evidence present but unused.' },
+      { id:'hvac', t:'wrn', title:'Heat pump replacement deducted as a repair', line:'SchE.14A · Repairs, 1450 Fremont Way', value:'$13,300', should:'$2,300 + depreciation', effect:'Federal +$3,633 · CA +$896',
+        why:'A new heat pump system replacing the furnace is an improvement, depreciated over 27.5 years, not a repair. Effect from the engine’s own what-if.',
+        from:'Owner statement (ev-1000) and the contractor invoice D47', done:'Repairs total as reported by the property manager', checked:'Confirmed with client: Priya\u2019s call of 26 Mar records that the whole system was replaced with a heat pump (call-01). Still needed: agreed to source document (D47).', open:'Judgment call. Firm rule: \u201cEvery judgment call records the authority relied on.\u201d Variance flag: repairs changed over 10% and over 1,000 vs prior year (3,900 in 2024, 13,300 in 2025).',
+        action:'Record as improvement', doc:'D47', page:1, docTitle:'Invoice, Delta Breeze Heating and Air',
+        pre:'Invoice 5521 dated 08/12/2025. Removed failed 2004 gas furnace and 3-ton AC condenser. ', hl:'Installed new 3-ton heat pump system', post:' with air handler, new line set and thermostat. Total 11,000.00. 10-year parts warranty. Permit #B25-31877.', landed:'Nowhere. No line cites this invoice: unexplained.',
+        c:{ title:'Permit for the Fremont Way heat pump', value:'Permit #B25-31877', why:'Your contractor’s invoice mentions a building permit for the new heat pump. A copy helps us record the new system correctly.', from:'Delta Breeze Heating and Air invoice', open:'Please upload a copy of the permit, if you have one.',
+            hl:'Permit #B25-31877', pre:'Invoice 5521 dated 08/12/2025. Removed failed 2004 gas furnace and 3-ton AC condenser. Installed new 3-ton heat pump system with air handler, new line set and thermostat. Total 11,000.00. 10-year parts warranty. ', post:'.' } },
+      { id:'ssn', t:'blk', title:'Theo’s SSN differs from his card', line:'Dependent 2 · identity', value:'XXX-XX-3309', should:'XXX-XX-3390', effect:'E-file will reject',
+        why:'The number typed in the organizer has two digits swapped. Last year’s return and the card both show the other number.',
+        from:'Client organizer (typed by client, no document)', done:'Copied from the organizer', checked:'None yet. Needed: agreed to source document (card, D71) and agreed to prior year (2024 return).', open:'Mismatch against two documents. Values stay masked; match shown only.',
+        action:'Use the number on the card', doc:'D71', page:1, docTitle:'Social Security card, Theo (photo)',
+        pre:'Social Security card: Theo Lindqvist-Okafor, ', hl:'XXX-XX-3390', post:'.', landed:'Identity record. Arrived 13 Jul, after v3.',
+        c:{ title:'Theo’s Social Security number', value:'Ends 3390 on his card', why:'Your organizer shows a number ending 3309. The card you sent on 13 Jul and last year’s return both end 3390. Two digits may have been swapped.', from:'Theo’s Social Security card (your photo) and your organizer', open:'Please confirm Theo’s Social Security number ends in 3390, as on his card.',
+            docTitle:'Theo’s Social Security card (your photo)' } },
+      { id:'wages', t:'pas', title:'Wages tie to both W-2s', line:'F1040.1a · Wages', value:'$212,400', should:'$212,400', effect:'None',
+        why:'Two employers. The phone photo of the Halvorsen W-2 is a duplicate and is counted once.',
+        from:'D08 Corvane W-2 and D09 Halvorsen W-2 (box 1)', done:'Sum of box 1: 104,600 + 107,800', checked:'Agreed to source document: Priya, 12 Mar. Recalculated: Daniel, 2 Apr.', checkedEx:true, open:'Variance flag: changed over 10% and over 1,000 vs prior year (156,039 in 2024). Explained: Ngozi changed jobs in 2025 (questionnaire qa-03).',
+        action:'Mark reviewed', doc:'D09', page:1, docTitle:'2025 Form W-2, Halvorsen Data LLC',
+        pre:'Form W-2 2025. Employer Halvorsen Data LLC, EIN 74-2290518. Employee Ngozi Okafor, SSN XXX-XX-2287. ', hl:'Box 1 107,800.00', post:'; Box 2 9,600.00; Box 3 118,000.00; Box 4 7,316.00.', landed:'F1040.1a wages, CA wages (Schedule CA), excess Social Security.' }
+    ];
+    data.push({ id:'noncash', t:'pas', title:'Noncash charitable gifts', line:'SchA.12 · Form 8283', value:'$20,500', should:'', effect:'', why:'', from:'', done:'', checked:'', open:'', action:'',
+        doc:'D66', page:1, docTitle:'2025 Form 1098-C, Lone Star Kids Auto Donation', pre:'Form 1098-C. Date of contribution 08/20/2025. Vehicle 2012 Subaru Outback. Box 4a vehicle sold in arm\u2019s length transaction to unrelated party checked; 4b date of sale 09/09/2025; ', hl:'4c gross proceeds from sale 2,900.00', post:'. Box 6a goods or services provided: no.', landed:'',
+        x:{ title:'Noncash charitable gifts, Schedule A line 12', value:'$17,400',
+            why:'Two noncash gifts on Form 8283: 200 shares of Northlake Total Market Index Fund to the Austin Community Foundation, and a 2012 Subaru Outback that the charity sold.',
+            from:'Stock gift acknowledgment (D65) and Form 1098-C (D66)', done:'Stock 14,500 (D65, high/low average 72.50 per share) plus the car at the charity\u2019s sale price of 2,900 (D66 box 4c) = 17,400.',
+            checked:'Engine v3: 20,500; adjusted by the firm to 17,400, reason: a donated car the charity sold is limited to its gross proceeds (Form 1098-C box 4c). Prepared by Priya Raman; reviewed by Daniel Ortiz; signed by Helen Strand.', checkedEx:true } });
+    data.push({ id:'diag', t:'eng', title:'Coinhaven lot C6 has no cost basis', line:'Engine diagnostic · DIGITAL_ASSET_BASIS_MISSING', value:'$0 basis', should:'basis evidence', effect:'not computed',
+        why:'From the engine (warning): \u201cCoinhaven lot C6 has no cost basis (transfer in from external wallet). Engine used zero basis and the transfer-in date.\u201d',
+        from:'Engine v3 diagnostics; refs ev-0879, ev-0881, ev-0882, ev-0918, ev-0919', done:'Engine used zero basis and the transfer-in date', checked:'None yet. Needed: confirmed with client and agreed to third-party record (bank statement line).',
+        open:'Erik says the BTC was bought in March 2021 for about 3,050 on an exchange that has since shut down (message, 30 Jun).', action:'Adjust basis',
+        docRef:'msg-07 · client message', docTitle:'Message from Erik Lindqvist, 30 Jun 2026', pre:'About the crypto lot with no cost: that BTC was bought on another exchange in March 2021 ', hl:'for about 3,050', post:' and moved to Coinhaven in June. That exchange shut down so I only have a bank statement line showing 3,050 to \u2018CryptoNorth\u2019 on 03/15/2021.', landed:'Arrived 30 Jun, after v3: no line uses it yet.' });
+    data.push({ id:'ext', t:'pas', title:'Extension payment of 36,000', line:'Sch3.10 · Amount paid with extension request', value:'$36,000', should:'$36,000', effect:'None', preparedBy:'daniel',
+        why:'Paid with Form 4868 on 14 Apr, estimated from v2. The return carries the same amount.',
+        from:'Timeline: extension filed with payment, 14 Apr 2026 (actor: Daniel Ortiz)', done:'Amount paid with Form 4868, rule R-EXTENSION-PAYMENT', checked:'None yet. Needed: agreed to third-party record (IRS account transcript).',
+        open:'You prepared this (Form 4868, 14 Apr). Firm rule: \u201cA person may not review or sign off on work they prepared.\u201d', action:'',
+        docRef:'timeline · 14 Apr 2026', docTitle:'Extension filed with payment', pre:'Form 4868 with ', hl:'36,000', post:' and FTB 3519 with 0 (estimated from v2; see what_if.extension).', landed:'Sch3.10 amount paid with extension request.' });
+    const byId = Object.fromEntries(data.map(d => [d.id, d]));
+    const words = { blk:'Blocking', wrn:'Judgment', pas:'Passed', eng:'Engine warning' };
+    const blockers = data.filter(d => d.t === 'blk');
+    const fixList = [...blockers, ...data.filter(d => d.t === 'wrn'), ...data.filter(d => d.t === 'eng')];
+    const RULE_PARTNER = '\u201cAny adjustment with a tax effect over 1,000 (federal or state) requires partner sign-off.\u201d';
+    const RULE_MASK = '\u201cStaff without sensitive-data clearance see SSNs, bank and account numbers and IP PINs masked; every unmasked view is logged.\u201d';
+    const st = this.state;
+
+    // Queue row helpers. ref = a data item the row opens; null = information row (not selectable).
+    const R_ = (ref, o) => ({ ref, ...o });
+    const fromItem = (d, o) => R_(d.id, { t:d.t, tword:words[d.t], title:d.title, line:d.line, ...(o || {}) });
+
+    const staffAudit = [
+      { when:'05:02', who:'Daniel', what:'opened CA estimates', ex:true },
+      { when:'04:58', who:'Daniel', what:'marked wages reviewed', ex:true },
+      { when:'Jun 23', who:'Engine', what:'computed v3 (late K-1)' },
+      { when:'Apr 14', who:'Daniel', what:'filed the extension with 36,000 (Form 4868)' },
+      { when:'Mar 24', who:'Marcus', what:'joined the engagement' },
+      { when:'Mar 19', who:'Engine', what:'computed v2 (corrected 1099)' },
+      { when:'Mar 12', who:'Priya', what:'pulled the IRS transcript (D69)' },
+      { when:'Mar 04', who:'Engine', what:'computed v1' }
+    ];
+    const clientAudit = [
+      { when:'Jul 01', who:'You', what:'told us St. Brigid confirmed the gift was 1,500' },
+      { when:'Jun 30', who:'Erik', what:'sent a note about the crypto lot with no cost' },
+      { when:'Jun 05', who:'Erik', what:'sent the 2023 Woodworks K-1 photo' },
+      { when:'Mar 18', who:'Erik', what:'uploaded the corrected Meridian 1099' },
+      { when:'Mar 02', who:'You', what:'said everything was in except the Ridgeline K-1' },
+      { when:'Jan 20', who:'You', what:'answered the questionnaire' }
+    ];
+    const filedAudit = [
+      { when:'Jan 2028', who:'IRS', what:'Letter 566 received (D72)' },
+      { when:'Jul 15', who:'FTB', what:'accepted the California e-file' },
+      { when:'Jul 14', who:'IRS', what:'accepted the federal e-file' },
+      { when:'Jul 13', who:'E-file', what:'first transmission rejected' },
+      { when:'Jul 10', who:'Clients', what:'signed Forms 8879 and FTB 8879' }
+    ];
+    const nextAudit = [
+      { when:'Jan 2027', who:'Priya', what:'opened the 2026 return to roll forward' },
+      ...filedAudit.slice(1)
+    ];
+
+    const prepRole = (who, cleared) => ({
+      version:'v3, none of our changes applied yet', stage:'Review',
+      banner: cleared ? 'You can adjust values, ask the client, dismiss with a reason and mark items prepared. Every reveal of a full SSN is logged.'
+                      : 'You can adjust values, ask the client, dismiss with a reason and mark items prepared. You cannot reveal full SSNs or bank numbers.',
+      A:{ label:'To fix, blockers first', rows: fixList.map(d => fromItem(d)) },
+      audit: staffAudit, auditLabel:'Audit trail',
+      mask: cleared ? 'on' : 'off',
+      acts: d => [ { label:d.action, primary:true }, { label:'Ask the client' }, { label:'Dismiss with a reason' }, { label:'Mark prepared' } ]
+    });
+
+    const roleDefs = {
+      priya: { label:'Priya Raman, preparer', ...prepRole('Priya', true) },
+      marcus: { label:'Marcus Bell, preparer', ...prepRole('Marcus', false) },
+      daniel: { label:'Daniel Ortiz, reviewer', version:'v3, none of our changes applied yet', stage:'Review',
+        banner:'You can leave review notes, send back and sign off. You cannot edit values.',
+        A:{ label:'Since you last looked', ex:true, rows:[ fromItem(byId.ssn), fromItem(byId.hvac) ] },
+        B:{ label:'Needs review', rows:[ fromItem(byId['ca-est']), fromItem(byId.atlas), fromItem(byId.rsu), fromItem(byId.diag), fromItem(byId.wages), fromItem(byId.ext, { line:'You prepared this: you cannot sign it off' }) ] },
+        audit: staffAudit, auditLabel:'Audit trail', mask:'on',
+        acts: d => [ { label:'Leave a review note', primary:true }, { label:'Send back' }, d.preparedBy === 'daniel' ? { label:'Sign off', off:true, reason:'A person may not review or sign off on work they prepared.' } : d.t === 'pas' ? { label:'Sign off' } : { label:'Sign off', off:true, reason:'Resolve this item first' } ] },
+      helen: { label:'Helen Strand, partner', version:'v3, none of our changes applied yet', stage:'Review',
+        banner:'You can approve the return and send it to the client once nothing blocks it. Firm rule: ' + RULE_PARTNER,
+        A:{ label:'Waiting for partner', rows: ['ca-est','atlas','rsu','hvac'].map(id => fromItem(byId[id], { line:'Tax effect over 1,000: partner sign-off required' })) },
+        B:{ label:'Blockers', rows: blockers.map(d => fromItem(d)) },
+        audit: staffAudit, auditLabel:'Audit trail', mask:'on',
+        acts: () => [ { label:'Approve and send to client: blocked by ' + blockers[0].title + ', and ' + (blockers.length - 1) + ' more', primary:true, off:true, reason:'Firm rule: Open review notes block filing (' + blockers.length + ' open)' }, { label:'Leave a review note' }, { label:'Send back' } ] },
+      ngozi: { label:'Ngozi Okafor, client', client:true, version:'Draft 3, none of our changes applied yet', stage:'Review',
+        banner:'Here is what we need from you. You can answer questions, upload documents, and approve your return once your firm has finished.',
+        A:{ label:'Questions for you', ex:true, rows:[
+          R_('ca-est', { t:'wrn', tword:'Question', title:'Your 15 Sep 2025 California payment', line:'Which year was it for?' }),
+          R_('atlas', { t:'wrn', tword:'Question', title:'Card payments from Atlas', line:'Already in your studio deposits?' }),
+          R_('ssn', { t:'wrn', tword:'Question', title:'Theo’s Social Security number', line:'Confirm it ends in 3390' }) ] },
+        B:{ label:'Documents to upload', ex:true, rows:[ R_('hvac', { t:'wrn', tword:'Upload', title:'Heat pump permit', line:'A photo or PDF is fine' }) ] },
+        C:{ label:'Approve and e-sign', rows:[ R_(null, { t:'mut', tword:'Locked', title:'Approve your return', line:'Opens after your tax team approves it' }) ] },
+        audit: clientAudit, auditLabel:'Your activity', mask:'none',
+        acts: d => [ d.id === 'hvac' ? { label:'Upload', primary:true } : { label:'Answer', primary:true }, d.id === 'hvac' ? { label:'Answer' } : { label:'Upload' }, { label:'Approve and e-sign', off:true, reason:'Locked until your tax team approves the return' } ] },
+      jo: { label:'Jo Kimura, administrator', version:'v3, none of our changes applied yet', stage:'Review',
+        banner:'You can see who viewed what, time against budget and file status, and change the firm standards. Return values are read only for you.',
+        A:{ label:'View log: every unmasked view is logged', ex:true, rows:[
+          R_(null, { t:'acc', tword:'Revealed', title:'Priya revealed Theo’s SSN', line:'14 Jul, 09:41 · reason: e-file reject' }),
+          R_(null, { t:'blk', tword:'Refused', title:'Marcus tried to reveal an SSN', line:'2 Apr, 11:05 · refused: no sensitive-data clearance' }),
+          R_(null, { t:'acc', tword:'Viewed', title:'Daniel opened bank numbers', line:'14 Apr, 14:52 · extension payment' }) ] },
+        B:{ label:'Time vs budget', ex:true, rows:[
+          R_(null, { t:'blk', tword:'Over', title:'Investments and digital assets', line:'5.5 h used of 4.0 h budget' }),
+          R_(null, { t:'pas', tword:'Within', title:'Wages and stock compensation', line:'2.5 h used of 3.0 h budget' }),
+          R_(null, { t:'mut', tword:'Total', title:'All areas', line:'19.0 h used of 22.0 h budget' }) ] },
+        C:{ label:'File status', rows:[
+          R_(null, { t:'blk', tword:'Late', title:'Internal review was due 8 Apr 2026', line:'Review still open' }),
+          R_(null, { t:'acc', tword:'Due', title:'Extended due date 15 Oct 2026', line:'Federal and California' }) ] },
+        audit: staffAudit, auditLabel:'Audit trail', mask:'none',
+        acts: () => [ { label:'Edit firm standards', primary:true } ], noAct:'Return values are read only.' },
+      next: { label:'Next year’s preparer', filed:true, version:'As filed: the return as this workpaper finalized it', stage:'Review',
+        banner:'2025 is read only. You can add items to the 2026 plan.',
+        A:{ label:'Carry forward to 2026', rows:[
+          fromItem(byId.hvac, { t:'acc', tword:'Carry', title:'Fremont Way heat pump', line:'Depreciate over 27.5 years from 2025' }),
+          R_(null, { t:'acc', tword:'Carry', title:'Minimum tax credit from 2025 AMT', line:'May be usable in 2026 (Form 8801)' }),
+          R_(null, { t:'acc', tword:'Carry', title:'No California residency in 2026', line:'Only California-source income: Sacramento rental, Ridgeline share' }),
+          R_(null, { t:'acc', tword:'Carry', title:'SEP contribution limit', line:'Depends on 2026 net profit' }) ] },
+        B:{ label:'Open items from 2025', rows:[
+          R_(null, { t:'wrn', tword:'Open', title:'Contractors paid by ACH, no 1099s filed', line:'Erik asked what to do (call, 26 Mar)' }),
+          R_(null, { t:'wrn', tword:'Open', title:'FBAR for the Swedish account', line:'Outside the engagement' }) ] },
+        audit: nextAudit, auditLabel:'History', mask:'none',
+        acts: () => [ { label:'Add to 2026 plan', primary:true } ] },
+      sam: { label:'Sam Adeyemi, quality reviewer', filed:true, stage:'Review', version:'As filed: the return as this workpaper finalized it',
+        banner:'Read only. You see the filed record with its full internal history, and can leave a quality-review finding.',
+        A:{ label:'Selected for quality review, 4 Jan 2027', ex:true, rows:[
+          fromItem(byId.atlas, { t:'acc', tword:'Adjusted', line:'Engine v3 163,700; firm adjusted to 151,300' }),
+          fromItem(byId['ca-est'], { t:'acc', tword:'Adjusted', line:'Engine v3 14,000; firm adjusted to 10,500' }),
+          fromItem(byId.rsu, { t:'acc', tword:'Adjusted', line:'Engine basis 0; firm used 19,100' }),
+          fromItem(byId.hvac, { t:'acc', tword:'Decided', line:'Recorded as an improvement' }),
+          fromItem(byId.ssn, { t:'acc', tword:'Fixed', line:'Rejected 13 Jul; accepted 14 Jul' }) ] },
+        B:{ label:'Required step not done', rows:[ R_(null, { t:'blk', tword:'Not done', title:'Engagement letter and consents signed', line:'D02 covers use, not disclosure' }) ] },
+        audit: [ { when:'Jan 2027', who:'Sam', what:'return selected for quality review' }, ...filedAudit.slice(1), ...staffAudit.filter(a => !a.ex) ], auditLabel:'Full history', mask:'on',
+        acts: () => [ { label:'Leave a quality-review finding', primary:true } ] },
+      irs: { label:'IRS examiner', snapshot:true, filed:true, version:'As filed: the return as this workpaper finalized it', stage:'Review',
+        banner:'Read only. You can export a response pack for the items under examination.',
+        A:{ label:'Under examination, Letter 566', rows:[
+          R_('noncash', { t:'acc', tword:'Under exam', title:'Schedule A line 12, noncash gifts', line:'Form 8283: acknowledgments and valuation' }),
+          R_('atlas', { t:'acc', tword:'Under exam', title:'Schedule C gross receipts', line:'Reconcile to 1099-NEC 142,000 and 1099-K 12,400' }) ] },
+        audit: filedAudit.filter(a => a.who !== 'FTB' && a.who !== 'E-file').map(a => a.who === 'Clients' ? { ...a, what:'signed Form 8879' } : a), auditLabel:'Filed history', mask:'none',
+        acts: () => [ { label:'Export response pack', primary:true } ] }
+    };
+    const order = ['priya','marcus','daniel','helen','sam','jo','ngozi','next','irs'];
+    const role = roleDefs[st.role] ? st.role : 'daniel';
+    const R = roleDefs[role];
+    const roles = order.map(id => ({ id, label: roleDefs[id].label }));
+    const allRows = [R.A, R.B, R.C].filter(Boolean).flatMap(s => s.rows);
+    const selectable = allRows.filter(r => r.ref);
+    const sel = selectable.some(r => r.ref === st.sel) ? st.sel : (selectable[0] ? selectable[0].ref : 'wages');
+    const cur0 = byId[sel];
+    const cur = { ...cur0, tcls:'t-'+cur0.t, tword:words[cur0.t] };
+
+    const hide = 'display:none';
+    const mkSec = s => s ? ({ label:s.label, count:s.rows.length, style:'', exStyle: s.ex ? '' : hide,
+      rows: s.rows.map(r => ({ ...r, tcls:'t-'+r.t, on: r.ref && r.ref === sel ? 'on' : (r.ref ? '' : 'flat'),
+        pick: () => { if (r.ref) this.setState({ sel: r.ref, msg:'' }); } })) })
+      : ({ label:'', count:0, style:hide, exStyle:hide, rows:[] });
+
+    // What the centre and document pane show. Client sees plain words only.
+    // What the centre and document pane show. Client: plain words only. Examiner: the filed record, no internal analysis.
+    const c = (R.client && cur0.c) || null;
+    const x = (R.snapshot && cur0.x) || null;
+    const ext = R.client || R.snapshot;
+    const V = {
+      title: c ? c.title : x ? x.title : cur0.title,
+      value: c ? c.value : x ? x.value : cur0.value,
+      valueEx: x ? '' : hide, valueNote: x ? 'As filed: the return as this workpaper finalized it' : '', valueNoteStyle: x ? '' : hide,
+      why: c ? c.why : x ? x.why : cur0.why,
+      fromLbl: c ? 'Your document' : x ? 'Source documents' : 'Where from', from: c ? c.from : x ? x.from : cur0.from,
+      doneLbl: x ? 'How it was built' : 'What was done', done: x ? x.done : cur0.done,
+      checkedLbl: x ? 'Sign-offs and history' : R.filed ? 'Sign-offs' : 'Who checked',
+      checked: x ? x.checked : R.filed ? 'Signed: Priya Raman, preparer; Daniel Ortiz, reviewer; Helen Strand, partner.' : cur0.checked,
+      checkedEx: (x ? x.checkedEx : R.filed ? true : cur0.checkedEx) ? '' : hide,
+      doneStyle: R.client ? hide : '',
+      openLbl: c ? 'What we need from you' : 'What is open', open: c ? c.open : cur0.open, openStyle: R.snapshot ? hide : '',
+      internal: ext ? hide : '',
+      docLbl: R.client ? 'Your document' : 'Source document',
+      docRef: R.client ? 'page ' + cur0.page : (cur0.docRef || cur0.doc + ' · page ' + cur0.page),
+      tword: R.client ? (sel === 'hvac' ? 'Needs an upload' : 'Needs your answer') : R.snapshot ? 'Under examination' : words[cur0.t],
+      tcls: R.client ? 't-wrn' : R.snapshot ? 't-acc' : 't-'+cur0.t,
+      docTitle: (c && c.docTitle) || cur0.docTitle,
+      pre: (c && c.pre) || cur0.pre, hl: (c && c.hl) || cur0.hl, post: (c && c.post) || cur0.post
+    };
+
+    const actions = R.acts(cur0).map(a => ({ label:a.label, reason:a.reason || '', ad: a.off ? 'true' : 'false',
+      cls: a.off ? 'off' : (a.primary ? 'primary' : ''),
+      go: () => this.setState({ msg: a.off ? ('Not available: ' + a.reason + '.') : ('Mock: "' + a.label + '" would open here, saved to the audit trail.') }) }));
+
+    const mask = R.mask === 'none' ? { style:hide, cls:'', ad:'false', note:'', go: () => {} }
+      : R.mask === 'on' ? { style:'', cls:'', ad:'false', note:'Firm rule: every unmasked view is logged.', go: () => this.setState({ msg:'Reveal logged (mock). This mock keeps last 4 only.' }) }
+      : { style:'', cls:'off', ad:'true', note:'No sensitive-data clearance (background check pending). Firm rule: ' + RULE_MASK, go: () => this.setState({ msg:'Not available: no sensitive-data clearance.' }) };
+
+    // Progress = the firm's 12 required steps (firm.starter_standards.required_steps). Done only with packet evidence; otherwise Example.
+    const stepNames = ['Engagement letter and consents signed','Identity verified','Prior-year return reviewed','All documents accounted for','Prior-year variances explained','Carryovers agreed to prior year','Estimated payments agreed to IRS and FTB records','Due diligence completed','Diagnostics resolved','Reviewer sign-off','Partner sign-off','Client approval and e-file authorization'];
+    const nowNotes = ['D01 signed 12 Jan; D02 covers use, not disclosure','Theo\u2019s SSN differs from his card','No record yet','D15 and D47 are cited by no line','Repairs swing still open','No record yet','IRS transcript pulled 12 Mar (D69); California payments still off','Engine: Form 8867 must be completed','11 engine diagnostics open','Not yet','Not yet','Not yet'];
+    const steps = stepNames.map((name, i) => {
+      if (!R.filed) return { name, note: nowNotes[i], tword:'Not done', tcls:'t-mut', exStyle: hide };
+      if (i === 11) return { name, note:'Forms 8879 signed 10 Jul 2026', tword:'Done', tcls:'t-pas', exStyle: hide };
+      return { name, note:'No record in the file', tword:'No record', tcls:'t-mut', exStyle: hide };
+    });
+    const nDone = steps.filter(x => x.tword === 'Done').length;
+    const prog = { text: R.filed ? nDone + ' of 12 steps with evidence in the file' : nDone + ' of 12 steps done', open: st.prog ? 'true' : 'false',
+      btnStyle: (R.client || R.snapshot) ? hide : '', clientStyle: R.client ? '' : hide,
+      listStyle: (st.prog && !R.client && !R.snapshot) ? 'display:flex;flex-wrap:wrap;gap:6px 18px;padding:10px 20px;border-bottom:1px solid var(--line);background:var(--surface);font-size:12.5px' : hide };
+
+    const chat = R.client
+      ? { q:'Which of my California payments count for 2025?', a1:'Three of your payments count: 15 Apr 2025, 16 Jun 2025 and 15 Jan 2026, totalling $10,500, from your FTB Web Pay confirmations. The 15 Sep 2025 payment was for 2024.', src:'', srcStyle:'display:none', a2:'', scope:'Answers only about your own documents.' }
+      : { q:'Which California estimated payments count for 2025?', a1:'Three payments count: 15 Apr 2025, 16 Jun 2025 and 15 Jan 2026, totalling 10,500', src:'D68', srcStyle:'', a2:'. The 15 Sep 2025 payment is marked tax year 2024 on the document.', scope:'Answers cite the source document and field.' };
+    chat.open = st.chat ? 'true' : 'false';
+    chat.style = st.chat ? 'width:340px;background:var(--surface);border:1px solid var(--line);border-radius:12px;padding:14px;box-shadow:0 8px 24px oklch(0.2 0.02 255 / .14)' : hide;
+
+    return { cur, V, staffOnly: (R.client || R.snapshot) ? hide : '', chatWrapStyle: R.snapshot ? hide : '', R: { ...R, verExStyle: R.filed ? '' : hide, snapStyle: R.filed && role !== 'next' ? '' : hide },
+      secA: mkSec(R.A), secB: mkSec(R.B), secC: mkSec(R.C),
+      audit: R.audit.map(a => ({ ...a, exStyle: a.ex ? '' : hide })), auditLabel: R.auditLabel,
+      actions, mask, steps, prog, roles, role, chat,
+      toggleProg: () => this.setState({ prog: !st.prog }),
+      noActStyle: R.noAct ? '' : hide, noActText: R.noAct || '',
+      actMsg: st.msg,
+      toggleChat: () => this.setState({ chat: !st.chat }),
+      pickRole: (e) => this.setState({ role: e.target.value, msg:'' }),
+      rootClass: 'wp' + ((this.props.dark ?? false) ? ' dark' : '') };
+  }
+}
+</script>
+</body>
+</html>

@@ -1,0 +1,446 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Direction C: the return as a pull request</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Instrument+Sans:wght@400;500;600;700&amp;family=Source+Serif+4:opsz,wght@8..60,400;8..60,600&amp;family=IBM+Plex+Mono:wght@400;500&amp;display=swap" rel="stylesheet">
+<style>
+body{margin:0}
+a{color:oklch(0.46 0.15 262)}a:hover{color:oklch(0.36 0.15 262)}
+.wp{--bg:oklch(0.975 0.005 250);--surface:oklch(0.995 0.003 250);--sunk:oklch(0.955 0.006 250);--line:oklch(0.89 0.008 250);--ink:oklch(0.24 0.02 255);--ink2:oklch(0.44 0.02 255);--acc:oklch(0.46 0.15 262);--accsoft:oklch(0.94 0.035 262);--blk:oklch(0.50 0.17 32);--blksoft:oklch(0.955 0.03 32);--wrn:oklch(0.48 0.10 70);--wrnsoft:oklch(0.96 0.045 85);--pas:oklch(0.47 0.09 165);--passoft:oklch(0.955 0.03 165);--hl:oklch(0.91 0.13 100);--paper:oklch(0.99 0.006 90)}
+.wp.dark{--bg:oklch(0.19 0.012 255);--surface:oklch(0.23 0.014 255);--sunk:oklch(0.17 0.012 255);--line:oklch(0.33 0.015 255);--ink:oklch(0.93 0.008 255);--ink2:oklch(0.74 0.012 255);--acc:oklch(0.76 0.11 262);--accsoft:oklch(0.30 0.05 262);--blk:oklch(0.74 0.13 35);--blksoft:oklch(0.28 0.05 32);--wrn:oklch(0.80 0.11 80);--wrnsoft:oklch(0.29 0.04 85);--pas:oklch(0.76 0.09 165);--passoft:oklch(0.27 0.04 165);--hl:oklch(0.55 0.10 100);--paper:oklch(0.26 0.01 90)}
+.wp{font-family:'Instrument Sans',system-ui,sans-serif;color:var(--ink);background:var(--bg);font-size:14px;line-height:1.45;min-height:100vh}
+.num{font-variant-numeric:tabular-nums;font-feature-settings:"tnum"}
+.mono{font-family:'IBM Plex Mono',monospace;font-size:12px}
+.btn{font:inherit;font-size:13px;border:1px solid var(--line);background:var(--surface);color:var(--ink);border-radius:8px;padding:7px 12px;cursor:pointer;min-height:36px}
+.btn.primary{background:var(--acc);border-color:var(--acc);color:var(--surface)}
+.btn:disabled{opacity:.55;cursor:not-allowed}
+.btn:focus-visible,.tab:focus-visible,.sel:focus-visible,.linkish:focus-visible{outline:2px solid var(--acc);outline-offset:2px}
+.tab{all:unset;cursor:pointer;padding:10px 4px;margin-right:18px;border-bottom:2px solid transparent;color:var(--ink2);font-weight:500}
+.tab.on{border-bottom-color:var(--acc);color:var(--ink)}
+.tag{display:inline-flex;align-items:center;font-size:11.5px;font-weight:600;padding:2px 8px;border-radius:999px;white-space:nowrap}
+.t-blk{color:var(--blk);background:var(--blksoft)}.t-wrn{color:var(--wrn);background:var(--wrnsoft)}.t-pas{color:var(--pas);background:var(--passoft)}.t-acc{color:var(--acc);background:var(--accsoft)}
+.t-ex{color:var(--ink2);background:var(--sunk);border:1px dashed var(--line);font-weight:500;font-size:10.5px;padding:1px 6px}
+.lbl{font-size:11.5px;font-weight:600;letter-spacing:.04em;text-transform:uppercase;color:var(--ink2)}
+.card{border:1px solid var(--line);border-radius:10px;background:var(--surface)}
+.doc{font-family:'Source Serif 4',Georgia,serif;font-size:14.5px;line-height:1.6;background:var(--paper);border-top:1px solid var(--line);border-bottom:1px solid var(--line);padding:14px 16px}
+mark{background:var(--hl);color:inherit;padding:1px 2px;border-radius:2px;box-shadow:0 0 0 2px var(--hl)}
+.sel{font:inherit;font-size:13px;border:1px solid var(--line);background:var(--surface);color:var(--ink);border-radius:8px;padding:6px 10px;min-height:36px}
+.row{display:flex;flex-wrap:wrap;align-items:center;gap:10px;padding:12px 16px;border-bottom:1px solid var(--line)}
+.linkish{all:unset;cursor:pointer;color:var(--acc);text-decoration:underline;text-underline-offset:2px}
+.helper{position:fixed;right:24px;bottom:24px;display:flex;flex-direction:column;align-items:flex-end;gap:10px;z-index:5}
+.helper-panel{width:340px;border:1px solid var(--line);border-radius:12px;background:var(--surface);box-shadow:0 8px 24px oklch(0.2 0.02 255 / .12);padding:14px 16px;font-size:13.5px}
+</style>
+</helmet>
+<div class="{{rootClass}}">
+<header style="padding:18px 28px 0;background:var(--surface);border-bottom:1px solid var(--line)">
+<div style="display:flex;flex-wrap:wrap;align-items:center;gap:10px;color:var(--ink2);font-size:13px">
+<span>{{crumb}}</span>
+<span style="margin-left:auto;display:flex;flex-wrap:wrap;align-items:center;gap:10px">
+<label style="display:flex;align-items:center;gap:8px"><span>Viewing as</span>
+<select class="sel" aria-label="Viewing as" value="{{role}}" onChange="{{pickRole}}">
+<option value="priya">Priya Raman, preparer</option>
+<option value="marcus">Marcus Bell, preparer</option>
+<option value="daniel">Daniel Ortiz, reviewer</option>
+<option value="helen">Helen Strand, partner</option>
+<option value="sam">Sam Adeyemi, quality reviewer</option>
+<option value="jo">Jo Kimura, administrator</option>
+<option value="ngozi">Ngozi Okafor, client</option>
+<option value="next">Next year's preparer</option>
+<option value="irs">IRS examiner</option>
+</select></label>
+<span class="tag t-pas">Saved</span>
+</span>
+</div>
+<div style="display:flex;flex-wrap:wrap;align-items:center;gap:12px;margin-top:6px">
+<h1 style="margin:0;font-size:24px;font-weight:600;letter-spacing:-.015em">{{title}}</h1>
+<span class="tag t-acc">{{stage}}</span>
+<span style="color:var(--ink2)">{{versionLine}}</span>
+</div>
+<div role="tablist" aria-label="Return views" style="display:flex;flex-wrap:wrap;margin-top:12px">
+<sc-for list="{{tabs}}" as="t" hint-placeholder-count="4"><button class="tab {{t.on}}" role="tab" type="button" onClick="{{t.pick}}">{{t.name}} <span class="num" style="color:var(--ink2)">{{t.count}}</span></button></sc-for>
+</div>
+</header>
+<div role="note" style="padding:9px 28px;background:var(--sunk);border-bottom:1px solid var(--line);font-size:13px;display:flex;flex-wrap:wrap;gap:8px;align-items:center"><strong style="font-weight:600">{{roleName}}</strong><span style="color:var(--ink2)">{{banner}}</span></div>
+<div style="display:flex;flex-wrap:wrap;gap:28px;padding:22px 28px">
+<main style="flex:999 1 600px;min-width:0;display:flex;flex-direction:column;gap:16px">
+
+<div class="card" style="padding:14px 16px;display:flex;flex-wrap:wrap;align-items:center;gap:12px">
+<strong>{{statusHead}}</strong>
+<sc-for list="{{statusTags}}" as="g" hint-placeholder-count="3"><span class="tag {{g.tcls}}">{{g.text}}</span></sc-for>
+<span style="margin-left:auto;display:flex;flex-wrap:wrap;gap:8px;align-items:center">
+<span style="color:var(--ink2);font-size:12.5px;max-width:46ch;text-align:right">{{mergeNote}}</span>
+<sc-for list="{{mergeBtns}}" as="b" hint-placeholder-count="2"><button class="btn {{b.cls}}" type="button" disabled="{{b.dis}}" onClick="{{b.go}}">{{b.label}}</button></sc-for>
+</span>
+</div>
+
+<sc-if value="{{showConversation}}" hint-placeholder-val="{{true}}">
+<sc-for list="{{threads}}" as="th" hint-placeholder-count="3">
+<article class="card" style="overflow:hidden">
+<div style="padding:8px 16px 0;display:flex;gap:8px;align-items:center"><span class="lbl">{{th.group}}</span></div>
+<div style="display:flex;flex-wrap:wrap;align-items:center;gap:10px;padding:8px 16px 12px">
+<span class="tag {{th.tcls}}">{{th.status}}</span><span class="tag {{th.sevcls}}">{{th.sev}}</span>
+<strong>{{th.who}}</strong><span style="color:var(--ink2)">on</span><span class="mono">{{th.line}}</span>
+<span style="color:var(--ink2);margin-left:auto;display:flex;gap:8px;align-items:center">{{th.when}} <span class="tag t-ex">Example</span></span>
+</div>
+<p style="margin:0;padding:0 16px 12px;max-width:72ch">{{th.text}}</p>
+<div class="doc"><span class="mono" style="display:block;color:var(--ink2);margin-bottom:6px;font-family:'IBM Plex Mono',monospace">{{th.doc}}</span>{{th.pre}}<mark>{{th.hl}}</mark>{{th.post}}</div>
+<div style="padding:10px 16px;display:flex;flex-wrap:wrap;gap:10px;align-items:center;background:var(--sunk)">
+<span style="color:var(--ink2);font-size:13px;display:flex;flex-direction:column;gap:2px"><span>{{th.reply}}</span><span>{{th.rule}}</span></span>
+<span style="margin-left:auto;display:flex;flex-wrap:wrap;gap:8px">
+<sc-for list="{{threadActs}}" as="a" hint-placeholder-count="3"><button class="btn" type="button">{{a}}</button></sc-for>
+<span style="{{th.signStyle}}"><button class="btn" type="button" disabled="{{th.signDis}}" title="{{th.signWhy}}">{{th.signLbl}}</button></span>
+<button class="btn" type="button" onClick="{{th.toggle}}">{{th.btn}}</button></span>
+</div>
+</article>
+</sc-for>
+</sc-if>
+
+<sc-if value="{{showChecks}}" hint-placeholder-val="{{false}}">
+<div class="card">
+<sc-for list="{{checks}}" as="c" hint-placeholder-count="6">
+<div style="display:grid;grid-template-columns:96px minmax(0,1fr) 160px;gap:12px;padding:11px 16px;border-bottom:1px solid var(--line);align-items:center"><span class="tag {{c.tcls}}">{{c.word}}</span><span>{{c.name}}</span><span class="num" style="color:var(--ink2);font-size:12.5px">{{c.effect}}</span></div>
+</sc-for>
+</div>
+</sc-if>
+
+<sc-if value="{{showClient}}" hint-placeholder-val="{{false}}">
+<div class="card">
+<div class="row" style="justify-content:space-between"><span class="lbl">What we need from you</span><span class="tag t-ex">Example requests</span></div>
+<sc-for list="{{clientItems}}" as="ci" hint-placeholder-count="3">
+<div class="row" style="align-items:flex-start">
+<span class="tag {{ci.tcls}}">{{ci.kind}}</span>
+<span style="flex:1 1 320px;max-width:68ch"><strong style="font-weight:600">{{ci.title}}</strong><br><span style="color:var(--ink2)">{{ci.body}}</span></span>
+<button class="btn" type="button" onClick="{{ci.go}}">{{ci.btn}}</button>
+</div>
+</sc-for>
+<div class="row" style="border-bottom:0;align-items:flex-start">
+<span class="tag t-acc">Locked</span>
+<span style="flex:1 1 320px"><strong style="font-weight:600">Approve and e-sign your return</strong><br><span style="color:var(--ink2)">This opens once your tax team has finished and approved your return. We will email you.</span></span>
+<button class="btn primary" type="button" disabled="{{true}}">Approve and e-sign</button>
+</div>
+</div>
+</sc-if>
+
+<sc-if value="{{showAdmin}}" hint-placeholder-val="{{false}}">
+<div class="card">
+<div class="row" style="justify-content:space-between"><span class="lbl">View log: who revealed what, when</span><span style="color:var(--ink2);font-size:12.5px">Firm rule: “Staff without sensitive-data clearance see SSNs, bank and account numbers and IP PINs masked; every unmasked view is logged.” Entries from this session are live; the rest are examples.</span></div>
+<sc-for list="{{viewLog}}" as="v" hint-placeholder-count="3">
+<div class="row"><span class="tag {{v.tcls}}">{{v.word}}</span><strong style="font-weight:600">{{v.who}}</strong><span>{{v.what}}</span><span class="num" style="margin-left:auto;color:var(--ink2);display:flex;gap:8px;align-items:center">{{v.when}} <span class="tag t-ex" style="{{v.exStyle}}">Example</span></span></div>
+</sc-for>
+</div>
+<div class="card">
+<div class="row"><span class="lbl">Time budget by area (packet)</span><span style="margin-left:auto;color:var(--ink2);font-size:12.5px">Budget only; hours used are not in the packet</span></div>
+<sc-for list="{{budget}}" as="bu" hint-placeholder-count="9">
+<div class="row" style="padding:8px 16px"><span>{{bu.area}}</span><span class="num" style="margin-left:auto">{{bu.hrs}} h</span></div>
+</sc-for>
+<div class="row" style="padding:8px 16px;border-bottom:0"><strong>Total</strong><span class="num" style="margin-left:auto;font-weight:600">22.0 h</span></div>
+</div>
+</sc-if>
+
+<sc-if value="{{showNext}}" hint-placeholder-val="{{false}}">
+<div class="card">
+<div class="row"><span class="lbl">Carry forward to 2026</span></div>
+<sc-for list="{{carry}}" as="cf" hint-placeholder-count="4">
+<div class="row" style="align-items:flex-start">
+<span style="flex:1 1 360px;max-width:72ch"><strong style="font-weight:600">{{cf.title}}</strong><br><span style="color:var(--ink2)">{{cf.why}}</span><br><span class="mono" style="color:var(--ink2)">{{cf.src}}</span></span>
+<button class="btn" type="button" disabled="{{cf.added}}" onClick="{{cf.go}}">{{cf.btn}}</button>
+</div>
+</sc-for>
+</div>
+</sc-if>
+
+<sc-if value="{{showFiled}}" hint-placeholder-val="{{false}}">
+<div class="card" style="padding:12px 16px;display:flex;flex-wrap:wrap;gap:10px;align-items:center"><span class="tag t-acc">Filed snapshot, read only</span><span style="color:var(--ink2)">{{filedIntro}}</span></div>
+<sc-for list="{{irsLines}}" as="il" hint-placeholder-count="2">
+<article class="card" style="overflow:hidden">
+<div style="display:flex;flex-wrap:wrap;gap:10px;padding:12px 16px;align-items:center"><strong style="font-weight:600">{{il.title}}</strong><span class="mono" style="color:var(--ink2)">{{il.line}}</span><span class="num" style="margin-left:auto;font-weight:600;display:flex;gap:8px;align-items:center">As filed {{il.value}} <span class="tag t-ex">Example</span></span></div>
+<div style="padding:0 16px 10px;color:var(--ink2);max-width:80ch">{{il.letter}}</div>
+<div class="doc"><span class="mono" style="display:block;color:var(--ink2);margin-bottom:6px;font-family:'IBM Plex Mono',monospace">How it was built</span>{{il.built}}</div>
+<div style="padding:10px 16px;display:flex;flex-direction:column;gap:6px;background:var(--sunk);font-size:13px">
+<span><span class="lbl">Sources</span> <span class="mono">{{il.src}}</span></span>
+<span><span class="lbl">History</span> {{il.engine}}</span>
+<span style="display:flex;flex-wrap:wrap;gap:8px;align-items:center"><span class="lbl">Who checked</span> {{il.checked}} <span class="tag t-ex">Example</span></span>
+<span style="{{il.internalStyle}}"><span style="display:flex;flex-wrap:wrap;gap:8px;align-items:center"><span class="lbl">Review note</span> {{il.note}} <span class="tag t-ex">Example</span></span></span>
+<span style="{{il.internalStyle}}"><span class="lbl">Firm rule</span> {{il.rule}}</span>
+</div>
+</article>
+</sc-for>
+</sc-if>
+
+<sc-if value="{{showOther}}" hint-placeholder-val="{{false}}">
+<div class="card" style="padding:28px;color:var(--ink2)">This tab is drawn in the full mock-up.</div>
+</sc-if>
+</main>
+
+<aside aria-label="Status" style="flex:1 1 300px;min-width:260px;max-width:360px;display:flex;flex-direction:column;gap:20px">
+<sc-if value="{{showSignoffs}}" hint-placeholder-val="{{true}}">
+<section><div style="display:flex;align-items:center;gap:8px;margin-bottom:8px"><span class="lbl">Sign-offs</span><span class="tag t-ex">Example</span></div>
+<sc-for list="{{signoffs}}" as="s" hint-placeholder-count="4">
+<div style="display:flex;justify-content:space-between;gap:10px;padding:8px 0;border-bottom:1px solid var(--line)"><span><strong style="font-weight:600">{{s.who}}</strong><br><span style="color:var(--ink2);font-size:12.5px">{{s.role}}</span></span><span class="tag {{s.tcls}}" style="align-self:center">{{s.state}}</span></div>
+</sc-for>
+<p style="margin:8px 0 0;font-size:12.5px;color:var(--ink2)">Example: Daniel's review goes stale when a new version changes lines he had approved. The packet holds no review work.</p>
+</section>
+</sc-if>
+
+<sc-if value="{{showSsn}}" hint-placeholder-val="{{true}}">
+<section><div class="lbl" style="margin-bottom:8px">Sensitive field</div>
+<div class="card" style="padding:12px 14px;display:flex;flex-direction:column;gap:6px">
+<span>Theo, dependent 2, SSN</span>
+<span class="num" style="display:flex;justify-content:space-between"><span style="color:var(--ink2)">Organizer</span><span class="mono">XXX-XX-3309</span></span>
+<span class="num" style="display:flex;justify-content:space-between"><span style="color:var(--ink2)">Card (D71)</span><span class="mono">XXX-XX-3390</span></span>
+<span style="font-size:12.5px;color:var(--ink2)">{{ssnNote}}</span>
+<span style="{{revealStyle}}"><button class="btn" type="button" disabled="{{revealDis}}" onClick="{{reveal}}">{{revealLabel}}</button></span>
+</div>
+</section>
+</sc-if>
+
+<sc-if value="{{showSteps}}" hint-placeholder-val="{{true}}">
+<section><div class="lbl" style="margin-bottom:8px">Firm's required steps</div>
+<div style="display:flex;justify-content:space-between;align-items:center;gap:10px"><span class="num">{{stepsLine}}</span><button class="linkish" type="button" aria-expanded="{{stepsOpen}}" onClick="{{toggleSteps}}">{{stepsBtn}}</button></div>
+<sc-if value="{{stepsOpen}}" hint-placeholder-val="{{false}}">
+<ol style="margin:8px 0 0;padding-left:20px;font-size:13px;display:flex;flex-direction:column;gap:6px">
+<sc-for list="{{steps}}" as="st" hint-placeholder-count="12"><li><span>{{st.name}}</span> <span class="tag {{st.tcls}}">{{st.word}}</span><br><span style="color:var(--ink2);font-size:12px">{{st.why}}</span></li></sc-for>
+</ol>
+</sc-if>
+</section>
+</sc-if>
+<sc-if value="{{showClientPart}}" hint-placeholder-val="{{false}}">
+<section><div class="lbl" style="margin-bottom:8px">Your part</div><p style="margin:0">Your part: answer questions, approve and sign.</p></section>
+</sc-if>
+<section><div class="lbl" style="margin-bottom:8px">Deadlines</div>
+<div style="display:flex;justify-content:space-between;padding:4px 0"><span>Extended due date</span><span class="num">15 Oct 2026</span></div>
+<sc-if value="{{showInternal}}" hint-placeholder-val="{{true}}">
+<div style="display:flex;justify-content:space-between;padding:4px 0"><span>FBAR (outside return)</span><span class="num">15 Oct 2026</span></div>
+</sc-if>
+</section>
+
+<sc-if value="{{showBudget}}" hint-placeholder-val="{{true}}">
+<section><div style="display:flex;align-items:center;gap:8px;margin-bottom:8px"><span class="lbl">Time against budget</span><span class="tag t-ex">Example</span></div>
+<div style="height:8px;border-radius:99px;background:var(--sunk);overflow:hidden"><div style="width:72%;height:100%;background:var(--acc)"></div></div>
+<div class="num" style="margin-top:6px;color:var(--ink2);font-size:12.5px">15.8 of 22.0 hours (budget from the packet; hours used are an example)</div>
+</section>
+</sc-if>
+</aside>
+</div>
+
+<sc-if value="{{showHelper}}" hint-placeholder-val="{{true}}">
+<div class="helper">
+<sc-if value="{{chatOpen}}" hint-placeholder-val="{{false}}">
+<div class="helper-panel" role="region" aria-label="Ask about this return">
+<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px"><strong style="font-weight:600">Ask about this return</strong><span class="tag t-ex">Preview, later round</span></div>
+<p style="margin:0 0 8px;color:var(--ink2);font-size:12.5px">{{chatScope}}</p>
+<p style="margin:0 0 8px"><strong style="font-weight:600">Q</strong> {{chatQ}}</p>
+<p style="margin:0"><strong style="font-weight:600">A</strong> <span class="num">{{chatA1}}</span><sc-if value="{{chatSrc}}" hint-placeholder-val="{{true}}"><button class="linkish mono" type="button">[Source: D68]</button></sc-if>{{chatA2}}</p>
+</div>
+</sc-if>
+<button class="btn primary" type="button" aria-expanded="{{chatOpen}}" onClick="{{toggleChat}}">Ask about this return</button>
+</div>
+</sc-if>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"dark":{"editor":"boolean","default":false},"$preview":{"width":1440,"height":900}}'>
+class Component extends DCLogic {
+  constructor(p){ super(p); this.state = { role: 'daniel', tab: null, resolved: {}, revealed: false, chatOpen: false, done: {}, added: {}, sent: false }; }
+  renderVals() {
+    const S = this.state, res = S.resolved;
+    const ROLES = [
+      { id:'priya', label:'Priya Raman, preparer', view:'staff', kind:'preparer' },
+      { id:'marcus', label:'Marcus Bell, preparer', view:'staff', kind:'preparer' },
+      { id:'daniel', label:'Daniel Ortiz, reviewer', view:'staff', kind:'reviewer' },
+      { id:'helen', label:'Helen Strand, partner', view:'staff', kind:'partner' },
+      { id:'sam', label:'Sam Adeyemi, quality reviewer', view:'qr', kind:'qr' },
+      { id:'jo', label:'Jo Kimura, administrator', view:'admin', kind:'admin' },
+      { id:'ngozi', label:'Ngozi Okafor, client', view:'client', kind:'client' },
+      { id:'next', label:"Next year's preparer", view:'next', kind:'next' },
+      { id:'irs', label:'IRS examiner', view:'irs', kind:'irs' }
+    ];
+    const me = ROLES.find(r => r.id === S.role) || ROLES.find(r => r.id === 'daniel');
+    const view = me.view, kind = me.kind;
+    const TABS = {
+      staff: [['Conversation', me.id==='daniel' ? 4 : 3],['Checks',''],['Changes',''],['Documents',74]],
+      client: [['What we need from you',3],['Your documents',74]],
+      admin: [['View log',''],['Time and status',''],['Documents',74]],
+      next: [['Carry forward',4],['2025 return, read only',''],['Documents',74]],
+      irs: [['Letter 566 items',2],['Documents',74]],
+      qr: [['Filed record',2],['Documents',74]]
+    }[view];
+    const tab = S.tab && TABS.some(t => t[0] === S.tab) ? S.tab : TABS[0][0];
+    const first = tab === TABS[0][0];
+    const tabs = TABS.map(([name,count]) => ({ name, count, on: tab===name?'on':'', pick: () => this.setState({ tab: name }) }));
+
+    const BANNER = {
+      priya: 'You can adjust values, ask the client, dismiss a check with a reason and mark the return prepared. SSNs stay masked; revealing one is logged.',
+      marcus: 'You can adjust values, ask the client, dismiss a check with a reason and mark the return prepared. You cannot reveal SSNs or bank numbers: no sensitive-data clearance yet.',
+      daniel: 'You can leave review notes, send back and sign off. You cannot edit values.',
+      helen: 'You can approve and send to the client once nothing blocks. You sign the return.',
+      ngozi: 'Here is what we need from you. You can answer, upload and, when it is ready, approve and e-sign.',
+      jo: 'You can see who viewed sensitive data, time against budget and file status, and change the firm standards. Return values are read only.',
+      sam: 'Read only. You see the filed record with its full internal history and can leave a quality-review finding.',
+      next: 'You are working on the 2026 return. The 2025 return is read only; you can add items to your 2026 plan.',
+      irs: 'Filed snapshot, read only. You can export a response pack. No edit controls are shown.'
+    };
+
+    // Threads (internal only). Reviewer history in the packet is empty, so every thread carries an Example tag.
+    const base = [
+      { id:'t1', sev:'Blocking', who:'Daniel Ortiz', line:'F540NR.72', when:'5:02 am', text:'This includes the September payment, but the confirmation says it was for tax year 2024. Should be 10,500. Blocking.', doc:'D68 · FTB Web Pay confirmations · page 1', pre:'2025-06-16 3,500.00 tax year 2025 (estimated payment); ', hl:'2025-09-15 3,500.00 tax year 2024', post:' (estimated payment); 2026-01-15 3,500.00 tax year 2025.', reply:'Priya: agreed, adjusting now.', fresh:true, effect:'CA −$3,500' },
+      { id:'t2', sev:'Blocking', who:'Daniel Ortiz', line:'SchC.1', when:'4:51 am', text:'The 12,400 card payment from Atlas is already in the books. The 1099-K is counted a second time.', doc:'D15 · Lindqvist Studio transaction detail · page 3', pre:'Atlas Outdoor Gear paid 41,200.00 in 2025, ', hl:'of which 12,400.00 arrived through Paywell Payments card processing', post:' and 28,800.00 by ACH.', reply:'No reply yet. Assigned to Priya.', fresh:false, effect:'Fed −$4,402' },
+      { id:'t3', sev:'Judgment', who:'Helen Strand', line:'SchE.14A', when:'Yesterday', text:'A full heat pump system is an improvement, not a repair. Record the judgment and depreciate it.', doc:'D47 · Delta Breeze invoice · page 1', pre:'Removed failed 2004 gas furnace and 3-ton AC condenser. ', hl:'Installed new 3-ton heat pump system', post:' with air handler. Total 11,000.00.', reply:'Priya: will record the election and reason.', fresh:true, effect:'Fed +$3,633' },
+      { id:'t4', sev:'Needs review', who:'Queue item', line:'Sch3.10', when:'14 Apr 2026', text:'Amount paid with extension request: 36,000. You filed this extension, so another reviewer must check it.', doc:'Timeline · extension-2026-04-14 · actor Daniel Ortiz', pre:'Form 4868 with ', hl:'36,000', post:' and FTB 3519 with 0 (estimated from v2; see what_if.extension).', reply:'Firm rule: \u201cA person may not review or sign off on work they prepared.\u201d', fresh:false, effect:'' }
+    ];
+    const order = kind==='reviewer' ? ['t1','t3','t2','t4'] : ['t1','t2','t3'];
+    const groupFor = t => kind==='reviewer' ? (t.fresh ? 'Since you last looked: a reply' : 'Needs review')
+      : kind==='partner' ? (t.sev==='Blocking' ? 'Blocks your approval' : 'Waiting for partner')
+      : (t.sev==='Blocking' ? 'Fix first: blocks filing' : 'Then: judgment to record');
+    const threads = order.map(id => base.find(t => t.id===id)).map(t => { const r = !!res[t.id]; return { ...t, group: t.id==='t4' ? 'Needs review: your own work' : groupFor(t), rule: t.effect ? 'Tax effect '+t.effect+'. Firm rule: \u201cAny adjustment with a tax effect over 1,000 (federal or state) requires partner sign-off.\u201d' : '', sevcls: t.sev==='Blocking'?'t-blk':t.sev==='Judgment'?'t-wrn':'t-acc',
+        signStyle: kind==='reviewer' ? '' : 'display:none', signDis: t.id==='t4', signWhy: t.id==='t4' ? 'A person may not review or sign off on work they prepared.' : '', signLbl: t.id==='t4' ? 'Sign off: you prepared this' : 'Sign off on this', status: r ? 'Resolved' : 'Open', tcls: r ? 't-pas' : 't-wrn', btn: r ? 'Reopen' : 'Resolve', toggle: () => this.setState({ resolved: { ...res, [t.id]: !r } }) }; });
+    const threadActs = kind==='preparer' ? ['Adjust','Ask the client','Dismiss with a reason','Reply'] : kind==='reviewer' ? ['Leave a review note'] : ['Reply'];
+
+    const checks = [
+      ['blk','California estimates include a 2024 payment (D68)','CA refund −$3,500'],['blk','Card sales counted twice (Atlas 12,400)','Fed −$4,402'],['blk','RSU sold with zero basis (D11 shows 19,100)','Fed −$15,536'],['blk','Theo’s SSN differs from his card (D71)','E-file rejects'],['wrn','Heat pump: repair or improvement?','Fed +$3,633'],['pas','W-2 box 1 wages (212,400) tie to Form 1040 line 1a','None'],['eng','From the engine · FORM_1099_FILING: Schedule C: client paid two contractors 600 or more and has not filed Forms 1099-NEC.','Engine warning'],['eng','From the engine · DUE_DILIGENCE_REQUIRED: Form 8867 must be completed by the preparer for the child tax credit and credit for other dependents.','Engine warning']
+    ].map(([t,name,effect]) => ({ name, effect, tcls: t==='eng'?'t-wrn':'t-'+t, word: t==='blk'?'Blocking':t==='wrn'?'Judgment':t==='eng'?'Engine':'Passing' }));
+    const openBlockers = 4, firstBlocker = 'California estimates include a 2024 payment';
+    const openThreads = threads.filter(t => t.status==='Open').length;
+
+    // Status strip and merge-style buttons, per role.
+    let statusHead = 'Not ready to file.', statusTags = [{ tcls:'t-blk', text: openBlockers+' blockers' },{ tcls:'t-wrn', text: openThreads+' unresolved notes' },{ tcls:'t-wrn', text:'1 judgment item' }], mergeBtns = [], mergeNote = '';
+    if (kind==='preparer') {
+      mergeBtns = [{ label: S.sent ? 'Sent to reviewer' : 'Mark prepared and send to reviewer', cls:'primary', dis: S.sent, go: () => this.setState({ sent: true }) }];
+      mergeNote = openBlockers+' blockers are still open; the reviewer will see them.';
+    } else if (kind==='reviewer') {
+      mergeBtns = [{ label:'Send back to preparer', cls:'', dis:false, go: () => {} }, { label:'Sign off', cls:'primary', dis:false, go: () => {} }];
+      mergeNote = 'Firm rule: \u201cA person may not review or sign off on work they prepared.\u201d Your sign-off is disabled on the extension payment you filed (Sch3.10).';
+    } else if (kind==='partner') {
+      mergeBtns = [{ label:'Approve and send to client: blocked by '+firstBlocker+', and '+(openBlockers-1)+' more', cls:'primary', dis:true, go: () => {} }];
+      mergeNote = 'Firm rule: \u201cOpen review notes block filing.\u201d '+openThreads+' review notes open.';
+    } else if (kind==='client') {
+      const left = 3 - Object.keys(S.done).filter(k => S.done[k]).length;
+      statusHead = 'We are still working on your return.';
+      statusTags = [{ tcls: left ? 't-wrn' : 't-pas', text: left ? left+(left===1?' thing needs':' things need')+' you' : 'Nothing needs you right now' }];
+    } else if (kind==='admin') {
+      statusHead = 'File status: in review.';
+      statusTags = [{ tcls:'t-acc', text:'Version 3' },{ tcls:'t-blk', text: openBlockers+' blockers' }];
+      mergeBtns = [{ label:'Edit firm standards', cls:'', dis:false, go: () => {} }];
+      mergeNote = 'Firm standards are a starting point you may change. Return values stay read only.';
+    } else if (kind==='next') {
+      statusHead = '2025 return, read only.';
+      statusTags = [{ tcls:'t-acc', text:'4 items carry forward' }];
+    } else if (kind==='irs') {
+      statusHead = 'Filed snapshot, read only.';
+      statusTags = [];
+      mergeBtns = [{ label:'Export response pack', cls:'primary', dis:false, go: () => {} }];
+    } else if (kind==='qr') {
+      statusHead = 'Selected for quality review, 4 Jan 2027.';
+      statusTags = [];
+      mergeBtns = [{ label:'Leave a quality-review finding', cls:'primary', dis:false, go: () => {} }];
+    }
+
+    // Client: plain words only, no check names, no staff names, no tax-effect figures.
+    const clientDefs = [
+      { id:'q1', kind:'Question', tcls:'t-wrn', title:'Your 15 Sep 2025 California payment of $3,500', body:'The confirmation from the Franchise Tax Board says this payment was for tax year 2024. Was it meant for 2024?', btn:'Answer', doneBtn:'Answered' },
+      { id:'q2', kind:'Question', tcls:'t-wrn', title:'Theo’s Social Security number', body:'Please confirm Theo’s Social Security number ends in 3390, as on his card.', btn:'Confirm', doneBtn:'Confirmed' },
+      { id:'u1', kind:'Upload', tcls:'t-acc', title:'Heat pump at 1450 Fremont Way', body:'If you have a permit or warranty paper for the new heat pump, please upload it.', btn:'Upload', doneBtn:'Uploaded' }
+    ];
+    const clientItems = clientDefs.map(c => { const d = !!S.done[c.id]; return { ...c, kind: d ? 'Done' : c.kind, tcls: d ? 't-pas' : c.tcls, btn: d ? c.doneBtn : c.btn, go: () => this.setState({ done: { ...S.done, [c.id]: !d } }) }; });
+
+    // Admin view log: session reveals are live, the rest are examples.
+    const viewLog = [];
+    if (S.revealed) viewLog.push({ word:'Revealed', tcls:'t-wrn', who: S.revealed, what:'revealed Theo’s SSN (dependent 2)', when:'This session', exStyle:'display:none' });
+    viewLog.push(
+      { word:'Revealed', tcls:'t-wrn', who:'Priya Raman', what:'revealed Theo’s SSN (dependent 2)', when:'14 Jul 2026, 10:12', exStyle:'' },
+      { word:'Refused', tcls:'t-blk', who:'Marcus Bell', what:'tried to reveal a bank account number; no clearance', when:'2 Apr 2026, 15:40', exStyle:'' },
+      { word:'Viewed', tcls:'t-acc', who:'Daniel Ortiz', what:'opened the masked identity documents', when:'15 Jul 2026, 09:03', exStyle:'' }
+    );
+    const budget = [['Intake and engagement','1.5'],['Wages and stock compensation','3.0'],['Investments and digital assets','4.0'],['Business','3.5'],['Rentals and sale','3.5'],['Pass-throughs and basis','2.0'],['Deductions and credits','2.0'],['California','1.5'],['Partner review','1.0']].map(([area,hrs]) => ({ area, hrs }));
+
+    const carryDefs = [
+      { id:'c1', title:'Heat pump at 1450 Fremont Way, $11,000', why:'If recorded as an improvement (partner note, open), it is depreciated each year from 2025.', src:'D47 · Delta Breeze invoice · open note SchE.14A' },
+      { id:'c2', title:'Corvane ISO shares exercised July 2025, still held', why:'Track the AMT basis so the 2026 or later sale is reported correctly.', src:'Client answer qa-06, 20 Jan 2026' },
+      { id:'c3', title:'Erik’s savings account in Sweden', why:'FBAR is due again each year; it sits outside the return engagement.', src:'Client answer qa-07, 20 Jan 2026' },
+      { id:'c4', title:'Moved from Sacramento to Austin, 15 Jul 2025', why:'Rent from 1450 Fremont Way stays California-source in 2026 as a nonresident.', src:'Client answer qa-02, 20 Jan 2026' }
+    ];
+    const carry = carryDefs.map(c => { const a = !!S.added[c.id]; return { ...c, added: a, btn: a ? 'Added to 2026 plan' : 'Add to 2026 plan', go: () => this.setState({ added: { ...S.added, [c.id]: true } }) }; });
+    // Filed record (examiner and quality reviewer). Per README where_now_is, post-v3 events mean the return as this workpaper finalizes it,
+    // so the filed values are our finalized ones (ledger GT-D03, GT-C01). Tagged Example: the workpaper has not finalized yet.
+    const internalStyle = kind==='qr' ? 'display:block' : 'display:none';
+    const irsLines = [
+      { title:'Noncash charitable contributions', line:'Schedule A line 12 · Form 8283', value:'$17,400', letter: kind==='irs' ? 'Letter item: provide acknowledgments and valuation.' : 'Letter 566 item later (20 Jan 2028): acknowledgments and valuation.',
+        built:'Form 8283 section A: 200 shares Northlake Total Market Index Fund given 5 Dec 2025 to Austin Community Foundation, value 14,500 (cost 9,300, acquired Apr 2019); 2012 Subaru Outback given 20 Aug 2025 to Lone Star Kids Auto Donation, at its 2,900 sale price on Form 1098-C box 4c. Total 17,400.',
+        src:'D65 acknowledgment · D66 Form 1098-C · client answer qa-39', engine:'Engine v3: 20,500; adjusted by the firm: the car is limited to its 2,900 sale price on Form 1098-C, not the 6,000 estimate.', checked:'Agreed to source document; agreed to third-party record',
+        note:'Car value taken from the 1098-C, not Kelley Blue Book.', rule:'\u201cEvery judgment call records the authority relied on.\u201d', internalStyle },
+      { title:'Schedule C gross receipts', line:'Schedule C line 1', value:'$151,300', letter: kind==='irs' ? 'Letter item: reconcile to Forms 1099-NEC (142,000) and Form 1099-K (12,400) filed by third parties.' : 'Letter 566 item later (20 Jan 2028): reconcile to the 1099-NECs and 1099-K.',
+        built:'Books total income 151,300 (Lindqvist Studio profit and loss, cash basis). The five Forms 1099-NEC total 142,000, plus 9,300 from clients who sent no 1099. The 12,400 on the Form 1099-K is card money already inside the books total (Atlas, D15 page 3).',
+        src:'D14 profit and loss · D15 page 3 · D16 to D20 Forms 1099-NEC · D21 Form 1099-K', engine:'Engine v3: 163,700; adjusted by the firm: the 12,400 Form 1099-K amount was already in the books and had been added a second time.', checked:'Recalculated; agreed to third-party record',
+        note:'Card sales counted twice; removed.', rule:'\u201cAny adjustment with a tax effect over 1,000 (federal or state) requires partner sign-off.\u201d', internalStyle }
+    ];
+    if (kind!=='qr') irsLines.forEach(l => { l.note=''; l.rule=''; });
+    const post = kind==='qr' || kind==='next';
+    const STEPS = [
+      ['Engagement letter and consents signed','D02 has no disclosure consent.'],
+      ['Identity verified','Theo\u2019s SSN on the organizer differs from his card.'],
+      ['Prior-year return reviewed','No review recorded in the file.'],
+      ['All documents accounted for','No record in the file.'],
+      ['Prior-year variances explained','No variance review recorded. Firm threshold: flag a change over 10% and over 1,000 vs prior year.'],
+      ['Carryovers agreed to prior year','No record in the file.'],
+      ['Estimated payments agreed to IRS and FTB records','California estimates include a 2024 payment (D68).'],
+      ['Due diligence completed','Engine: Form 8867 must be completed (DUE_DILIGENCE_REQUIRED).'],
+      ['Diagnostics resolved','11 engine diagnostics on v3, none resolved.'],
+      ['Reviewer sign-off','Not given.'],
+      ['Partner sign-off','Not given.'],
+      ['Client approval and e-file authorization','Not sent to the client.']
+    ];
+    const steps = STEPS.map(([name,why],i) => {
+      const done = post && i===11;
+      return { name, word: done ? 'Done' : post ? 'No record' : 'Not done', tcls: done ? 't-pas' : 't-wrn',
+        why: done ? 'Form 8879 and FTB 8879 signed electronically 10 Jul 2026 (timeline).' : (post && i>0 ? 'No record in the file.' : why) };
+    });
+    const doneN = steps.filter(x => x.word==='Done').length;
+
+    // SSN masking.
+    const clear = me.id==='priya' || me.id==='daniel' || me.id==='helen' || me.id==='sam';
+    const canTryReveal = clear || me.id==='marcus';
+    const revealedHere = S.revealed === me.label.split(',')[0];
+    const ssnNote = me.id==='marcus' ? 'Masked. Firm rule: staff without sensitive-data clearance see SSNs, bank and account numbers and IP PINs masked.'
+      : clear ? (revealedHere ? 'Revealed to you and logged. This mock keeps last 4 only.' : 'Masked. Every unmasked view is logged (firm rule).')
+      : 'Masked. Read only for this role.';
+
+    const isClient = view==='client';
+    return { tabs, threads, threadActs, checks, signoffs: (kind==='qr' ? [['Priya Raman','Preparer','Signed','t-pas'],['Daniel Ortiz','Reviewer','Signed','t-pas'],['Helen Strand','Partner','Signed','t-pas'],['Client','Approve and e-sign','Signed','t-pas']] : [['Priya Raman','Preparer', S.sent ? 'Signed' : 'Not yet', S.sent ? 't-pas' : 't-acc'],['Daniel Ortiz','Reviewer','Stale','t-wrn'],['Helen Strand','Partner','Waiting','t-acc'],['Client','Approve and e-sign','Not sent','t-acc']]).map(([who,role,state,tcls]) => ({ who, role, state, tcls })),
+      crumb: isClient ? 'Okafor-Lindqvist household · from your tax team' : 'Workpaper / Okafor-Lindqvist / 2025 return',
+      title: isClient ? 'Your 2025 tax return' : kind==='irs' ? '2025 Form 1040' : '2025 Form 1040 and California 540NR',
+      stage: 'Review', role: me.id,
+      versionLine: isClient ? 'Version 3, updated 23 Jun' : (kind==='irs' || kind==='qr' || kind==='next') ? 'As filed: the return as this workpaper finalized it' : 'v3, none of our changes applied yet',
+      roleName: 'Viewing as '+me.label+'.', banner: BANNER[me.id],
+      statusHead, statusTags, mergeBtns, mergeNote,
+      showConversation: view==='staff' && tab==='Conversation', showChecks: view==='staff' && tab==='Checks',
+      showClient: isClient && first, showAdmin: view==='admin' && first, showNext: view==='next' && first, showFiled: (view==='irs' || view==='qr') && first,
+      filedIntro: kind==='irs' ? 'Letter 566 dated 20 Jan 2028 (D72), response due 19 Feb 2028. As filed: the return as this workpaper finalized it.' : 'Selected for quality review 4 Jan 2027. As filed: the return as this workpaper finalized it, with its full internal history.',
+      steps, stepsOpen: !!S.stepsOpen, toggleSteps: () => this.setState({ stepsOpen: !S.stepsOpen }), stepsBtn: S.stepsOpen ? 'Hide the steps' : 'Show the 12 steps',
+      stepsLine: post ? doneN+' of 12 steps with evidence in the file' : doneN+' of 12 steps done',
+      showSteps: !isClient && view!=='irs', showClientPart: isClient,
+      showOther: !(view==='staff' ? (tab==='Conversation' || tab==='Checks') : first),
+      clientItems, viewLog, budget, carry, irsLines,
+      showSignoffs: view==='staff' || view==='admin' || view==='qr', showBudget: view==='staff' || view==='admin', showInternal: !isClient && view!=='irs',
+      showSsn: !isClient && view!=='irs', ssnNote,
+      revealStyle: canTryReveal ? '' : 'display:none', revealDis: me.id==='marcus' || revealedHere,
+      revealLabel: me.id==='marcus' ? 'Reveal (no clearance)' : revealedHere ? 'Revealed (logged)' : 'Reveal (logged)',
+      reveal: () => { if (clear) this.setState({ revealed: me.label.split(',')[0] }); },
+      pickRole: (e) => this.setState({ role: e.target.value, tab: null }),
+      chatOpen: S.chatOpen, toggleChat: () => this.setState({ chatOpen: !S.chatOpen }),
+      chatScope: isClient ? 'Answers only about your own documents.' : 'Answers cite the source document.',
+      chatQ: isClient ? 'Which of my California payments count for 2025?' : 'Which California estimated payments count for 2025?',
+      chatA1: isClient ? 'Three of your payments count: 15 Apr 2025, 16 Jun 2025 and 15 Jan 2026, totalling $10,500, from your FTB Web Pay confirmations.' : 'Three payments count: 15 Apr 2025, 16 Jun 2025 and 15 Jan 2026, totalling 10,500 ',
+      chatSrc: !isClient, showHelper: kind!=='irs',
+      chatA2: isClient ? ' The 15 Sep 2025 payment was for 2024.' : '. The 15 Sep 2025 payment is marked tax year 2024 on the document.',
+      rootClass: 'wp' + ((this.props.dark ?? false) ? ' dark' : '') };
+  }
+}
+</script>
+</body>
+</html>

@@ -18,7 +18,7 @@ def walk(v,depth):
             else: out.append(f'- {x}\n')
     else: out.append(f'{v}\n')
     return out
-md=[f"# Packet README (verbatim)\n\nExtracted by script `scratchpad/disc/readme_extract.py` from the packet's `readme` key. Text is copied exactly; only Markdown structure (headings, bullets) is added. Machine copy: `readme.json` (same folder).\n\n- Packet file: `case-study-project-package/okafor_lindqvist_2025_packet (1).json`\n- SHA-256 of the canonical `readme` object (sorted keys, compact): `{h}`\n- Top-level keys ({len(r)}): {', '.join('`'+k+'`' for k in r)}\n\n"]
+md=[f"# Packet README (verbatim)\n\nExtracted by script `docs/packet/readme_extract.py` (run: `python3 -I docs/packet/readme_extract.py <packet> docs/packet`) from the packet's `readme` key. Text is copied exactly; only Markdown structure (headings, bullets) is added. Machine copy: `readme.json` (same folder).\n\n> **Viewing note:** 9 placeholders such as `<form>.<line>` contain angle brackets, which some Markdown viewers hide as HTML. The raw text of this file and `readme.json` are exact (verified by Fable 5.1, `reviews/readme-verify.md`); read those if a rendered view looks incomplete.\n\n- Packet file: `case-study-project-package/okafor_lindqvist_2025_packet (1).json`\n- SHA-256 of the canonical `readme` object (sorted keys, compact): `{h}`\n- Top-level keys ({len(r)}): {', '.join('`'+k+'`' for k in r)}\n\n"]
 for k,x in r.items():
     md.append(f"## `{k}`\n\n")
     md+=walk(x,3) if isinstance(x,(dict,list)) else [f"{x}\n"]
