@@ -4,7 +4,7 @@
     "subtitle": "A web-native workpaper for the invented Okafor-Lindqvist household's 2025 return: every number traced to its source, every packet mistake surfaced. Due Fri 16 Oct 2026, 21:00 EDT.",
     "mode": "light",
     "plan_version": "0.4.0",
-    "updated": "2026-10-17T17:50:50Z",
+    "updated": "2026-10-17T23:26:37Z",
     "changelog": [
       {
         "version": "0.1.0",
@@ -307,11 +307,15 @@
             "state": "done"
           },
           {
+            "name": "Secure data round: encrypted storage, cloud AI reader, CI eval gate, client switcher (Fable reviewed)",
+            "state": "done"
+          },
+          {
             "name": "Code freeze 14:00 EDT Sat",
             "state": "todo"
           }
         ],
-        "status": "Live at taxmark-workpaper.vercel.app on Neon Postgres (commit 23ea0f3); grader walk passes on the live link; full browser suite 41/41 against live. Hand-in documents next.",
+        "status": "Live at taxmark-workpaper.vercel.app (b1213be): client data sealed in a private Blob store and loaded by pointer, AI reader as a cloud function, CI eval gate green; acceptance walk 36/36 on live. Hand-in documents drafted; video next.",
         "updated": "2026-10-17T03:56:32Z"
       }
     ],
