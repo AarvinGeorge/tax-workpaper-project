@@ -46,7 +46,8 @@ describe('AI reader: request building and privacy', () => {
   });
 
   it('asks for a json_schema output with the vetted authorities and caches the shared context', () => {
-    const body = buildRequest(ix, docWithPages.id, 'claude-sonnet-5-5', KEY).body as Record<string, any>;
+    type Body = { max_tokens: number; thinking: unknown; output_config: { format: { type: string } }; system: { text: string; cache_control?: unknown }[]; messages: { content: string }[] };
+    const body = buildRequest(ix, docWithPages.id, 'claude-sonnet-5-5', KEY).body as unknown as Body;
     expect(body.max_tokens).toBe(8000);
     expect(body.thinking).toEqual({ type: 'adaptive', display: 'omitted' });
     expect(body.output_config.format.type).toBe('json_schema');
@@ -56,8 +57,9 @@ describe('AI reader: request building and privacy', () => {
   });
 
   it('the schema closes every object and uses no unsupported constraints', () => {
-    const walk = (s: any): void => {
-      if (!s || typeof s !== 'object') return;
+    const walk = (x: unknown): void => {
+      if (!x || typeof x !== 'object') return;
+      const s = x as Record<string, unknown>;
       if (s.type === 'object') expect(s.additionalProperties).toBe(false);
       for (const k of ['minLength', 'maxLength', 'minimum', 'maximum', 'minItems', 'maxItems']) expect(s[k]).toBeUndefined();
       Object.values(s).forEach(walk);
@@ -200,8 +202,8 @@ describe('AI reader: rejected rows carry no raw text', () => {
     const { alteredPacket } = await import('../fixtures/altered');
     const altIx = indexPacket(alteredPacket());
     const files: [string, typeof ix][] = [
-      ['data/ai-suggestions.json', ix], ['data/ai-suggestions.v1.json', ix],
-      ['data/ai-suggestions.altered.json', altIx], ['data/ai-suggestions.v1.altered.json', altIx],
+      ['ai/eval/ai-suggestions.json', ix], ['ai/eval/ai-suggestions.v1.json', ix],
+      ['ai/eval/ai-suggestions.altered.json', altIx], ['ai/eval/ai-suggestions.v1.altered.json', altIx],
     ];
     let checked = 0;
     for (const [f, pix] of files) {

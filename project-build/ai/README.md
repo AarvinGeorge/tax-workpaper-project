@@ -1,7 +1,9 @@
 # AI reader and harness
 
 The AI layer of Taxmark runs **at ingest, before the backend, never from the UI**. A reader reads the packet's free text
-and writes a structured payload, `data/ai-suggestions.json` (shape `AiPayload` in `src/domain/ai/contract.ts`). The
+and writes a structured payload (shape `AiPayload` in `src/domain/ai/contract.ts`). In production the reader runs in the
+cloud over the encrypted packet and stores its payload encrypted in the private Blob store; on a laptop it writes the
+eval payload `ai/eval/ai-suggestions.json`, which stays with the code (client data leaves the deploy, eval data does not). The
 backend treats that file as untrusted input: it re-checks the schema and the grounding before any suggestion reaches a
 screen, and a reviewer must accept a suggestion before it becomes a finding. A harness scores the reader against the
 known mistakes before anyone trusts it.
@@ -14,7 +16,9 @@ known mistakes before anyone trusts it.
 | `ai/harness.ts` | CLI: scores a payload against the ledger, writes `docs/handin/ai-scorecard.md` |
 | `ai/lib/reader-core.ts` | Context building, masking, request, schema, row validation, retry, the run loop (pure apart from an injected fetch) |
 | `ai/lib/harness-core.ts` | Gold set, grounding, matching, scoring, the scorecard text (pure) |
-| `tests/unit/ai-reader.test.ts`, `tests/unit/ai-harness.test.ts` | Unit tests; no network (a fake fetch is injected) |
+| `src/server/ai-reader.ts`, `src/app/api/internal/ai-reader/route.ts` | The reader in the cloud (see below) |
+| `ai/eval/` | The measured eval payloads (`ai-suggestions.json` is reader-v2; `.v1` and `.altered` kept for comparison) and their run-meta files |
+| `tests/unit/ai-reader.test.ts`, `tests/unit/ai-harness.test.ts`, `tests/unit/ai-reader-route.test.ts`, `tests/unit/eval-gate.test.ts` | Unit tests; no network (a fake fetch is injected) |
 
 ## Patterns used, and why
 
@@ -83,8 +87,10 @@ payload file for first names in `rejected[]`. Kept suggestions carry verbatim qu
 name or an address, exactly as the page prints it; the backend verifier and the role masking apply to them like any
 other page text. The scorecard prints first names as [name].
 
-**The key.** The API key is read from `project-build/.env.local` (git-ignored), goes only into the `x-api-key` header,
-and is never printed, logged or written.
+**The key.** In production `ANTHROPIC_API_KEY` is a Vercel environment variable read only by the internal reader
+route; without it the route answers 503 and the app runs on the stored payload. On a laptop the CLI reads it from
+`project-build/.env.local` (git-ignored). Either way it goes only into the `x-api-key` header and is never printed,
+logged or written.
 
 ## How to run
 
@@ -97,6 +103,19 @@ npx tsx ai/reader.ts --packet altered          # the altered packet, for false a
 npx tsx ai/harness.ts                          # score, write docs/handin/ai-scorecard.md
 ```
 
+The CI eval gate (no key, no model call; scores the committed eval payload through the backend verifier):
+
+```
+npx tsx ai/harness.ts --check                  # exit 1 if any produced suggestion is ungrounded, the verifier holds
+                                               # back more than 1 (the baseline), strict recall as shown < 16 of 27,
+                                               # the payload's promptVersion differs from PROMPT_VERSION, or any
+                                               # SSN-shaped string is in the payload
+```
+
+When `PROMPT_VERSION` changes, the gate fails with "prompt changed: re-run the eval and commit the new eval payload":
+run the reader locally, score it, and commit the new `ai/eval/ai-suggestions.json` (and change the baselines in
+`MIN_STRICT_RECALL` and `MAX_HELD_BACK` only on a measured result).
+
 Options: `--model <id>`, `--limit N` (hard cap on documents, so on calls), `--concurrency N` (default 4). Retries:
 429, 5xx and network errors, exponential backoff from 1 second, honouring `retry-after`, at most 4 retries per call.
 
@@ -106,8 +125,28 @@ Sonnet 5.5 at $2 per million input tokens and $10 per million output; cache read
 to about 395,000 characters of per-document context plus about 61,000 characters shared. That is roughly
 110,000 uncached input tokens, 1.3 million cached tokens read, and output (thinking included) of perhaps 1,000 to 3,000 tokens per document: about $1 to $3
 for a full run. The reader prints the measured tokens and cost from the API's own usage figures and saves them beside
-the payload, in `data/ai-suggestions.run-meta.json`. Nothing should glob `data/ai-suggestions*.json`: the run-meta files
-share that prefix.
+the payload, in `ai/eval/ai-suggestions.run-meta.json`. Nothing should glob `ai/eval/ai-suggestions*.json`: the run-meta
+files share that prefix.
+
+## The reader in the cloud
+
+`/api/internal/ai-reader` (GET from the daily Vercel Cron at 06:00 UTC, POST for a manual run) requires
+`Authorization: Bearer <CRON_SECRET>` (compared timing-safe; 401 otherwise) and answers 503
+"ANTHROPIC_API_KEY not configured" without the key. It is idempotent: when the stored payload was made for this
+packet (`packetSha` equals `RETURN_ID`) and this `PROMPT_VERSION`, it returns `{skipped: true}` without a model call;
+`?force=1` reruns. Otherwise it runs the same reader core over the decrypted vault packet (same masking, model
+`claude-sonnet-5-5`, same row validation), encrypts the payload into `returns/<sha>/ai-suggestions.json.enc`, and
+returns counts, rejected, seconds and a cost estimate; never suggestion content. A full run took 108 to 119 seconds on
+a laptop; the function limit is 300. App instances re-check the stored payload at most every 5 minutes, so a new run
+appears without a redeploy. The deploy's ingest stores the eval payload as the first production payload when none
+exists.
+
+A manual run: `curl -X POST -H "Authorization: Bearer $CRON_SECRET" https://taxmark-workpaper.vercel.app/api/internal/ai-reader`
+(add `?force=1` to rerun on the same prompt version).
+
+A dry run proves the cloud path in production without touching the stored payload: `?dryRun=1&limit=N` (N from 1 to
+5, default 3) runs the reader over the first N documents of the vault packet, stores nothing, and returns
+`{dryRun, documents, suggestions, rejected, grounded, calls, failedCalls, seconds, costUsdEstimate}`, counts only. It needs the same bearer and key.
 
 ## What the scorecard means
 

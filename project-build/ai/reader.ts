@@ -1,7 +1,7 @@
 // AI reader CLI. Run from project-build:
 //   npx tsx ai/reader.ts [--model claude-sonnet-5-5] [--limit N] [--concurrency 4] [--packet real|altered] [--out path] [--docs D01,D02]
 // Reads ANTHROPIC_API_KEY from .env.local (never printed or written), one call per document, writes
-// data/ai-suggestions.json (or data/ai-suggestions.altered.json) and a run-meta file with tokens and cost.
+// ai/eval/ai-suggestions.json (or ai/eval/ai-suggestions.altered.json) and a run-meta file with tokens and cost.
 import { existsSync, readFileSync, writeFileSync } from 'node:fs';
 import path from 'node:path';
 import { indexPacket } from '../src/domain/packet/load';
@@ -44,12 +44,12 @@ async function main() {
     const { alteredPacket } = await import('../tests/fixtures/altered');
     packet = alteredPacket();
     packetSha = sha256(JSON.stringify(packet)); // in-memory packet: hash of its JSON text
-    out = path.join(root, 'data', 'ai-suggestions.altered.json');
+    out = path.join(root, 'ai', 'eval', 'ai-suggestions.altered.json');
   } else if (which === 'real') {
     const bytes = readFileSync(packetFile);
     packetSha = sha256(bytes);
     packet = JSON.parse(bytes.toString('utf8')) as Packet;
-    out = path.join(root, 'data', 'ai-suggestions.json');
+    out = path.join(root, 'ai', 'eval', 'ai-suggestions.json');
   } else throw new Error('--packet must be real or altered.');
 
   if (arg('out')) out = path.resolve(root, arg('out')!);

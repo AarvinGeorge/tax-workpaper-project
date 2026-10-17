@@ -5,7 +5,7 @@ import type { Finding, RoleKey, WorkEvent } from '../contracts';
 import type { PacketIndex } from '../packet/load';
 import { retractedSeqs } from '../events';
 import type { AiKind, AiPayload, VerifiedSuggestion } from './contract';
-import { loadAiPayload, aiPayloadPath, type AiHeld } from './load';
+import { loadAiPayload, type AiHeld } from './load';
 import { isShown, verifySuggestions } from './verify';
 
 export const AI_FAMILY = 'AI suggestion';
@@ -62,8 +62,8 @@ export const NO_AI: AiReview = { present: false, findings: [], held: [], meta: n
 
 const reviewCache = new WeakMap<object, AiReview>();
 
-/** Load, verify and merge in one step (cached with the loaded payload). */
-export function aiReview(ix: PacketIndex, file: string = aiPayloadPath()): AiReview {
+/** Load, verify and merge in one step (cached with the loaded payload). No file: the configured source (vault or disk). */
+export function aiReview(ix: PacketIndex, file?: string): AiReview {
   const loaded = loadAiPayload(ix, file);
   if (loaded.status === 'absent') return NO_AI;
   const hit = reviewCache.get(loaded);

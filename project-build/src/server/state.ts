@@ -9,6 +9,7 @@ import { projectWorkspace } from '@/domain/project';
 import { can, isRoleKey, maskText, roleInfo, roles, signoffLevel } from '@/domain/policy';
 import { aiReview, NO_AI, type AiReview } from '@/domain/ai/merge';
 import { visibleAt } from '@/domain/clock';
+import { ensureReturnData } from './data';
 
 export { isWorkspaceId };
 
@@ -59,6 +60,7 @@ function aiFor(ix: PacketIndex): AiReview {
 
 export async function loadWorkspace(ws: string, role: RoleKey): Promise<Workspace> {
   assertArgs(ws, role);
+  await ensureReturnData(); // vault mode: the packet and AI payload from the private store; file mode: no-op
   const ix = packet();
   const info = roleInfo(ix, role);
   if (!info) throw new Error('role not present in this packet');
@@ -81,6 +83,7 @@ export async function postEvent(ws: string, role: RoleKey, e: EventInput | NewEv
   const v = validateNewEvent(e);
   if (!v.ok) return { ok: false, status: 400, reason: v.reason };
   const input = v.event;
+  await ensureReturnData();
   const ix = packet();
   if (input.type === 'suggestion_accepted' || input.type === 'suggestion_dismissed') {
     const id = input.claimId?.startsWith('finding:') ? input.claimId.slice(8) : '';

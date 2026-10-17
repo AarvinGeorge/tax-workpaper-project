@@ -1,10 +1,12 @@
-// Reads the AI payload (data/ai-suggestions.json, or AI_PAYLOAD_PATH) as untrusted input. Never throws.
+// Reads the AI payload as untrusted input. Never throws. File mode: ai/eval/ai-suggestions.json (or AI_PAYLOAD_PATH).
+// Vault mode: the decrypted payload the data module (src/server/data.ts) fetched from the private Blob store.
 // Envelope and core fields are strict; unknown extra fields are ignored; an invalid row is held back with its reasons;
 // a payload made for another packet is refused whole. Absent file: no AI section, the app is unchanged.
 import { createHash } from 'node:crypto';
 import { readFileSync, statSync } from 'node:fs';
 import path from 'node:path';
-import { loadPacket, type PacketIndex } from '../packet/load';
+import { isVaultMode } from '../datamode';
+import { loadPacket, loadedPacketSha, type PacketIndex } from '../packet/load';
 import { AI_KINDS, type AiEvidence, type AiPayload, type AiRejected, type AiSuggestion } from './contract';
 
 /** A suggestion that will not be shown, and why. id is null when the row has no usable id. */
@@ -16,19 +18,15 @@ export type AiLoad =
   | { status: 'loaded'; payload: AiPayload; held: AiHeld[] };
 
 export function aiPayloadPath(): string {
-  return process.env.AI_PAYLOAD_PATH || path.join(process.cwd(), 'data', 'ai-suggestions.json');
+  return process.env.AI_PAYLOAD_PATH || path.join(process.cwd(), 'ai', 'eval', 'ai-suggestions.json');
 }
 
-let fileSha: string | null = null;
 const shaCache = new WeakMap<object, string>();
 
-/** SHA-256 of the packet the index was built from: the bytes of data/packet.json for the loaded packet. Any other packet
- *  (an altered test copy) hashes its JSON, so no payload made for the delivered packet matches it. */
+/** SHA-256 of the packet the index was built from: the bytes of the loaded packet. Any other packet (an altered test
+ *  copy) hashes its JSON, so no payload made for the delivered packet matches it. */
 export function packetShaOf(ix: PacketIndex): string {
-  if (ix.packet === loadPacket()) {
-    if (!fileSha) fileSha = createHash('sha256').update(readFileSync(path.join(process.cwd(), 'data', 'packet.json'))).digest('hex');
-    return fileSha;
-  }
+  if (ix.packet === loadPacket()) return loadedPacketSha();
   const hit = shaCache.get(ix.packet);
   if (hit) return hit;
   const sha = createHash('sha256').update(JSON.stringify(ix.packet)).digest('hex');
@@ -112,9 +110,28 @@ export function parseAiPayload(raw: unknown, expectedSha: string): AiLoad {
 
 const cache = new Map<string, { mtimeMs: number; sha: string; result: AiLoad }>();
 
-/** Reads and validates the payload file (default data/ai-suggestions.json; AI_PAYLOAD_PATH overrides). Cached per file
- *  until the file changes. */
-export function loadAiPayload(ix: PacketIndex, file: string = aiPayloadPath()): AiLoad {
+// Vault mode: the payload as fetched (null: none stored), and a generation that moves on each fetch.
+let vaultRaw: { raw: unknown; gen: number } | null = null;
+let vaultGen = 0;
+let vaultHit: { gen: number; sha: string; result: AiLoad } | null = null;
+
+/** Called by the data module after each fetch from the vault; null means no payload is stored. */
+export function setVaultAiPayload(raw: unknown | null): void {
+  vaultGen++;
+  vaultRaw = raw === null ? null : { raw, gen: vaultGen };
+}
+
+/** Reads and validates the payload. With no file given: in vault mode the payload fetched from the vault, otherwise
+ *  ai/eval/ai-suggestions.json (AI_PAYLOAD_PATH overrides). Cached until the file or the fetched payload changes. */
+export function loadAiPayload(ix: PacketIndex, fileArg?: string): AiLoad {
+  if (fileArg === undefined && isVaultMode()) {
+    if (!vaultRaw) return { status: 'absent' };
+    const sha = packetShaOf(ix);
+    if (vaultHit && vaultHit.gen === vaultRaw.gen && vaultHit.sha === sha) return vaultHit.result;
+    vaultHit = { gen: vaultRaw.gen, sha, result: parseAiPayload(vaultRaw.raw, sha) };
+    return vaultHit.result;
+  }
+  const file = fileArg ?? aiPayloadPath();
   let mtimeMs: number;
   try { mtimeMs = statSync(file).mtimeMs; } catch { return { status: 'absent' }; }
   const sha = packetShaOf(ix);

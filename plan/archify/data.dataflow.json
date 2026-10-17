@@ -1,0 +1,280 @@
+{
+  "schema_version": 1,
+  "diagram_type": "dataflow",
+  "meta": {
+    "title": "Taxmark Data Flow",
+    "locale": "en",
+    "output": "docs/architecture/data-flow.html",
+    "quality_profile": "showcase",
+    "viewBox": [
+      1072,
+      600
+    ],
+    "legend": {
+      "entries": {
+        "dashed": {
+          "label": "AI rows / write-back"
+        }
+      }
+    }
+  },
+  "stages": [
+    {
+      "label": "Encrypted store"
+    },
+    {
+      "label": "Open"
+    },
+    {
+      "label": "Verify"
+    },
+    {
+      "label": "Projection"
+    },
+    {
+      "label": "Role screens"
+    }
+  ],
+  "nodes": [
+    {
+      "id": "packet",
+      "type": "database",
+      "label": "Packet",
+      "sublabel": "packet.json.enc",
+      "stage": 0,
+      "row": 1,
+      "tag": "AES-256-GCM"
+    },
+    {
+      "id": "aipayload",
+      "type": "external",
+      "label": "AI payload",
+      "sublabel": "made by cloud reader",
+      "stage": 0,
+      "row": 2,
+      "tag": "untrusted"
+    },
+    {
+      "id": "decrypt",
+      "type": "security",
+      "label": "Decrypt + hash",
+      "sublabel": "SHA-256 = RETURN_ID",
+      "stage": 1,
+      "row": 1,
+      "tag": "fails closed"
+    },
+    {
+      "id": "checks",
+      "type": "backend",
+      "label": "Checks",
+      "sublabel": "27, schema-based",
+      "stage": 2,
+      "row": 1,
+      "tag": "can block"
+    },
+    {
+      "id": "aiverify",
+      "type": "security",
+      "label": "AI verifier",
+      "sublabel": "quote on its page",
+      "stage": 2,
+      "row": 2,
+      "tag": "AI never blocks"
+    },
+    {
+      "id": "projection",
+      "type": "backend",
+      "label": "Projection",
+      "sublabel": "per role and story time",
+      "stage": 3,
+      "row": 1,
+      "tag": "masked"
+    },
+    {
+      "id": "eventlog",
+      "type": "database",
+      "label": "Event log",
+      "sublabel": "Postgres, append-only",
+      "stage": 3,
+      "row": 2,
+      "tag": "source of truth"
+    },
+    {
+      "id": "examiner",
+      "type": "frontend",
+      "label": "IRS examiner",
+      "sublabel": "items under examination",
+      "stage": 4,
+      "row": 0,
+      "tag": "read-only"
+    },
+    {
+      "id": "client",
+      "type": "frontend",
+      "label": "Client screens",
+      "sublabel": "plain words",
+      "stage": 4,
+      "row": 1,
+      "tag": "no AI"
+    },
+    {
+      "id": "staff",
+      "type": "frontend",
+      "label": "Staff screens",
+      "sublabel": "Checks, Return trace",
+      "stage": 4,
+      "row": 2,
+      "tag": "AI suggestions"
+    }
+  ],
+  "flows": [
+    {
+      "id": "packet-decrypt",
+      "from": "packet",
+      "to": "decrypt",
+      "label": "by pointer",
+      "variant": "emphasis"
+    },
+    {
+      "id": "packet-payload",
+      "from": "packet",
+      "to": "aipayload",
+      "label": "AI reader",
+      "variant": "dashed",
+      "fromSide": "bottom",
+      "toSide": "top",
+      "labelAt": [
+        100,
+        328
+      ]
+    },
+    {
+      "id": "decrypt-checks",
+      "from": "decrypt",
+      "to": "checks",
+      "label": "indexed values",
+      "variant": "emphasis"
+    },
+    {
+      "id": "decrypt-verify",
+      "from": "decrypt",
+      "to": "aiverify",
+      "label": "source pages",
+      "variant": "default",
+      "fromSide": "bottom",
+      "toSide": "top",
+      "via": [
+        [
+          315,
+          328
+        ],
+        [
+          530,
+          328
+        ]
+      ]
+    },
+    {
+      "id": "payload-verify",
+      "from": "aipayload",
+      "to": "aiverify",
+      "label": "packetSha must match",
+      "variant": "security"
+    },
+    {
+      "id": "checks-projection",
+      "from": "checks",
+      "to": "projection",
+      "label": "failed checks",
+      "variant": "emphasis",
+      "route": "straight"
+    },
+    {
+      "id": "verify-projection",
+      "from": "aiverify",
+      "to": "projection",
+      "label": "shown AI rows",
+      "variant": "dashed"
+    },
+    {
+      "id": "events-projection",
+      "from": "eventlog",
+      "to": "projection",
+      "label": "events",
+      "variant": "emphasis"
+    },
+    {
+      "id": "projection-examiner",
+      "from": "projection",
+      "to": "examiner",
+      "label": "masked, exam items only",
+      "variant": "security",
+      "fromSide": "top",
+      "toSide": "left",
+      "via": [
+        [
+          745,
+          157
+        ]
+      ]
+    },
+    {
+      "id": "projection-client",
+      "from": "projection",
+      "to": "client",
+      "label": "questions, finalized return",
+      "variant": "default",
+      "route": "straight",
+      "labelAt": [
+        853,
+        238
+      ]
+    },
+    {
+      "id": "projection-staff",
+      "from": "projection",
+      "to": "staff",
+      "label": "claims, blockers",
+      "variant": "emphasis"
+    },
+    {
+      "id": "staff-events",
+      "from": "staff",
+      "to": "eventlog",
+      "label": "adjust, sign off, accept/dismiss AI",
+      "variant": "dashed",
+      "fromSide": "bottom",
+      "toSide": "bottom",
+      "route": "bottom-channel"
+    }
+  ],
+  "cards": [
+    {
+      "dot": "emerald",
+      "title": "Sources",
+      "items": [
+        "Packet and AI payload sit encrypted in a private Blob store, fetched by RETURN_ID",
+        "The packet must hash to RETURN_ID or nothing loads; the AI payload is refused unless its packetSha matches",
+        "The event log holds every action as an appended event; nothing else is saved"
+      ]
+    },
+    {
+      "dot": "violet",
+      "title": "Two kinds of finding",
+      "items": [
+        "27 deterministic checks produce findings that can block partner approval",
+        "The daily cloud reader makes the AI payload from the packet; rows show only if the quote is on its page",
+        "Held-back AI rows are counted; AI findings are never blockers"
+      ]
+    },
+    {
+      "dot": "orange",
+      "title": "One projection, many views",
+      "items": [
+        "Claims, blockers, fresh or stale sign-offs, finalized return and notifications per role and story time",
+        "State is masked per role at the API; clients and the examiner never receive AI suggestions",
+        "Each tab polls state every 5 s"
+      ]
+    }
+  ]
+}

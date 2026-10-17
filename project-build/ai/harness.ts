@@ -1,12 +1,13 @@
-// AI harness CLI. Run from project-build:  npx tsx ai/harness.ts [payload path]
-// Scores the payload (default data/ai-suggestions.json) against the ledger, and the altered-packet payload when present,
+// AI harness CLI. Run from project-build:  npx tsx ai/harness.ts [payload path] [--check]
+// --check is the CI eval gate: scores the payload, prints the gate result, writes nothing, exits 1 on any failure.
+// Scores the payload (default ai/eval/ai-suggestions.json) against the ledger, and the altered-packet payload when present,
 // writes ../docs/handin/ai-scorecard.md and prints a summary.
 import { existsSync, readFileSync, writeFileSync } from 'node:fs';
 import path from 'node:path';
 import type { AiPayload } from '../src/domain/ai/contract';
 import { indexPacket, loadPacket } from '../src/domain/packet/load';
-import { goldSet, scorecardMarkdown, scorePayload, shownView, summaryLine, type Adjudication, type RunMeta, type Score } from './lib/harness-core';
-import { redactNames } from './lib/reader-core';
+import { evalGate, goldSet, MAX_HELD_BACK, MIN_STRICT_RECALL, scorecardMarkdown, scorePayload, shownView, summaryLine, type Adjudication, type RunMeta, type Score } from './lib/harness-core';
+import { PROMPT_VERSION, redactNames } from './lib/reader-core';
 
 function meta(payloadFile: string): RunMeta {
   const f = payloadFile.replace(/\.json$/, '.run-meta.json');
@@ -18,14 +19,24 @@ function meta(payloadFile: string): RunMeta {
 
 async function main() {
   const root = process.cwd();
-  const file = path.resolve(root, process.argv[2] ?? 'data/ai-suggestions.json');
+  const args = process.argv.slice(2);
+  const check = args.includes('--check');
+  const file = path.resolve(root, args.find((a) => !a.startsWith('--')) ?? 'ai/eval/ai-suggestions.json');
   if (!existsSync(file)) { console.error(`No payload at ${path.relative(root, file)}. Run the reader first.`); process.exit(2); }
   const payload = JSON.parse(readFileSync(file, 'utf8')) as AiPayload;
+  if (check) {
+    const g = evalGate(indexPacket(loadPacket()), payload, PROMPT_VERSION);
+    console.log(`eval gate: ${path.relative(root, file)} (${payload.promptVersion}); strict recall as shown ${g.strictFound}/${g.ledgerTotal} (baseline ${MIN_STRICT_RECALL}); raw grounding ${(g.rawGrounding * 100).toFixed(0)}% of ${g.produced}; held back ${g.heldBack} (baseline ${MAX_HELD_BACK}), shown ${g.shown}`);
+    for (const f of g.failures) console.error('eval gate FAILED: ' + f);
+    if (g.failures.length) process.exit(1);
+    console.log('eval gate: passed');
+    return;
+  }
   const real = scorePayload(indexPacket(loadPacket()), payload);
   console.log('real packet:    ' + summaryLine(real));
 
   let altered: Score | null = null;
-  const altFile = path.join(root, 'data', 'ai-suggestions.altered.json');
+  const altFile = path.join(root, 'ai', 'eval', 'ai-suggestions.altered.json');
   if (existsSync(altFile)) {
     const { alteredPacket } = await import('../tests/fixtures/altered');
     altered = scorePayload(indexPacket(alteredPacket()), JSON.parse(readFileSync(altFile, 'utf8')) as AiPayload);
@@ -33,7 +44,7 @@ async function main() {
   }
   // The previous prompt version, when its payload was kept beside this one.
   let previous: { score: Score; meta: RunMeta } | undefined;
-  const prevFile = path.join(root, 'data', 'ai-suggestions.v1.json');
+  const prevFile = path.join(root, 'ai', 'eval', 'ai-suggestions.v1.json');
   if (existsSync(prevFile) && path.resolve(prevFile) !== file) {
     const prev = JSON.parse(readFileSync(prevFile, 'utf8')) as AiPayload;
     if (prev.promptVersion !== payload.promptVersion) {

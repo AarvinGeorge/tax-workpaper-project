@@ -1,15 +1,35 @@
+import { createHash } from 'node:crypto';
 import { readFileSync } from 'node:fs';
 import path from 'node:path';
+import { isVaultMode } from '../datamode';
 import type { ExtractedValue, Packet, PacketDocument, ReturnLine, ReturnVersion } from './types';
 
 let cached: Packet | null = null;
+let cachedSha: string | null = null;
+const packetFile = () => path.join(process.cwd(), 'data', 'packet.json');
 
-/** Reads data/packet.json (the byte-identical copy of the packet as delivered). */
+/** Vault mode: the data module (src/server/data.ts) puts the decrypted, hash-checked packet here. */
+export function primePacket(p: Packet, sha: string): void {
+  cached = p;
+  cachedSha = sha;
+}
+
+export const isPacketPrimed = () => cached !== null;
+
+/** The packet: the warmed cache first; in file mode data/packet.json (the byte-identical copy of the packet as
+ *  delivered). In vault mode an unwarmed cache is an error, never a silent fallback to disk. */
 export function loadPacket(): Packet {
   if (cached) return cached;
-  const file = path.join(process.cwd(), 'data', 'packet.json');
-  cached = JSON.parse(readFileSync(file, 'utf8')) as Packet;
+  if (isVaultMode()) throw new Error('Return data is not loaded: in vault mode call ensureReturnData() before loadPacket().');
+  cached = JSON.parse(readFileSync(packetFile(), 'utf8')) as Packet;
   return cached;
+}
+
+/** SHA-256 of the loaded packet's bytes (vault mode: verified against RETURN_ID when it was warmed). */
+export function loadedPacketSha(): string {
+  loadPacket();
+  cachedSha ??= createHash('sha256').update(readFileSync(packetFile())).digest('hex');
+  return cachedSha;
 }
 
 /** Shape check against the README's definitions. Reports, never throws; unknown fields are allowed. */

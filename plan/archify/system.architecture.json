@@ -1,0 +1,361 @@
+{
+  "schema_version": 1,
+  "diagram_type": "architecture",
+  "meta": {
+    "title": "Taxmark system and trust boundaries",
+    "quality_profile": "showcase",
+    "viewBox": [
+      1260,
+      680
+    ],
+    "repository": {
+      "url": "https://github.com/AarvinGeorge/tax-workpaper-project",
+      "provider": "github",
+      "revision": "45b37d8ef337b77a61f0d6778b6635ef1ceb6c0c"
+    }
+  },
+  "components": [
+    {
+      "id": "browser",
+      "type": "frontend",
+      "label": "Browser (any role)",
+      "sublabel": "role switcher \u00b7 no sign-in",
+      "pos": [
+        40,
+        60
+      ],
+      "size": [
+        160,
+        72
+      ],
+      "sources": [
+        {
+          "path": "project-build/src/components/shell/LiveRefresh.tsx",
+          "label": "5 s poll"
+        }
+      ]
+    },
+    {
+      "id": "server",
+      "type": "backend",
+      "label": "Next.js server",
+      "sublabel": "pages + 2 API routes",
+      "brand": "next-js",
+      "pos": [
+        380,
+        60
+      ],
+      "size": [
+        160,
+        72
+      ],
+      "sources": [
+        {
+          "path": "project-build/src/app/api/w/[ws]/events/route.ts",
+          "label": "POST events"
+        },
+        {
+          "path": "project-build/src/server/state.ts",
+          "label": "load / post / mask"
+        }
+      ]
+    },
+    {
+      "id": "domain",
+      "type": "backend",
+      "label": "Domain logic",
+      "sublabel": "checks \u00b7 projection \u00b7 policy",
+      "pos": [
+        720,
+        60
+      ],
+      "size": [
+        160,
+        72
+      ],
+      "sources": [
+        {
+          "path": "project-build/src/domain/project.ts",
+          "label": "projectWorkspace"
+        },
+        {
+          "path": "project-build/src/domain/policy.ts",
+          "label": "roles and masking"
+        }
+      ]
+    },
+    {
+      "id": "events",
+      "type": "database",
+      "label": "Neon Postgres",
+      "sublabel": "workpaper_events log",
+      "brand": "neon",
+      "pos": [
+        1060,
+        60
+      ],
+      "size": [
+        160,
+        72
+      ],
+      "sources": [
+        {
+          "path": "project-build/src/domain/store/postgres.ts",
+          "label": "Postgres store"
+        }
+      ]
+    },
+    {
+      "id": "vault",
+      "type": "database",
+      "label": "Private Blob store",
+      "sublabel": "taxmark-client-data",
+      "pos": [
+        380,
+        240
+      ],
+      "size": [
+        160,
+        72
+      ]
+    },
+    {
+      "id": "aireader",
+      "type": "backend",
+      "label": "AI reader function",
+      "sublabel": "/api/internal/ai-reader",
+      "pos": [
+        720,
+        240
+      ],
+      "size": [
+        160,
+        72
+      ]
+    },
+    {
+      "id": "cron",
+      "type": "cloud",
+      "label": "Vercel Cron",
+      "sublabel": "daily 06:00 UTC",
+      "brand": "vercel",
+      "pos": [
+        720,
+        420
+      ],
+      "size": [
+        160,
+        72
+      ]
+    },
+    {
+      "id": "anthropic",
+      "type": "external",
+      "label": "Anthropic API",
+      "sublabel": "Claude Sonnet 5.5",
+      "brand": "anthropic",
+      "pos": [
+        1060,
+        240
+      ],
+      "size": [
+        160,
+        72
+      ]
+    },
+    {
+      "id": "build",
+      "type": "cloud",
+      "label": "Vercel build",
+      "sublabel": "test \u00b7 ingest \u00b7 build",
+      "brand": "vercel",
+      "pos": [
+        40,
+        240
+      ],
+      "size": [
+        160,
+        72
+      ]
+    },
+    {
+      "id": "github",
+      "type": "external",
+      "label": "GitHub main",
+      "sublabel": "source of every deploy",
+      "brand": "github",
+      "pos": [
+        40,
+        420
+      ],
+      "size": [
+        160,
+        72
+      ]
+    },
+    {
+      "id": "ci",
+      "type": "backend",
+      "label": "GitHub Actions CI",
+      "sublabel": "tests \u00b7 eval gate",
+      "brand": "github-actions",
+      "pos": [
+        40,
+        580
+      ],
+      "size": [
+        160,
+        72
+      ]
+    }
+  ],
+  "boundaries": [
+    {
+      "kind": "region",
+      "label": "Vercel production \u00b7 secrets live here",
+      "wraps": [
+        "server",
+        "domain",
+        "vault",
+        "aireader",
+        "cron"
+      ]
+    },
+    {
+      "kind": "region",
+      "label": "Neon",
+      "wraps": [
+        "events"
+      ]
+    },
+    {
+      "kind": "security-group",
+      "label": "Third party",
+      "wraps": [
+        "anthropic"
+      ]
+    },
+    {
+      "kind": "security-group",
+      "label": "GitHub \u00b7 no secrets",
+      "wraps": [
+        "github",
+        "ci"
+      ]
+    }
+  ],
+  "connections": [
+    {
+      "id": "browser-to-server",
+      "from": "browser",
+      "to": "server",
+      "label": "POST events \u00b7 GET state (5 s poll)",
+      "variant": "emphasis"
+    },
+    {
+      "id": "server-to-domain",
+      "from": "server",
+      "to": "domain",
+      "label": "project per role",
+      "variant": "emphasis"
+    },
+    {
+      "id": "domain-to-events",
+      "from": "domain",
+      "to": "events",
+      "label": "store adapter: append / read",
+      "variant": "emphasis"
+    },
+    {
+      "id": "vault-to-server",
+      "from": "vault",
+      "to": "server",
+      "label": "decrypt + hash check",
+      "variant": "security",
+      "fromSide": "top",
+      "toSide": "bottom"
+    },
+    {
+      "id": "aireader-to-vault",
+      "from": "aireader",
+      "to": "vault",
+      "label": "reads packet, writes payload",
+      "variant": "dashed"
+    },
+    {
+      "id": "aireader-to-anthropic",
+      "from": "aireader",
+      "to": "anthropic",
+      "label": "masked text",
+      "variant": "security"
+    },
+    {
+      "id": "cron-to-aireader",
+      "from": "cron",
+      "to": "aireader",
+      "label": "Bearer CRON_SECRET",
+      "fromSide": "top",
+      "toSide": "bottom"
+    },
+    {
+      "id": "build-to-vault",
+      "from": "build",
+      "to": "vault",
+      "label": "ingest + read-back",
+      "variant": "dashed"
+    },
+    {
+      "id": "build-to-server",
+      "from": "build",
+      "to": "server",
+      "label": "deploy if tests pass",
+      "fromSide": "top",
+      "toSide": "bottom"
+    },
+    {
+      "id": "github-to-build",
+      "from": "github",
+      "to": "build",
+      "label": "push",
+      "fromSide": "top",
+      "toSide": "bottom",
+      "labelAt": [
+        120,
+        356
+      ]
+    },
+    {
+      "id": "github-to-ci",
+      "from": "github",
+      "to": "ci",
+      "label": "push \u00b7 PR",
+      "fromSide": "bottom",
+      "toSide": "top",
+      "labelAt": [
+        120,
+        536
+      ]
+    }
+  ],
+  "cards": [
+    {
+      "dot": "rose",
+      "title": "Trust boundaries",
+      "items": [
+        "No sign-in: the role switcher picks the viewer; the server masks state per role",
+        "Secrets only in Vercel: Anthropic key, CRON_SECRET, encryption key, Blob token",
+        "Server functions ship no client data; CI has no secrets and calls no model",
+        "Identifiers are masked before text goes to the Anthropic API"
+      ]
+    },
+    {
+      "dot": "cyan",
+      "title": "Read-only inputs, by pointer",
+      "items": [
+        "Packet and AI payload are AES-256-GCM sealed; production holds only RETURN_ID",
+        "The packet must hash to RETURN_ID or the app fails closed",
+        "The laptop reader (ai/reader.ts) makes only the eval payload CI scores"
+      ]
+    }
+  ]
+}

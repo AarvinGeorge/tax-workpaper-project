@@ -233,8 +233,8 @@ describe('events: accept and dismiss, staff with write access only', () => {
 });
 
 describe('verify: evidence only from a superseded document', () => {
-  // The reader-v1 payload, kept by lane R as a frozen file (never the live data/ai-suggestions.json, which changes).
-  const realFile = path.join(process.cwd(), 'data', 'ai-suggestions.v1.json');
+  // The reader-v1 payload, kept by lane R as a frozen file (never the live ai/eval/ai-suggestions.json, which changes).
+  const realFile = path.join(process.cwd(), 'ai', 'eval', 'ai-suggestions.v1.json');
   const real = loadAiPayload(ix, realFile);
   const verified = real.status === 'loaded' ? verifySuggestions(ix, real.payload) : [];
   const v = (id: string) => verified.find((x) => x.id === id)!;

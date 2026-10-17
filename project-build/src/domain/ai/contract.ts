@@ -64,7 +64,7 @@ export interface VerifiedSuggestion extends AiSuggestion {
   problems: string[];            // why not shown, when grounded is false or authority is not vetted
 }
 
-// Payload file: project-build/data/ai-suggestions.json (committed, read-only like the packet).
+// Payload file: project-build/ai/eval/ai-suggestions.json locally (the measured eval payload, committed); in production the encrypted copy in the private Blob store.
 // Events (lane U): 'suggestion_accepted' and 'suggestion_dismissed' on claimId 'finding:<suggestion id>',
 // payload { reason }. Accepted suggestions become findings labelled "Suggested by AI, accepted by <name>";
 // dismissed ones leave the inbox and stay in the record. Unreviewed suggestions never block filing.

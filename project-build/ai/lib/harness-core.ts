@@ -349,3 +349,34 @@ export function summaryLine(s: Score): string {
     + `strict precision ${s.matchedGrounded}/${s.grounded} (${pct(s.precision)}); loose recall ${s.loose.found.length}/${s.ledgerTotal}; `
     + `grounding ${s.grounded}/${s.suggestions} (${pct(s.groundingRate)}); rejected ${s.rejected} (format ${s.formatRejected.length}, would add ${s.formatAdds.length})`;
 }
+
+/** The measured baselines for the CI gate, from the committed reader-v2 eval payload, 17 Oct 2026: strict recall as
+ *  shown (after the backend verifier) 16 of 27 (17 before the verifier); 1 of 40 suggestions held back by the verifier. */
+export const MIN_STRICT_RECALL = 16;
+export const MAX_HELD_BACK = 1;
+const SSN_DASHED = /\b\d{3}-\d{2}-\d{4}\b/;
+
+export interface GateResult { failures: string[]; strictFound: number; ledgerTotal: number; rawGrounding: number; produced: number; shown: number; heldBack: number }
+
+/** The CI eval gate over the committed eval payload, scored through the backend verifier. Fails on: any produced
+ *  suggestion whose quotes are not on its page (raw grounding below 100%), more suggestions held back by the verifier
+ *  than the baseline, strict recall as shown below the baseline, a prompt version that differs from the code's, or any
+ *  SSN-shaped string (dashed, or any of this packet's SSNs without dashes) anywhere in the payload. */
+export function evalGate(ix: PacketIndex, payload: AiPayload, codePromptVersion: string, o: { minStrict?: number; maxHeldBack?: number } = {}): GateResult {
+  const minStrict = o.minStrict ?? MIN_STRICT_RECALL;
+  const maxHeldBack = o.maxHeldBack ?? MAX_HELD_BACK;
+  const failures: string[] = [];
+  const raw = scorePayload(ix, payload);
+  const shown = shownView(ix, payload);
+  if (raw.groundingRate < 1) failures.push(`raw grounding ${raw.grounded}/${raw.suggestions} is below 100% (ungrounded: ${raw.ungrounded.join(', ')})`);
+  if (shown.heldBack > maxHeldBack) failures.push(`${shown.heldBack} suggestion(s) held back by the verifier, above the baseline ${maxHeldBack}`);
+  const found = shown.score.ledgerFound.length;
+  if (found < minStrict) failures.push(`strict recall as shown ${found}/${shown.score.ledgerTotal} is below the baseline ${minStrict}`);
+  if (payload.promptVersion !== codePromptVersion) {
+    failures.push(`prompt changed: re-run the eval and commit the new eval payload (payload ${payload.promptVersion}, code ${codePromptVersion})`);
+  }
+  const text = JSON.stringify(payload);
+  const realSsns = [...new Set(JSON.stringify(ix.packet).match(/\b\d{3}-\d{2}-\d{4}\b/g) ?? [])].map((s) => s.replace(/-/g, ''));
+  if (SSN_DASHED.test(text) || realSsns.some((s) => text.includes(s))) failures.push('the payload holds an SSN-shaped string');
+  return { failures, strictFound: found, ledgerTotal: shown.score.ledgerTotal, rawGrounding: raw.groundingRate, produced: raw.suggestions, shown: shown.shown, heldBack: shown.heldBack };
+}

@@ -3,9 +3,10 @@ import type { NextConfig } from "next";
 const nextConfig: NextConfig = {
   // pg uses native-optional requires; keep it out of the server bundle.
   serverExternalPackages: ["pg"],
-  // The packet and the AI payload are read from disk at runtime (process.cwd()/data/...); ship both with every server
-  // function, or the AI section silently disappears in production.
-  outputFileTracingIncludes: { "/**": ["./data/packet.json", "./data/ai-suggestions.json"] },
+  // Client data is not shipped with the server functions: in production the packet and the AI payload are read
+  // encrypted from the private Blob store (src/server/data.ts). Local dev reads data/ and ai/eval/ from disk. File
+  // tracing would otherwise pick both up from the loaders' process.cwd() paths, so they are excluded explicitly.
+  outputFileTracingExcludes: { "/**": ["./data/**", "./ai/eval/**"] },
 };
 
 export default nextConfig;

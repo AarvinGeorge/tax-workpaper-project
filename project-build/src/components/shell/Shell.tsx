@@ -5,6 +5,7 @@ import { getWorkspace } from './load';
 import { maskText } from '@/domain/policy';
 import { RoleSwitcher } from './RoleSwitcher';
 import { ResetButton } from './ResetButton';
+import { ClientSwitcher } from './ClientSwitcher';
 import { Bell } from './Bell';
 import { claimLabel, notificationsFor } from '@/domain/notify';
 import { LiveRefresh } from './LiveRefresh';
@@ -95,6 +96,7 @@ export async function Shell({ ws, role, screen, claim, q, children, ...given }: 
   const people = (ix.packet.household.people ?? []).filter((p) => p.role === 'taxpayer' || p.role === 'spouse');
   const client = people.map((p) => String(p.name).split(' ').slice(-1)[0]).join(' and ');
   const taxYear = String(ix.packet.household.tax_year ?? '');
+  const clientLabel = `${client || 'Return'}${taxYear ? `, ${taxYear}` : ''}`;
   const results = q ? searchPacket(ix, q) : null;
   const canSee = (k: ScreenKey) => me.screens.includes(k);
   const roleName = (k: RoleKey) => { const r = w.allRoles.find((x) => x.key === k); return r ? r.name.split(' ')[0] : k; };
@@ -108,7 +110,9 @@ export async function Shell({ ws, role, screen, claim, q, children, ...given }: 
   return (
     <div className="wp" data-role={role} data-screen={screen}>
       <header className="sh-head">
-        <div className="sh-brand"><strong>Taxmark</strong><span className="muted">{client}{taxYear ? `, ${taxYear}` : ''}</span></div>
+        <div className="sh-brand"><strong>Taxmark</strong>{me.kind === 'staff'
+          ? <ClientSwitcher label={clientLabel} />
+          : <span className="muted">{clientLabel}</span>}</div>
         <div className="sh-meta num">
           <span><span className="muted">Version</span>{!isClient && <Term k="version" />} {version}{!isClient && !state.frozen && adjusted ? <Term k="finalized-version" /> : null}</span>
           <span><span className="muted">Stage</span> {state.stage}</span>

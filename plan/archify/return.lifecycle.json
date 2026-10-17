@@ -1,0 +1,198 @@
+{
+  "schema_version": 1,
+  "diagram_type": "lifecycle",
+  "meta": {
+    "title": "Taxmark Return Lifecycle",
+    "locale": "en",
+    "quality_profile": "showcase",
+    "viewBox": [
+      1000,
+      632
+    ]
+  },
+  "lanes": [
+    {
+      "id": "main",
+      "label": "Return stages (stageAt, story clock)"
+    },
+    {
+      "id": "detours",
+      "label": "Detours (stage unchanged)"
+    },
+    {
+      "id": "terminal",
+      "label": "After filing"
+    }
+  ],
+  "states": [
+    {
+      "id": "preparation",
+      "type": "start",
+      "label": "Preparation",
+      "sublabel": "to hand-off 27 Mar",
+      "lane": "main",
+      "col": 0,
+      "step": "01"
+    },
+    {
+      "id": "review",
+      "type": "active",
+      "label": "Review",
+      "sublabel": "0 blockers to approve",
+      "lane": "main",
+      "col": 1,
+      "step": "02"
+    },
+    {
+      "id": "approval",
+      "type": "decision",
+      "label": "Approval",
+      "sublabel": "clients sign 8879s 10 Jul",
+      "lane": "main",
+      "col": 2,
+      "step": "03"
+    },
+    {
+      "id": "filing",
+      "type": "active",
+      "label": "Filing",
+      "sublabel": "transmitted 13 Jul",
+      "lane": "main",
+      "col": 3,
+      "step": "04"
+    },
+    {
+      "id": "filed",
+      "type": "success",
+      "label": "Filed",
+      "sublabel": "IRS accepted 14 Jul",
+      "lane": "main",
+      "col": 4,
+      "step": "05",
+      "tag": "frozen"
+    },
+    {
+      "id": "stale",
+      "type": "waiting",
+      "label": "Re-sign needed",
+      "sublabel": "overlay; stage unchanged",
+      "lane": "detours",
+      "col": 0
+    },
+    {
+      "id": "rejected",
+      "type": "failure",
+      "label": "E-file rejected",
+      "sublabel": "R0000-504-02",
+      "lane": "detours",
+      "col": 1,
+      "tag": "recoverable"
+    },
+    {
+      "id": "amend",
+      "type": "neutral",
+      "label": "Amend on top",
+      "sublabel": "only further action",
+      "lane": "terminal",
+      "col": 2,
+      "tag": "terminal"
+    }
+  ],
+  "transitions": [
+    {
+      "from": "approval",
+      "to": "stale",
+      "label": "value changed",
+      "variant": "dashed",
+      "fromSide": "bottom",
+      "toSide": "top",
+      "route": "straight",
+      "labelDy": 24
+    },
+    {
+      "from": "stale",
+      "to": "approval",
+      "label": "re-sign",
+      "variant": "dashed",
+      "fromSide": "right",
+      "toSide": "right",
+      "via": [
+        [
+          481,
+          307
+        ],
+        [
+          481,
+          157
+        ]
+      ]
+    },
+    {
+      "from": "filing",
+      "to": "rejected",
+      "label": "IRS reject",
+      "variant": "security",
+      "fromSide": "bottom",
+      "toSide": "top",
+      "route": "straight",
+      "labelDy": 24
+    },
+    {
+      "from": "rejected",
+      "to": "filing",
+      "label": "retransmit",
+      "variant": "emphasis",
+      "fromSide": "right",
+      "toSide": "right",
+      "via": [
+        [
+          635,
+          307
+        ],
+        [
+          635,
+          157
+        ]
+      ]
+    },
+    {
+      "from": "filed",
+      "to": "amend",
+      "label": "change refused",
+      "variant": "dashed",
+      "fromSide": "bottom",
+      "toSide": "top",
+      "route": "straight",
+      "labelDy": 24
+    }
+  ],
+  "cards": [
+    {
+      "dot": "cyan",
+      "title": "Gates",
+      "items": [
+        "Review starts at the 27 Mar hand-off; stages follow the story clock",
+        "Partner approves inside Review, with zero blockers",
+        "Approval stage: each spouse signs 8879 and FTB 8879 (10 Jul)"
+      ]
+    },
+    {
+      "dot": "rose",
+      "title": "Recoverable rejection",
+      "items": [
+        "13 Jul: IRS rejects; dependent 2 TIN and name mismatch",
+        "California held, not transmitted",
+        "GT-A05: Theo's SSN transposed; card D71 13 Jul, accepted 14 Jul"
+      ]
+    },
+    {
+      "dot": "emerald",
+      "title": "Filed and frozen",
+      "items": [
+        "Federal acceptance 14 Jul freezes the as-filed record",
+        "California accepted 15 Jul",
+        "Value changes are refused: amend on top"
+      ]
+    }
+  ]
+}

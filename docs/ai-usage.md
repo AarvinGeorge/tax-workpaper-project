@@ -45,3 +45,9 @@ From here on, entries are written at the time again.
 - 2026-10-17 17:07 EDT · Fable 5.1: AI-layer code review done, 0 must-fix, 6 should-fix · Opus 5.5 subagents (lanes U and R): fixing them, test first
 - 2026-10-17 17:18 EDT · Opus 5.5 subagent: automated acceptance walk of the checklist against the live app (26 of 36 pass; gaps listed in decisions.md) · Opus 5.5 subagent (lane U): fixing the five app gaps
 - 2026-10-17 17:37 EDT · Opus 5.5 (main): reran the acceptance walk on live 2adbf81, aligned its assertions with the corrected checklist, wrote 35 automated marks into the checklist page's store (labelled Automated); drafted docs/handin/video-script.md and docs/handin/design-many-returns.md
+- 2026-10-17 17:48 EDT · Opus 5.5 x4 subagents: Archify diagrams (architecture, dataflow, sequence, lifecycle) from docs/architecture/FACTS.md · Fable 5.1 review to follow
+- 2026-10-17 17:53 EDT · Fable 5.1: review of the four Archify diagrams (running)
+- 2026-10-17 18:03 EDT · Fable 5.1: Archify diagram review (fixes proven to validate) · Opus 5.5: applied, redelivered, visual-checked and published the four diagrams with an index page
+- 2026-10-17 18:28 EDT · Opus 5.5 (main): created the private Blob store and the generated secrets via CLI; Opus 5.5 subagent: vault, data switch, ingest, cloud reader route, CI eval gate (running)
+- 2026-10-17 18:39 EDT · Opus 5.5 subagent (builder): vault, data switch, ingest, cloud reader route, CI eval gate built test-first (27 new unit tests seen failing, then 503/503 unit, 56/56 e2e); Vercel docs search for cron auth, @vercel/blob 2.8.0 get/put read from its type definitions and source; no model call made
+- 2026-10-17 18:52 EDT · Fable 5.1: security review of the vault restructure (crypto tamper harness, fail-closed probes, nft and bundle greps) · Opus 5.5 subagent: fixing its should-fixes

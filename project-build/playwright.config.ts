@@ -8,7 +8,7 @@ import { writeAiFixture } from './tests/fixtures/ai-payload';
 // When Playwright's own Chromium is not downloaded, the locally installed Google Chrome is used instead.
 const PORT = Number(process.env.E2E_PORT ?? 3200);
 const baseURL = process.env.E2E_BASE_URL ?? `http://localhost:${PORT}`;
-// The app under test reads the AI fixture (tests/fixtures/ai-payload.ts) instead of data/ai-suggestions.json, so the AI
+// The app under test reads the AI fixture (tests/fixtures/ai-payload.ts) instead of ai/eval/ai-suggestions.json, so the AI
 // spec is deterministic and every other spec also runs with AI suggestions present. Unset when E2E_BASE_URL is given.
 const AI_PAYLOAD = process.env.E2E_BASE_URL ? undefined : writeAiFixture(path.join(tmpdir(), 'taxmark-ai-payload.e2e.json'));
 const bundled = (() => { try { return existsSync(chromium.executablePath()); } catch { return false; } })();

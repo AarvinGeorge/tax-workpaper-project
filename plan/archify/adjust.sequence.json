@@ -1,0 +1,196 @@
+{
+  "schema_version": 1,
+  "diagram_type": "sequence",
+  "meta": {
+    "title": "Daniel adjusts CA estimated payments; Priya's tab shows it",
+    "quality_profile": "showcase",
+    "column_fit": "spread",
+    "viewBox": [
+      1080,
+      650
+    ],
+    "legend": {
+      "entries": {
+        "dashed": {
+          "label": "refusal branch (alt)"
+        }
+      }
+    }
+  },
+  "participants": [
+    {
+      "id": "daniel",
+      "type": "frontend",
+      "label": "Daniel's browser",
+      "sublabel": "reviewer tab"
+    },
+    {
+      "id": "route",
+      "type": "backend",
+      "label": "Next.js route",
+      "sublabel": "api/w/[ws]/* + page render"
+    },
+    {
+      "id": "server",
+      "type": "security",
+      "label": "Server state",
+      "sublabel": "state.ts + can()"
+    },
+    {
+      "id": "neon",
+      "type": "database",
+      "label": "Neon Postgres",
+      "sublabel": "workpaper_events"
+    },
+    {
+      "id": "priya",
+      "type": "frontend",
+      "label": "Priya's browser",
+      "sublabel": "preparer tab"
+    }
+  ],
+  "segments": [
+    {
+      "from": 166,
+      "to": 376,
+      "label": "POST the adjustment"
+    },
+    {
+      "from": 408,
+      "to": 566,
+      "label": "Priya's 5 s poll"
+    }
+  ],
+  "messages": [
+    {
+      "id": "post",
+      "from": "daniel",
+      "to": "route",
+      "y": 196,
+      "label": "POST events?role=daniel (F540NR.72 = 10500)",
+      "variant": "emphasis",
+      "note": "type adjustment, status applied (reviewer), baseVersion = the version Daniel opened"
+    },
+    {
+      "id": "call",
+      "from": "route",
+      "to": "server",
+      "y": 224,
+      "label": "postEvent: validateNewEvent",
+      "variant": "emphasis",
+      "note": "a malformed event is 400"
+    },
+    {
+      "id": "list",
+      "from": "server",
+      "to": "neon",
+      "y": 252,
+      "label": "list(ws)",
+      "variant": "default"
+    },
+    {
+      "id": "events",
+      "from": "neon",
+      "to": "server",
+      "y": 280,
+      "label": "events by seq",
+      "variant": "return",
+      "note": "projectWorkspace, then can()"
+    },
+    {
+      "id": "refuse",
+      "from": "server",
+      "to": "route",
+      "y": 308,
+      "label": "alt: 409 stale / 403 policy",
+      "variant": "dashed",
+      "note": "409 carries the newer events; nothing is appended"
+    },
+    {
+      "id": "append",
+      "from": "server",
+      "to": "neon",
+      "y": 336,
+      "label": "INSERT seq = MAX+1",
+      "variant": "emphasis",
+      "note": "RETURNING seq, at; retry on 23505"
+    },
+    {
+      "id": "ok",
+      "from": "route",
+      "to": "daniel",
+      "y": 362,
+      "label": "200 ok, seq, event",
+      "variant": "return"
+    },
+    {
+      "id": "poll",
+      "from": "priya",
+      "to": "route",
+      "y": 432,
+      "label": "GET state?role=priya&after=lastSeq",
+      "variant": "default"
+    },
+    {
+      "id": "load",
+      "from": "route",
+      "to": "server",
+      "y": 460,
+      "label": "stateResponse",
+      "variant": "default",
+      "note": "projects and masks for Priya"
+    },
+    {
+      "id": "read",
+      "from": "server",
+      "to": "neon",
+      "y": 488,
+      "label": "list(ws)",
+      "variant": "default"
+    },
+    {
+      "id": "news",
+      "from": "route",
+      "to": "priya",
+      "y": 516,
+      "label": "200, lastSeq is new",
+      "variant": "return",
+      "note": "LiveRefresh calls router.refresh()"
+    },
+    {
+      "id": "render",
+      "from": "route",
+      "to": "priya",
+      "y": 544,
+      "label": "router.refresh(): page re-render + toast",
+      "variant": "emphasis",
+      "note": "Daniel changed 2025 California estimated tax payments"
+    }
+  ],
+  "cards": [
+    {
+      "dot": "rose",
+      "title": "Refused before the write",
+      "items": [
+        "409: baseVersion differs from the claim's version",
+        "403: can() says no (frozen record, read-only seat, not yet active)"
+      ]
+    },
+    {
+      "dot": "cyan",
+      "title": "One append",
+      "items": [
+        "Server sets ws, role, storyAt",
+        "Key (ws, seq); a seq race retries"
+      ]
+    },
+    {
+      "dot": "emerald",
+      "title": "Other tabs catch up",
+      "items": [
+        "Poll GET state every 5 s",
+        "Refresh when lastSeq or storyAt moves"
+      ]
+    }
+  ]
+}
