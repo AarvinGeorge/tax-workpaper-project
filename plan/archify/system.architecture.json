@@ -11,7 +11,7 @@
     "repository": {
       "url": "https://github.com/AarvinGeorge/tax-workpaper-project",
       "provider": "github",
-      "revision": "45b37d8ef337b77a61f0d6778b6635ef1ceb6c0c"
+      "revision": "9c62de081756faeadb1049af1d4a321c6baf0cdc"
     }
   },
   "components": [
@@ -57,6 +57,10 @@
         {
           "path": "project-build/src/server/state.ts",
           "label": "load / post / mask"
+        },
+        {
+          "path": "project-build/src/server/data.ts",
+          "label": "vault fetch + hash check"
         }
       ]
     },
@@ -117,6 +121,12 @@
       "size": [
         160,
         72
+      ],
+      "sources": [
+        {
+          "path": "project-build/src/server/vault.ts",
+          "label": "AES-GCM seal / unseal"
+        }
       ]
     },
     {
@@ -131,6 +141,16 @@
       "size": [
         160,
         72
+      ],
+      "sources": [
+        {
+          "path": "project-build/src/app/api/internal/ai-reader/route.ts",
+          "label": "cron route"
+        },
+        {
+          "path": "project-build/src/server/ai-reader.ts",
+          "label": "reader handler"
+        }
       ]
     },
     {
@@ -146,6 +166,12 @@
       "size": [
         160,
         72
+      ],
+      "sources": [
+        {
+          "path": "project-build/vercel.json",
+          "label": "cron schedule"
+        }
       ]
     },
     {
@@ -176,6 +202,16 @@
       "size": [
         160,
         72
+      ],
+      "sources": [
+        {
+          "path": "project-build/vercel.json",
+          "label": "build command"
+        },
+        {
+          "path": "project-build/scripts/ingest.ts",
+          "label": "ingest"
+        }
       ]
     },
     {
@@ -206,6 +242,12 @@
       "size": [
         160,
         72
+      ],
+      "sources": [
+        {
+          "path": ".github/workflows/ci.yml",
+          "label": "CI workflow"
+        }
       ]
     }
   ],

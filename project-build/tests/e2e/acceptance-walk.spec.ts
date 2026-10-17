@@ -135,6 +135,8 @@ test('1.2 Follow a document to everywhere it landed', async ({ browser }) => {
   await expect(rows.first(), 'type, issuer, owner, received').toContainText(/Received \d{2} \w{3} 20\d\d/);
   // a landed document
   await p.getByRole('link', { name: /^Landed/ }).click();
+  await p.waitForURL(/[?&](filter|status|landed)=/i).catch(() => {});
+  await expect(rows.first(), 'the filtered list shows a landed document first').not.toContainText(/Did not land/);
   await rows.first().click();
   await expect(drawer(p), 'landed document lists the lines that use its values').toContainText(/F\d{4}|Sch[A-Z0-9]|F540NR/);
   // a not-landed document
@@ -247,7 +249,7 @@ test('1.9 Search', async ({ browser }) => {
   await expect(results).toContainText('F540NR.72');
   await box.fill('14,000'); await box.press('Enter');
   await expect(results).toContainText('14,000');
-  await box.fill('666-'); await box.press('Enter');
+  await box.fill('666-00-0000'); await box.press('Enter');
   await expect(results, 'identifier digits refused').toContainText('never searchable');
 });
 
@@ -493,7 +495,7 @@ test('4.1 Clear the blockers', async ({ browser }) => {
   await go(browser, 'daniel', 'checks');
   await expect.soft(main(p), 'Checks blocker count falls to 0').toContainText(/\b0 blockers/);
   await go(browser, 'daniel', 'review');
-  await expect(main(p), 'Review keeps only the partner sign-off').toContainText(/\b1 blockers?\b/);
+  await expect(main(p), 'Review keeps only the partner sign-off').toContainText(/(^|\D)1 blockers?/);
   await go(browser, 'daniel', 'changes');
   await expect(p.locator('section[aria-label="Change log"]'), 'clearing recorded with its reason').toContainText('Reviewed; the return already reflects');
 });

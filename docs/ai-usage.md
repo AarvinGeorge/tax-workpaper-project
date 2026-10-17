@@ -51,3 +51,5 @@ From here on, entries are written at the time again.
 - 2026-10-17 18:28 EDT · Opus 5.5 (main): created the private Blob store and the generated secrets via CLI; Opus 5.5 subagent: vault, data switch, ingest, cloud reader route, CI eval gate (running)
 - 2026-10-17 18:39 EDT · Opus 5.5 subagent (builder): vault, data switch, ingest, cloud reader route, CI eval gate built test-first (27 new unit tests seen failing, then 503/503 unit, 56/56 e2e); Vercel docs search for cron auth, @vercel/blob 2.8.0 get/put read from its type definitions and source; no model call made
 - 2026-10-17 18:52 EDT · Fable 5.1: security review of the vault restructure (crypto tamper harness, fail-closed probes, nft and bundle greps) · Opus 5.5 subagent: fixing its should-fixes
+- 2026-10-17 19:18 EDT · Claude Sonnet 5.5 via the cloud reader route: one live dry run (3 documents, nothing stored) proving the production path · Opus 5.5: deploy and live verification
+- 2026-10-17 19:25 EDT · Opus 5.5 subagents: Archify updates (system, data flow, revision 9c62de0) · Opus 5.5 (main): acceptance walk on live, test fixes, checklist and diagram republish
