@@ -53,3 +53,5 @@ From here on, entries are written at the time again.
 - 2026-10-17 18:52 EDT · Fable 5.1: security review of the vault restructure (crypto tamper harness, fail-closed probes, nft and bundle greps) · Opus 5.5 subagent: fixing its should-fixes
 - 2026-10-17 19:18 EDT · Claude Sonnet 5.5 via the cloud reader route: one live dry run (3 documents, nothing stored) proving the production path · Opus 5.5: deploy and live verification
 - 2026-10-17 19:25 EDT · Opus 5.5 subagents: Archify updates (system, data flow, revision 9c62de0) · Opus 5.5 (main): acceptance walk on live, test fixes, checklist and diagram republish
+- 2026-10-17 19:30 EDT · Opus 5.5 subagent: Archify overview diagram (running)
+- 17 Oct 19:38 EDT · Opus 5.5 subagent: Archify overview diagram (spec, showcase 9 of 9, visual check at 4 viewports) · Opus 5.5 (main): fact-checked the wording, looked at the screenshot, published card 00; rewrote the video script to 5 minutes and ran it through the no-ai-slop rules (petergyang/no-ai-slop SKILL.md, read via gh api this pass)

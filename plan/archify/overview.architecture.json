@@ -1,0 +1,204 @@
+{
+  "schema_version": 1,
+  "diagram_type": "architecture",
+  "meta": {
+    "title": "Taxmark at a glance",
+    "locale": "en",
+    "quality_profile": "showcase",
+    "viewBox": [
+      1310,
+      620
+    ]
+  },
+  "components": [
+    {
+      "id": "packet",
+      "type": "external",
+      "label": "Client's tax packet",
+      "sublabel": "read by the firm's pipeline",
+      "pos": [
+        20,
+        300
+      ],
+      "size": [
+        180,
+        80
+      ]
+    },
+    {
+      "id": "vault",
+      "type": "security",
+      "label": "Encrypted storage",
+      "sublabel": "private, on Vercel",
+      "pos": [
+        320,
+        300
+      ],
+      "size": [
+        180,
+        80
+      ]
+    },
+    {
+      "id": "app",
+      "type": "frontend",
+      "label": "Taxmark",
+      "sublabel": "checks find mistakes, trace every number",
+      "pos": [
+        640,
+        300
+      ],
+      "size": [
+        240,
+        80
+      ]
+    },
+    {
+      "id": "people",
+      "type": "external",
+      "label": "The people",
+      "sublabel": "preparer, reviewer, partner, client, examiner",
+      "pos": [
+        1030,
+        300
+      ],
+      "size": [
+        260,
+        80
+      ]
+    },
+    {
+      "id": "reader",
+      "type": "backend",
+      "label": "AI reader (Claude)",
+      "sublabel": "once per packet, never on page load",
+      "pos": [
+        640,
+        60
+      ],
+      "size": [
+        240,
+        80
+      ]
+    },
+    {
+      "id": "record",
+      "type": "database",
+      "label": "The record (Neon)",
+      "sublabel": "nothing ever edited or deleted",
+      "pos": [
+        1030,
+        500
+      ],
+      "size": [
+        260,
+        80
+      ]
+    },
+    {
+      "id": "gate",
+      "type": "cloud",
+      "label": "Quality gate (GitHub CI)",
+      "sublabel": "every change tested before live",
+      "pos": [
+        320,
+        500
+      ],
+      "size": [
+        180,
+        80
+      ]
+    }
+  ],
+  "connections": [
+    {
+      "id": "packet-to-vault",
+      "from": "packet",
+      "to": "vault",
+      "label": "stored encrypted",
+      "fromSide": "right",
+      "toSide": "left"
+    },
+    {
+      "id": "vault-to-app",
+      "from": "vault",
+      "to": "app",
+      "label": "decrypted and checked",
+      "variant": "emphasis",
+      "fromSide": "right",
+      "toSide": "left"
+    },
+    {
+      "id": "vault-to-reader",
+      "from": "vault",
+      "to": "reader",
+      "label": "reads the packet",
+      "fromSide": "top",
+      "toSide": "left",
+      "via": [
+        [
+          410,
+          100
+        ]
+      ]
+    },
+    {
+      "id": "reader-to-app",
+      "from": "reader",
+      "to": "app",
+      "label": "suggestions (quotes verified)",
+      "fromSide": "bottom",
+      "toSide": "top",
+      "labelAt": [
+        760,
+        220
+      ]
+    },
+    {
+      "id": "app-to-people",
+      "from": "app",
+      "to": "people",
+      "label": "verified findings, by role",
+      "variant": "emphasis",
+      "fromSide": "right",
+      "toSide": "left"
+    },
+    {
+      "id": "app-to-record",
+      "from": "app",
+      "to": "record",
+      "label": "actions saved",
+      "fromSide": "bottom",
+      "toSide": "top"
+    },
+    {
+      "id": "gate-to-app",
+      "from": "gate",
+      "to": "app",
+      "label": "tested",
+      "variant": "dashed",
+      "fromSide": "right",
+      "toSide": "bottom",
+      "labelSegment": 0
+    }
+  ],
+  "cards": [
+    {
+      "dot": "emerald",
+      "title": "Trust",
+      "items": [
+        "Client data encrypted",
+        "Secrets only on the server",
+        "AI suggests, people decide"
+      ]
+    },
+    {
+      "dot": "amber",
+      "title": "Proof",
+      "items": [
+        "27 confident mistakes caught by checks",
+        "AI found 13 of 27 blind, plus one we missed"
+      ]
+    }
+  ]
+}
