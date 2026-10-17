@@ -2,7 +2,7 @@
 import type { PacketIndex } from './packet/load';
 import type { ClaimState, Finding, RoleKey, SignOff, WorkEvent, WorkspaceState } from './contracts';
 import { DEFAULT_STORY_AT, frozenAt, stageAt, visibleAt } from './clock';
-import { isApplied, retractedSeqs } from './events';
+import { isApplied, retractedSeqs, sinceLastReset } from './events';
 import { maskText, partnerThreshold, roleInfo, signoffLevel } from './policy';
 
 type Effect = NonNullable<ClaimState['effect']>;
@@ -100,7 +100,7 @@ function maskEvent(e: WorkEvent, role: ReturnType<typeof roleInfo>): WorkEvent {
 
 export function projectWorkspace(ix: PacketIndex, events: WorkEvent[], role: RoleKey, findings: Finding[]): WorkspaceState {
   const info = roleInfo(ix, role);
-  const sorted = [...events].sort((a, b) => a.seq - b.seq);
+  const sorted = sinceLastReset([...events].sort((a, b) => a.seq - b.seq));
   // The clock is set by clock_moved events whatever their own story time; undoing one moves it back.
   const storyAt = storyTime(ix, sorted, retractedSeqs(sorted));
   const visible = sorted.filter((e) => e.type === 'clock_moved' || visibleAt(e.storyAt, storyAt)).map((e) => maskEvent(e, info));

@@ -133,6 +133,9 @@ export function can(ix: PacketIndex, roleArg: RoleKey | RoleInfo, action: Action
   const payload = target.payload ?? {};
   const claim = target.claimId ? state.claims[target.claimId] : undefined;
 
+  // A demo control, not a firm action: anyone at the link may take the workspace back to the pipeline output.
+  if (action === 'workspace_reset') return yes;
+
   if (action === 'clock_moved') {
     if (info.kind !== 'staff') return no('Only firm staff move the story clock.');
     return Number.isNaN(Date.parse(str(payload.to))) ? no('payload.to must be a date and time.') : yes;

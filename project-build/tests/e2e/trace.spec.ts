@@ -98,3 +98,10 @@ test('header search finds a line and never searches identifier digits', async ({
   await page.goto(`/w/${id}/daniel?q=${encodeURIComponent('123-45-6789')}`);
   await expect(page.getByRole('region', { name: 'Search results' })).toContainText('never searchable');
 });
+
+test('the product is named Taxmark in the header, the tab and Start here', async ({ page }) => {
+  await page.goto(`/w/${ws('brand')}/daniel`);
+  await expect(page).toHaveTitle(/^Taxmark/);
+  await expect(page.locator('.sh-brand strong')).toHaveText('Taxmark');
+  await expect(page.getByTestId('start-here')).toContainText('Taxmark is a web-native workpaper');
+});

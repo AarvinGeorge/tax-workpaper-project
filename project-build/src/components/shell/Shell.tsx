@@ -4,6 +4,7 @@ import type { RoleInfo, RoleKey, ScreenKey, WorkspaceState, WorkEvent } from '@/
 import { getWorkspace } from './load';
 import { maskText } from '@/domain/policy';
 import { RoleSwitcher } from './RoleSwitcher';
+import { ResetButton } from './ResetButton';
 import { LiveRefresh } from './LiveRefresh';
 import { claimHref, fmtDay, fmtStory, fmtValue, notYetText, screenHint, screenLabel, screenPath, searchPacket } from './lib';
 import { NoAccess } from '../work/ui';
@@ -91,7 +92,7 @@ export async function Shell({ ws, role, screen, claim, q, children, ...given }: 
   return (
     <div className="wp" data-role={role} data-screen={screen}>
       <header className="sh-head">
-        <div className="sh-brand"><strong>Workpaper</strong><span className="muted">{client}{taxYear ? `, ${taxYear}` : ''}</span></div>
+        <div className="sh-brand"><strong>Taxmark</strong><span className="muted">{client}{taxYear ? `, ${taxYear}` : ''}</span></div>
         <div className="sh-meta num">
           <span><span className="muted">Version</span> {version}</span>
           <span><span className="muted">Stage</span> {state.stage}</span>
@@ -114,6 +115,7 @@ export async function Shell({ ws, role, screen, claim, q, children, ...given }: 
       <div className="sh-story" role="group" aria-label="Story clock">
         <span className="num" title="The one story clock for this workspace; times are UTC"><strong>Story time:</strong> {fmtStory(state.storyAt)}</span>
         {!isClient && canSee('firm') && me.kind === 'staff' && <span className="small muted">The story clock is moved on <Link href={screenPath(ws, role, 'firm')}>Firm</Link>; moving it is recorded as an event everyone sees.</span>}
+        <span style={{ marginLeft: 'auto' }}><ResetButton ws={ws} role={role} /></span>
       </div>
 
       <div className="sh-banner" role="note">

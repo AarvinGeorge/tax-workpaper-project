@@ -4,8 +4,16 @@ import type { EventType, NewEvent, WorkEvent } from './contracts';
 export const EVENT_TYPES: readonly EventType[] = [
   'adjustment', 'review_note', 'note_resolved', 'signoff', 'question_to_client', 'answer_recorded', 'reason_set',
   'reveal', 'clock_moved', 'undo', 'assignment', 'attach_note', 'time_logged', 'verification', 'decision',
-  'question_to_colleague', 'finding_cleared',
+  'question_to_colleague', 'finding_cleared', 'workspace_reset',
 ];
+
+/** Events after the latest workspace_reset: a reset takes the workspace back to the pipeline output (README: no
+ *  reviews, notes, sign-offs or decisions) at the default story time. Earlier events stay in the store. */
+export function sinceLastReset(sorted: WorkEvent[]): WorkEvent[] {
+  let from = 0;
+  sorted.forEach((e, i) => { if (e.type === 'workspace_reset') from = i + 1; });
+  return from ? sorted.slice(from) : sorted;
+}
 
 /** 'line:<KEY>', 'doc:<ID>', 'finding:<ID>' (plus 'question:<seq>' and 'return' for whole-return items). */
 export const CLAIM_ID = /^(?:(?:line|doc|finding|question):[A-Za-z0-9._#:/-]{1,100}|return)$/;

@@ -43,7 +43,7 @@ export default async function Home({ params, searchParams }: P) {
 
         {me.kind === 'staff' && (
           <StartHere>
-            <p>A web-native workpaper for one household&apos;s {String(ix.packet.household.tax_year ?? '')} return: click any number to see the page and field it came from, the rule that built it, who checked it and what is still open.</p>
+            <p>Taxmark is a web-native workpaper for one household&apos;s {String(ix.packet.household.tax_year ?? '')} return: click any number to see the page and field it came from, the rule that built it, who checked it and what is still open.</p>
             <div className="counts num" data-testid="counts">
               <span><strong>{c.documents.toLocaleString('en-US')}</strong> documents</span>
               <span><strong>{c.values.toLocaleString('en-US')}</strong> values read from them</span>

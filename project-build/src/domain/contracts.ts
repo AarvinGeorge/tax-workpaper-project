@@ -23,7 +23,9 @@ export type ScreenKey = 'home' | 'return' | 'areas' | 'documents' | 'checks' | '
 export type EventType =
   | 'adjustment' | 'review_note' | 'note_resolved' | 'signoff' | 'question_to_client' | 'answer_recorded'
   | 'reason_set' | 'reveal' | 'clock_moved' | 'undo' | 'assignment' | 'attach_note' | 'time_logged'
-  | 'verification' | 'decision' | 'question_to_colleague' | 'finding_cleared';
+  | 'verification' | 'decision' | 'question_to_colleague' | 'finding_cleared' | 'workspace_reset';
+// workspace_reset is a demo control: the projection ignores every event before the latest one (back to the pipeline
+// output at the default story time); the log itself stays append-only.
 // verification.payload.method is one of firm.starter_standards.verification_types; decision.payload.kind is
 // 'election' | 'due_diligence' | 'penalty' | 'judgment' with payload.authority; adjustment.payload.status is 'proposed' | 'applied'.
 export interface WorkEvent {

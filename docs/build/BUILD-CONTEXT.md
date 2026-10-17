@@ -1,13 +1,15 @@
 # Build context: read this before every task (agents and main session)
 
 The one-page anchor for the build. If you are unsure what to do, re-read this file, then the spec.
-Last updated 16 Oct 2026, 23:55 EDT.
+Last updated 17 Oct 2026, 12:19 EDT.
 
 ## 1. What we are building
 A thin, honest, deployed web app: the workpaper for the Okafor-Lindqvist 2025 return, run from a link, loading the
 packet as delivered, saving everything as events, with a role switcher. Steps 5-10 of the season are ours
 (prove and review, approve, e-file, freeze, defend, next year). Spec: `docs/superpowers/specs/2026-10-17-workpaper-build-design.md`.
 Plan: `docs/superpowers/plans/2026-10-17-workpaper-build.md`.
+Product name: **Taxmark** (Aarvin, 17 Oct). Live: https://taxmark-workpaper.vercel.app (Vercel project tax-workpaper, team
+aarvingeorges-projects, root project-build; also tax-workpaper-ten.vercel.app). Storage: temporary until Neon is attached.
 
 ## 2. Order of authority (when two sources disagree, the higher wins)
 1. The brief `docs/brief.txt`. 2. The packet and its README `docs/packet/readme-verbatim.md` (incl. `firm.starter_standards`).

@@ -7,7 +7,7 @@ const serif = Source_Serif_4({ variable: '--font-serif', subsets: ['latin'], wei
 const mono = IBM_Plex_Mono({ variable: '--font-mono', subsets: ['latin'], weight: ['400', '500'] });
 
 export const metadata: Metadata = {
-  title: 'Workpaper',
+  title: 'Taxmark',
   description: 'A web-native tax workpaper: every number traced to its source, checks that do not trust the engine, roles and an audit trail.',
 };
 
