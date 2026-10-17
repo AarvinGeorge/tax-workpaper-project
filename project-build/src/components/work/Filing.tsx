@@ -7,6 +7,7 @@ import { refText, resolveRef } from '@/domain/refs';
 import s from './work.module.css';
 import { arr, claimHref, day, humanize, masker, obj, refClaim, when, type WorkProps } from './lib';
 import { Designed, NoAccess, NotInPacket, Page, Tag } from './ui';
+import { ClientSigning, StaffSigning } from '@/components/client/ClientFiling';
 
 function Rows({ data, m, names = [] }: { data: Record<string, unknown>; m: (t: unknown) => string; names?: string[] }) {
   const entries = Object.entries(data);
@@ -144,10 +145,7 @@ export function FilingScreen(p: WorkProps) {
             <p className={s.note} style={{ margin: 0 }}>Your tax team will tell you the amounts.</p>
           </section>
         ) : null}
-        <div className={s.designedGrid}>
-          <Designed title="Signing Form 8879, one per spouse" text="Each of you signs the federal and California e-file authorizations separately, on the exact return you approved." />
-          <Designed title="Your copy of the return" text="A plain-language copy of the return as filed, with what to keep and for how long." />
-        </div>
+        <ClientSigning ws={p.ws} ix={ix} role={role} state={state} />
       </Page>
     );
   }
@@ -173,6 +171,8 @@ export function FilingScreen(p: WorkProps) {
               : <span><Tag tone="neu">Open</Tag> No federal acceptance in the agency records.</span>}
         </div>
       </section>
+
+      <StaffSigning ix={ix} state={state} />
 
       <section className={s.section} aria-labelledby="fil-ext">
         <h2 className={s.h2} id="fil-ext">Extension</h2>
@@ -303,11 +303,8 @@ export function FilingScreen(p: WorkProps) {
       <section className={s.section} aria-labelledby="fil-designed">
         <h2 className={s.h2} id="fil-designed">Designed, not built in this round</h2>
         <div className={s.designedGrid}>
-          <Designed title="Form 8879 signing, one per spouse" text="Each spouse signs the federal and California authorizations separately, against a frozen snapshot of the return they approved; a change after signing is flagged." />
-          <Designed title="The client's copy" text="A plain-language copy of the filed return for the household, with the amounts as filed and what to keep." />
           {!isClient ? <Designed title="Examination response pack" text="For a later letter: each item under examination with its claims, source pages, finalized value and sign-offs." /> : null}
           {!isClient ? <Designed title="Penalty and interest estimate" text="Late-payment interest and penalty from the packet's post-filing rates, by day paid, labelled as an estimate." /> : null}
-          <Designed title="Live notifications" text="A bell and toasts when someone signs, asks or changes a number you care about; this build refreshes every few seconds instead." />
           <Designed title="Attaching a real file" text="Uploading a new document to a claim. Notes on claims are built; file upload is not." />
         </div>
       </section>

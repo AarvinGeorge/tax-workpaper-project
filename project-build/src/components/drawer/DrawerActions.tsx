@@ -12,6 +12,7 @@ interface Props {
   ws: string; role: RoleKey; claimId: string; baseVersion: number; actions: ActionSpec[]; frozen: boolean;
   reveal: { ok: boolean; reason?: string; items: { valueId: string; label: string; revealed: boolean }[] } | null;
   clients: { key: RoleKey; name: string }[]; colleagues: { key: RoleKey; name: string }[]; methods: string[];
+  assign: { ok: boolean; reason?: string; current: string | null; staff: { key: RoleKey; name: string }[] };
 }
 
 const DECISIONS = [['judgment', 'Judgment call'], ['election', 'Election'], ['due_diligence', 'Due diligence'], ['penalty', 'Penalty']] as const;
@@ -114,6 +115,23 @@ export function DrawerActions(p: Props) {
           </div>
         </div>
       )}
+
+      <div className="row small" data-testid="assign">
+        <span className="lbl">Assigned to</span>
+        <span data-testid="assignee">{p.assign.current ?? 'No one yet'}</span>
+        {p.assign.ok ? (
+          <>
+            <select id="as-to" className="field" style={{ width: 'auto' }} value={f.assignTo ?? ''} onChange={set('assignTo')} aria-label="Assign to">
+              <option value="">Assign to</option>
+              {p.assign.staff.map((o) => <option key={o.key} value={o.key}>{o.name}</option>)}
+            </select>
+            <button type="button" className="btn" disabled={busy || !f.assignTo}
+              onClick={() => { const to = f.assignTo; void send('assignment', { to }, `Assigned to ${p.assign.staff.find((x) => x.key === to)?.name ?? to}. They are notified.`); }}>
+              Assign
+            </button>
+          </>
+        ) : <span className="muted">{p.assign.reason}</span>}
+      </div>
 
       {p.reveal && (
         <div className="drw-sec">

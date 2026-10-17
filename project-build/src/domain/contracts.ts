@@ -23,7 +23,9 @@ export type ScreenKey = 'home' | 'return' | 'areas' | 'documents' | 'checks' | '
 export type EventType =
   | 'adjustment' | 'review_note' | 'note_resolved' | 'signoff' | 'question_to_client' | 'answer_recorded'
   | 'reason_set' | 'reveal' | 'clock_moved' | 'undo' | 'assignment' | 'attach_note' | 'time_logged'
-  | 'verification' | 'decision' | 'question_to_colleague' | 'finding_cleared' | 'workspace_reset';
+  | 'verification' | 'decision' | 'question_to_colleague' | 'finding_cleared' | 'workspace_reset' | 'client_signature';
+// client_signature: one spouse e-signs Form 8879 and FTB 8879 on claimId 'return', payload { forms, value } where value is
+// the fingerprint of the finalized return signed. No PIN is ever sent or stored.
 // workspace_reset is a demo control: the projection ignores every event before the latest one (back to the pipeline
 // output at the default story time); the log itself stays append-only.
 // verification.payload.method is one of firm.starter_standards.verification_types; decision.payload.kind is

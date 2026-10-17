@@ -1,4 +1,5 @@
 // The one door to saved state. Server components and the API both call these; the UI never touches the store.
+import { returnFingerprint } from '@/components/client/signing';
 import type { Finding, NewEvent, RoleInfo, RoleKey, WorkEvent, WorkspaceState } from '@/domain/contracts';
 import { indexPacket, loadPacket, type PacketIndex } from '@/domain/packet/load';
 import { getStore } from '@/domain/store';
@@ -81,6 +82,8 @@ export async function postEvent(ws: string, role: RoleKey, e: EventInput | NewEv
     payload.value = original === null || original === undefined ? '' : String(original);
     if (payload.level === undefined && signoffLevel(ix, role)) payload.level = signoffLevel(ix, role);
   }
+  // What a client signs is fingerprinted here from the finalized return, never taken from the browser.
+  if (input.type === 'client_signature') payload.value = returnFingerprint(ix, staffView);
   const verdict = can(ix, role, input.type, { ...input, payload }, view);
   if (!verdict.ok) {
     if (verdict.conflict) return { ok: false, status: 409, reason: verdict.reason ?? 'Conflict.', newer: verdict.newer };

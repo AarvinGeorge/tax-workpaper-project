@@ -75,7 +75,11 @@ function buildClaims(ix: PacketIndex, events: WorkEvent[], retracted: Set<number
     const signoffs: SignOff[] = live.filter((e) => e.type === 'signoff').map((e) => {
       const value = String(e.payload.value ?? valueAt(e.seq));
       const level = (e.payload.level ?? signoffLevel(ix, e.role) ?? 'preparer') as SignOff['level'];
-      return { seq: e.seq, role: e.role, level, value, stale: sameValue(value, current) === false, at: e.at };
+      // The whole return has no single value: its approval goes stale when any applied change (not undone) follows it.
+      const stale = claimId === 'return'
+        ? events.some((x) => isApplied(x) && !retracted.has(x.seq) && x.seq > e.seq)
+        : sameValue(value, current) === false;
+      return { seq: e.seq, role: e.role, level, value, stale, at: e.at };
     });
     const resolved = new Set(live.filter((e) => e.type === 'note_resolved').map((e) => Number(e.payload.noteSeq)));
     const openNotes = live.filter((e) => e.type === 'review_note' && !resolved.has(e.seq));
@@ -109,11 +113,13 @@ export function projectWorkspace(ix: PacketIndex, events: WorkEvent[], role: Rol
   const base = { storyAt, frozen: !!fz && visibleAt(fz, storyAt), stage: stageAt(ix, storyAt) };
 
   if (!info || info.kind !== 'staff') {
-    // Outside views: a client sees questions addressed to them and what they themselves wrote; the examiner, none of the file.
+    // Outside views: a client sees questions addressed to them, what they themselves wrote, and the signing record of
+    // the return (the partner's approval and each spouse's e-file signature); the examiner, none of the file.
     const mine = (to: unknown) => !!info && (to === info.key || to === info.clientUserId);
+    const signing = (e: WorkEvent) => e.claimId === 'return' && (e.type === 'client_signature' || (e.type === 'signoff' && signoffLevel(ix, e.role) === 'partner'));
     const own = info?.kind === 'client'
       ? visible.filter((e) => !retracted.has(e.seq) && ((e.type === 'question_to_client' && mine(e.payload.to)) ||
-        ((e.type === 'answer_recorded' || e.type === 'attach_note') && e.role === role)))
+        ((e.type === 'answer_recorded' || e.type === 'attach_note') && e.role === role) || signing(e)))
       : [];
     return { ...base, claims: buildClaims(ix, own, new Set()), blockers: [], reveals: [], reasons: {}, events: own };
   }

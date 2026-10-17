@@ -9,6 +9,9 @@ import type { PacketIndex } from '@/domain/packet/load';
 import { visibleAt } from '@/domain/clock';
 import { humanize } from '@/domain/labels';
 import { findingStatus } from '@/components/work/lib';
+import { notificationsFor } from '@/domain/notify';
+import { SinceLastLooked } from '@/components/shell/Bell';
+import { TextAction } from '@/components/work/actions';
 
 type P = { params: Promise<{ ws: string; role: string }>; searchParams: Promise<Record<string, string | undefined>> };
 
@@ -24,6 +27,7 @@ export default async function Home({ params, searchParams }: P) {
   const isClient = me.kind === 'client';
   const visible = w.findings.filter((f) => !f.firstVisibleAt || f.firstVisibleAt <= state.storyAt).sort((a, b) => ORDER[a.severity] - ORDER[b.severity]);
   const myQuestions = state.events.filter((e) => e.type === 'question_to_client' && e.payload.to === me.key);
+  const openQuestions = myQuestions.filter((q) => !state.events.some((x) => x.type === 'answer_recorded' && Number(x.payload.questionSeq) === q.seq));
   const plain = visible.filter((f) => f.plain);
   // Blockers are listed once, in their own section; the open-checks list holds the rest.
   const listed = new Set(state.blockers.map((b) => b.claimId));
@@ -31,6 +35,11 @@ export default async function Home({ params, searchParams }: P) {
   const c = ix.counts;
   const first = me.screens[0];
   const tryLink = `${screenPath(ws, 'daniel', 'checks')}`;
+  // The bell's notices (same ids, same read state), unread ones listed here: Home and the bell never disagree.
+  const since = me.kind === 'examiner' ? [] : notificationsFor(ix, state.events, me.key, state.storyAt).map((x) => ({
+    id: x.id, at: x.at, text: x.text, when: fmtStory(x.at),
+    href: screenPath(ws, me.key, 'home') + (isClient || !x.claimId ? '' : claimHref(x.claimId)),
+  }));
 
   return (
     <Shell ws={ws} role={me.key} screen="home" state={state} roleInfo={me} claim={sp.claim} q={sp.q}>
@@ -67,6 +76,8 @@ export default async function Home({ params, searchParams }: P) {
           </StartHere>
         )}
 
+        {me.kind !== 'examiner' && <SinceLastLooked ws={ws} role={me.key} items={since} />}
+
         {me.kind === 'examiner' ? (
           <section aria-label="Items under examination" style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
             {(((ix.packet.tax_agency_records as { notices?: { type: string; dated: string; response_due?: string; items_under_examination?: string[] }[] }).notices) ?? [])
@@ -83,9 +94,24 @@ export default async function Home({ params, searchParams }: P) {
           </section>
         ) : isClient ? (
           <section aria-label="What we need from you" style={{ display: 'flex', flexDirection: 'column' }}>
-            <h2 className="lbl" style={{ paddingBottom: 8 }}>What we need from you · <span className="num">{myQuestions.length + plain.length}</span></h2>
+            <h2 className="lbl" style={{ paddingBottom: 8 }}>What we need from you · <span className="num">{openQuestions.length + plain.length}</span></h2>
             {myQuestions.length + plain.length === 0 && <p className="small muted">Nothing right now. We will ask here if we need anything.</p>}
-            {myQuestions.map((e) => <div key={e.seq} className="qrow"><span className="tag t-acc">Question</span><span className="grow"><span>{mask(String(e.payload.text ?? ''))}</span><span className="small muted">From your tax team, {fmtDay(e.storyAt)}</span></span></div>)}
+            {myQuestions.map((e) => {
+              const answer = [...state.events].reverse().find((x) => x.type === 'answer_recorded' && Number(x.payload.questionSeq) === e.seq);
+              return (
+                <div key={e.seq} className="qrow" data-testid="client-question" style={{ flexWrap: 'wrap' }}>
+                  <span className={`tag ${answer ? 't-pas' : 't-acc'}`}>{answer ? 'Answered' : 'Question'}</span>
+                  <span className="grow">
+                    <span>{mask(String(e.payload.text ?? ''))}</span>
+                    <span className="small muted">From your tax team, {fmtDay(e.storyAt)}</span>
+                    {answer
+                      ? <span className="small" data-testid="client-answer">Your answer, {fmtDay(answer.storyAt)}: {mask(String(answer.payload.text ?? ''))}</span>
+                      : <TextAction ws={ws} role={me.key} label="Your answer" placeholder="Type your answer in your own words"
+                          build={{ type: 'answer_recorded', claimId: e.claimId, payload: { questionSeq: e.seq }, field: 'text' }} />}
+                  </span>
+                </div>
+              );
+            })}
             {plain.map((f) => <Link key={f.id} className="qrow" href={claimHref('finding:' + f.id)}><span className="tag t-acc">Needed</span><span className="grow"><span>{mask(f.plain!)}</span></span></Link>)}
           </section>
         ) : state.frozen ? (

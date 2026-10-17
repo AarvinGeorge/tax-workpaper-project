@@ -185,6 +185,8 @@ export function can(ix: PacketIndex, roleArg: RoleKey | RoleInfo, action: Action
       }
       return yes;
     }
+    case 'client_signature':
+      return no('Only the clients sign the e-file authorization, each for themself.');
     case 'verification': {
       if (!target.claimId) return no('Verification needs an item.');
       const types = verificationTypes(ix);
@@ -251,8 +253,10 @@ function clientCan(ix: PacketIndex, meta: RoleMeta, action: Action, target: Targ
   if (action === 'answer_recorded') {
     const q = state.events.find((e) => e.seq === Number(payload.questionSeq) && e.type === 'question_to_client');
     if (!q || !mine(q.payload.to)) return no('You can answer only questions addressed to you.');
+    if (target.claimId && target.claimId !== q.claimId) return no('An answer is filed on the item the question was asked about.');
     return str(payload.text) ? yes : no('An answer needs text.');
   }
+  if (action === 'client_signature') return clientSignature(ix, meta, target, state);
   if (action === 'attach_note') {
     if (!str(payload.text)) return no('A note needs text.');
     const c = target.claimId ?? '';
@@ -266,7 +270,35 @@ function clientCan(ix: PacketIndex, meta: RoleMeta, action: Action, target: Targ
     }
     return no('You can add notes only to your own documents and questions.');
   }
-  return no('Clients can answer questions and add notes to their own documents.');
+  return no('Clients can answer questions, sign the e-file authorization and add notes to their own documents.');
+}
+
+/** The e-file authorization forms each spouse signs (federal and California). */
+export const SIGN_FORMS = ['8879', 'FTB 8879'] as const;
+
+/** The partner's approval of the whole return: a live partner sign-off on claim 'return'. */
+export function returnApproved(ix: PacketIndex, events: WorkEvent[]): boolean {
+  const r = retractedSeqs(events);
+  return events.some((e) => e.type === 'signoff' && e.claimId === 'return' && !r.has(e.seq) && signoffLevel(ix, e.role) === 'partner');
+}
+
+/** One spouse signs Form 8879 and FTB 8879: after the partner's approval, before federal acceptance, once per version
+ *  of the return (payload.value is the fingerprint of the finalized return signed). No PIN is asked for or kept. */
+function clientSignature(ix: PacketIndex, meta: RoleMeta, target: Target, state: WorkspaceState): Verdict {
+  const payload = target.payload ?? {};
+  if (target.claimId !== 'return') return no('The e-file authorization is signed on the whole return.');
+  if (Object.keys(payload).some((k) => /pin/i.test(k))) return no('No PIN is asked for or kept here.');
+  const forms = Array.isArray(payload.forms) ? payload.forms.map(String) : [];
+  if (!SIGN_FORMS.every((f) => forms.includes(f))) return no('Sign both forms: Form 8879 (federal) and FTB 8879 (California).');
+  const value = str(payload.value);
+  if (!value) return no('A signature must name the return it covers.');
+  if (state.frozen) return no(`The return was filed and accepted on ${fmtDate(frozenAt(ix)!)}. Signing is closed.`);
+  if (!returnApproved(ix, state.events)) return no('The partner has not approved the return yet. You can sign once it is approved.');
+  const r = retractedSeqs(state.events);
+  const mine = state.events.filter((e) => e.type === 'client_signature' && e.role === meta.info.key && !r.has(e.seq));
+  const last = mine[mine.length - 1];
+  if (last && str(last.payload.value) === value) return no('You have already signed this return.');
+  return yes;
 }
 
 // ---------- Masking ----------

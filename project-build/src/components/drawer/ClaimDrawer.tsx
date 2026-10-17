@@ -8,6 +8,7 @@ import { refText, resolveRef } from '@/domain/refs';
 import { claimHref, examinedLines, fmtDay, fmtStory, fmtValue, isRevealed, parseClaim } from '../shell/lib';
 import { highlightSegments, revealReason } from './lib';
 import { DrawerActions, type ActionSpec } from './DrawerActions';
+import { retractedSeqs } from '@/domain/events';
 
 type Ctx = { ix: PacketIndex; me: RoleInfo; state: WorkspaceState; revealed: Set<string>; findings: Finding[]; ws: string; role: RoleKey; allRoles: RoleInfo[] };
 
@@ -143,6 +144,7 @@ function Trail({ c, claimId }: { c: Ctx; claimId: string }) {
           {cs.openNotes.map((n) => <div key={n.seq} className="row small"><span className={`tag ${n.payload.blocking ? 't-blk' : 't-acc'}`}>{n.payload.blocking ? 'Blocking' : 'Open'}</span><span>{maskText(String(n.payload.text ?? ''), c.me, false)}</span></div>)}
         </div>
       )}
+      {!isClient && <ClientAnswers c={c} claimId={claimId} />}
       {!isClient && (
         <div className="drw-sec">
           <span className="lbl">History · {cs.history.length}</span>
@@ -153,6 +155,30 @@ function Trail({ c, claimId }: { c: Ctx; claimId: string }) {
         </div>
       )}
     </>
+  );
+}
+
+/** Questions to the client on this item and their answers: the answer is evidence for the item, kept with it. */
+function ClientAnswers({ c, claimId }: { c: Ctx; claimId: string }) {
+  const hist = c.state.claims[claimId]?.history ?? [];
+  const retracted = retractedSeqs(c.state.events);
+  const qs = hist.filter((e) => e.type === 'question_to_client' && !retracted.has(e.seq));
+  if (!qs.length) return null;
+  const name = (k: unknown) => c.allRoles.find((r) => r.key === k)?.name ?? String(k);
+  return (
+    <div className="drw-sec" data-testid="client-answers">
+      <span className="lbl">Questions to the client · {qs.length}</span>
+      {qs.map((q) => {
+        const answers = hist.filter((e) => e.type === 'answer_recorded' && Number(e.payload.questionSeq) === q.seq && !retracted.has(e.seq));
+        return (
+          <div key={q.seq} className="srcitem">
+            <span className="small"><strong>{name(q.role)}</strong> asked {name(q.payload.to)}, {fmtDay(q.storyAt)}: {maskText(String(q.payload.text ?? ''), c.me, false)}</span>
+            {answers.length === 0 && <span className="small muted">No answer yet.</span>}
+            {answers.map((a) => <span key={a.seq} className="small"><span className="tag t-pas">Answer, evidence</span> {name(a.role)}, {fmtDay(a.storyAt)}: {maskText(String(a.payload.text ?? ''), c.me, false)}</span>)}
+          </div>
+        );
+      })}
+    </div>
   );
 }
 
@@ -200,11 +226,14 @@ function LineClaim({ c, key_, claimId }: { c: Ctx; key_: string; claimId: string
   const isClient = c.me.kind === 'client';
   return (
     <>
-      <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
+      {/* Pinned while the evidence below scrolls, so the number being read never leaves view. */}
+      <div className="drw-head">
         <div className="row"><span className={`tag ${adjusted ? 't-acc' : 't-mut'}`}>{adjusted ? 'Adjusted' : `As computed, ${ix.latest.version}`}</span><span className="mono muted">{l.key} · {l.jurisdiction}</span></div>
         <h2 style={{ fontSize: 19, lineHeight: 1.3, letterSpacing: '-.01em' }}>{l.label}</h2>
         <div className="row"><span className="drw-big num" data-testid="claim-value">{fmtValue(current)}</span>
           {adjusted && <span className="small muted num">was <span className="del">{fmtValue(cs!.original)}</span> in {ix.latest.version}</span>}</div>
+      </div>
+      <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
         {cs?.effect && <span className="small num">Tax effect estimate: federal {fmtValue(cs.effect.federal)}, California {fmtValue(cs.effect.california)} ({cs.effect.basis}, {cs.effect.version}). Not recomputed by the engine.</span>}
         {l.note && !isClient && <p className="small muted" style={{ maxWidth: '60ch' }}>Engine note: {maskText(String(l.note), c.me, false)}</p>}
       </div>
@@ -246,13 +275,21 @@ function Actions({ c, claimId, current, identifiers = [] }: { c: Ctx; claimId: s
   const colleagues = colleaguesOf(c);
   const methods = (c.ix.packet.firm.starter_standards.verification_types as string[]) ?? [];
   const cs = c.state.claims[claimId];
+  const retracted = retractedSeqs(c.state.events);
+  const lastAssign = (cs?.history ?? []).filter((e) => e.type === 'assignment' && !retracted.has(e.seq)).pop();
+  const nameOf = (k: unknown) => c.allRoles.find((r) => r.key === k)?.name ?? null;
+  const assignVerdict = c.me.kind === 'staff' ? can(c.ix, c.me, 'assignment', { claimId, payload: { to: c.role } }, c.state) : { ok: false };
+  const assign = {
+    ok: assignVerdict.ok, reason: assignVerdict.reason, current: lastAssign ? nameOf(lastAssign.payload.to) : null,
+    staff: c.allRoles.filter((r) => r.kind === 'staff' && r.key !== 'next').map((r) => ({ key: r.key, name: r.name })),
+  };
   if (c.me.kind !== 'staff') {
     return <div className="drw-sec"><span className="small muted">{c.me.kind === 'client' ? 'Questions from your tax team appear on Home.' : 'Read only.'}</span></div>;
   }
   return (
     <DrawerActions ws={c.ws} role={c.role} claimId={claimId} baseVersion={cs?.version ?? 0} actions={acts}
       reveal={identifiers.length && reveal ? { ok: reveal.ok, reason: reveal.ok ? undefined : revealReason(reveal.reason, maskRule), items: identifiers } : null}
-      clients={clients} colleagues={colleagues} methods={methods} frozen={c.state.frozen} />
+      clients={clients} colleagues={colleagues} methods={methods} frozen={c.state.frozen} assign={assign} />
   );
 }
 

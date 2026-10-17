@@ -1,7 +1,7 @@
 /* Work screens (lane D2). Layout and classes copied from the hybrid mock-up (Checks, Review, Changes, Filing, Firm,
    Areas). Colour tokens (--bg, --surface, --sunk, --line, --ink, --ink2, --acc, --accsoft, --blk, --blksoft, --wrn,
    --wrnsoft, --pas, --passoft, --hl, --paper) come from the shell's globals.css. */
-.page{container-type:inline-size;padding:22px 28px 40px;display:flex;flex-direction:column;gap:20px;max-width:1120px;width:100%;box-sizing:border-box;min-width:0;color:var(--ink)}
+.page{margin-inline:auto;container-type:inline-size;padding:22px 28px 40px;display:flex;flex-direction:column;gap:20px;max-width:1120px;width:100%;box-sizing:border-box;min-width:0;color:var(--ink)}
 .eyebrow{display:flex;flex-wrap:wrap;align-items:center;gap:10px}
 .h1{margin:0;font-size:24px;font-weight:600;letter-spacing:-.015em}
 .h2{margin:0;font-size:17px;font-weight:600;letter-spacing:-.01em}

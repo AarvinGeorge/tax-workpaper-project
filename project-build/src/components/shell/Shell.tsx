@@ -5,7 +5,10 @@ import { getWorkspace } from './load';
 import { maskText } from '@/domain/policy';
 import { RoleSwitcher } from './RoleSwitcher';
 import { ResetButton } from './ResetButton';
+import { Bell } from './Bell';
+import { claimLabel, notificationsFor } from '@/domain/notify';
 import { LiveRefresh } from './LiveRefresh';
+import { ScrollHint } from './ScrollHint';
 import { claimHref, fmtDay, fmtStory, fmtValue, notYetText, screenHint, screenLabel, screenPath, searchPacket } from './lib';
 import { NoAccess } from '../work/ui';
 import { ClaimDrawer } from '../drawer/ClaimDrawer';
@@ -56,12 +59,7 @@ const VERB: Partial<Record<WorkEvent['type'], string>> = {
   question_to_colleague: 'asked a colleague about', finding_cleared: 'cleared a finding on',
 };
 
-function claimTitle(ix: Awaited<ReturnType<typeof getWorkspace>>['ix'], id?: string): string {
-  if (!id) return '';
-  if (id.startsWith('line:')) { const l = ix.line(ix.latest.version, id.slice(5)); return l ? l.label : id.slice(5); }
-  if (id.startsWith('doc:')) { const d = ix.docById.get(id.slice(4).split('#')[0]); return d ? d.title : id.slice(4); }
-  return 'a finding';
-}
+const claimTitle = claimLabel;
 
 export async function Shell({ ws, role, screen, claim, q, children, ...given }: ShellProps) {
   const w = await getWorkspace(ws, role);
@@ -87,6 +85,10 @@ export async function Shell({ ws, role, screen, claim, q, children, ...given }: 
   const canSee = (k: ScreenKey) => me.screens.includes(k);
   const roleName = (k: RoleKey) => { const r = w.allRoles.find((x) => x.key === k); return r ? r.name.split(' ')[0] : k; };
   const history = [...state.events].reverse().slice(0, 8);
+  const bellItems = me.kind === 'examiner' ? null : notificationsFor(ix, state.events, role, state.storyAt).map((x) => ({
+    id: x.id, at: x.at, text: x.text, when: fmtStory(x.at),
+    href: screenPath(ws, role, isClient || !x.claimId ? 'home' : screen) + (isClient || !x.claimId ? '' : claimHref(x.claimId)),
+  }));
   const drawerOpen = !!claim;
 
   return (
@@ -108,8 +110,11 @@ export async function Shell({ ws, role, screen, claim, q, children, ...given }: 
             </label>
           </form>
         )}
+        <div className="sh-tools">
         <RoleSwitcher ws={ws} role={role} screen={screen}
           options={w.allRoles.map((r) => ({ key: r.key, label: roleLabel(r), screens: r.screens }))} />
+        {bellItems && <Bell ws={ws} role={role} storyAt={state.storyAt} items={bellItems} />}
+        </div>
       </header>
 
       <div className="sh-story" role="group" aria-label="Story clock">
@@ -180,7 +185,8 @@ export async function Shell({ ws, role, screen, claim, q, children, ...given }: 
           {!notYet && allowed && <ClaimDrawer ws={ws} role={role} claimId={claim ?? ''} />}
         </aside>
       </div>
-      <LiveRefresh ws={ws} role={role} lastSeq={state.events.reduce((m, e) => Math.max(m, e.seq), 0)} />
+      <ScrollHint />
+      <LiveRefresh ws={ws} role={role} storyAt={state.storyAt} lastSeq={state.events.reduce((m, e) => Math.max(m, e.seq), 0)} />
     </div>
   );
 }
