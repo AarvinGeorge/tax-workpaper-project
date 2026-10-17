@@ -1,0 +1,367 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Return map</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Instrument+Sans:wght@400;500;600;700&amp;family=Source+Serif+4:opsz,wght@8..60,400;8..60,600&amp;family=IBM+Plex+Mono:wght@400;500&amp;display=swap" rel="stylesheet">
+<style>
+.wp{--bg:oklch(0.975 0.005 250);--surface:oklch(0.995 0.003 250);--sunk:oklch(0.955 0.006 250);--line:oklch(0.89 0.008 250);--ink:oklch(0.24 0.02 255);--ink2:oklch(0.44 0.02 255);--acc:oklch(0.46 0.15 262);--accsoft:oklch(0.94 0.035 262);--blk:oklch(0.50 0.17 32);--blksoft:oklch(0.955 0.03 32);--wrn:oklch(0.48 0.10 70);--wrnsoft:oklch(0.96 0.045 85);--pas:oklch(0.47 0.09 165);--passoft:oklch(0.955 0.03 165);--hl:oklch(0.91 0.13 100);--paper:oklch(0.99 0.006 90)}
+.wp.dark{--bg:oklch(0.19 0.012 255);--surface:oklch(0.23 0.014 255);--sunk:oklch(0.17 0.012 255);--line:oklch(0.33 0.015 255);--ink:oklch(0.93 0.008 255);--ink2:oklch(0.74 0.012 255);--acc:oklch(0.76 0.11 262);--accsoft:oklch(0.30 0.05 262);--blk:oklch(0.74 0.13 35);--blksoft:oklch(0.28 0.05 32);--wrn:oklch(0.80 0.11 80);--wrnsoft:oklch(0.29 0.04 85);--pas:oklch(0.76 0.09 165);--passoft:oklch(0.27 0.04 165);--hl:oklch(0.55 0.10 100);--paper:oklch(0.26 0.01 90)}
+.wp{font-family:'Instrument Sans',system-ui,sans-serif;color:var(--ink);background:var(--bg);font-size:14px;line-height:1.45;min-height:100vh;display:flex;flex-direction:column}
+.map-num{font-variant-numeric:tabular-nums;font-feature-settings:"tnum"}
+.map-mono{font-family:'IBM Plex Mono',monospace;font-size:12px}
+.map-lbl{font-size:11.5px;font-weight:600;letter-spacing:.04em;text-transform:uppercase;color:var(--ink2)}
+.map-btn{font:inherit;font-size:13px;border:1px solid var(--line);background:var(--surface);color:var(--ink);border-radius:8px;padding:7px 12px;cursor:pointer;min-height:36px}
+.map-btn:hover{border-color:var(--ink2)}
+.map-btn.primary{background:var(--acc);border-color:var(--acc);color:var(--surface)}
+.map-btn:focus-visible,.map-val:focus-visible{outline:2px solid var(--acc);outline-offset:2px}
+.map-tag{display:inline-flex;align-items:center;gap:5px;font-size:11.5px;font-weight:600;padding:2px 8px;border-radius:999px;white-space:nowrap}
+.map-t-blk{color:var(--blk);background:var(--blksoft)}
+.map-t-wrn{color:var(--wrn);background:var(--wrnsoft)}
+.map-t-pas{color:var(--pas);background:var(--passoft)}
+.map-t-acc{color:var(--acc);background:var(--accsoft)}
+.map-t-mut{color:var(--ink2);background:var(--sunk)}
+.map-ex{font-size:10.5px;font-weight:600;letter-spacing:.03em;padding:1px 6px;border-radius:999px;border:1px dashed var(--ink2);color:var(--ink2);white-space:nowrap;vertical-align:1px}
+.map-form{background:var(--surface);border:1px solid var(--line);border-radius:10px;padding:12px 16px}
+.map-line{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:4px 16px;align-items:baseline;padding:7px 0;border-top:1px solid var(--line)}
+.map-val{all:unset;box-sizing:border-box;font-weight:600;color:var(--acc);text-decoration:underline;text-underline-offset:3px;cursor:pointer;padding:2px 6px;border-radius:6px;text-align:right;white-space:nowrap}
+.map-val:hover{background:var(--accsoft)}
+.map-val.on{background:var(--accsoft)}
+.map-plain{font-weight:600;text-align:right;white-space:nowrap;padding:2px 6px}
+.map-btn.pressed{background:var(--accsoft);border-color:var(--acc);color:var(--ink)}
+.map-scroll{overflow-x:auto}
+.map-cmp{min-width:760px;display:flex;flex-direction:column}
+.map-crow{display:grid;grid-template-columns:minmax(210px,2fr) repeat(5,minmax(104px,1fr));gap:4px 12px;padding:7px 0;border-top:1px solid var(--line);align-items:baseline}
+.map-cell{text-align:right;white-space:nowrap}
+.map-muted{color:var(--ink2);font-weight:400;font-size:12.5px}
+.map-swing{display:flex;flex-wrap:wrap;align-items:center;gap:6px;font-size:12.5px;color:var(--ink2);padding-top:2px}
+</style>
+</helmet>
+<div class="{{wpClass}}">
+<div style="display:flex;flex-direction:column;gap:16px;padding:22px 28px;max-width:1080px;width:100%;box-sizing:border-box">
+
+<sc-if value="{{hidden}}" hint-placeholder-val="{{ false }}">
+<div style="background:var(--surface);border:1px solid var(--line);border-radius:10px;padding:16px 18px;display:flex;flex-wrap:wrap;align-items:center;gap:12px">
+<span>{{hiddenText}}</span>
+<button class="map-btn primary" type="button" onClick="{{hiddenGo}}">{{hiddenLabel}}</button>
+</div>
+</sc-if>
+
+<sc-if value="{{noVersion}}" hint-placeholder-val="{{ false }}">
+<div style="background:var(--surface);border:1px solid var(--line);border-radius:10px;padding:16px 18px;display:flex;flex-direction:column;gap:4px">
+<h1 style="margin:0;font-size:24px;letter-spacing:-.015em;font-weight:600">Return map</h1>
+<span>{{noVersionText}}</span>
+</div>
+</sc-if>
+
+<sc-if value="{{shown}}" hint-placeholder-val="{{ true }}">
+<div style="display:flex;flex-direction:column;gap:16px">
+<div style="display:flex;flex-wrap:wrap;align-items:baseline;justify-content:space-between;gap:8px 18px">
+<div style="display:flex;flex-direction:column;gap:4px;min-width:0">
+<h1 style="margin:0;font-size:24px;letter-spacing:-.015em;font-weight:600" title="Forms and lines">Return map</h1>
+<span style="color:var(--ink2);max-width:72ch">{{subline}}</span>
+</div>
+<span class="map-num" style="color:var(--ink2);font-size:12.5px">{{versionNote}} <sc-if value="{{filed}}" hint-placeholder-val="{{ false }}"><span class="map-ex">Example</span></sc-if></span>
+</div>
+
+<div role="group" aria-label="Status key" style="display:flex;flex-wrap:wrap;gap:8px 14px;font-size:12.5px;color:var(--ink2)">
+<span style="display:inline-flex;gap:6px;align-items:center"><span class="map-tag map-t-blk">Blocking</span>stops filing</span>
+<span style="display:inline-flex;gap:6px;align-items:center"><span class="map-tag map-t-wrn">Check failed</span>our check disagrees</span>
+<span style="display:inline-flex;gap:6px;align-items:center"><span class="map-tag map-t-wrn">Judgment</span>needs a recorded decision</span>
+<span style="display:inline-flex;gap:6px;align-items:center"><span class="map-tag map-t-acc">Needs review</span>a reviewer must act</span>
+<span style="display:inline-flex;gap:6px;align-items:center"><span class="map-tag map-t-wrn">Engine warning</span>from the engine only</span>
+<span style="display:inline-flex;gap:6px;align-items:center"><span class="map-tag map-t-pas">No open checks</span></span>
+<span style="display:inline-flex;gap:6px;align-items:center"><span class="map-tag map-t-wrn" title="{{swingDef}}">Swing</span>over 10% and over 1,000 from 2024</span>
+<span style="display:inline-flex;gap:6px;align-items:center"><span class="map-tag map-t-acc">New this year</span>no 2024 amount on this line</span>
+</div>
+
+<div style="display:flex;flex-wrap:wrap;align-items:center;gap:8px 14px">
+<span class="map-num" style="font-size:13px">{{swingSummary}}</span>
+<button class="map-btn" type="button" style="margin-left:auto" aria-expanded="{{cmpOpen}}" aria-controls="map-compare" onClick="{{toggleCmp}}">{{cmpLabel}}</button>
+</div>
+
+<sc-if value="{{cmpShown}}" hint-placeholder-val="{{ false }}">
+<section id="map-compare" class="map-form" aria-label="Compare versions" style="display:flex;flex-direction:column;gap:10px">
+<div style="display:flex;flex-wrap:wrap;align-items:baseline;gap:6px 12px">
+<h2 style="margin:0;font-size:16px;font-weight:600">Compare versions</h2>
+<span style="color:var(--ink2);font-size:12.5px;max-width:80ch">{{cmpNote}}</span>
+</div>
+<div role="group" aria-label="Choose a form" style="display:flex;flex-wrap:wrap;gap:6px">
+<sc-for list="{{cmpForms}}" as="cf" hint-placeholder-count="11">
+<button class="map-btn {{cf.cls}}" type="button" aria-pressed="{{cf.pressed}}" onClick="{{cf.pick}}">{{cf.label}}</button>
+</sc-for>
+</div>
+<div class="map-scroll"><div class="map-cmp" role="table" aria-label="{{cmpTitle}}">
+<div class="map-crow" role="row" style="border-top:0">
+<span class="map-lbl" role="columnheader">Line</span>
+<sc-for list="{{cmpCols}}" as="cc" hint-placeholder-count="5">
+<span class="map-lbl map-cell" role="columnheader">{{cc.label}}<br><span class="map-muted" style="text-transform:none;letter-spacing:0">{{cc.sub}}</span> <sc-if value="{{cc.ex}}" hint-placeholder-val="{{ false }}"><span class="map-ex">Example</span></sc-if></span>
+</sc-for>
+</div>
+<sc-for list="{{cmpRows}}" as="cr" hint-placeholder-count="5">
+<div class="map-crow" role="row">
+<span role="rowheader" style="display:flex;flex-direction:column;min-width:0"><span>{{cr.label}}</span><span class="map-mono" style="color:var(--ink2)">{{cr.key}}</span></span>
+<sc-for list="{{cr.cells}}" as="ce" hint-placeholder-count="5">
+<span class="map-cell map-num {{ce.cls}}" role="cell">{{ce.text}}<sc-if value="{{ce.changed}}" hint-placeholder-val="{{ false }}"> <span class="map-tag map-t-acc">Changed</span></sc-if></span>
+</sc-for>
+</div>
+</sc-for>
+</div></div>
+<p style="margin:0;color:var(--ink2);font-size:12.5px;max-width:90ch">{{cmpFoot}}</p>
+</section>
+</sc-if>
+
+<sc-for list="{{forms}}" as="f" hint-placeholder-count="6">
+<section class="map-form" aria-label="{{f.name}}">
+<div style="display:flex;flex-wrap:wrap;align-items:center;gap:8px 12px;padding-bottom:6px">
+<h2 style="margin:0;font-size:16px;font-weight:600">{{f.name}}</h2>
+<span class="map-mono" style="color:var(--ink2)">{{f.code}}</span>
+<span class="map-tag {{f.tcls}}">{{f.tword}}</span>
+<sc-if value="{{f.ex}}" hint-placeholder-val="{{ false }}"><span class="map-ex">Example</span></sc-if>
+<span class="map-num" style="margin-left:auto;color:var(--ink2);font-size:12.5px">{{f.checks}}</span>
+</div>
+<sc-for list="{{f.lines}}" as="l" hint-placeholder-count="4">
+<div class="map-line">
+<span style="display:flex;flex-direction:column;gap:1px;min-width:0"><span>{{l.label}}</span><span class="map-mono" style="color:var(--ink2)">{{l.key}}{{l.note}}</span>
+<sc-if value="{{l.hasSwing}}" hint-placeholder-val="{{ false }}"><span class="map-swing map-num"><span class="map-tag {{l.swCls}}" title="{{l.swDef}}">{{l.swWord}}</span><span>{{l.swText}}</span><sc-if value="{{l.swEx}}" hint-placeholder-val="{{ false }}"><span class="map-ex">Example</span></sc-if></span></sc-if>
+</span>
+<sc-if value="{{l.isClaim}}" hint-placeholder-val="{{ true }}"><button class="map-val map-num {{l.on}}" type="button" aria-label="{{l.aria}}" onClick="{{l.open}}">{{l.value}}</button></sc-if>
+<sc-if value="{{l.isPlain}}" hint-placeholder-val="{{ false }}"><span class="map-plain map-num">{{l.value}}</span></sc-if>
+</div>
+</sc-for>
+<sc-if value="{{f.hasEngine}}" hint-placeholder-val="{{ false }}">
+<div style="border-top:1px solid var(--line);padding-top:8px;display:flex;flex-direction:column;gap:4px;font-size:12.5px">
+<sc-for list="{{f.engine}}" as="e" hint-placeholder-count="1">
+<span><span class="map-tag map-t-wrn">From the engine</span> <span class="map-mono">{{e.code}}</span> <span style="color:var(--ink2)">({{e.sev}})</span> {{e.msg}}</span>
+</sc-for>
+</div>
+</sc-if>
+</section>
+</sc-for>
+
+<p style="margin:0;color:var(--ink2);font-size:12.5px;max-width:80ch">{{footer}}</p>
+<div style="display:flex;flex-wrap:wrap;gap:8px">
+<button class="map-btn" type="button" onClick="{{goChecks}}">Open all checks</button>
+<button class="map-btn" type="button" onClick="{{goDocs}}">Open the document index</button>
+</div>
+</div>
+</sc-if>
+</div>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"role":{"editor":"enum","options":["priya","marcus","daniel","helen","sam","jo","ngozi","erik","next","irs"],"default":"daniel"},"dark":{"editor":"boolean","default":false},"claimId":{"editor":"text","default":""},"openClaim":{"editor":null},"go":{"editor":null},"revealed":{"editor":null},"reveal":{"editor":null},"revealLog":{"editor":null},"asOf":{"editor":"text","default":"2026-06-23T06:05"},"asOfLabel":{"editor":"text","default":"Story time: 23 Jun 2026, 06:05"},"events":{"editor":null},"emit":{"editor":null},"lastSeen":{"editor":null},"blockers":{"editor":null},"stage":{"editor":"text","default":""},"spouseOf":{"editor":null},"$preview":{"width":980,"height":1800}}'>
+class Component extends DCLogic {
+  constructor(p) { super(p); this.state = { cmp: false, cmpForm: 'F1040' }; }
+  renderVals() {
+    const P = this.props || {};
+    const st = this.state || {};
+    const roles = ['priya','marcus','daniel','helen','sam','jo','ngozi','erik','next','irs'];
+    const role = roles.indexOf(P.role) >= 0 ? P.role : 'daniel';
+    const isClient = role === 'ngozi' || role === 'erik';
+    const openClaim = typeof P.openClaim === 'function' ? P.openClaim : () => {};
+    const go = typeof P.go === 'function' ? P.go : () => {};
+    const claimId = P.claimId || '';
+    const AS_OF = { sam:'2027-01-15T15:00', next:'2027-01-15T15:00', irs:'2028-01-26T15:00' };   // only when rendered alone
+    const asOf = P.asOf || AS_OF[role] || '2026-06-23T06:05';
+    const MON = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+    const fmtAt = (iso) => { const s = String(iso || ''); if (s.length < 10) return s; const d = Number(s.slice(8,10)) + ' ' + MON[Number(s.slice(5,7)) - 1] + ' ' + s.slice(0,4); return s.length >= 16 ? d + ', ' + s.slice(11,16) : d; };
+    const asOfLabel = P.asOfLabel || ('Story time: ' + fmtAt(asOf));
+    // return_versions[].computed_at and the e-file acceptances (timeline tl-23, tl-24).
+    const VER = [ { v:'v1', at:'2026-03-04T09:12', lines:625 }, { v:'v2', at:'2026-03-19T07:40', lines:625, changed:63 }, { v:'v3', at:'2026-06-23T06:05', lines:627, changed:89 } ];
+    const ACC = { fed:'2026-07-14T16:22', ca:'2026-07-15T02:10' };
+    const vi = VER.reduce((m, x, i) => (asOf >= x.at ? i : m), -1);   // latest version computed by story time
+    const filed = P.stage ? P.stage === 'Filed' : asOf >= ACC.fed;   // the shell's stage word when given
+    const linkClaims = vi === 2;                                        // the checks in this mock-up are attached to v3
+    const cardIn = asOf >= '2026-07-13T19:02';
+    const PLAIN = { 'F8812.4':1, 'F8949':1, 'F8867.status':1 };
+    const TOTAL = { 'F1040.9':1,'F1040.11':1,'F1040.15':1,'F1040.24':1,'F1040.33':1,'F1040.37':1,'SchC.31':1,'SchD.16':1,'SchE.26':1,'SchA.17':1,'F6251.11':1,'F540NR.17':1,'F540NR.35':1,'F540NR.64':1,'F540NR.97':1 };
+    // Keys that the packet's changes_from_previous lists as changed (v1 to v2, v2 to v3), for the lines drawn here.
+    const CH2 = { 'F1040.9':1,'F1040.11':1,'F1040.15':1,'F1040.24':1,'F1040.37':1,'SchD.16':1,'F1040.19':1,'F6251.11':1,'F540NR.17':1,'F540NR.35':1,'F540NR.64':1,'F540NR.97':1 };
+    const CH3 = { 'F1040.9':1,'F1040.11':1,'F1040.15':1,'F1040.24':1,'F1040.33':1,'F1040.37':1,'Sch3.10':1,'SchD.16':1,'F1040.19':1,'F6251.11':1,'F540NR.17':1,'F540NR.35':1,'F540NR.64':1,'F540NR.97':1 };
+
+    const status = { blk:['Blocking','map-t-blk'], chk:['Check failed','map-t-wrn'], wrn:['Judgment','map-t-wrn'], rev:['Needs review','map-t-acc'], eng:['Engine warning','map-t-wrn'], pas:['No open checks','map-t-pas'], adj:['Adjusted','map-t-acc'], fil:['As filed, locked','map-t-mut'] };
+    // Line: label, key, values [v1, v2, v3], claimId, firm value (Example), kind, 2024 value (prior_years.return_2024.lines) or null, why none.
+    // kind: m money · b basis · x text/count · s masked identifier · e EIN · c carryover (not a line)
+    const L = (label, key, v, claim, firm, kind, py, why) => ({ label, key, v, claim: claim || '', firm, kind: kind || 'm', py: py === undefined ? null : py, why: why || '' });
+    const SA = '2024 used the standard deduction (29,200)';
+    const CA = 'No like-for-like 2024 line: 2024 was a full-year Form 540';
+    const forms = [
+      { name:'Form 1040', code:'F1040', st:'chk', ours:1, lines:[
+        L('Wages (Forms W-2, box 1)','F1040.1a',[212400,212400,212400],'',null,'m',156039),
+        L('Total income','F1040.9',[463420,465217,480987],'',null,'m',233489),
+        L('Adjusted gross income','F1040.11',[428023,429820,445590],'',null,'m',228409),
+        L('Taxable income','F1040.15',[329346,331143,346913],'',null,'m',182465),
+        L('Total tax','F1040.24',[77200,77470,81962],'',null,'m',37557),
+        L('2025 estimated tax payments','F1040.26',[13000,13000,13000],'fed-est',12000,'m',6000),
+        L('Total payments','F1040.33',[41742,41742,77742],'',null,'m',37950),
+        L('Amount you owe','F1040.37',[35458,35728,4220],'',null,'m',null,'2024 was a refund of 393 (line 34)') ] },
+      { name:'Schedule 3, other payments', code:'Sch3', st:'rev', ours:1, lines:[
+        L('Amount paid with extension request','Sch3.10',[0,0,36000],'ext-pay',null,'m',null,'No extension payment in 2024') ] },
+      { name:'Schedule C, Lindqvist Studio', code:'SchC', st:'blk', ours:1, eng:['FORM_1099_FILING','HOME_OFFICE_AREA_CHANGE'], lines:[
+        L('Gross receipts','SchC.1',[163700,163700,163700],'atlas',151300,'m',128400),
+        L('Total expenses','SchC.28',[80646,80646,80646],'',null,'m',55000),
+        L('Net profit','SchC.31',[81854,81854,81854],'',null,'m',71900) ] },
+      { name:'Form 8949 and Schedule D, sales', code:'F8949 · SchD', st:'blk', ours:1, eng:['DIGITAL_ASSET_BASIS_MISSING'], lines:[
+        L('Corvane RSU lot N1: proceeds 19,240, basis read as 0','F8949.B.N1',[0,0,0],'rsu',19100,'b',null,'A 2025 sale'),
+        L('Sale lines on Form 8949 (282 brokerage, 12 digital asset, 1 S corporation)','F8949',['295','295','295'],'',null,'x'),
+        L('Net capital gain','SchD.16',[175980,177777,185027],'',null,'m',-17200) ] },
+      { name:'Schedule E, rental 1450 Fremont Way', code:'SchE', st:'wrn', ours:2, lines:[
+        L('Rents received','SchE.3A',[37200,37200,37200],'',null,'m',36600),
+        L('Repairs','SchE.14A',[13300,13300,13300],'repairs',2300,'m',3900),
+        L('Heat pump inside repairs (Delta Breeze invoice)','SchE.14A',[11000,11000,11000],'heat-pump','11,000 capitalized','m',null,'Inside the repairs line above'),
+        L('Total rental real estate income or (loss)','SchE.26',[-38630,-38630,-38630],'',null,'m',-24800) ] },
+      { name:'Form 8812 and dependents', code:'F8812', st:'blk', ours:1, lines:[
+        L('Qualifying children under 17 (source: organizer entry for Theo)','F8812.4',['1','1','1'],'',null,'x'),
+        L(cardIn ? 'Theo, dependent 2, SSN (masked): differed from his 2024 return and his card' : 'Theo, dependent 2, SSN (masked): differs from his 2024 return','household:theo',['XXX-XX-3309','XXX-XX-3309','XXX-XX-3309'],'theo-ssn','XXX-XX-3390','s'),
+        L('Child tax credit / credit for other dependents','F1040.19',[1250,1200,400],'',null,'m',2500) ] },
+      { name:'Form 2441, child care', code:'F2441', st:'chk', ours:1, lines:[
+        L('Little Sprouts Learning Center, amount paid','F2441.1b',[4200,4200,4200],'',null,'m',null,'2024 provider was Bright Oak Kids Club'),
+        L('Little Sprouts tax ID (EINs are never masked)','F2441.1b',['74-3829516','74-3829516','74-3829516'],'care-ein','74-3829156','e') ] },
+      { name:'Form 6251, alternative minimum tax', code:'F6251', st:'eng', ours:0, eng:['AMT_CREDIT_CARRYFORWARD','CA_AMT_NOT_COMPUTED'], lines:[
+        L('Incentive stock options (1,000 shares × (52 − 12))','F6251.2i',[40000,40000,40000],'',null,'m',null,'No AMT in 2024'),
+        L('Alternative minimum tax','F6251.11',[3722,3700,3871],'',null,'m',null,'No AMT in 2024'),
+        L('ISO share lot, carryover to 2026','carryover',['1,000 shares','1,000 shares','1,000 shares'],'iso-lot',null,'c') ] },
+      { name:'Schedule A, itemized deductions', code:'SchA', st:'chk', ours:1, eng:['LOW_CONFIDENCE_READ'], lines:[
+        L('State and local taxes (limited)','SchA.5e',[40000,40000,40000],'',null,'m',null,SA),
+        L('Gifts by cash or check','SchA.11',[3350,3350,3350],'',null,'m',null,SA),
+        L('Gifts other than by cash or check (stock 14,500 + car 6,000)','SchA.12',[20500,20500,20500],'noncash',17400,'m',null,SA),
+        L('Total itemized deductions','SchA.17',[85706,85706,85706],'',null,'m',null,SA) ] },
+      { name:'Form 8867, due diligence', code:'F8867', st:'eng', ours:0, eng:['DUE_DILIGENCE_REQUIRED'], lines:[
+        L('Paid preparer due diligence checklist','F8867.status',['Not completed','Not completed','Not completed'],'',null,'x') ] },
+      { name:'Form 540NR, California', code:'F540NR', st:'blk', ours:1, ca:true, lines:[
+        L('Total AGI using California law','F540NR.17',[463529,465326,481096],'',null,'m',null,CA),
+        L('California taxable income','F540NR.35',[256731,258445,267822],'',null,'m',null,CA),
+        L('Total tax (2024: Form 540 line 64)','F540NR.64',[17845,17999,18874],'',null,'m',12520),
+        L('2025 California estimated tax payments (2024: Form 540 line 72)','F540NR.72',[14000,14000,14000],'ca-est',10500,'m',3000),
+        L('Overpaid tax','F540NR.97',[9285,9131,8256],'',null,'m',null,CA) ] }
+    ];
+    const engine = {
+      FORM_1099_FILING:['warning','Schedule C: client paid two contractors 600 or more and has not filed Forms 1099-NEC.'],
+      HOME_OFFICE_AREA_CHANGE:['info','Home office area (average 240 sq ft) differs from 2024 (300 sq ft).'],
+      DIGITAL_ASSET_BASIS_MISSING:['warning','Coinhaven lot C6 has no cost basis (transfer in from external wallet). Engine used zero basis and the transfer-in date.'],
+      AMT_CREDIT_CARRYFORWARD:['info','AMT arises from the incentive stock option exercise (a deferral item); a minimum tax credit carryforward to 2026 is expected (Form 8801 next year).'],
+      CA_AMT_NOT_COMPUTED:['warning','California AMT (Schedule P 540NR) not computed: review incentive stock option exercise for California-source allocation.'],
+      LOW_CONFIDENCE_READ:['warning','Handwritten receipt amount read with low confidence (0.41).'],
+      DUE_DILIGENCE_REQUIRED:['warning','Form 8867 must be completed by the preparer for the child tax credit and credit for other dependents.']
+    };
+    const grp = (n) => String(Math.abs(Math.round(n))).replace(/\B(?=(\d{3})+(?!\d))/g, ',');
+    const money = (n) => (n < 0 ? '−$' : '$') + grp(n);
+    const show = (x, kind) => {
+      if (typeof x === 'string') return x;
+      if (kind === 'b') return '$' + grp(x) + ' basis';
+      return money(x);
+    };
+    // Firm variance rule (firm.starter_standards.variance_review): compare to prior year, flag if over 10% and over 1,000.
+    const RULE = { pct:10, amt:1000 };
+    const swingDef = 'Firm rule: compare to the prior year; flag a change over 10% and over 1,000. Each flagged line needs an explanation.';
+    const signed = (n) => (n >= 0 ? '+' : '−') + grp(n);
+    const swingOf = (ln, cur) => {
+      if (ln.kind === 'x' || ln.kind === 'c') return null;
+      if (ln.kind === 's' || ln.kind === 'e') return { word:'Not compared', cls:'map-t-mut', text:'An identifier: checked for a match, not a swing', flag:false };
+      if (ln.py === null) {
+        if (ln.why === 'Inside the repairs line above') return { word:'Not compared', cls:'map-t-mut', text: ln.why, flag:false };
+        if (ln.why === CA) return { word:'Not compared', cls:'map-t-mut', text: CA, flag:false };
+        return { word:'New this year', cls:'map-t-acc', text: ln.why, flag:false, isNew:true };
+      }
+      if (cur === null) return null;
+      const diff = cur - ln.py;
+      const pct = ln.py === 0 ? Infinity : Math.abs(diff) / Math.abs(ln.py) * 100;
+      const flag = Math.abs(diff) > RULE.amt && pct > RULE.pct;
+      const pctTxt = pct === Infinity ? 'from 0' : (diff >= 0 ? '+' : '−') + Math.round(pct) + '%';
+      const base = '2024 ' + money(ln.py) + ' · ' + signed(diff) + ' (' + pctTxt + ')';
+      if (!flag) return { word:'Within the rule', cls:'map-t-pas', text: base, flag:false };
+      return { word:'Swing', cls:'map-t-wrn', text: base + (filed ? ' · explanation recorded before filing' : ' · needs an explanation'), flag:true, ex: filed };
+    };
+
+    const ver = vi >= 0 ? vi : 0;
+    let nSwing = 0, nNew = 0;
+    const formsOut = forms.map(f => {
+      const adjusted = filed && f.lines.some(l => l.firm != null);
+      const stt = filed ? (adjusted ? 'adj' : 'fil') : f.st;
+      const engList = (f.eng || []).map(code => ({ code, sev: engine[code][0], msg: engine[code][1] }));
+      const ours = filed ? 0 : f.ours;
+      const checks = filed
+        ? (adjusted ? 'Adjusted by the firm before filing' : 'No adjustments')
+        : (ours + (ours === 1 ? ' open check of ours' : ' open checks of ours') + ' · ' + engList.length + (engList.length === 1 ? ' engine note' : ' engine notes'));
+      return {
+        name: f.name, code: f.code, tword: status[stt][0], tcls: status[stt][1], ex: adjusted, checks,
+        hasEngine: engList.length > 0 && vi >= 0, engine: engList,
+        lines: f.lines.map(l => {
+          const useFirm = filed && l.firm != null;
+          const raw = useFirm ? l.firm : l.v[ver];
+          const value = show(raw, l.kind);
+          const curNum = typeof raw === 'number' ? raw : null;
+          const sw = swingOf(l, curNum);
+          if (sw && sw.flag) nSwing++;
+          if (sw && sw.isNew) nNew++;
+          const claim = linkClaims || filed ? l.claim : '';
+          const plain = (x) => typeof x === 'number' ? (x < 0 ? '−' : '') + grp(x) + (l.kind === 'b' ? ' basis' : '') : x;
+          const note = useFirm ? ' · engine v3 ' + plain(l.v[2]) + ', adjusted by the firm' : (filed && adjusted && TOTAL[l.key] ? ' · v3, not recomputed' : '');
+          return { label: l.label, key: l.key, note, value, isClaim: !!claim, isPlain: !claim,
+            hasSwing: !!sw, swWord: sw ? sw.word : '', swCls: sw ? sw.cls : '', swText: sw ? sw.text : '', swEx: !!(sw && sw.ex), swDef: sw && sw.flag ? swingDef : '',
+            on: claim && claim === claimId ? 'on' : '',
+            aria: l.label + ', ' + value + ': show where it came from',
+            open: () => { if (claim) openClaim(claim); } };
+        })
+      };
+    });
+
+    // Compare versions: v1, v2, v3 from the packet; firm-adjusted and as filed are this workpaper's (Example).
+    const cmpForm = forms.find(f => f.code.split(' ')[0] === st.cmpForm) || forms[0];
+    const accFor = cmpForm.ca ? ACC.ca : ACC.fed;
+    const cmpCols = [
+      { label:'v1', sub:'4 Mar 2026', ex:false }, { label:'v2', sub:'19 Mar 2026', ex:false }, { label:'v3', sub:'23 Jun 2026', ex:false },
+      { label:'Firm-adjusted', sub: vi === 2 ? (filed ? 'final' : 'proposed') : 'after v3', ex:true }, { label:'As filed', sub: cmpForm.ca ? '15 Jul 2026' : '14 Jul 2026', ex:true } ];
+    const cmpRows = cmpForm.lines.map(l => {
+      const cells = [0, 1, 2].map(i => {
+        if (i > vi) return { text:'Not computed yet', cls:'map-muted', changed:false };
+        const changed = (i === 1 && !!CH2[l.key]) || (i === 2 && !!CH3[l.key]);
+        return { text: show(l.v[i], l.kind), cls:'', changed };
+      });
+      const firmText = l.firm != null ? show(l.firm, l.kind) : (TOTAL[l.key] ? show(l.v[2], l.kind) + ' (v3, not recomputed)' : show(l.v[2], l.kind));
+      cells.push(vi === 2 ? { text: firmText, cls: l.firm != null ? '' : 'map-muted', changed: l.firm != null } : { text:'Not yet', cls:'map-muted', changed:false });
+      cells.push(asOf >= accFor ? { text: firmText, cls: l.firm != null ? '' : 'map-muted', changed:false } : { text:'Not filed yet', cls:'map-muted', changed:false });
+      return { label: l.label, key: l.key, cells };
+    });
+    const nCh = (CH) => cmpForm.lines.filter(l => CH[l.key]).length;
+    const cmpForms = forms.map(f => { const k = f.code.split(' ')[0]; const on = k === cmpForm.code.split(' ')[0];
+      return { label: f.code, pressed: on ? 'true' : 'false', cls: on ? 'pressed' : '', pick: () => this.setState({ cmpForm: k }) }; });
+
+    const hidden = isClient || role === 'irs';
+    const noVersion = !hidden && vi < 0;
+    return {
+      wpClass: 'wp' + ((P.dark ?? false) ? ' dark' : ''),
+      hidden, shown: !hidden && !noVersion, noVersion, filed,
+      noVersionText: 'No computed return yet at story time (' + fmtAt(asOf) + '). The engine’s first run, v1, is on 4 Mar 2026, after the client marked the upload complete.',
+      hiddenText: isClient ? 'This page is for your tax team. Your questions and documents are on Home and Documents.' : 'The return map is not part of the examination record. The items under examination are on Filing and after.',
+      hiddenLabel: isClient ? 'Go to Home' : 'Open Filing and after',
+      hiddenGo: () => go(isClient ? 'home' : 'filing'),
+      subline: filed
+        ? 'The 2025 return as filed, form by form. Lines the firm adjusted show the filed value; select a linked number to see its source and history.'
+        : 'The 2025 return form by form, with the key lines. Select a linked number to see where it came from, what was done to it and who checked it.',
+      versionNote: filed ? 'As filed, locked: the return as this workpaper finalized it · ' + asOfLabel
+        : (vi === 2 ? asOfLabel + ' · v3 · none of our changes applied yet' : asOfLabel + ' · ' + (VER[ver].v) + ', computed ' + fmtAt(VER[ver].at) + ' · checks attach to v3 (23 Jun 2026)'),
+      forms: formsOut,
+      swingDef,
+      swingSummary: nSwing + ' lines swing over 10% and over 1,000 from 2024 (firm rule: compared to the prior year, over 10% and over 1,000) · ' + nNew + ' new this year',
+      cmpOpen: st.cmp ? 'true' : 'false', cmpShown: !!st.cmp && !hidden && !noVersion, cmpLabel: st.cmp ? 'Hide version comparison' : 'Compare versions',
+      toggleCmp: () => this.setState({ cmp: !st.cmp }),
+      cmpForms, cmpCols, cmpRows, cmpTitle: 'Compare versions: ' + cmpForm.name,
+      cmpNote: cmpForm.name + ': ' + nCh(CH2) + ' of these lines changed from v1 to v2, ' + nCh(CH3) + ' from v2 to v3.',
+      cmpFoot: 'v1, v2 and v3 are the engine’s versions; “Changed” comes from each version’s own list of changes (v2 changed 63 lines, v3 changed 89 of 627). Firm-adjusted and as-filed values are this workpaper’s adjustments (Example); totals are not recomputed in the mock-up.',
+      footer: filed
+        ? 'Totals marked “v3, not recomputed” are the engine’s v3 figures; the finalized totals come from the recompute in the build. 11 of the 34 forms on the return are shown here (627 lines in all).'
+        : '11 of the 34 forms on the return are shown here (627 lines in all). “Open checks of ours” counts the checks this mock-up carries; the build runs one per finding. Engine notes are the engine’s own diagnostics, shown beside our checks, never instead of them: v3 has 11; 7 sit on the forms above, AOTC_PHASED_OUT (Form 8863) and FBAR_OUTSIDE_RETURN (Form 8938) sit on forms not drawn here, and QUESTIONNAIRE_SALES_CONFLICT and BROKER_SUMMARY_DETAIL_MISMATCH are not tied to a form line.',
+      goChecks: () => go('checks'), goDocs: () => go('documents')
+    };
+  }
+}
+</script>
+</body>
+</html>

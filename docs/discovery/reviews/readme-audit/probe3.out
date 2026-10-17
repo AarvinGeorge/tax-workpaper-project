@@ -1,0 +1,32 @@
+F8949 sum by box: {'A': 424.45, 'B': 75440.0, 'D': 14618.1, 'E': 30600.0, 'F': 42430.0, 'H': 6828.0}
+SchD lines: [('SchD.1b', 212, 'Short-term from Form 8949 box A'), ('SchD.2', 37720, 'Short-term from Form 8949 box B'), ('SchD.3', 3414, 'Short-term from Form 8949 box H (digital assets, b'), ('SchD.6', -3200, 'Short-term capital loss carryover from 2024'), ('SchD.7', 38146, 'Net short-term gain or (loss)'), ('SchD.8b', 7309, 'Long-term from Form 8949 box D'), ('SchD.9', 15300, 'Long-term from Form 8949 box E'), ('SchD.10', 27062, 'Long-term from Form 8949 box F and K'), ('SchD.11', 105040, 'Gain from Form 4797'), ('SchD.12', 1350, 'Net long-term gain from partnerships and S corpora'), ('SchD.13', 1820, 'Capital gain distributions'), ('SchD.14', -11000, 'Long-term capital loss carryover from 2024'), ('SchD.15', 146881, 'Net long-term gain or (loss)'), ('SchD.16', 185027, 'Combine lines 7 and 15'), ('SchD.18', 0, '28% rate gain'), ('SchD.19', 50340, 'Unrecaptured section 1250 gain')]
+F8949 non-lot lines: [('F8949.K.C1', 3028.0, 'BTC 0.0412 units (acquired 2023-02-11, s'), ('F8949.K.C4', 544.0, 'ETH 0.8 units (acquired 2022-06-20, sold'), ('F8949.K.C7', 1890.0, 'ETH 2.0 units (acquired 2023-09-01, sold'), ('F8949.K.C9', -165.0, 'SOL 15.0 units (acquired 2024-04-02, sol'), ('F8949.K.C11', 550.0, 'BTC 0.02 units (acquired 2021-11-08, sol'), ('F8949.F.SCORP', 21215.0, 'Lindqvist Family Woodworks, Inc. - distr'), ('F8949.A.total', 212, 'Box A totals (proceeds 172,667.96; basis'), ('F8949.B.total', 37720, 'Box B totals (proceeds 37,720.00; basis '), ('F8949.D.total', 7309, 'Box D totals (proceeds 248,775.56; basis'), ('F8949.E.total', 15300, 'Box E totals (proceeds 15,300.00; basis '), ('F8949.F.total', 21215, 'Box F totals (proceeds 21,215.00; basis '), ('F8949.H.total', 3414, 'Box H totals (proceeds 20,135.00; basis ')]
+F8949.B.N1: {'key': 'F8949.B.N1', 'jurisdiction': 'federal', 'form': 'F8949', 'line': 'B.N1', 'label': 'Corvane Systems Inc (RSU) (acquired 2025-02-15, sold 2025-02-18; proceeds 19,240.00, basis 0.00)', 'value': 19240.0, 'rule': 'R-8949-LOT', 'inputs': [], 'sources': ['ev-0493', 'ev-0495', 'ev-0496', 'ev-0497', 'ev-0498']}
+docs not in v3 documents_used: ['D30', 'D71', 'D72']
+empty text_as_read: [('ev-0498', 'D28', 'N1_basis', 0.0, 0.98), ('ev-0500', 'D28', 'N1_covered', False, 0.99), ('ev-0516', 'D28', 'N3_basis', 0.0, 0.98), ('ev-0518', 'D28', 'N3_covered', False, 0.99), ('ev-0525', 'D28', 'N4_basis', 0.0, 0.98), ('ev-0527', 'D28', 'N4_covered', False, 0.99), ('ev-0919', 'D35', 'C6_basis', None, 0.6)]
+v3 notes: [('F1040.1a', 'D10 is a second image of the Halvorsen W-2 (D09); counted once.'), ('SchC.1', 'Gross receipts = books revenue plus Form 1099-K amounts not matched to'), ('SchC.9', "Replaces books fuel expense (books line 'Car and truck - fuel')."), ('SchC.13', 'Replaces books depreciation 7,600.00.'), ('Sch1.16', 'Contribution 18,000.00; limit 20% of (net profit - half SE tax) = 15,2'), ('SchE.14A', 'HVAC 11,000.00 is inside repairs per the owner statement.'), ('F4797.26g', 'Straight-line residential rental: no section 1250 ordinary recapture.'), ('SchE.28A', 'Shareholder does not materially participate (does not work in the busi'), ('F8582.4', 'Net passive income is positive: all current and prior-year passive los'), ('SchA.5b', 'Real estate taxes paid from escrow (Form 1098 box 10).'), ('SchA.5e', 'Cap for this AGI: 40,000.'), ('SchA.8a', 'Lonestar Mortgage LLC (Form 1098) 13,900.00; Pecan Federal Savings (Fo'), ('F2441.31', 'Limit 3,000 for one qualifying person less 5,000 excluded benefits = 0'), ('F8960.4a', 'S corporation income is passive to this shareholder and included.'), ('F1040.26', '2025-04-15 3,000.00; 2025-06-16 3,000.00; 2025-09-15 3,000.00; 2026-01'), ('Sch3.11', 'Ngozi Okafor; two employers.'), ('F2210.AI', 'Annualized installments 14,807, 16,707, 14,922, 27,330; regular instal'), ('SchCA540NR.1.C', 'California does not exclude employer HSA contributions.'), ('SchCA540NR.2.B', 'U.S. Treasury interest is exempt from California tax.'), ('SchCA540NR.12.C', 'California does not allow federal bonus depreciation; section 179 limi'), ('SchCA540NR.17.B', 'California depreciation on the 2021 appliances (federal took 100% bonu'), ('F540NR.61', 'Not computed by the engine - see diagnostics.'), ('F540NR.72', '2025-04-15 3,500.00; 2025-06-16 3,500.00; 2025-09-15 3,500.00; 2026-01')]
+R-SUM -> Arithmetic combination of the listed input lines.
+R-SEHI -> Self-employed health insurance premiums, limited to business income minus half SE tax and SEP.
+R-EXTENSION-PAYMENT -> Payment made with the extension request.
+R-CA-CAPGAIN -> No California difference in gain.
+R-CA-DIVIDENDS -> No California difference.
+R-CA-IRA -> No California difference.
+salt_cap = 40000
+salt_cap_phase_start = 500000
+qbi_threshold = 394600
+niit_threshold = 250000
+ss_wage_base = 176100
+brackets_mfj = [[23850, 0.1], [96950, 0.12], [206700, 0.22], [394600, 0.24], [501050, 0.32], [751600, 0.35], [None, 0.37]]
+ca_resident_days = 195
+year_days = 365
+prior_year_tax = 37557
+prior_year_agi = 228409.0
+fed_underpayment_rate = 0.07
+household entered_by: client (organizer), 2026-01-20 filing_status: married_filing_jointly
+timeline refs sample: [('tl-04', ['v1']), ('tl-08', ['v2']), ('extension-2026-04-14', ['v2']), ('tl-17', ['v3']), ('tl-21', ['agency:/efile']), ('tl-23', ['agency:/efile']), ('tl-24', ['agency:/efile']), ('tl-25', ['agency:/irs_account_transcript_2025']), ('tl-26', ['agency:/ftb_account']), ('tl-29', ['agency:/notices/1', 'D72'])]
+firm_identity ptins keys: ['st-01', 'st-02', 'st-03', 'st-04'] signer: st-03
+staff: [('st-01', 'preparer', None, True, '2025-08-01'), ('st-02', 'reviewer', 'CPA', True, '2021-01-04'), ('st-03', 'partner', 'CPA', True, '2018-05-01'), ('st-04', 'preparer', None, False, '2026-03-24'), ('st-05', 'firm_administrator', None, True, '2020-02-10'), ('st-06', 'quality_reviewer', 'CPA', True, '2027-01-04')]
+page_count mismatch: []
+documents uploaded_by firm: ['D01', 'D02', 'D69', 'D72']
+v1 docs_used - v3: ['D30']  v3 - v2: ['D26', 'D37', 'D38', 'D40', 'D43', 'D73']
+Letter 566 items: ['Noncash charitable contributions claimed on Schedule A line 12 (Form 8283): provide acknowledgments and valuation.', 'Schedule C gross receipts: reconcile to Forms 1099-NEC (142,000) and Form 1099-K (12,400) filed by third parties.']

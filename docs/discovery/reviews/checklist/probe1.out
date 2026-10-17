@@ -1,0 +1,129 @@
+== top keys: ['client', 'documents', 'engine_reference', 'extracted_values', 'firm', 'fx_rates', 'household', 'packet', 'planning_reference_2026', 'post_filing_rates', 'prior_years', 'readme', 'return_versions', 'tax_agency_records', 'timeline', 'what_if']
+== household keys: ['addresses', 'bank_account_for_refund_or_payment', 'entered_by', 'filing_status', 'people', 'prior_year_agi_for_esignature', 'related_returns', 'residency', 'tax_year']
+filing_status: married_filing_jointly
+ person ngozi taxpayer None ssn …2287 ip_pin set months None student None
+ person erik spouse None ssn …9134 ip_pin none months None student None
+ person ada dependent daughter ssn …1106 ip_pin none months 12 student True
+ person theo dependent son ssn …3309 ip_pin none months 12 student None
+related_returns: [{"who": "Ada Lindqvist-Okafor", "return": "2025 Form 1040 (her own; summer job W-2 4,100; checked 'someone can claim you as a dependent')", "prepared_by": "Ada, using consumer software", "in_this_packet": false}, {"who": "Lindqvist Family Woodworks, Inc.", "return": "2025 Form 1120-S and Oregon composite return", "prepared_by": "Willamette CPA Group (not this firm)", "in_this_packet": "K-1s only (D39, D40)"}, {"who": "Ridgeline Real Estate Fund III LP", "return": "2025 Form 1065 and Arizona composite return", "prepared_by": "fund administrator", "in_this_packet": "K-1 and state supplement only (D37, D38)"}]
+bank_account keys: ['routing', 'account', 'type', 'bank']
+prior_year_agi_for_esignature present: True float
+residency: [{'state': 'CA', 'from': '2025-01-01', 'to': '2025-07-14', 'status': 'resident'}, {'state': 'TX', 'from': '2025-07-15', 'to': '2025-12-31', 'status': 'resident'}]
+addresses count: 2
+== firm keys: ['assignment_at_start', 'budget_hours', 'client_users', 'deadlines', 'firm_identity', 'name', 'staff', 'starter_standards']
+assignment_at_start: {'preparer': 'st-01', 'reviewer': 'st-02', 'partner': 'st-03'}
+deadlines: [{"what": "Federal Form 1040 and California 540NR - original due date", "date": "2026-04-15"}, {"what": "Extended due date (federal and California)", "date": "2026-10-15"}, {"what": "Internal: preparer hand-off to review", "date": "2026-03-27"}, {"what": "Internal: review complete", "date": "2026-04-08"}, {"what": "FinCEN 114 (FBAR) automatic extended due date (outside engagement)", "date": "2026-10-15"}, {"what": "Forms 1099-NEC for 2025 contractor payments (late; outside engagement)", "date": "2026-02-02"}]
+budget_hours: {'intake_and_engagement': 1.5, 'wages_and_stock_compensation': 3.0, 'investments_and_digital_assets': 4.0, 'business': 3.5, 'rentals_and_sale': 3.5, 'pass_throughs_and_basis': 2.0, 'deductions_and_credits': 2.0, 'california': 1.5, 'partner_review': 1.0}
+client_users: [('cu-01', 'Ngozi Okafor', 'client'), ('cu-02', 'Erik Lindqvist', 'client')]
+starter_standards keys: ['note', 'required_steps', 'review_levels', 'rules', 'variance_review', 'verification_types']
+verification_types: ['agreed_to_source_document', 'recalculated', 'confirmed_with_client', 'agreed_to_prior_year', 'agreed_to_third_party_record']
+variance_review: {'compare_to': 'prior_year', 'flag_if_change_over_percent': 10, 'and_over_amount': 1000}
+review_levels: ['preparer', 'reviewer', 'partner']
+rules: ["A person may not review or sign off on work they prepared.", "Any adjustment with a tax effect over 1,000 (federal or state) requires partner sign-off.", "Every judgment call records the authority relied on.", "Due diligence must be documented for the child tax credit, credit for other dependents, American opportunity credit, earned income credit and head of household status.", "Open review notes block filing.", "Staff without sensitive-data clearance see SSNs, bank and account numbers and IP PINs masked; every unmasked view is logged.", "Records are retained 7 years after filing, then destroyed."]
+required_steps: ['Engagement letter and consents signed', 'Identity verified', 'Prior-year return reviewed', 'All documents accounted for', 'Prior-year variances explained', 'Carryovers agreed to prior year', 'Estimated payments agreed to IRS and FTB records', 'Due diligence completed', 'Diagnostics resolved', 'Reviewer sign-off', 'Partner sign-off', 'Client approval and e-file authorization']
+staff: [('st-01', 'Priya Raman', 'preparer', True, '2025-08-01'), ('st-02', 'Daniel Ortiz', 'reviewer', True, '2021-01-04'), ('st-03', 'Helen Strand', 'partner', True, '2018-05-01'), ('st-04', 'Marcus Bell', 'preparer', False, '2026-03-24'), ('st-05', 'Jo Kimura', 'firm_administrator', True, '2020-02-10'), ('st-06', 'Sam Adeyemi', 'quality_reviewer', True, '2027-01-04')]
+firm_identity keys: ['address', 'efin', 'ein', 'ero_pin', 'paid_preparer_signing_returns', 'phone', 'ptins']
+== timeline
+  tl-01 2026-01-12T17:06:00Z engagement_signed actor= None refs= ['D01', 'D02'] | None
+  tl-02 2026-01-20T04:00:00Z questionnaire_submitted actor= None refs= ['qa-01'] | None
+  tl-03 2026-03-02T22:15:00Z client_marked_upload_complete actor= None refs= ['msg-04'] | None
+  tl-04 2026-03-04T09:12:00Z return_computed actor= None refs= ['v1'] | None
+  tl-05 2026-03-09T15:00:00Z work_started actor= st-01 refs= [] | None
+  tl-06 2026-03-12T16:20:00Z irs_transcript_pulled actor= st-01 refs= ['D69'] | None
+  tl-07 2026-03-18T21:09:00Z document_received actor= None refs= ['D31'] | None
+  tl-08 2026-03-19T07:40:00Z return_computed actor= None refs= ['v2'] | None
+  tl-09 2026-03-24T15:00:00Z staff_joined_engagement actor= st-04 refs= [] | None
+  tl-10 2026-03-26T17:00:00Z client_call actor= st-01 refs= ['call-01'] | None
+  tl-11 2026-03-27T16:30:00Z document_received actor= None refs= ['D73'] | None
+  tl-12 2026-04-10T15:32:00Z document_received actor= None refs= ['D26'] | None
+  extension-2026-04-14 2026-04-14T15:00:00Z extension_filed_with_payment actor= st-02 refs= ['v2'] | Form 4868 with 36,000 and FTB 3519 with 0 (estimated from v2; see what_if.extension).
+  tl-14 2026-05-29T12:10:00Z document_received actor= None refs= ['D43'] | None
+  tl-15 2026-06-05T00:41:00Z document_received actor= None refs= ['D40', 'msg-06'] | None
+  tl-16 2026-06-22T18:55:00Z document_received actor= None refs= ['D37', 'D38'] | None
+  tl-17 2026-06-23T06:05:00Z return_computed actor= None refs= ['v3'] | None
+  tl-18 2026-06-30T18:02:00Z client_message actor= None refs= ['msg-07'] | None
+  tl-19 2026-07-01T16:40:00Z client_message actor= None refs= ['msg-08'] | None
+  tl-20 2026-07-10T20:05:00Z client_approved_and_signed_8879 actor= None refs= ['msg-09'] | Form 8879 and FTB 8879 signed electronically. Taxpayer PIN 41207; spouse PIN 88310. Amounts: as shown on the r
+  tl-21 2026-07-13T17:04:00Z efile_rejected actor= None refs= ['agency:/efile'] | None
+  tl-22 2026-07-13T19:02:00Z document_received actor= None refs= ['D71', 'msg-10'] | None
+  tl-23 2026-07-14T16:22:00Z efile_accepted_federal actor= None refs= ['agency:/efile'] | None
+  tl-24 2026-07-15T02:10:00Z efile_accepted_california actor= None refs= ['agency:/efile'] | None
+  tl-25 2026-07-20T14:00:00Z federal_balance_paid actor= None refs= ['agency:/irs_account_transcript_2025'] | Balance due on the filed federal return paid by direct debit (after 2026-04-15: interest and failure-to-pay pe
+  tl-26 2026-08-21T14:00:00Z california_refund_issued actor= None refs= ['agency:/ftb_account'] | Overpayment on the filed California return refunded by direct deposit.
+  tl-27 2027-01-04T15:00:00Z quality_review_selected_return actor= st-06 refs= [] | None
+  tl-28 2027-01-15T15:00:00Z next_year_engagement_started actor= st-01 refs= [] | 2026 return: the next preparer opens this file to roll forward.
+  tl-29 2028-01-26T15:00:00Z notice_received actor= None refs= ['agency:/notices/1', 'D72'] | None
+== client
+questionnaire count: 45
+ msg msg-01 2026-01-21T03:30:00Z Ngozi Okafor -> firm | Uploaded the first batch. Ridgeline K-1 won't come until June per their email.
+ msg msg-02 2026-02-09T02:50:00Z Ngozi Okafor -> firm | Re-uploaded the Halvorsen W-2 from my phone in case the PDF was blurry.
+ msg msg-03 2026-02-18T04:20:00Z Erik Lindqvist -> firm | Mileage log is scanned - sorry it's handwritten.
+ msg msg-04 2026-03-02T22:15:00Z Ngozi Okafor -> firm | I think that's everything except the Ridgeline K-1.
+ msg msg-05 2026-03-18T21:12:00Z Erik Lindqvist -> firm | Meridian sent a corrected 1099 today, uploading it.
+ msg msg-06 2026-06-05T00:45:00Z Erik Lindqvist -> firm | Found the 2023 Woodworks K-1 in my mom's papers - photo attached (D40).
+ msg msg-07 2026-06-30T18:02:00Z Erik Lindqvist -> firm | About the crypto lot with no cost: that BTC was bought on another exchange in March 2021 for about 3
+ msg msg-08 2026-07-01T16:40:00Z Ngozi Okafor -> firm | St. Brigid confirmed by phone the gift was 1,500 - matches our bank statement (check #2207, 12/21/20
+ msg msg-09 2026-07-10T20:05:00Z Ngozi Okafor -> firm | Reviewed the summary, looks good. Signed the e-file authorization.
+ msg msg-10 2026-07-13T18:55:00Z Ngozi Okafor -> firm | Theo's Social Security card attached. I must have typed his number wrong in the organizer.
+ call call-01 2026-03-26T17:00:00Z ['Erik Lindqvist', 'Priya Raman (preparer)'] notes: 8
+== documents
+count: 74
+extraction status: Counter({'extracted': 68, 'not_extracted': 4, 'partial': 2})
+not fully extracted: [('D07', 'not_extracted', 'Narrative workpaper export; its content is reproduced as structured data in prio'), ('D30', 'partial', "Page 32 ('Additional transactions') was not read by the pipeline."), ('D31', 'partial', "Page 32 ('Additional transactions') was not read by the pipeline."), ('D69', 'not_extracted', 'Agency transcript; reproduced as structured data in tax_agency_records.irs_accou'), ('D70', 'not_extracted', 'Resolved prior-year notice; summarized in tax_agency_records.notices.'), ('D72', 'not_extracted', 'Examination letter received after filing; summarized in tax_agency_records.notic')]
+marked_corrected: ['D31']
+uploaded_by firm: ['D01', 'D02', 'D69', 'D72']
+received after v3 (2026-06-23T06:05): [('D71', '2026-07-13T19:02:00Z'), ('D72', '2028-01-26T15:00:00Z')]
+belongs_to counter: Counter({'joint': 30, 'spouse': 22, 'taxpayer': 17, 'dependent:theo': 3, 'dependent:ada': 2})
+tax_year counter: Counter({2025: 68, 2024: 4, 2023: 2})
+page_count total: 199 max: 32
+== extracted_values count: 3012
+value_type: Counter({'money': 1253, 'date': 754, 'text': 474, 'code': 323, 'integer': 95, 'quantity': 51, 'boolean': 45, 'percent': 6, 'ssn': 5, 'ein': 5, 'account_number': 1})
+confidence <0.7: 2 <0.9: 2
+ssn-type values: [('ev-0012', 'D06'), ('ev-0015', 'D08'), ('ev-0034', 'D09'), ('ev-0051', 'D10'), ('ev-1080', 'D71')]
+account_number-type values: [('ev-0963', 'D36')]
+== return_versions
+  v1 2026-03-04T09:12:00Z First run after the client marked the upload complete (2026-03-02). lines 625 diag 13 changes 0 assets 9 docs_used 64 superseded []
+    summary: {'federal': {'agi': 428023, 'taxable_income': 329346, 'total_tax': 77200, 'payments': 41742, 'balance_due': 35458, 'penalty': 164}, 'california': {'total_agi': 463529, 'ca_agi': 294267, 'total_tax': 17845, 'payments': 27130, 'balance_due': -9285, 'penalty': 0}}
+    carryovers_out keys: {'federal': ['capital_loss_short', 'capital_loss_long', 'passive_1450_fremont', 'passive_1200_barton_hills', 'minimum_tax_credit_from_2025_amt', 'charitable', 'section_179', 'ira_nondeductible_basis_ngozi', 'scorp_stock_basis_end', 'ridgeline_capital_account_end', 'sep_contribution_not_deductible_for_2025'], 'california': ['capital_loss', 'passive', 'depreciation_basis_differences']}
+    diagnostics: [('SCORP_BASIS_INCOMPLETE', 'warning'), ('DIGITAL_ASSET_BASIS_MISSING', 'warning'), ('K1_EXPECTED_NOT_RECEIVED', 'warning'), ('AMT_CREDIT_CARRYFORWARD', 'info'), ('AOTC_PHASED_OUT', 'info'), ('FBAR_OUTSIDE_RETURN', 'info'), ('FORM_1099_FILING', 'warning'), ('DUE_DILIGENCE_REQUIRED', 'warning'), ('CA_AMT_NOT_COMPUTED', 'warning'), ('HOME_OFFICE_AREA_CHANGE', 'info'), ('QUESTIONNAIRE_SALES_CONFLICT', 'warning'), ('LOW_CONFIDENCE_READ', 'warning'), ('BROKER_SUMMARY_DETAIL_MISMATCH', 'warning')]
+    tax_effect_rates keys: ['wages', 'interest', 'schc_profit', 'stcg', 'ltcg', 'ordinary_income', 'adjustment', 'salt', 'itemized', 'ca_source_income']
+  v2 2026-03-19T07:40:00Z Recompute: corrected Meridian Brokerage 1099 received 2026-03-18. lines 625 diag 13 changes 63 assets 9 docs_used 65 superseded ['D30']
+    summary: {'federal': {'agi': 429820, 'taxable_income': 331143, 'total_tax': 77470, 'payments': 41742, 'balance_due': 35728, 'penalty': 164}, 'california': {'total_agi': 465326, 'ca_agi': 296064, 'total_tax': 17999, 'payments': 27130, 'balance_due': -9131, 'penalty': 0}}
+    carryovers_out keys: {'federal': ['capital_loss_short', 'capital_loss_long', 'passive_1450_fremont', 'passive_1200_barton_hills', 'minimum_tax_credit_from_2025_amt', 'charitable', 'section_179', 'ira_nondeductible_basis_ngozi', 'scorp_stock_basis_end', 'ridgeline_capital_account_end', 'sep_contribution_not_deductible_for_2025'], 'california': ['capital_loss', 'passive', 'depreciation_basis_differences']}
+    diagnostics: [('SCORP_BASIS_INCOMPLETE', 'warning'), ('DIGITAL_ASSET_BASIS_MISSING', 'warning'), ('K1_EXPECTED_NOT_RECEIVED', 'warning'), ('AMT_CREDIT_CARRYFORWARD', 'info'), ('AOTC_PHASED_OUT', 'info'), ('FBAR_OUTSIDE_RETURN', 'info'), ('FORM_1099_FILING', 'warning'), ('DUE_DILIGENCE_REQUIRED', 'warning'), ('CA_AMT_NOT_COMPUTED', 'warning'), ('HOME_OFFICE_AREA_CHANGE', 'info'), ('QUESTIONNAIRE_SALES_CONFLICT', 'warning'), ('LOW_CONFIDENCE_READ', 'warning'), ('BROKER_SUMMARY_DETAIL_MISMATCH', 'warning')]
+    tax_effect_rates keys: ['wages', 'interest', 'schc_profit', 'stcg', 'ltcg', 'ordinary_income', 'adjustment', 'salt', 'itemized', 'ca_source_income']
+  v3 2026-06-23T06:05:00Z Recompute: Ridgeline K-1 and state supplement received 2026-06-22; 2023 S corporation K-1 (received 2026-06-05), SEP confirmation and 2025 Form 5498 now in file; extension payments made 2026-04-14. lines 627 diag 11 changes 89 assets 9 docs_used 71 superseded ['D30']
+    summary: {'federal': {'agi': 445590, 'taxable_income': 346913, 'total_tax': 81962, 'payments': 77742, 'balance_due': 4220, 'penalty': 164}, 'california': {'total_agi': 481096, 'ca_agi': 305349, 'total_tax': 18874, 'payments': 27130, 'balance_due': -8256, 'penalty': 0}}
+    carryovers_out keys: {'federal': ['capital_loss_short', 'capital_loss_long', 'passive_1450_fremont', 'passive_1200_barton_hills', 'minimum_tax_credit_from_2025_amt', 'charitable', 'section_179', 'ira_nondeductible_basis_ngozi', 'scorp_stock_basis_end', 'ridgeline_capital_account_end', 'sep_contribution_not_deductible_for_2025'], 'california': ['capital_loss', 'passive', 'depreciation_basis_differences']}
+    diagnostics: [('DIGITAL_ASSET_BASIS_MISSING', 'warning'), ('AMT_CREDIT_CARRYFORWARD', 'info'), ('AOTC_PHASED_OUT', 'info'), ('FBAR_OUTSIDE_RETURN', 'info'), ('FORM_1099_FILING', 'warning'), ('DUE_DILIGENCE_REQUIRED', 'warning'), ('CA_AMT_NOT_COMPUTED', 'warning'), ('HOME_OFFICE_AREA_CHANGE', 'info'), ('QUESTIONNAIRE_SALES_CONFLICT', 'warning'), ('LOW_CONFIDENCE_READ', 'warning'), ('BROKER_SUMMARY_DETAIL_MISMATCH', 'warning')]
+    tax_effect_rates keys: ['wages', 'interest', 'schc_profit', 'stcg', 'ltcg', 'ordinary_income', 'adjustment', 'salt', 'itemized', 'ca_source_income']
+v3 forms: Counter({'F8949': 302, 'F1040': 31, 'SchCA540NR': 30, 'SchE': 29, 'SchC': 26, 'F540NR': 19, 'SchB': 16, 'SchD': 16, 'F8606': 14, 'SchA': 13, 'F4797': 11, 'F6251': 11, 'F7203': 9, 'F8995': 9, 'F8960': 9, 'Sch1': 8, 'F8812': 8, 'SchSE': 7, 'F8959': 7, 'F8889': 6, 'Sch2': 6, 'F2441': 6, 'F8582': 5, 'Sch3': 5, 'F4562-C': 4, 'FTB3885A': 4, 'F8863': 3, 'F2210': 3, 'F8938': 3, 'F4562-E': 2, 'F8283': 2, 'F8867': 1, 'ScheduleS': 1, 'FTB5805': 1})
+v3 jurisdictions: Counter({'federal': 572, 'california': 55})
+v3 lines with note: 23 with inputs: 221 with sources: 431
+v3 F8949 lines: 302
+v3 line value types: Counter({'int': 316, 'float': 298, 'str': 13})
+sample line: {"key": "F1040.1a", "jurisdiction": "federal", "form": "F1040", "line": "1a", "label": "Wages (Forms W-2, box 1)", "value": 212400, "rule": "R-W2-BOX1-SUM", "inputs": [], "sources": ["ev-0016", "ev-0035"], "note": "D10 is a second image of the Halvorsen W-2 (D09); counted once."}
+sample asset: {"asset_id": "SAC-BLDG", "description": "1450 Fremont Way - building", "activity": "Rental: 1450 Fremont Way, Sacramento", "cost": 364000.0, "land_value_not_depreciated": 156000.0, "placed_in_service": "2019-07-01", "method": "SL / mid-month", "life_years": 27.5, "federal": {"prior_accumulated": 72248.47, "depreciation_2025": 13236.36, "accumulated_end": 85484.83}, "california": {"prior_accumulated": 72248.47, "depreciation_2025": 13236.36, "accumulated_end": 85484.83}, "amt": {"depreciation_202
+sample change: {"key": "SchB.1.8", "change": "added", "new": 120}
+== what_if alternatives: [('equipment_section179', 'v3', 0, -1050), ('equipment_no_bonus', 'v3', 10245, -260), ('hvac_improvement', 'v3', 3633, 896), ('standard_deduction', 'v3', 12306, 0), ('penalty_annualized', 'v3', 0, 0)]
+what_if extension: {"computed_at": "2026-04-14T15:00:00Z", "based_on_version": "v2", "federal": {"estimated_total_tax": 77470, "payments": 41742, "estimated_balance": 35728, "paid_with_form_4868": 36000, "rule": "balance due rounded up to the next 500"}, "california": {"estimated_total_tax": 17999, "payments": 27130, "estimated_balance": -9131, "paid_with_ftb_3519": 0, "rule": "balance due rounded up to the next 500
+== tax_agency_records keys: ['efile', 'ftb_account', 'irs_account_transcript_2025', 'notices']
+transcript snapshots as_of: ['2026-03-12', '2026-08-03']
+    2026-03-12 [('2025-04-15', '670', 3000), ('2025-06-16', '670', 3000), ('2025-09-15', '670', 3000), ('2026-01-15', '670', 3000)]
+    2026-08-03 [('2025-04-15', '670', 3000), ('2025-06-16', '670', 3000), ('2025-09-15', '670', 3000), ('2026-01-15', '670', 3000), ('2026-04-14', '670', 36000), ('2026-04-14', '460', 0), ('2026-07-14', '150', 'total tax on the return as filed (your final return)'), ('2026-07-20', '610', 'balance due on the return as filed'), ('2026-08-03', '196/276', 'computed by IRS')]
+ftb_account keys: ['as_of', 'tax_year_2024_payments_after_filing', 'tax_year_2025_payments']
+notices: [('N-2023-CP2000', 'IRS', 'CP2000', 2023, '2024-07-08', 'Resolved 2024-11-18: basis 3,960 substantiated; no change.', None, 'D70'), ('N-2025-L566', 'IRS', 'Letter 566 (correspondence examination)', 2025, '2028-01-20', None, '2028-02-19', 'D72')]
+efile: [{"date": "2026-07-13T17:04:00Z", "jurisdiction": "federal", "submission_id": "71530420261940012345", "status": "rejected", "errors": [{"code": "R0000-504-02", "message": "Dependent's taxpayer identification number and name control must match the e-file database (dependent 2: Theo Lindqvist-Okafor)."}]}, {"date": "2026-07-13T17:04:00Z", "jurisdiction": "california", "submission_id": "71530420261940012346", "status": "not_transmitted", "errors": [{"code": "STATE-HOLD", "message": "State return held because the federal return was rejected."}]}, {"date": "2026-07-14T16:22:00Z", "jurisdiction": "federal", "submission_id": "71530420261950019871", "status": "accepted"}, {"date": "2026-07-15T02:10:00Z", "jurisdiction": "california", "submission_id": "71530420261950019872", "status": "accepted"}]
+== prior_years keys: ['asset_records', 'basis_records', 'carryovers_into_2025', 'prior_preparer_workpaper', 'return_2024']
+return_2024 keys: ['K1_1065', 'K1_1120S', 'dependents', 'filed', 'line_labels', 'line_sources', 'lines', 'notes', 'prepared_by', 'residency']
+return_2024 lines: 106
+prior_preparer_workpaper keys: ['depreciation_schedule', 'notes', 'open_items_left_by_prior_preparer', 'source_document', 'summary_memo']
+open items: ['Obtain 2023 Woodworks K-1 to roll basis forward.', 'Confirm 2024 Form 5498 for IRA basis.', 'Client to confirm home office square footage.', '2023 Form 3520 (foreign inheritance over 100,000) - discussed? (no note of resolution)']
+asset_records: [('SAC-BLDG', 'Rental: 1450 Fremont Way, Sacramento', None), ('SAC-APPL', 'Rental: 1450 Fremont Way, Sacramento', None), ('SAC-ROOF', 'Rental: 1450 Fremont Way, Sacramento', None), ('AUS-BLDG', 'Rental: 1200 Barton Hills Dr Unit 4C, Austin', '2025-10-15'), ('AUS-FLOOR', 'Rental: 1200 Barton Hills Dr Unit 4C, Austin', '2025-10-15'), ('STU-LAPTOP', 'Business: Lindqvist Studio', None)]
+basis_records keys: ['home_7709_barton_ridge', 'ira_nondeductible_basis_ngozi', 'partnership_ridgeline', 'scorp_lindqvist_family_woodworks']
+basis_records: {"scorp_lindqvist_family_woodworks": [{"year": 2022, "ending_stock_basis": 21300, "source": "client worksheet in prior preparer file"}, {"year": 2023, "ending_stock_basis": null, "source": "missing - 2023 K-1 not in prior file"}, {"year": 2024, "k1_income": 16900, "distributions": 30000, "ending_stock_basis": null, "source": "2024 K-1 (prior return)"}], "partnership_ridgeline": [{"year": 2024, "ending_capital_account": 60000, "outside_basis": null, "source": "2024 K-1; outside basis never computed"}], "ira_nondeductible_basis_ngozi": [{"year": 2024, "form_8606_line_14": 7000, "source": "2024 Form 8606"}], "home_7709_barton_ridge": [{"event": "purchase 2025-07-08", "price": 685000, "source": "D54"}]}
+carryovers_into_2025: {"capital_loss_short": 3200, "capital_loss_long": 11000, "passive_1450_fremont": 6300, "passive_1200_barton_hills": 9850, "section_1231_losses": 0, "charitable": 0, "amt_credit": 0, "nol": 0, "foreign_tax_credit": 0, "qbi_loss": 0, "california": {"capital_loss_short": 3200, "capital_loss_long": 11000, "passive_1450_fremont": 6300, "passive_1200_barton_hills": 9850, "note": "Same as federal except depreciation: the 2021 appliances (SAC-APPL) have remaining California basis because California did not allow the federal 100% special depreciation."}, "sources": "2024 return (D06 pages 6 and 9) and prior preparer workpaper (D07)"}
+== planning_reference_2026: {"federal_estimate_due_dates": ["2026-04-15", "2026-06-15", "2026-09-15", "2027-01-15"], "federal_safe_harbor": "Pay the lesser of 90% of 2026 tax or 110% of 2025 total tax (2025 AGI over 150,000), in four equal installments.", "california_estimate_due_dates": ["2026-04-15", "2026-06-15", "2027-01-15"], "california_installment_percentages": [0.3, 0.4, 0.3], "california_safe_harbor": "Lesser of 90% of 2026 tax or 110% of 2025 tax (2025 California AGI 150,000 or more). Only California-source income is taxable by California after the move.", "known_2026_changes_for_this_household": ["No California residency in 2026: California taxes only California-source income (the Sacramento rental, Ridgeline's California share).", "Minimum tax credit from the 2025 AMT may be usable (Form 8801).", "Erik's SEP contribution limit depends on 2026 net profit."]}
+== post_filing_rates: {"irs_underpayment_interest_rate_annual": 0.07, "irs_failure_to_pay_penalty_per_month": 0.005, "ftb_interest_rate_annual": 0.07, "ftb_late_payment_penalty": "5% plus 0.5% per month", "note": "The engine does not compute post-filing interest or penalties. An extension of time to file is not an extension of time to pay."}
+== engine_reference keys: ['parameters', 'rules'] rules: 97 params: 40
+== packet: {'name': 'Okafor-Lindqvist household - tax year 2025', 'version': '1.0', 'generated': '2026-10-12', 'client_id': 'CL-20417'}

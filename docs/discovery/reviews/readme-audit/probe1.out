@@ -1,0 +1,186 @@
+TOP KEYS: ['packet', 'readme', 'household', 'documents', 'extracted_values', 'client', 'firm', 'prior_years', 'tax_agency_records', 'timeline', 'engine_reference', 'return_versions', 'what_if', 'planning_reference_2026', 'post_filing_rates', 'fx_rates']
+
+== firm.starter_standards ==
+{
+ "note": "A starting point. Applicants may change, extend or replace these through the firm administrator role.",
+ "verification_types": [
+  "agreed_to_source_document",
+  "recalculated",
+  "confirmed_with_client",
+  "agreed_to_prior_year",
+  "agreed_to_third_party_record"
+ ],
+ "variance_review": {
+  "compare_to": "prior_year",
+  "flag_if_change_over_percent": 10,
+  "and_over_amount": 1000
+ },
+ "review_levels": [
+  "preparer",
+  "reviewer",
+  "partner"
+ ],
+ "rules": [
+  "A person may not review or sign off on work they prepared.",
+  "Any adjustment with a tax effect over 1,000 (federal or state) requires partner sign-off.",
+  "Every judgment call records the authority relied on.",
+  "Due diligence must be documented for the child tax credit, credit for other dependents, American opportunity credit, earned income credit and head of household status.",
+  "Open review notes block filing.",
+  "Staff without sensitive-data clearance see SSNs, bank and account numbers and IP PINs masked; every unmasked view is logged.",
+  "Records are retained 7 years after filing, then destroyed."
+ ],
+ "required_steps": [
+  "Engagement letter and consents signed",
+  "Identity verified",
+  "Prior-year return reviewed",
+  "All documents accounted for",
+  "Prior-year variances explained",
+  "Carryovers agreed to prior year",
+  "Estimated payments agreed to IRS and FTB records",
+  "Due diligence completed",
+  "Diagnostics resolved",
+  "Reviewer sign-off",
+  "Partner sign-off",
+  "Client approval and e-file authorization"
+ ]
+}
+
+== firm keys == ['name', 'staff', 'firm_identity', 'client_users', 'assignment_at_start', 'deadlines', 'budget_hours', 'starter_standards']
+firm_identity keys: ['ein', 'address', 'phone', 'efin', 'ero_pin', 'ptins', 'paid_preparer_signing_returns']
+deadlines: [
+ {
+  "what": "Federal Form 1040 and California 540NR - original due date",
+  "date": "2026-04-15"
+ },
+ {
+  "what": "Extended due date (federal and California)",
+  "date": "2026-10-15"
+ },
+ {
+  "what": "Internal: preparer hand-off to review",
+  "date": "2026-03-27"
+ },
+ {
+  "what": "Internal: review complete",
+  "date": "2026-04-08"
+ },
+ {
+  "what": "FinCEN 114 (FBAR) automatic extended due date (outside engagement)",
+  "date": "2026-10-15"
+ },
+ {
+  "what": "Forms 1099-NEC for 2025 contractor payments (late; outside engagement)",
+  "date": "2026-02-02"
+ }
+]
+budget_hours: {'intake_and_engagement': 1.5, 'wages_and_stock_compensation': 3.0, 'investments_and_digital_assets': 4.0, 'business': 3.5, 'rentals_and_sale': 3.5, 'pass_throughs_and_basis': 2.0, 'deductions_and_credits': 2.0, 'california': 1.5, 'partner_review': 1.0}
+assignment_at_start: {'preparer': 'st-01', 'reviewer': 'st-02', 'partner': 'st-03'}
+client_users: [{'id': 'cu-01', 'name': 'Ngozi Okafor', 'role': 'client'}, {'id': 'cu-02', 'name': 'Erik Lindqvist', 'role': 'client'}]
+
+== engine_reference ==
+keys: ['parameters', 'rules']
+parameters keys (40): ['std_deduction_mfj', 'brackets_mfj', 'ltcg_0_top', 'ltcg_15_top', 'salt_cap', 'salt_cap_phase_start', 'salt_cap_phase_rate', 'salt_cap_floor', 'ss_wage_base', 'se_factor', 'addl_medicare_threshold', 'niit_threshold', 'amt_exemption', 'amt_phaseout_start', 'amt_28_start', 'qbi_threshold', 'qbi_range', 'ctc_per_child', 'odc_per_dependent', 'ctc_phaseout_start', 'aotc_phaseout', 'hsa_family_limit', 'dep_care_limit_one', 'dep_care_exclusion_max', 'mileage_rate', 'home_office_rate', 'fed_underpayment_rate', 'prior_year_tax', 'prior_year_agi', 'fx', 'ca_brackets_mfj', 'ca_std_deduction_mfj', 'ca_personal_credit', 'ca_dependent_credit', 'ca_itemized_phaseout_start', 'ca_section179_limit', 'ca_prior_year_tax', 'ca_underpayment_rate', 'ca_resident_days', 'year_days']
+rules (97):
+  R-W2-BOX1-SUM : Sum box 1 of each distinct Form W-2 (images of the same W-2 are matched and counted once).
+  R-W2-BOX2-SUM : Sum box 2 of each distinct Form W-2.
+  R-W2-BOX17-SUM : Sum box 17 (California) of each distinct Form W-2.
+  R-SUM : Arithmetic combination of the listed input lines.
+  R-CARRY : Value carried from the listed line.
+  R-INTEREST-PAYER : One line per interest payer from Forms 1099-INT, composite statements, K-1s and foreign statements. 
+  R-DIVIDEND-PAYER : One line per dividend payer.
+  R-FOREIGN-ACCOUNT : Answered from the presence of a foreign account statement.
+
+== return_versions ==
+v1 2026-03-04T09:12:00Z First run after the client marked the upload complete (2026-03-02).
+  keys: ['version', 'computed_at', 'trigger', 'documents_used', 'documents_superseded', 'summary', 'tax_effect_rates', 'carryovers_out', 'assets', 'diagnostics', 'changes_from_previous', 'lines']
+  docs_used: 64 superseded: []
+  summary: {"federal": {"agi": 428023, "taxable_income": 329346, "total_tax": 77200, "payments": 41742, "balance_due": 35458, "penalty": 164}, "california": {"total_agi": 463529, "ca_agi": 294267, "total_tax": 17845, "payments": 27130, "balance_due": -9285, "penalty": 0}}
+  tax_effect_rates: {"wages": {"federal_per_dollar": 0.31, "california_per_dollar": 0.071}, "interest": {"federal_per_dollar": 0.348, "california_per_dollar": 0.041}, "schc_profit": {"federal_per_dollar": 0.306, "california_per_dollar": 0.031}, "stcg": {"federal_per_dollar": 0.348, "california_per_dollar": 0.007}, "ltcg": {"federal_per_dollar": 0.238, "california_per_dollar": 0.007}, "ordinary_income": {"federal_per_dollar": 0.31, "california_per_dollar": 0.071}, "adjustment": {"federal_per_dollar": -0.31, "california_per_dollar": -0.043}, "salt": {"federal_per_dollar": 0.0, "california_per_dollar": -0.048}, "itemized": {"federal_per_dollar": -0.26, "california_per_dollar": -0.048}, "ca_source_income": {"federal_per_dollar": 0.0, "california_per_dollar": 0.063}}
+  carryovers_out: {"federal": {"capital_loss_short": 0, "capital_loss_long": 0, "passive_1450_fremont": 0, "passive_1200_barton_hills": 0, "minimum_tax_credit_from_2025_amt": 3722, "charitable": 0, "section_179": 0, "ira_nondeductible_basis_ngozi": 0, "scorp_stock_basis_end": 0, "ridgeline_capital_account_end": null, "sep_contribution_not_deductible_for_2025": 2786}, "california": {"capital_loss": 0, "passive": 0, "depreciation_basis_differences": {"SAC-APPL": 241.92, "STU-PRINTER": 11360.0, "STU-CAMERA": 13040.0, "STU-WORKST": 6000.0}}}
+  assets n: 9 asset keys: ['asset_id', 'description', 'activity', 'cost', 'land_value_not_depreciated', 'placed_in_service', 'method', 'life_years', 'federal', 'california', 'amt', 'disposed', 'sources']
+  diagnostics: [('SCORP_BASIS_INCOMPLETE', 'warning'), ('DIGITAL_ASSET_BASIS_MISSING', 'warning'), ('K1_EXPECTED_NOT_RECEIVED', 'warning'), ('AMT_CREDIT_CARRYFORWARD', 'info'), ('AOTC_PHASED_OUT', 'info'), ('FBAR_OUTSIDE_RETURN', 'info'), ('FORM_1099_FILING', 'warning'), ('DUE_DILIGENCE_REQUIRED', 'warning'), ('CA_AMT_NOT_COMPUTED', 'warning'), ('HOME_OFFICE_AREA_CHANGE', 'info'), ('QUESTIONNAIRE_SALES_CONFLICT', 'warning'), ('LOW_CONFIDENCE_READ', 'warning'), ('BROKER_SUMMARY_DETAIL_MISMATCH', 'warning')]
+  changes_from_previous n: 0 sample: []
+  lines n: 625 line keys: ['key', 'jurisdiction', 'form', 'line', 'label', 'value', 'rule', 'inputs', 'sources', 'note']
+v2 2026-03-19T07:40:00Z Recompute: corrected Meridian Brokerage 1099 received 2026-03-18.
+  keys: ['version', 'computed_at', 'trigger', 'documents_used', 'documents_superseded', 'summary', 'tax_effect_rates', 'carryovers_out', 'assets', 'diagnostics', 'changes_from_previous', 'lines']
+  docs_used: 65 superseded: ['D30']
+  summary: {"federal": {"agi": 429820, "taxable_income": 331143, "total_tax": 77470, "payments": 41742, "balance_due": 35728, "penalty": 164}, "california": {"total_agi": 465326, "ca_agi": 296064, "total_tax": 17999, "payments": 27130, "balance_due": -9131, "penalty": 0}}
+  tax_effect_rates: {"wages": {"federal_per_dollar": 0.31, "california_per_dollar": 0.071}, "interest": {"federal_per_dollar": 0.348, "california_per_dollar": 0.041}, "schc_profit": {"federal_per_dollar": 0.356, "california_per_dollar": 0.031}, "stcg": {"federal_per_dollar": 0.348, "california_per_dollar": 0.008}, "ltcg": {"federal_per_dollar": 0.238, "california_per_dollar": 0.008}, "ordinary_income": {"federal_per_dollar": 0.31, "california_per_dollar": 0.071}, "adjustment": {"federal_per_dollar": -0.31, "california_per_dollar": -0.068}, "salt": {"federal_per_dollar": 0.0, "california_per_dollar": -0.074}, "itemized": {"federal_per_dollar": -0.26, "california_per_dollar": -0.074}, "ca_source_income": {"federal_per_dollar": 0.0, "california_per_dollar": 0.063}}
+  carryovers_out: {"federal": {"capital_loss_short": 0, "capital_loss_long": 0, "passive_1450_fremont": 0, "passive_1200_barton_hills": 0, "minimum_tax_credit_from_2025_amt": 3700, "charitable": 0, "section_179": 0, "ira_nondeductible_basis_ngozi": 0, "scorp_stock_basis_end": 0, "ridgeline_capital_account_end": null, "sep_contribution_not_deductible_for_2025": 2786}, "california": {"capital_loss": 0, "passive": 0, "depreciation_basis_differences": {"SAC-APPL": 241.92, "STU-PRINTER": 11360.0, "STU-CAMERA": 13040.0, "STU-WORKST": 6000.0}}}
+  assets n: 9 asset keys: ['asset_id', 'description', 'activity', 'cost', 'land_value_not_depreciated', 'placed_in_service', 'method', 'life_years', 'federal', 'california', 'amt', 'disposed', 'sources']
+  diagnostics: [('SCORP_BASIS_INCOMPLETE', 'warning'), ('DIGITAL_ASSET_BASIS_MISSING', 'warning'), ('K1_EXPECTED_NOT_RECEIVED', 'warning'), ('AMT_CREDIT_CARRYFORWARD', 'info'), ('AOTC_PHASED_OUT', 'info'), ('FBAR_OUTSIDE_RETURN', 'info'), ('FORM_1099_FILING', 'warning'), ('DUE_DILIGENCE_REQUIRED', 'warning'), ('CA_AMT_NOT_COMPUTED', 'warning'), ('HOME_OFFICE_AREA_CHANGE', 'info'), ('QUESTIONNAIRE_SALES_CONFLICT', 'warning'), ('LOW_CONFIDENCE_READ', 'warning'), ('BROKER_SUMMARY_DETAIL_MISMATCH', 'warning')]
+  changes_from_previous n: 63 sample: [{'key': 'F8949.A.M6', 'change': 'changed', 'old': 0.0, 'new': -223.0}, {'key': 'F8949.D.M9', 'change': 'changed', 'old': -1380.0, 'new': 640.0}]
+  lines n: 625 line keys: ['key', 'jurisdiction', 'form', 'line', 'label', 'value', 'rule', 'inputs', 'sources', 'note']
+v3 2026-06-23T06:05:00Z Recompute: Ridgeline K-1 and state supplement received 2026-06-22; 2023 S corpor
+  keys: ['version', 'computed_at', 'trigger', 'documents_used', 'documents_superseded', 'summary', 'tax_effect_rates', 'carryovers_out', 'assets', 'diagnostics', 'changes_from_previous', 'lines']
+  docs_used: 71 superseded: ['D30']
+  summary: {"federal": {"agi": 445590, "taxable_income": 346913, "total_tax": 81962, "payments": 77742, "balance_due": 4220, "penalty": 164}, "california": {"total_agi": 481096, "ca_agi": 305349, "total_tax": 18874, "payments": 27130, "balance_due": -8256, "penalty": 0}}
+  tax_effect_rates: {"wages": {"federal_per_dollar": 0.31, "california_per_dollar": 0.099}, "interest": {"federal_per_dollar": 0.348, "california_per_dollar": 0.069}, "schc_profit": {"federal_per_dollar": 0.355, "california_per_dollar": 0.031}, "stcg": {"federal_per_dollar": 0.348, "california_per_dollar": 0.034}, "ltcg": {"federal_per_dollar": 0.238, "california_per_dollar": 0.034}, "ordinary_income": {"federal_per_dollar": 0.31, "california_per_dollar": 0.099}, "adjustment": {"federal_per_dollar": -0.31, "california_per_dollar": -0.042}, "salt": {"federal_per_dollar": 0.0, "california_per_dollar": -0.048}, "itemized": {"federal_per_dollar": -0.26, "california_per_dollar": -0.048}, "ca_source_income": {"federal_per_dollar": 0.0, "california_per_dollar": 0.064}}
+  carryovers_out: {"federal": {"capital_loss_short": 0, "capital_loss_long": 0, "passive_1450_fremont": 0, "passive_1200_barton_hills": 0, "minimum_tax_credit_from_2025_amt": 3871, "charitable": 0, "section_179": 0, "ira_nondeductible_basis_ngozi": 0, "scorp_stock_basis_end": 0, "ridgeline_capital_account_end": 63660.0, "sep_contribution_not_deductible_for_2025": 2786}, "california": {"capital_loss": 0, "passive": 0, "depreciation_basis_differences": {"SAC-APPL": 241.92, "STU-PRINTER": 11360.0, "STU-CAMERA": 13040.0, "STU-WORKST": 6000.0}}}
+  assets n: 9 asset keys: ['asset_id', 'description', 'activity', 'cost', 'land_value_not_depreciated', 'placed_in_service', 'method', 'life_years', 'federal', 'california', 'amt', 'disposed', 'sources']
+  diagnostics: [('DIGITAL_ASSET_BASIS_MISSING', 'warning'), ('AMT_CREDIT_CARRYFORWARD', 'info'), ('AOTC_PHASED_OUT', 'info'), ('FBAR_OUTSIDE_RETURN', 'info'), ('FORM_1099_FILING', 'warning'), ('DUE_DILIGENCE_REQUIRED', 'warning'), ('CA_AMT_NOT_COMPUTED', 'warning'), ('HOME_OFFICE_AREA_CHANGE', 'info'), ('QUESTIONNAIRE_SALES_CONFLICT', 'warning'), ('LOW_CONFIDENCE_READ', 'warning'), ('BROKER_SUMMARY_DETAIL_MISMATCH', 'warning')]
+  changes_from_previous n: 89 sample: [{'key': 'SchB.1.8', 'change': 'added', 'new': 120}, {'key': 'SchB.2', 'change': 'changed', 'old': 6330, 'new': 6450}]
+  lines n: 627 line keys: ['key', 'jurisdiction', 'form', 'line', 'label', 'value', 'rule', 'inputs', 'sources', 'note']
+
+== what_if ==
+keys: ['alternatives', 'extension']
+  equipment_section179 | base v3 | choices {'equipment': 's179'} | fed {'base': {'agi': 445590, 'taxable_income': 346913, 'total_tax': 81962, 'payments': 77742, 'balance_due': 4220, 'penalty': 164}, 'alternative': {'agi': 445590, 'taxable_income': 346913, 'total_tax': 81962, 'payments': 77742, 'balance_due': 4220, 'penalty': 164}, 'total_tax_change': 0, 'penalty_change': 0} | ca {'base': {'total_agi': 481096, 'ca_agi': 305349, 'total_tax': 18874, 'payments': 27130, 'balance_due': -8256, 'penalty': 0}, 'alternative': {'total_agi': 461096, 'ca_agi': 294664, 'total_tax': 17824, 'payments': 27130, 'balance_due': -9306, 'penalty': 0}, 'total_tax_change': -1050} | changed_lines n 22
+  equipment_no_bonus | base v3 | choices {'equipment': 'macrs'} | fed {'base': {'agi': 445590, 'taxable_income': 346913, 'total_tax': 81962, 'payments': 77742, 'balance_due': 4220, 'penalty': 164}, 'alternative': {'agi': 471056, 'taxable_income': 367285, 'total_tax': 92207, 'payments': 77742, 'balance_due': 14465, 'penalty': 164}, 'total_tax_change': 10245, 'penalty_change': 0} | ca {'base': {'total_agi': 481096, 'ca_agi': 305349, 'total_tax': 18874, 'payments': 27130, 'balance_due': -8256, 'penalty': 0}, 'alternative': {'total_agi': 476162, 'ca_agi': 302713, 'total_tax': 18614, 'payments': 27130, 'balance_due': -8516, 'penalty': 0}, 'total_tax_change': -260} | changed_lines n 75
+  hvac_improvement | base v3 | choices {'hvac': 'improvement'} | fed {'base': {'agi': 445590, 'taxable_income': 346913, 'total_tax': 81962, 'payments': 77742, 'balance_due': 4220, 'penalty': 164}, 'alternative': {'agi': 456440, 'taxable_income': 357763, 'total_tax': 85595, 'payments': 77742, 'balance_due': 7853, 'penalty': 164}, 'total_tax_change': 3633, 'penalty_change': 0} | ca {'base': {'total_agi': 481096, 'ca_agi': 305349, 'total_tax': 18874, 'payments': 27130, 'balance_due': -8256, 'penalty': 0}, 'alternative': {'total_agi': 491946, 'ca_agi': 316199, 'total_tax': 19770, 'payments': 27130, 'balance_due': -7360, 'penalty': 0}, 'total_tax_change': 896} | changed_lines n 63
+  standard_deduction | base v3 | choices {'deduction': 'standard'} | fed {'base': {'agi': 445590, 'taxable_income': 346913, 'total_tax': 81962, 'payments': 77742, 'balance_due': 4220, 'penalty': 164}, 'alternative': {'agi': 445590, 'taxable_income': 402744, 'total_tax': 94268, 'payments': 77742, 'balance_due': 16526, 'penalty': 164}, 'total_tax_change': 12306, 'penalty_change': 0} | ca {'base': {'total_agi': 481096, 'ca_agi': 305349, 'total_tax': 18874, 'payments': 27130, 'balance_due': -8256, 'penalty': 0}, 'alternative': {'total_agi': 481096, 'ca_agi': 305349, 'total_tax': 18874, 'payments': 27130, 'balance_due': -8256, 'penalty': 0}, 'total_tax_change': 0} | changed_lines n 20
+  penalty_annualized | base v3 | choices {'penalty_method': 'annualized'} | fed {'base': {'agi': 445590, 'taxable_income': 346913, 'total_tax': 81962, 'payments': 77742, 'balance_due': 4220, 'penalty': 164}, 'alternative': {'agi': 445590, 'taxable_income': 346913, 'total_tax': 81962, 'payments': 77742, 'balance_due': 4220, 'penalty': 164}, 'total_tax_change': 0, 'penalty_change': 0} | ca {'base': {'total_agi': 481096, 'ca_agi': 305349, 'total_tax': 18874, 'payments': 27130, 'balance_due': -8256, 'penalty': 0}, 'alternative': {'total_agi': 481096, 'ca_agi': 305349, 'total_tax': 18874, 'payments': 27130, 'balance_due': -8256, 'penalty': 0}, 'total_tax_change': 0} | changed_lines n 0
+extension: {
+ "computed_at": "2026-04-14T15:00:00Z",
+ "based_on_version": "v2",
+ "federal": {
+  "estimated_total_tax": 77470,
+  "payments": 41742,
+  "estimated_balance": 35728,
+  "paid_with_form_4868": 36000,
+  "rule": "balance due rounded up to the next 500"
+ },
+ "california": {
+  "estimated_total_tax": 17999,
+  "payments": 27130,
+  "estimated_balance": -9131,
+  "paid_with_ftb_3519": 0,
+  "rule": "balance due rounded up to the next 500"
+ }
+}
+
+== planning_reference_2026 == {
+ "federal_estimate_due_dates": [
+  "2026-04-15",
+  "2026-06-15",
+  "2026-09-15",
+  "2027-01-15"
+ ],
+ "federal_safe_harbor": "Pay the lesser of 90% of 2026 tax or 110% of 2025 total tax (2025 AGI over 150,000), in four equal installments.",
+ "california_estimate_due_dates": [
+  "2026-04-15",
+  "2026-06-15",
+  "2027-01-15"
+ ],
+ "california_installment_percentages": [
+  0.3,
+  0.4,
+  0.3
+ ],
+ "california_safe_harbor": "Lesser of 90% of 2026 tax or 110% of 2025 tax (2025 California AGI 150,000 or more). Only California-source income is taxable by California after the move.",
+ "known_2026_changes_for_this_household": [
+  "No California residency in 2026: California taxes only California-source income (the Sacramento rental, Ridgeline's California share).",
+  "Minimum tax credit from the 2025 AMT may be usable (Form 8801).",
+  "Erik's SEP contribution limit depends on 2026 net profit."
+ ]
+}
+
+== post_filing_rates == {
+ "irs_underpayment_interest_rate_annual": 0.07,
+ "irs_failure_to_pay_penalty_per_month": 0.005,
+ "ftb_interest_rate_annual": 0.07,
+ "ftb_late_payment_penalty": "5% plus 0.5% per month",
+ "note": "The engine does not compute post-filing interest or penalties. An extension of time to file is not an extension of time to pay."
+}
+
+== fx_rates == {"SEK_per_USD": {"2024_average": 10.56, "2025_average": 9.86, "2025_year_end": 9.71}}
+fx in params: {"SEK": {"2024_average": 10.56, "2025_average": 9.86, "2025_year_end": 9.71}}

@@ -1,0 +1,593 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Documents: index of all 74</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Instrument+Sans:wght@400;500;600;700&amp;family=Source+Serif+4:opsz,wght@8..60,400;8..60,600&amp;family=IBM+Plex+Mono:wght@400;500&amp;display=swap" rel="stylesheet">
+<style>
+.wp{--bg:oklch(0.975 0.005 250);--surface:oklch(0.995 0.003 250);--sunk:oklch(0.955 0.006 250);--line:oklch(0.89 0.008 250);--ink:oklch(0.24 0.02 255);--ink2:oklch(0.44 0.02 255);--acc:oklch(0.46 0.15 262);--accsoft:oklch(0.94 0.035 262);--blk:oklch(0.50 0.17 32);--blksoft:oklch(0.955 0.03 32);--wrn:oklch(0.48 0.10 70);--wrnsoft:oklch(0.96 0.045 85);--pas:oklch(0.47 0.09 165);--passoft:oklch(0.955 0.03 165);--hl:oklch(0.91 0.13 100);--paper:oklch(0.99 0.006 90)}
+.wp.dark{--bg:oklch(0.19 0.012 255);--surface:oklch(0.23 0.014 255);--sunk:oklch(0.17 0.012 255);--line:oklch(0.33 0.015 255);--ink:oklch(0.93 0.008 255);--ink2:oklch(0.74 0.012 255);--acc:oklch(0.76 0.11 262);--accsoft:oklch(0.30 0.05 262);--blk:oklch(0.74 0.13 35);--blksoft:oklch(0.28 0.05 32);--wrn:oklch(0.80 0.11 80);--wrnsoft:oklch(0.29 0.04 85);--pas:oklch(0.76 0.09 165);--passoft:oklch(0.27 0.04 165);--hl:oklch(0.55 0.10 100);--paper:oklch(0.26 0.01 90)}
+.wp{font-family:'Instrument Sans',system-ui,sans-serif;color:var(--ink);background:var(--bg);font-size:14px;line-height:1.45;min-height:100vh;display:flex;flex-direction:column}
+.doc-num{font-variant-numeric:tabular-nums;font-feature-settings:"tnum"}
+.doc-mono{font-family:'IBM Plex Mono',monospace;font-size:12px}
+.doc-lbl{font-size:11.5px;font-weight:600;letter-spacing:.04em;text-transform:uppercase;color:var(--ink2)}
+.doc-btn{font:inherit;font-size:13px;border:1px solid var(--line);background:var(--surface);color:var(--ink);border-radius:8px;padding:6px 11px;cursor:pointer;min-height:34px}
+.doc-btn:hover{border-color:var(--ink2)}
+.doc-btn.primary{background:var(--acc);border-color:var(--acc);color:var(--surface)}
+.doc-btn.off,.doc-btn.off:hover{background:var(--sunk);border-color:var(--line);color:var(--ink2);cursor:not-allowed}
+.doc-btn.pressed{background:var(--accsoft);border-color:var(--acc);color:var(--ink)}
+.doc-btn:focus-visible,.doc-link:focus-visible{outline:2px solid var(--acc);outline-offset:2px}
+.doc-tag{display:inline-flex;align-items:center;gap:5px;font-size:11.5px;font-weight:600;padding:2px 8px;border-radius:999px;white-space:nowrap}
+.doc-t-blk{color:var(--blk);background:var(--blksoft)}
+.doc-t-wrn{color:var(--wrn);background:var(--wrnsoft)}
+.doc-t-pas{color:var(--pas);background:var(--passoft)}
+.doc-t-acc{color:var(--acc);background:var(--accsoft)}
+.doc-t-mut{color:var(--ink2);background:var(--sunk)}
+.doc-kind{display:inline-flex;font-size:11.5px;font-weight:500;padding:1px 7px;border-radius:4px;border:1px solid var(--line);color:var(--ink2);white-space:nowrap}
+.doc-ex{font-size:10.5px;font-weight:600;letter-spacing:.03em;padding:1px 6px;border-radius:999px;border:1px dashed var(--ink2);color:var(--ink2);white-space:nowrap;vertical-align:1px}
+.doc-panel{background:var(--surface);border:1px solid var(--line);border-radius:10px;padding:14px 16px}
+.doc-row{display:grid;grid-template-columns:minmax(220px,2.2fr) minmax(200px,2.4fr) minmax(110px,.8fr);gap:6px 18px;padding:10px 0;border-top:1px solid var(--line);align-items:start}
+.doc-link{all:unset;color:var(--acc);text-decoration:underline;text-underline-offset:2px;cursor:pointer}
+.doc-scroll{overflow-x:auto}
+.doc-inner{min-width:640px}
+.doc-note{font:inherit;font-size:13px;border:1px solid var(--line);border-radius:8px;padding:7px 9px;background:var(--surface);color:var(--ink);max-width:640px;width:100%;box-sizing:border-box}
+.doc-note:focus-visible{outline:2px solid var(--acc);outline-offset:2px}
+</style>
+</helmet>
+<div class="{{wpClass}}">
+<div style="display:flex;flex-direction:column;gap:16px;padding:22px 28px;max-width:1120px;width:100%;box-sizing:border-box">
+
+<sc-if value="{{isStaff}}" hint-placeholder-val="{{ true }}">
+<div style="display:flex;flex-direction:column;gap:16px">
+<div style="display:flex;flex-wrap:wrap;align-items:baseline;justify-content:space-between;gap:8px 18px">
+<div style="display:flex;flex-direction:column;gap:4px;min-width:0">
+<h1 style="margin:0;font-size:24px;letter-spacing:-.015em;font-weight:600">Documents</h1>
+<span style="color:var(--ink2);max-width:76ch">Every document gets a typed reason linked to where it landed, or why it did not. Reasons the packet already states are filled in; a person decides the rest.</span>
+</div>
+<span class="doc-num" style="color:var(--ink2);font-size:12.5px">{{headCount}} · {{asOfLabel}}</span>
+</div>
+
+<section class="doc-panel" aria-label="Firm step: All documents accounted for" style="display:flex;flex-direction:column;gap:10px">
+<div style="display:flex;flex-wrap:wrap;align-items:center;gap:8px 12px">
+<span class="doc-lbl">Firm step 4 of 12</span>
+<strong>All documents accounted for</strong>
+<span class="doc-tag {{gate.tcls}}">{{gate.tword}}</span>
+<sc-if value="{{gate.ex}}" hint-placeholder-val="{{ false }}"><span class="doc-ex">Example</span></sc-if>
+</div>
+<div class="doc-num" style="display:flex;flex-wrap:wrap;gap:6px 22px;font-size:13px">
+<span><strong>{{gate.withReason}}</strong> of {{gate.total}} received before filing have a reason</span>
+<span><strong>{{gate.person}}</strong> need a person</span>
+<span><strong>{{gate.suggest}}</strong> suggestion to confirm</span>
+<sc-if value="{{gate.hasPost}}" hint-placeholder-val="{{ false }}"><span><strong>1</strong> arrived after filing (Letter 566): attaches to the filed record, does not gate</span></sc-if>
+</div>
+<span style="color:var(--ink2);font-size:12.5px;max-width:90ch">{{gate.note}}</span>
+<div style="display:flex;flex-wrap:wrap;align-items:center;gap:8px 12px;border-top:1px solid var(--line);padding-top:10px">
+<span class="doc-lbl">Reviewer sign-off on the document list</span>
+<span class="doc-tag {{sign.tcls}}">{{sign.tword}}</span>
+<span style="font-size:13px">{{sign.text}}</span>
+<sc-if value="{{sign.ex}}" hint-placeholder-val="{{ true }}"><span class="doc-ex">Example</span></sc-if>
+<sc-if value="{{sign.canAct}}" hint-placeholder-val="{{ false }}">
+<button class="doc-btn {{sign.cls}}" type="button" aria-disabled="{{sign.ad}}" title="{{sign.reason}}" onClick="{{sign.go}}">Sign off the document list</button>
+<span style="color:var(--ink2);font-size:12.5px">{{sign.reason}}</span>
+</sc-if>
+</div>
+<sc-if value="{{showJoNote}}" hint-placeholder-val="{{ false }}">
+<span style="font-size:12.5px">The packet’s standards are a starting point you may change. You can set this step to warn only on <button class="doc-link" type="button" onClick="{{goFirm}}">Firm standards</button>.</span>
+</sc-if>
+</section>
+
+<sc-if value="{{showLate}}" hint-placeholder-val="{{ false }}">
+<section class="doc-panel" aria-label="A document arrived after the client signed" style="display:flex;flex-direction:column;gap:6px">
+<div style="display:flex;flex-wrap:wrap;align-items:center;gap:8px 12px"><span class="doc-tag {{late.tcls}}">{{late.tword}}</span><strong>{{late.head}}</strong><sc-if value="{{late.ex}}" hint-placeholder-val="{{ false }}"><span class="doc-ex">Example</span></sc-if></div>
+<span style="max-width:90ch">{{late.text}}</span>
+<span><button class="doc-link" type="button" onClick="{{openSsn}}">{{late.link}}</button></span>
+</section>
+</sc-if>
+
+<section class="doc-panel" aria-label="Attach a document, message or note" style="display:flex;flex-direction:column;gap:10px">
+<div style="display:flex;flex-wrap:wrap;align-items:center;gap:8px 12px">
+<strong>Attach a document, message or note</strong>
+<span style="color:var(--ink2);font-size:12.5px;max-width:70ch">{{att.sub}}</span>
+<sc-if value="{{att.can}}" hint-placeholder-val="{{ true }}"><button class="doc-btn primary" type="button" style="margin-left:auto" aria-expanded="{{att.openA}}" aria-controls="doc-attach" onClick="{{att.toggle}}">{{att.toggleLabel}}</button></sc-if>
+</div>
+<sc-if value="{{att.open}}" hint-placeholder-val="{{ false }}">
+<div id="doc-attach" style="display:flex;flex-direction:column;gap:10px;background:var(--sunk);border-radius:8px;padding:10px 12px">
+<div role="group" aria-label="What are you attaching?" style="display:flex;flex-wrap:wrap;align-items:center;gap:6px">
+<span class="doc-lbl">What are you attaching?</span>
+<sc-for list="{{att.kinds}}" as="k" hint-placeholder-count="3">
+<button class="doc-btn {{k.cls}}" type="button" aria-pressed="{{k.pressed}}" onClick="{{k.pick}}">{{k.label}}</button>
+</sc-for>
+</div>
+<sc-if value="{{att.isFile}}" hint-placeholder-val="{{ true }}"><span style="font-size:12.5px;max-width:80ch">{{att.fileText}}</span></sc-if>
+<sc-if value="{{att.isPacket}}" hint-placeholder-val="{{ false }}">
+<div role="group" aria-label="Messages and calls in the file" style="display:flex;flex-direction:column;gap:6px">
+<sc-for list="{{att.items}}" as="it" hint-placeholder-count="3">
+<button class="doc-btn {{it.cls}}" type="button" aria-pressed="{{it.pressed}}" style="text-align:left" onClick="{{it.pick}}"><span class="doc-mono">{{it.id}}</span> {{it.label}} <span style="color:var(--ink2);font-size:12.5px">{{it.rel}}</span></button>
+</sc-for>
+<sc-if value="{{att.noItems}}" hint-placeholder-val="{{ false }}"><span style="font-size:12.5px;color:var(--ink2)">No client message or call relates to a number yet at this story time.</span></sc-if>
+</div>
+</sc-if>
+<sc-if value="{{att.isNote}}" hint-placeholder-val="{{ false }}">
+<label style="display:flex;flex-direction:column;gap:4px;font-size:12.5px">Note<textarea class="doc-note" rows="3" value="{{att.note}}" onChange="{{att.setNote}}"></textarea></label>
+<sc-if value="{{att.warn}}" hint-placeholder-val="{{ false }}"><span style="font-size:12.5px;color:var(--blk);max-width:80ch">{{att.warnText}}</span></sc-if>
+</sc-if>
+<sc-if value="{{att.showLink}}" hint-placeholder-val="{{ true }}">
+<div role="group" aria-label="Link it to a number" style="display:flex;flex-wrap:wrap;align-items:center;gap:6px">
+<span class="doc-lbl">Link it to</span>
+<sc-for list="{{att.links}}" as="lk" hint-placeholder-count="4">
+<button class="doc-btn {{lk.cls}}" type="button" aria-pressed="{{lk.pressed}}" onClick="{{lk.pick}}">{{lk.label}}</button>
+</sc-for>
+</div>
+</sc-if>
+<span style="display:flex;flex-wrap:wrap;align-items:center;gap:8px"><button class="doc-btn primary" type="button" onClick="{{att.submit}}">Attach</button><span style="font-size:12.5px;color:var(--ink2)">{{att.hint}}</span></span>
+</div>
+</sc-if>
+<sc-if value="{{att.hasList}}" hint-placeholder-val="{{ false }}">
+<div style="display:flex;flex-direction:column">
+<span class="doc-lbl" style="padding-bottom:4px">Attached in this story · <span class="doc-num">{{att.count}}</span></span>
+<sc-for list="{{att.list}}" as="a" hint-placeholder-count="2">
+<div style="display:flex;flex-wrap:wrap;align-items:center;gap:6px 12px;padding:7px 0;border-top:1px solid var(--line);font-size:13px">
+<span class="doc-tag doc-t-acc">Attached</span>
+<span style="flex:1 1 300px">{{a.what}} <span style="color:var(--ink2);font-size:12.5px">{{a.line}}</span></span>
+<sc-if value="{{a.hasClaim}}" hint-placeholder-val="{{ false }}"><button class="doc-link" type="button" onClick="{{a.open}}">{{a.claimLabel}}</button></sc-if>
+<sc-if value="{{a.canUndo}}" hint-placeholder-val="{{ false }}"><button class="doc-btn" type="button" onClick="{{a.undo}}">Undo</button></sc-if>
+</div>
+</sc-for>
+</div>
+</sc-if>
+</section>
+
+<div role="group" aria-label="Filter documents" style="display:flex;flex-wrap:wrap;gap:6px">
+<sc-for list="{{filters}}" as="f" hint-placeholder-count="5">
+<button class="doc-btn {{f.cls}}" type="button" aria-pressed="{{f.pressed}}" onClick="{{f.pick}}">{{f.label}} <span class="doc-num" style="color:var(--ink2)">{{f.count}}</span></button>
+</sc-for>
+</div>
+
+<sc-for list="{{groups}}" as="g" hint-placeholder-count="4">
+<section aria-label="{{g.label}}" style="display:flex;flex-direction:column">
+<div style="display:flex;flex-wrap:wrap;align-items:baseline;gap:8px 12px;padding:4px 0 6px">
+<h2 class="doc-lbl" style="margin:0">{{g.label}} · <span class="doc-num">{{g.total}}</span></h2>
+<span style="color:var(--ink2);font-size:12.5px">{{g.note}}</span>
+</div>
+<div class="doc-scroll"><div class="doc-inner">
+<sc-for list="{{g.rows}}" as="d" hint-placeholder-count="3">
+<div class="doc-row">
+<span style="display:flex;flex-direction:column;gap:3px;min-width:0">
+<span style="display:flex;flex-wrap:wrap;align-items:baseline;gap:6px"><span class="doc-mono" style="color:var(--ink2)">{{d.id}}</span><span style="font-weight:500">{{d.title}}</span></span>
+<span style="display:flex;flex-wrap:wrap;align-items:center;gap:6px;font-size:12.5px;color:var(--ink2)"><span class="doc-kind">{{d.kind}}</span>{{d.issuer}}</span>
+<span class="doc-num" style="font-size:12.5px;color:var(--ink2)">Received {{d.rec}} · {{d.by}}</span>
+<sc-if value="{{d.hasFlag}}" hint-placeholder-val="{{ false }}"><span><span class="doc-tag {{d.flagCls}}">{{d.flag}}</span></span></sc-if>
+</span>
+<span style="display:flex;flex-direction:column;gap:4px;min-width:0">
+<span style="display:flex;flex-wrap:wrap;align-items:center;gap:6px"><span class="doc-tag {{d.tcls}}">{{d.tword}}</span><sc-if value="{{d.ex}}" hint-placeholder-val="{{ false }}"><span class="doc-ex">Example</span></sc-if></span>
+<span>{{d.reason}}</span>
+<span style="color:var(--ink2);font-size:12.5px">{{d.src}}</span>
+<sc-if value="{{d.hasClaim}}" hint-placeholder-val="{{ false }}"><span><button class="doc-link" type="button" onClick="{{d.open}}">{{d.claimLabel}}</button></span></sc-if>
+<sc-if value="{{d.canSet}}" hint-placeholder-val="{{ false }}">
+<span style="display:flex;flex-wrap:wrap;gap:6px"><button class="doc-btn" type="button" aria-expanded="{{d.pickOpen}}" onClick="{{d.togglePick}}">{{d.setLabel}}</button><sc-if value="{{d.canConfirm}}" hint-placeholder-val="{{ false }}"><button class="doc-btn primary" type="button" onClick="{{d.confirm}}">Confirm</button></sc-if></span>
+</sc-if>
+<sc-if value="{{d.pickShown}}" hint-placeholder-val="{{ false }}">
+<span role="group" aria-label="Reason type" style="display:flex;flex-direction:column;gap:6px;background:var(--sunk);border-radius:8px;padding:8px 10px">
+<span style="font-size:12.5px;color:var(--ink2)">Pick a reason type; each one links to a target. Proposed target: {{d.proposal}} <span class="doc-ex">Example</span></span>
+<span style="display:flex;flex-wrap:wrap;gap:6px">
+<sc-for list="{{d.types}}" as="t" hint-placeholder-count="7">
+<button class="doc-btn" type="button" onClick="{{t.pick}}">{{t.label}}</button>
+</sc-for>
+</span>
+</span>
+</sc-if>
+</span>
+<span class="doc-num" style="display:flex;flex-direction:column;gap:2px;font-size:13px">
+<span><strong>{{d.used}}</strong> of {{d.total}} values used</span>
+<span style="color:var(--ink2);font-size:12.5px">{{d.lines}}</span>
+</span>
+</div>
+</sc-for>
+</div></div>
+</section>
+</sc-for>
+
+<sc-if value="{{showPages}}" hint-placeholder-val="{{ true }}">
+<section class="doc-panel" aria-label="Pages flagged automatically" style="display:flex;flex-direction:column;gap:6px">
+<div style="display:flex;flex-wrap:wrap;align-items:center;gap:8px 12px"><span class="doc-tag doc-t-wrn">Flagged automatically</span><strong>4 pages print amounts but no value was read from them</strong></div>
+<span style="color:var(--ink2);font-size:12.5px">Found at load by scanning each page’s printed text for money-like numbers. 64 pages have no values; 10 sit in documents that were not extracted, and of the other 54 only these 4 print amounts. No reason is asked for the other 50.</span>
+<sc-for list="{{pages}}" as="pg" hint-placeholder-count="4">
+<div style="display:grid;grid-template-columns:minmax(120px,.6fr) minmax(0,3fr);gap:4px 16px;padding:8px 0;border-top:1px solid var(--line)">
+<span class="doc-mono">{{pg.ref}}</span>
+<span><span style="font-family:'Source Serif 4',Georgia,serif">{{pg.text}}</span> <span style="color:var(--ink2);font-size:12.5px">{{pg.note}}</span></span>
+</div>
+</sc-for>
+</section>
+</sc-if>
+
+<sc-if value="{{showEngineCheck}}" hint-placeholder-val="{{ true }}">
+<section class="doc-panel" aria-label="Check: engine says used, no line cites it" style="display:flex;flex-direction:column;gap:6px">
+<div style="display:flex;flex-wrap:wrap;align-items:center;gap:8px 12px"><span class="doc-tag doc-t-wrn">Check open</span><strong>The engine lists 15 documents as used, but no v3 line cites them</strong></div>
+<span class="doc-mono" style="color:var(--ink2)">D01 D02 D03 D04 D05 D06 D07 D10 D13 D15 D47 D54 D69 D70 D73</span>
+<span style="color:var(--ink2);font-size:12.5px">This check stays open whatever reason a document carries: the reason explains the document, the check tests the engine. {{engineNote}}</span>
+</section>
+</sc-if>
+
+<p style="margin:0;color:var(--ink2);font-size:12.5px;max-width:90ch">{{footerCount}} Source kind is a plain label for where a document comes from, never a ranking of how far to trust it; how surely the pipeline read each value (its confidence) is shown on the value, not here.</p>
+</div>
+</sc-if>
+
+<sc-if value="{{isClient}}" hint-placeholder-val="{{ false }}">
+<div style="display:flex;flex-direction:column;gap:16px">
+<div style="display:flex;flex-direction:column;gap:4px">
+<h1 style="margin:0;font-size:24px;letter-spacing:-.015em;font-weight:600">Your documents</h1>
+<span style="color:var(--ink2);max-width:72ch">You and {{otherSpouse}} have sent us {{clientTotal}} documents. Here is what we still need, and the most recent ones you sent.</span>
+</div>
+<section class="doc-panel" aria-label="What we still need from you" style="display:flex;flex-direction:column;gap:8px">
+<div style="display:flex;flex-wrap:wrap;align-items:center;gap:8px"><h2 class="doc-lbl" style="margin:0">What we still need · <span class="doc-num">{{clientNeedCount}}</span></h2><sc-if value="{{clientNeedEx}}" hint-placeholder-val="{{ true }}"><span class="doc-ex">Example</span></sc-if></div>
+<sc-for list="{{clientNeeds}}" as="n" hint-placeholder-count="1">
+<div style="display:flex;flex-wrap:wrap;align-items:center;gap:10px;border-top:1px solid var(--line);padding-top:8px">
+<span class="doc-tag {{n.tcls}}">{{n.tword}}</span>
+<span style="flex:1 1 300px"><strong style="font-weight:500">{{n.title}}</strong><br><span style="color:var(--ink2);font-size:12.5px">{{n.line}}</span></span>
+<button class="doc-btn primary" type="button" onClick="{{n.upload}}">Upload</button>
+</div>
+</sc-for>
+<sc-if value="{{clientNoNeed}}" hint-placeholder-val="{{ false }}"><span style="font-size:12.5px">{{clientNoNeedText}}</span></sc-if>
+<sc-if value="{{clientHomeQ}}" hint-placeholder-val="{{ false }}"><span style="font-size:12.5px;color:var(--ink2)">One question about Theo’s Social Security number is waiting on <button class="doc-link" type="button" onClick="{{goHome}}">Home</button>.</span></sc-if>
+<div style="display:flex;flex-wrap:wrap;align-items:center;gap:10px;border-top:1px solid var(--line);padding-top:8px">
+<span style="flex:1 1 300px;font-size:13px">Something else for us? Send any document; your tax team sees it at once.</span>
+<button class="doc-btn" type="button" onClick="{{clientSend}}">Send us a document</button>
+</div>
+<sc-for list="{{clientSent}}" as="cs" hint-placeholder-count="1">
+<div style="display:flex;flex-wrap:wrap;align-items:center;gap:6px 12px;font-size:13px"><span class="doc-tag doc-t-pas">Sent</span><span>{{cs.what}}</span><span class="doc-num" style="color:var(--ink2);font-size:12.5px">{{cs.when}}</span></div>
+</sc-for>
+</section>
+<section aria-label="Documents you sent" style="display:flex;flex-direction:column">
+<h2 class="doc-lbl" style="margin:0 0 6px">The {{clientShown}} most recent of the {{clientTotal}} you sent</h2>
+<sc-for list="{{clientDocs}}" as="c" hint-placeholder-count="8">
+<div style="display:flex;flex-wrap:wrap;align-items:center;gap:6px 14px;padding:9px 0;border-top:1px solid var(--line)">
+<span style="flex:1 1 300px">{{c.title}}</span>
+<span class="doc-num" style="color:var(--ink2);font-size:12.5px">{{c.rec}}</span>
+<span class="doc-tag doc-t-pas">Received</span>
+</div>
+</sc-for>
+<span style="color:var(--ink2);font-size:12.5px;padding-top:8px">{{clientLate}} of them arrived after you told us everything was in (2 Mar 2026). That is normal; we check each one when it arrives.</span>
+</section>
+</div>
+</sc-if>
+
+<sc-if value="{{isExaminer}}" hint-placeholder-val="{{ false }}">
+<div style="display:flex;flex-direction:column;gap:16px">
+<div style="display:flex;flex-direction:column;gap:4px">
+<h1 style="margin:0;font-size:24px;letter-spacing:-.015em;font-weight:600">Documents cited by the items under examination</h1>
+<span style="color:var(--ink2);max-width:76ch">Read only. Letter 566 (dated 20 Jan 2028, response due 19 Feb 2028) and the documents behind its two items. Other documents are not part of this record.</span>
+</div>
+<sc-for list="{{examGroups}}" as="eg" hint-placeholder-count="3">
+<section aria-label="{{eg.label}}" style="display:flex;flex-direction:column">
+<h2 class="doc-lbl" style="margin:0 0 6px">{{eg.label}}</h2>
+<sc-for list="{{eg.rows}}" as="x" hint-placeholder-count="3">
+<div style="display:grid;grid-template-columns:minmax(220px,2fr) minmax(160px,1.4fr) minmax(110px,.7fr);gap:4px 16px;padding:9px 0;border-top:1px solid var(--line)">
+<span style="display:flex;flex-direction:column;gap:2px"><span><span class="doc-mono" style="color:var(--ink2)">{{x.id}}</span> {{x.title}}</span><span style="display:flex;flex-wrap:wrap;gap:6px;align-items:center;font-size:12.5px;color:var(--ink2)"><span class="doc-kind">{{x.kind}}</span>{{x.issuer}}</span></span>
+<span style="font-size:13px">{{x.cited}}</span>
+<span class="doc-num" style="font-size:12.5px;color:var(--ink2)">Received {{x.rec}}</span>
+</div>
+</sc-for>
+</section>
+</sc-for>
+</div>
+</sc-if>
+
+<div aria-live="polite" style="color:var(--ink2);font-size:12.5px;min-height:18px">{{msg}}</div>
+</div>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"role":{"editor":"enum","options":["priya","marcus","daniel","helen","sam","jo","ngozi","erik","next","irs"],"default":"daniel"},"dark":{"editor":"boolean","default":false},"claimId":{"editor":"text","default":""},"openClaim":{"editor":null},"go":{"editor":null},"revealed":{"editor":null},"reveal":{"editor":null},"revealLog":{"editor":null},"asOf":{"editor":"text","default":"2026-06-23T06:05"},"asOfLabel":{"editor":"text","default":"Story time: 23 Jun 2026, 06:05"},"events":{"editor":null},"emit":{"editor":null},"lastSeen":{"editor":null},"blockers":{"editor":null},"stage":{"editor":"text","default":""},"spouseOf":{"editor":null},"$preview":{"width":1100,"height":2400}}'>
+class Component extends DCLogic {
+  constructor(p) { super(p); this.state = { filter: 'all', pick: '', set: {}, confirmed: {}, signed: false, msg: '', attOpen: false, attKind: 'file', attItem: '', attNote: '', attLink: '', local: [] }; }
+  renderVals() {
+    const P = this.props || {};
+    const roles = ['priya','marcus','daniel','helen','sam','jo','ngozi','erik','next','irs'];
+    const role = roles.indexOf(P.role) >= 0 ? P.role : 'daniel';
+    const openClaim = typeof P.openClaim === 'function' ? P.openClaim : () => {};
+    const go = typeof P.go === 'function' ? P.go : () => {};
+    const st = this.state || {};
+    const setMap = st.set || {}, confMap = st.confirmed || {};
+    const say = (m) => this.setState({ msg: m });
+
+    // Source kind (call 2): a plain label derived from document_type, never a trust ranking.
+    const K = { firm:'Firm record', irs:'IRS record', gov:'Government record', prior:'Prior preparer’s record', own:'Client’s own record', form:'Third-party form', stmt:'Third-party statement' };
+    // Rows read from the packet (documents[], extracted_values[], v3 lines). grp: person | suggest | packet | landed.
+    const D = [
+      { id:'D13', ri:'2026-02-14T20:34', grp:'person', title:'Form 3922 - ESPP transfer (Corvane)', k:'form', issuer:'Corvane Systems, Inc.', rec:'14 Feb 2026', by:'client', used:0, total:6, lines:'No line cites it',
+        hint:'Form 3922 for 150 shares bought 28 Jun 2024. The ESPP sale lot (F8949.A.N2) is built from D11 and D28.', proposal:'corroborates the ESPP lot F8949.A.N2' },
+      { id:'D15', ri:'2026-02-11T22:06', grp:'person', title:'Lindqvist Studio - transaction detail for selected accounts', k:'own', issuer:'Lindqvist Studio (QuickBooks Online)', rec:'11 Feb 2026', by:'client', used:0, total:6, lines:'No line cites it',
+        hint:'Page 3: of Atlas’s 41,200, 12,400 arrived through Paywell card processing, already inside books deposits.', proposal:'supports SchC.1: the 12,400 is already in books revenue', claim:'atlas', claimLabel:'Open the card sales check (SchC.1)' },
+      { id:'D47', ri:'2026-02-12T17:42', grp:'person', title:'Invoice - Delta Breeze Heating & Air (1450 Fremont Way)', k:'stmt', issuer:'Delta Breeze Heating & Air', rec:'12 Feb 2026', by:'client', used:0, total:2, lines:'No line cites it',
+        hint:'New 3-ton heat pump system, total 11,000.00, permit #B25-31877.', proposal:'supports the heat pump decision on SchE.14A', claim:'heat-pump', claimLabel:'Open the heat pump judgment (SchE.14A)' },
+      { id:'D54', ri:'2026-02-12T17:55', grp:'person', title:'Buyer closing statement - 7709 Barton Ridge Dr (purchase 07/08/2025)', k:'stmt', issuer:'Hill Country Title Co.', rec:'12 Feb 2026', by:'client', used:0, total:4, lines:'No line cites it; the home basis record does',
+        hint:'The home basis record (py:/basis_records) cites it for the 685,000 price. It also prints a seller credit for 2025 county taxes of 6,912.00.', proposal:'corroborates home basis 685,000; seller tax credit to test against SchA.5b' },
+      { id:'D71', ri:'2026-07-13T19:02', grp:'person', title:'Social Security card - Theo Lindqvist-Okafor (photo)', k:'gov', issuer:'Social Security Administration', rec:'13 Jul 2026, 19:02', by:'client', used:0, total:1, lines:'No line cites it',
+        hint:'Arrived after the clients signed (10 Jul). Shows Theo’s SSN ending 3390 (masked).', proposal:'supports step Identity verified: Theo, ends 3390', claim:'theo-ssn', claimLabel:'Open Theo’s SSN check', flag:'Arrived after the client signed', flagCls:'doc-t-blk' },
+      { id:'D73', ri:'2026-03-27T16:30', grp:'person', title:'Halvorsen Data paystub - pay date 07/18/2025 (Ngozi Okafor)', k:'stmt', issuer:'Halvorsen Data LLC', rec:'27 Mar 2026', by:'client', used:0, total:2, lines:'No line cites it',
+        hint:'Prints “Work location changed to Austin, TX effective 07/15/2025”, the day the household became Texas residents.', proposal:'supports the California wage split (F540NR, Schedule CA)', flag:'After “upload complete”', flagCls:'doc-t-mut' },
+      { id:'D10', ri:'2026-02-09T02:47', grp:'suggest', title:'Form W-2 - Halvorsen Data LLC (phone photo)', k:'form', issuer:'Halvorsen Data LLC', rec:'9 Feb 2026', by:'client', used:0, total:17, lines:'No line cites it',
+        reason:'Duplicate of D09', src:'From the engine’s note on F1040.1a, free text: “D10 is a second image of the Halvorsen W-2 (D09); counted once.”' },
+      { id:'D01', ri:'2026-01-12T17:04', grp:'packet', title:'Engagement letter, tax year 2025 (signed)', k:'firm', issuer:'Miraflores', rec:'12 Jan 2026', by:'firm', used:0, total:3, lines:'Not a return input',
+        reason:'Supports step: Engagement letter and consents signed', src:'documents[].document_type = engagement_letter' },
+      { id:'D02', ri:'2026-01-12T17:06', grp:'packet', title:'Consent to use and disclose tax return information', k:'firm', issuer:'Miraflores', rec:'12 Jan 2026', by:'firm', used:0, total:1, lines:'Not a return input',
+        reason:'Supports step: Engagement letter and consents signed', src:'documents[].document_type = consent_7216' },
+      { id:'D03', ri:'2026-01-21T03:12', grp:'packet', title:'IRS notice CP01A - Identity Protection PIN (Ngozi Okafor)', k:'irs', issuer:'Internal Revenue Service', rec:'21 Jan 2026', by:'client', used:0, total:1, lines:'Not a return input',
+        reason:'Supports step: Identity verified', src:'documents[].document_type = irs_ip_pin_notice' },
+      { id:'D04', ri:'2026-01-21T03:14', grp:'packet', title:'Driver license - Ngozi Okafor', k:'gov', issuer:'Texas DPS', rec:'21 Jan 2026', by:'client', used:0, total:2, lines:'Not a return input',
+        reason:'Supports step: Identity verified', src:'documents[].document_type = identity_document' },
+      { id:'D05', ri:'2026-01-21T03:15', grp:'packet', title:'Driver license - Erik Lindqvist', k:'gov', issuer:'Texas DPS', rec:'21 Jan 2026', by:'client', used:0, total:2, lines:'Not a return input',
+        reason:'Supports step: Identity verified', src:'documents[].document_type = identity_document' },
+      { id:'D06', ri:'2026-01-21T03:20', grp:'packet', title:'2024 Form 1040 as filed (prepared by Delta River Tax Services)', k:'prior', issuer:'Delta River Tax Services', rec:'21 Jan 2026', by:'client', used:0, total:107, lines:'106 prior-year lines cite it',
+        reason:'Structured at py:/return_2024 · supports step: Prior-year return reviewed', src:'prior_years.return_2024.line_sources', claim:'theo-ssn', claimLabel:'Its dependents list gives Theo’s SSN ending 3390' },
+      { id:'D07', ri:'2026-01-21T03:22', grp:'packet', title:'2024 workpaper file from prior preparer (export)', k:'prior', issuer:'Delta River Tax Services', rec:'21 Jan 2026', by:'client', used:0, total:0, lines:'Not extracted',
+        reason:'Structured at py:/prior_preparer_workpaper', src:'prior_years.prior_preparer_workpaper.source_document' },
+      { id:'D30', ri:'2026-02-16T01:44', grp:'packet', title:'Meridian Brokerage 2025 consolidated Form 1099 (joint)', k:'form', issuer:'Meridian Brokerage', rec:'16 Feb 2026', by:'client', used:0, total:159, lines:'Replaced by D31',
+        reason:'Superseded by D31 (marked CORRECTED)', src:'return_versions[v3].documents_superseded and D31.marked_corrected' },
+      { id:'D69', ri:'2026-03-12T16:20', grp:'packet', title:'IRS account transcript, tax period Dec 2025 (pulled by firm)', k:'irs', issuer:'Internal Revenue Service', rec:'12 Mar 2026', by:'firm', used:0, total:0, lines:'Not extracted; data in tax_agency_records',
+        reason:'Supports step: Estimated payments agreed to IRS and FTB records', src:'timeline tl-06 irs_transcript_pulled', claim:'fed-est', claimLabel:'Open the federal estimates check (13,000 vs 12,000)' },
+      { id:'D70', ri:'2026-01-21T03:25', grp:'packet', title:'IRS CP2000 for tax year 2023 and resolution letter', k:'irs', issuer:'Internal Revenue Service', rec:'21 Jan 2026', by:'client', used:0, total:0, lines:'Not extracted',
+        reason:'Prior-year record: notice N-2023-CP2000, resolved 18 Nov 2024', src:'tax_agency_records.notices[0].document' },
+      { id:'D72', ri:'2028-01-26T15:00', grp:'packet', title:'IRS Letter 566 - examination of 2025 return', k:'irs', issuer:'Internal Revenue Service', rec:'26 Jan 2028', by:'firm', used:0, total:0, lines:'Not extracted',
+        reason:'Post-filing: Letter 566 (N-2025-L566), attaches to the filed record', src:'tax_agency_records.notices[1].document', flag:'After filing: does not gate', flagCls:'doc-t-mut' },
+      { id:'D08', ri:'2026-01-29T18:40', grp:'landed', title:'2025 Form W-2 - Corvane Systems, Inc. (Ngozi Okafor)', k:'form', issuer:'Corvane Systems, Inc.', rec:'29 Jan 2026', by:'client', used:9, total:19, lines:'10 lines: F1040.1a, F1040.25a, F540NR.71 and 7 more' },
+      { id:'D09', ri:'2026-02-02T15:11', grp:'landed', title:'2025 Form W-2 - Halvorsen Data LLC (Ngozi Okafor)', k:'form', issuer:'Halvorsen Data LLC', rec:'2 Feb 2026', by:'client', used:10, total:17, lines:'11 lines: F1040.1a, F1040.25a, F2441.12 and 8 more' },
+      { id:'D11', ri:'2026-02-14T20:31', grp:'landed', title:'Corvane stock plan supplemental tax statement 2025', k:'stmt', issuer:'Corvane Systems equity plan administrator', rec:'14 Feb 2026', by:'client', used:1, total:9, lines:'1 line: F8949.A.N2 (the ESPP lot)', orphan:'The RSU bases on page 2 (19,100, 19,100, 9,420) are on no line.', claim:'rsu', claimLabel:'Open the RSU basis check' },
+      { id:'D12', ri:'2026-02-14T20:33', grp:'landed', title:'Form 3921 - exercise of incentive stock option (Corvane)', k:'form', issuer:'Corvane Systems, Inc.', rec:'14 Feb 2026', by:'client', used:4, total:5, lines:'1 line: F6251.2i', claim:'iso-lot', claimLabel:'Open the ISO share lot carryover' },
+      { id:'D14', ri:'2026-02-11T22:05', grp:'landed', title:'Lindqvist Studio - Profit and Loss, January-December 2025 (QuickBooks, cash basis)', k:'own', issuer:'Lindqvist Studio (QuickBooks Online)', rec:'11 Feb 2026', by:'client', used:13, total:20, lines:'12 lines: SchC.1, SchC.11, SchC.15 and 9 more', claim:'atlas', claimLabel:'Open the card sales check (SchC.1)' },
+      { id:'D21', ri:'2026-02-06T19:02', grp:'landed', title:'2025 Form 1099-K - Paywell Payments', k:'form', issuer:'Paywell Payments, Inc.', rec:'6 Feb 2026', by:'client', used:1, total:14, lines:'1 line: SchC.1', claim:'atlas', claimLabel:'Open the card sales check (SchC.1)' },
+      { id:'D28', ri:'2026-02-15T13:00', grp:'landed', title:'Northlake Securities 2025 consolidated Form 1099 (Ngozi Okafor)', k:'form', issuer:'Northlake Securities', rec:'15 Feb 2026', by:'client', used:29, total:49, lines:'9 lines: F1040.3a, F8949.A.N2, F8949.B.N1 and 6 more', claim:'rsu', claimLabel:'Open the RSU basis check' },
+      { id:'D31', ri:'2026-03-18T21:09', grp:'landed', title:'Meridian Brokerage 2025 consolidated Form 1099 - CORRECTED (joint)', k:'form', issuer:'Meridian Brokerage', rec:'18 Mar 2026', by:'client', used:107, total:159, lines:'24 lines: F1040.3a, F8949.A.M11, F8949.A.M12 and 21 more', flag:'After “upload complete”', flagCls:'doc-t-mut' },
+      { id:'D46', ri:'2026-02-12T17:40', grp:'landed', title:'Capitol Keys Property Management - 2025 owner statement (1450 Fremont Way)', k:'stmt', issuer:'Capitol Keys Property Management', rec:'12 Feb 2026', by:'client', used:5, total:6, lines:'4 lines: SchE.11A, SchE.14A, SchE.2A and 1 more', claim:'repairs', claimLabel:'Open the repairs swing' },
+      { id:'D62', ri:'2026-02-07T01:24', grp:'landed', title:'Little Sprouts Learning Center - 2025 statement (Theo)', k:'stmt', issuer:'Little Sprouts Learning Center', rec:'7 Feb 2026', by:'client', used:2, total:2, lines:'1 line: F2441.1b', claim:'care-ein', claimLabel:'Open the provider tax ID check' },
+      { id:'D65', ri:'2026-02-10T03:33', grp:'landed', title:'Noncash gift acknowledgment - Austin Community Foundation (stock)', k:'stmt', issuer:'Austin Community Foundation', rec:'10 Feb 2026', by:'client', used:4, total:4, lines:'1 line: F8283.A1.stock' },
+      { id:'D66', ri:'2026-02-10T03:35', grp:'landed', title:'2025 Form 1098-C - Lone Star Kids Auto Donation (2012 Subaru Outback)', k:'form', issuer:'Lone Star Kids Auto Donation', rec:'10 Feb 2026', by:'client', used:1, total:2, lines:'1 line: F8283.A1.vehicle' },
+      { id:'D67', ri:'2026-02-09T02:55', grp:'landed', title:'EFTPS payment confirmations (2025 estimated tax)', k:'gov', issuer:'U.S. Treasury EFTPS', rec:'9 Feb 2026', by:'client', used:6, total:6, lines:'2 lines: F1040.26, F2210.19', claim:'fed-est', claimLabel:'Open the federal estimates check' },
+      { id:'D68', ri:'2026-02-09T02:58', grp:'landed', title:'California FTB Web Pay confirmations', k:'gov', issuer:'California Franchise Tax Board', rec:'9 Feb 2026', by:'client', used:16, total:18, lines:'2 lines: F540NR.72, SchA.5a', claim:'ca-est', claimLabel:'Open the California estimates check' },
+      { id:'D74', ri:'2026-02-21T17:12', grp:'landed', title:'Brightpath Advisors 2025 Form 1099-B (direct-indexing account)', k:'form', issuer:'Brightpath Advisors', rec:'21 Feb 2026', by:'client', used:1560, total:1826, lines:'260 lines: F8949.A.X10 and 259 more' }
+    ];
+    const TYPES = ['Supports a line','Corroborates a value','Duplicate of a document','Superseded by a document','Supports a firm step','Post-filing record','Considered, not used (note required)'];
+    // One story clock (the shell's storyAt, passed as asOf): nothing received after it is shown as received.
+    const AS_OF = { sam:'2027-01-15T15:00', next:'2027-01-15T15:00', irs:'2028-01-26T15:00' };   // only when this file renders alone
+    const asOf = P.asOf || AS_OF[role] || '2026-06-23T06:05';
+    const MON = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+    const fmtAt = (iso) => { const s0 = String(iso || ''); if (s0.length < 10) return s0; const d0 = Number(s0.slice(8,10)) + ' ' + MON[Number(s0.slice(5,7)) - 1] + ' ' + s0.slice(0,4); return s0.length >= 16 ? d0 + ', ' + s0.slice(11,16) : d0; };
+    const asOfLabel = P.asOfLabel || ('Story time: ' + fmtAt(asOf));
+    const T = { signed:'2026-07-10T20:05', rejected:'2026-07-13T17:04', card:'2026-07-13T19:02', accFed:'2026-07-14T16:22' };
+    const filed = P.stage ? P.stage === 'Filed' : asOf >= T.accFed;   // the shell's stage word when given                   // after federal acceptance (tl-23): as filed, locked
+    const NAME = { priya:'Priya Raman', marcus:'Marcus Bell', daniel:'Daniel Ortiz', helen:'Helen Strand', sam:'Sam Adeyemi', jo:'Jo Kimura', ngozi:'Ngozi Okafor', erik:'Erik Lindqvist', next:'Next year’s preparer', irs:'Examiner' };
+    const mine = (e) => !!e && (e.who === role || e.who === NAME[role] || e.whoName === NAME[role]);   // who is the role key; older events may carry the name
+    const idWords = /\b(SSN|ITIN|TIN|identifier|card|social security|last 4|ends?|ending)\b/i;
+    const scrubM = (t) => { const x = String(t || ''); if (role !== 'marcus') return x; return (/\b(XXX|\d{3})-(XX|\d{2})-\d{4}\b/.test(x) || (idWords.test(x) && /\b\d{3,4}\b/.test(x))) ? 'An identifier was corrected or attached (digits hidden: no sensitive-data clearance)' : x; };
+    const local = Array.isArray(st.local) ? st.local : [];
+    const events = (Array.isArray(P.events) ? P.events : []).concat(local);
+    const emit = typeof P.emit === 'function' ? P.emit : (e) => {
+      const cur = Array.isArray((this.state || {}).local) ? this.state.local : [];
+      const seq = events.reduce((m, x) => Math.max(m, Number(x && x.seq) || 0), 0) + 1;
+      this.setState({ local: cur.concat([Object.assign({ seq, at: asOf }, e)]) });
+      return seq;
+    };
+    const inYet = (d) => d.ri <= asOf;
+    const RD = D.filter(inYet);                       // rows received by asOf
+    const later = D.filter(d => !inYet(d));           // of all 74, only D71 and D72 arrive after 22 Jun 2026
+    const received = 74 - later.length;
+    const postIn = RD.some(d => d.id === 'D72');      // Letter 566 attaches to the filed record, never gates
+    const cardIn = RD.some(d => d.id === 'D71');
+    const gateTotal = received - (postIn ? 1 : 0);
+    const valuesTotal = 3012 - later.reduce((a, d) => a + d.total, 0);
+    const uncitedShown = RD.filter(d => d.grp !== 'landed').length;
+    const canEdit = role === 'priya' || role === 'marcus';
+    const isClient = role === 'ngozi' || role === 'erik', isExaminer = role === 'irs';
+    const isStaff = !isClient && !isExaminer;
+
+    // State of each person-decided row and the suggestion.
+    const personOpen = RD.filter(d => d.grp === 'person' && !filed && !setMap[d.id]).length;
+    const suggestOpen = RD.filter(d => d.grp === 'suggest' && !filed && !confMap[d.id]).length;
+    const open = personOpen + suggestOpen;
+    const withReason = gateTotal - open;
+
+    const fmtNum = (n) => String(n).replace(/\B(?=(\d{3})+(?!\d))/g, ',');
+    const rowOut = (d) => {
+      let tword, tcls, reason, src, ex = false;
+      if (d.grp === 'person') {
+        if (filed) { tword = 'Set by the preparer'; tcls = 'doc-t-pas'; reason = d.proposal.charAt(0).toUpperCase() + d.proposal.slice(1); src = d.hint; ex = true; }
+        else if (setMap[d.id]) { tword = 'Set, waiting for reviewer'; tcls = 'doc-t-acc'; reason = setMap[d.id]; src = d.hint; ex = true; }
+        else { tword = 'Needs a person'; tcls = 'doc-t-blk'; reason = 'No reason yet. What the packet shows:'; src = d.hint; }
+      } else if (d.grp === 'suggest') {
+        if (filed || confMap[d.id]) { tword = 'Confirmed'; tcls = 'doc-t-pas'; ex = true; }
+        else { tword = 'Suggested, confirm'; tcls = 'doc-t-wrn'; }
+        reason = d.reason; src = d.src;
+      } else if (d.grp === 'packet') { tword = 'From the packet'; tcls = 'doc-t-pas'; reason = d.reason; src = 'Filled from ' + d.src; }
+      else { tword = 'From the packet'; tcls = 'doc-t-pas'; reason = 'Landed on ' + d.lines.replace(/^(\d+) lines?: /, (m, n) => n + (n === '1' ? ' v3 line: ' : ' v3 lines: ')); src = d.orphan ? 'Filled from v3 line sources. Unused values: ' + d.orphan : 'Filled from v3 line sources'; }
+      const isPerson = d.grp === 'person' && !filed;
+      const pickOpen = st.pick === d.id;
+      return {
+        id: d.id, title: d.title, kind: K[d.k], issuer: d.issuer, rec: d.rec, by: d.by === 'firm' ? 'uploaded by the firm' : 'uploaded by the client',
+        used: fmtNum(d.used), total: fmtNum(d.total), lines: d.grp === 'landed' ? (d.lines.split(':')[0] + ' on v3') : d.lines,
+        tword, tcls, reason, src, ex,
+        hasFlag: !!d.flag, flag: d.flag || '', flagCls: d.flagCls || 'doc-t-mut',
+        hasClaim: !!d.claim, claimLabel: d.claimLabel || '', open: () => { if (d.claim) openClaim(d.claim); },
+        canSet: canEdit && (isPerson || (d.grp === 'suggest' && !confMap[d.id] && !filed)),
+        canConfirm: canEdit && d.grp === 'suggest' && !confMap[d.id] && !filed,
+        setLabel: d.grp === 'suggest' ? 'Change' : (setMap[d.id] ? 'Change reason' : 'Set a reason'),
+        pickOpen: pickOpen ? 'true' : 'false', pickShown: canEdit && pickOpen,
+        togglePick: () => this.setState({ pick: pickOpen ? '' : d.id }),
+        confirm: () => { emit({ type:'document_reason', who: role, whoName: NAME[role], docId: d.id, claimId:'', text: NAME[role] + ' confirmed the suggested reason for ' + d.id + ' (' + (d.reason || '') + ')' }); this.setState({ confirmed: Object.assign({}, confMap, { [d.id]: true }), signed: false, msg: d.id + ': suggestion confirmed. The reviewer’s sign-off on the list is needed again.' }); },
+        proposal: d.proposal || (d.reason ? d.reason.toLowerCase() : ''),
+        types: TYPES.map(t => ({ label: t, pick: () => { emit({ type:'document_reason', who: role, whoName: NAME[role], docId: d.id, claimId: d.claim || '', text: NAME[role] + ' set the reason for ' + d.id + ': ' + t }); this.setState({ set: Object.assign({}, setMap, { [d.id]: t + ': ' + (d.proposal || d.reason || '') }), pick: '', signed: false, msg: d.id + ': reason set (' + t + '). The reviewer’s sign-off on the list is needed again.' }); } }))
+      };
+    };
+
+    const GROUPS = [
+      { key:'person', label:'Needs a person', note:'The packet cannot say why these were sent. The preparer picks a typed reason; the reviewer signs the list.', total: RD.filter(d => d.grp === 'person').length },
+      { key:'suggest', label:'Suggested, confirm', note:'Read from free text (an engine note), so it only suggests a reason.', total: RD.filter(d => d.grp === 'suggest').length },
+      { key:'packet', label:'From the packet', note:'Filled only from structured fields: document type, superseded list, prior-year records, notices, timeline.', total: RD.filter(d => d.grp === 'packet').length },
+      { key:'landed', label:'Landed on return lines', note:'Filled from the sources of each v3 line.', total: 56 }
+    ];
+    const shownOf = (n, of) => n === of ? String(of) : n + ' of ' + of + ' shown';
+    const filter = st.filter || 'all';
+    const groups = GROUPS.filter(g => filter === 'all' || filter === g.key).map(g => ({ label: g.label, note: g.note, total: shownOf(RD.filter(d => d.grp === g.key).length, g.total),
+      rows: RD.filter(d => d.grp === g.key).map(rowOut) }));
+    const filters = [{ key:'all', label:'All', count: shownOf(RD.length, received) }].concat(GROUPS.map(g => ({ key:g.key, label:g.label, count: shownOf(RD.filter(d => d.grp === g.key).length, g.total) }))).map(f => ({
+      label: f.label, count: f.count, pressed: filter === f.key ? 'true' : 'false', cls: filter === f.key ? 'pressed' : '',
+      pick: () => this.setState({ filter: f.key }) }));
+
+    const gate = filed
+      ? { tword:'Done at filing', tcls:'doc-t-pas', ex:true, withReason: String(gateTotal), total: String(gateTotal), hasPost: postIn, person:'0', suggest:'0', note:'As filed: the index as this workpaper finalized it. The six person-set reasons and the reviewer’s sign-off are Example.' }
+      : { tword: open ? 'Not done' : 'Done, waiting for reviewer', tcls: open ? 'doc-t-blk' : 'doc-t-acc', ex:false, withReason: String(withReason), total: String(gateTotal), hasPost: postIn, person: String(personOpen), suggest: String(suggestOpen),
+          note: 'While any document received before filing has no reason, this step stays Not done and the Filed stage will not open. Orphan values never block: ' + fmtNum(valuesTotal - 1914) + ' of ' + fmtNum(valuesTotal) + ' values are unused and most are legitimate detail.' };
+
+    const RULE_SELF = 'A person may not review or sign off on work they prepared.';
+    let sign;
+    if (filed) sign = { tword:'Signed', tcls:'doc-t-pas', text:'Signed by Daniel Ortiz, reviewer, before filing.', ex:true, canAct:false };
+    else if (st.signed) sign = { tword:'Signed', tcls:'doc-t-pas', text:'Signed by Daniel Ortiz, reviewer, at ' + fmtAt(asOf) + '.', ex:false, canAct:false };
+    else if (cardIn) sign = { tword:'Stale', tcls:'doc-t-wrn', text:'Daniel Ortiz signed the list on 9 Jul; it went stale when D71 arrived on 13 Jul.', ex:true, canAct:false };
+    else sign = { tword:'Not signed', tcls:'doc-t-mut', text:'The reviewer signs the list once every document has a reason. A document that arrives later, or a changed reason, makes that sign-off stale.', ex:false, canAct:false };
+    if (role === 'daniel' && !filed && !st.signed) {
+      Object.assign(sign, open
+        ? { canAct:true, cls:'off', ad:'true', reason:'Not available while ' + open + (open === 1 ? ' document is' : ' documents are') + ' open. The preparer sets reasons; you sign (firm rule: “' + RULE_SELF + '”).' }
+        : { canAct:true, cls:'primary', ad:'false', reason:'All documents have a reason. Firm rule: “' + RULE_SELF + '”: you did not set these reasons, so you may sign.' });
+      sign.go = () => { if (open) say('Not available: ' + open + ' documents still open.'); else { emit({ type:'signoff', who: role, whoName: NAME[role], claimId:'', text:'Daniel signed off the document list (all documents accounted for)' }); this.setState({ signed: true, msg: 'Document list signed: recorded in the event list.' }); } };
+    }
+    sign = Object.assign({ cls:'', ad:'false', reason:'', go: () => {} }, sign);
+
+    const pages = [
+      { ref:'D14 · page 2', text:'Balance sheet excerpt: Fixed assets - equipment 38,000.00 (purchased 03/2025); accumulated depreciation (7,600.00), straight-line 5 years, booked by the client.', note:'Books depreciation; the return uses its own asset schedule.' },
+      { ref:'D28 · page 2', text:'1099-B summary: short-term covered proceeds 6,600.00 basis 3,825.00; short-term noncovered proceeds 37,720.00 basis not reported; …', note:'Summary totals; the lots themselves were read on later pages.' },
+      { ref:'D30 · page 32', text:'Supplemental page (page 32, ‘Additional transactions’): M18 Ironwood REIT (fractional share cash in lieu) 6.8 sh … proceeds 250.00 basis 310.00 short-term noncovered.', note:'Original copy, superseded by D31.' },
+      { ref:'D31 · page 32', text:'Supplemental page (page 32, ‘Additional transactions’): M18 Ironwood REIT (fractional share cash in lieu) 6.8 sh … proceeds 250.00 basis 310.00 short-term noncovered.', note:'Lot M18 is on no line: the source of the engine’s Meridian summary mismatch warning.' }
+    ];
+
+    // Client uploads, newest first (documents[].received_at, uploaded_by client). Plain titles, no ids.
+    const CLIENT_DATES = ['2026-07-13T19:02','2026-06-22T18:56','2026-06-22T18:55','2026-06-05T00:41','2026-05-29T12:10','2026-04-10T15:32','2026-03-27T16:30','2026-03-18T21:09','2026-03-01T23:10','2026-02-21T17:12','2026-02-20T09:41','2026-02-18T04:15','2026-02-18T04:12','2026-02-17T05:33','2026-02-17T05:31','2026-02-16T01:44','2026-02-15T13:09','2026-02-15T13:08','2026-02-15T13:06','2026-02-15T13:05','2026-02-15T13:02','2026-02-15T13:00','2026-02-14T20:34','2026-02-14T20:33','2026-02-14T20:31','2026-02-12T17:58','2026-02-12T17:55','2026-02-12T17:53','2026-02-12T17:52','2026-02-12T17:50','2026-02-12T17:45','2026-02-12T17:42','2026-02-12T17:40','2026-02-11T22:14','2026-02-11T22:12','2026-02-11T22:10','2026-02-11T22:06','2026-02-11T22:05','2026-02-10T03:35','2026-02-10T03:33','2026-02-10T03:31','2026-02-10T03:30','2026-02-09T02:58','2026-02-09T02:55','2026-02-09T02:47','2026-02-07T16:20','2026-02-07T01:24','2026-02-07T01:22','2026-02-06T19:02','2026-02-06T16:20','2026-02-05T16:20','2026-02-04T16:20','2026-02-04T14:16','2026-02-04T14:15','2026-02-04T14:14','2026-02-04T14:12','2026-02-04T14:10','2026-02-04T14:01','2026-02-04T14:00','2026-02-03T16:20','2026-02-02T15:11','2026-02-01T20:06','2026-02-01T20:05','2026-01-29T18:40','2026-01-21T03:25','2026-01-21T03:22','2026-01-21T03:20','2026-01-21T03:15','2026-01-21T03:14','2026-01-21T03:12'];   // documents[].received_at, full timestamps
+    const CLIENT_RECENT = [
+      { ri:'2026-07-13T19:02', title:'Theo’s Social Security card (your photo)', rec:'13 Jul 2026' },
+      { ri:'2026-06-22T18:56', title:'Ridgeline Real Estate Fund III, 2025 state supplement', rec:'22 Jun 2026' },
+      { ri:'2026-06-22T18:55', title:'Ridgeline Real Estate Fund III, 2025 Schedule K-1', rec:'22 Jun 2026' },
+      { ri:'2026-06-05T00:41', title:'Lindqvist Family Woodworks, 2023 Schedule K-1', rec:'5 Jun 2026' },
+      { ri:'2026-05-29T12:10', title:'Northlake Securities IRA, Form 5498 for 2025', rec:'29 May 2026' },
+      { ri:'2026-04-10T15:32', title:'SEP-IRA contribution confirmation for Erik', rec:'10 Apr 2026' },
+      { ri:'2026-03-27T16:30', title:'Halvorsen Data paystub, July 2025', rec:'27 Mar 2026' },
+      { ri:'2026-03-18T21:09', title:'Meridian Brokerage corrected 2025 Form 1099', rec:'18 Mar 2026' },
+      { ri:'2026-03-01T23:10', title:'Lindqvist Family Woodworks, 2025 Schedule K-1', rec:'1 Mar 2026' },
+      { ri:'2026-02-21T17:12', title:'Brightpath Advisors 2025 Form 1099-B', rec:'21 Feb 2026' }
+    ];
+    const clientDocs = CLIENT_RECENT.filter(c => c.ri <= asOf).slice(0, 8).map(c => ({ title: c.title, rec: c.rec }));
+    const clientIn = CLIENT_DATES.filter(x => x <= asOf);
+
+
+    // Attach a document, message or note (U10). Every attachment is an event; the list below is read back from the events.
+    const CLAIM_LABEL = { 'heat-pump':'Heat pump judgment (SchE.14A)', 'noncash':'Donated car (SchA.12)', 'atlas':'Card sales (SchC.1)', 'theo-ssn':'Theo’s SSN check', 'fed-est':'Federal estimates (F1040.26)' };
+    // Client messages and the call that bear on a number (client.messages, client.call_notes); offered only once they exist at story time.
+    const PACKET_ITEMS = [
+      { id:'call-01', at:'2026-03-26T17:00', label:'Call with Erik, 26 Mar 2026: 8 notes (heat pump, the Subaru’s value, contractors paid by ACH)', rel:'relates to the heat pump judgment', claim:'heat-pump' },
+      { id:'msg-07', at:'2026-06-30T18:02', label:'Erik, 30 Jun 2026: the Coinhaven bitcoin was bought in March 2021 for about 3,050', rel:'relates to Coinhaven lot C6 (engine: no cost basis); arrived after v3', claim:'' },
+      { id:'msg-08', at:'2026-07-01T16:40', label:'Ngozi, 1 Jul 2026: St. Brigid confirmed the gift was 1,500', rel:'relates to cash gifts (SchA.11) and the low-confidence receipt read; arrived after v3', claim:'' }
+    ].filter(x => x.at <= asOf);
+    const canAttach = ['priya','marcus','daniel','helen'].indexOf(role) >= 0;
+    const attKind = st.attKind || 'file';
+    const attItem = PACKET_ITEMS.find(x => x.id === st.attItem) || null;
+    const attLink = st.attLink || '';
+    const attNote = st.attNote || '';
+    const idLike = /\b\d{3}-?\d{2}-?\d{4}\b|\b\d{8,17}\b/;
+    const noteBad = role === 'marcus' && idLike.test(attNote);
+    const attEvents = events.filter(e => e && (e.type === 'document_attached' || e.type === 'attachment') && !events.some(x => x && x.retracts === e.seq));
+    const attSubmit = () => {
+      let what, claim = attLink;
+      if (attKind === 'packet') { if (!attItem) { say('Pick a message or call first.'); return; } what = attItem.id + ' (' + attItem.label.split(':')[0] + ')'; claim = attItem.claim || ''; }
+      else if (attKind === 'note') { if (!attNote.trim()) { say('Type the note first.'); return; } if (noteBad) { say('Not attached: the note looks like it holds an identifier. Notes are not masked, and you have no sensitive-data clearance.'); return; } what = 'a note: “' + attNote.trim().slice(0, 120) + '”'; }
+      else what = 'a file (photo or PDF)';
+      const seq = emit({ type:'document_attached', who: role, whoName: NAME[role], claimId: claim, docId: attKind === 'packet' ? attItem.id : '', kind: attKind,
+        text: NAME[role] + ' attached ' + what + (claim ? ' to ' + (CLAIM_LABEL[claim] || claim) : '') + (filed ? ' (attaches to the filed record)' : '') });
+      if (seq === 0) { say('Not attached: the change was refused. Someone else changed this first; review their change.'); return; }
+      this.setState({ attOpen: false, attKind: 'file', attItem: '', attNote: '', attLink: '', lastSeq: typeof seq === 'number' ? seq : 0, msg: 'Attached: recorded in the event list' + (typeof seq === 'number' ? ' (event ' + seq + ')' : '') + (filed ? '; the return as filed does not change.' : '.') });
+    };
+    const att = {
+      can: canAttach,
+      sub: canAttach ? (filed ? 'Anything attached now attaches to the filed record; the return as filed does not change.' : 'A file, a client message or call from the file, or your own note, linked to a number. It becomes a cited source.')
+        : (isClient || isExaminer ? '' : 'Read only for you: you can see what was attached, not add to it.'),
+      open: canAttach && !!st.attOpen, openA: st.attOpen ? 'true' : 'false', toggleLabel: st.attOpen ? 'Close' : 'Attach',
+      toggle: () => this.setState({ attOpen: !st.attOpen }),
+      kinds: [['file','File (photo or PDF)'],['packet','Client message or call'],['note','Note']].map(k => ({ label: k[1], pressed: attKind === k[0] ? 'true' : 'false', cls: attKind === k[0] ? 'pressed' : '', pick: () => this.setState({ attKind: k[0] }) })),
+      isFile: attKind === 'file', isPacket: attKind === 'packet', isNote: attKind === 'note',
+      fileText: 'The file picker opens here. In this mock-up the file itself is not stored; its name, who attached it and the number it supports are.',
+      items: PACKET_ITEMS.map(x => ({ id: x.id, label: x.label, rel: x.rel, pressed: st.attItem === x.id ? 'true' : 'false', cls: st.attItem === x.id ? 'pressed' : '', pick: () => this.setState({ attItem: x.id }) })),
+      noItems: PACKET_ITEMS.length === 0,
+      note: attNote, setNote: (ev) => this.setState({ attNote: String(ev && ev.target ? ev.target.value : '') }),
+      warn: role === 'marcus', warnText: noteBad ? 'This note looks like it holds an identifier. Remove it: notes are not masked, and you have no sensitive-data clearance.' : 'Do not type SSNs, bank or account numbers in a note: notes are not masked, and you have no sensitive-data clearance.',
+      showLink: attKind !== 'packet',
+      links: [['', 'No number: the file in general']].concat(Object.keys(CLAIM_LABEL).map(k => [k, CLAIM_LABEL[k]])).map(l => ({ label: l[1], pressed: attLink === l[0] ? 'true' : 'false', cls: attLink === l[0] ? 'pressed' : '', pick: () => this.setState({ attLink: l[0] }) })),
+      hint: attKind === 'packet' ? 'The message keeps its own date; attaching it links it as a source.' : 'Your name and the story time are recorded with it.',
+      submit: attSubmit,
+      hasList: attEvents.length > 0 && !isClient && !isExaminer, count: String(attEvents.length),
+      list: attEvents.slice().reverse().map(e => ({ canUndo: canAttach && mine(e) && e.seq != null,
+        undo: () => { const r = emit({ type:'undo', who: role, whoName: NAME[role], retracts: e.seq, claimId: e.claimId || '', text: NAME[role] + ' undid an attachment (event ' + e.seq + ')' }); say(r === 0 ? 'Undo refused.' : 'Attachment undone: a compensating event was recorded; the original stays in the history.'); },
+        what: scrubM(String(e.text || 'An attachment').replace(/\b\d{3}-\d{2}-\d{4}\b/g, 'an identifier')), line: fmtAt(e.at), hasClaim: !!e.claimId, claimLabel: 'Open ' + (CLAIM_LABEL[e.claimId] || 'the number'), open: () => { if (e.claimId) openClaim(e.claimId); } }))
+    };
+
+    // Client: what we still need, per spouse, on the story clock (Example requests; the rejection is in the packet, tl-21).
+    const otherSpouse = role === 'erik' ? 'Ngozi' : 'Erik';
+    const mySent = events.filter(e => e && (e.type === 'document_attached' || e.type === 'attachment') && mine(e));
+    const permitSent = mySent.some(e => e.claimId === 'heat-pump');
+    const clientSendEv = (claim, what) => emit({ type:'document_attached', who: role, whoName: NAME[role], claimId: claim, kind:'file', to:[role, 'priya'],
+      text: NAME[role] + ' uploaded ' + what + ' (client upload)', clientText: 'You sent ' + what });
+    const needs = [];
+    if (role === 'ngozi' && asOf >= T.rejected && asOf < T.card) needs.push({ tword:'Needed', tcls:'doc-t-blk', title:'The IRS returned your return; we need Theo’s Social Security card', line:'A photo of the card is fine.', ex:false, upload: () => clientSendEv('theo-ssn', 'Theo’s Social Security card (photo)') });
+    if (role === 'ngozi' && !filed && asOf < T.signed && !permitSent) needs.push({ tword:'Upload', tcls:'doc-t-wrn', title:'Heat pump permit for Fremont Way', line:'Your contractor’s invoice mentions a building permit. A photo or PDF is fine.', ex:true, upload: () => clientSendEv('heat-pump', 'the heat pump permit') });
+    const clientNoNeedText = role === 'erik'
+      ? (asOf >= T.rejected && asOf < T.card ? 'Nothing from you right now. Ngozi has the request for Theo’s card.' : 'Nothing from you right now.')
+      : (filed ? 'Nothing: your return has been filed.' : 'Nothing right now. Thank you.');
+
+    const examGroups = [
+      { label:'The letter', rows:[ { id:'D72', title:'IRS Letter 566 - examination of 2025 return', kind:K.irs, issuer:'Internal Revenue Service', cited:'Items under examination, dated 20 Jan 2028', rec:'26 Jan 2028' } ] },
+      { label:'Schedule A line 12, noncash gifts (Form 8283)', rows:[
+        { id:'D65', title:'Noncash gift acknowledgment - Austin Community Foundation (stock)', kind:K.stmt, issuer:'Austin Community Foundation', cited:'200 shares, 14,500 (Form 8283, stock)', rec:'10 Feb 2026' },
+        { id:'D66', title:'2025 Form 1098-C - Lone Star Kids Auto Donation (2012 Subaru Outback)', kind:K.form, issuer:'Lone Star Kids Auto Donation', cited:'2012 Subaru Outback, sold by the charity for 2,900 (box 4c)', rec:'10 Feb 2026' } ] },
+      { label:'Schedule C gross receipts', rows:[
+        { id:'D14', title:'Lindqvist Studio - Profit and Loss, January-December 2025 (QuickBooks, cash basis)', kind:K.own, issuer:'Lindqvist Studio (QuickBooks Online)', cited:'Books revenue 151,300', rec:'11 Feb 2026' },
+        { id:'D15', title:'Lindqvist Studio - transaction detail for selected accounts', kind:K.own, issuer:'Lindqvist Studio (QuickBooks Online)', cited:'Page 3: the Paywell 12,400 is inside books deposits', rec:'11 Feb 2026' },
+        { id:'D16', title:'2025 Form 1099-NEC - Fennimore Brewing Co.', kind:K.form, issuer:'Fennimore Brewing Co.', cited:'Box 1: 38,500', rec:'3 Feb 2026' },
+        { id:'D17', title:'2025 Form 1099-NEC - Atlas Outdoor Gear, Inc.', kind:K.form, issuer:'Atlas Outdoor Gear, Inc.', cited:'Box 1: 41,200', rec:'4 Feb 2026' },
+        { id:'D18', title:'2025 Form 1099-NEC - Sable & Finch Architects LLP', kind:K.form, issuer:'Sable & Finch Architects LLP', cited:'Box 1: 27,900', rec:'5 Feb 2026' },
+        { id:'D19', title:'2025 Form 1099-NEC - Riverbend Credit Union', kind:K.form, issuer:'Riverbend Credit Union', cited:'Box 1: 19,800', rec:'6 Feb 2026' },
+        { id:'D20', title:'2025 Form 1099-NEC - Quill Media Group LLC', kind:K.form, issuer:'Quill Media Group LLC', cited:'Box 1: 14,600 (five forms total 142,000)', rec:'7 Feb 2026' },
+        { id:'D21', title:'2025 Form 1099-K - Paywell Payments', kind:K.form, issuer:'Paywell Payments, Inc.', cited:'Box 1a: 12,400', rec:'6 Feb 2026' } ] }
+    ];
+
+    return {
+      wpClass: 'wp' + ((P.dark ?? false) ? ' dark' : ''),
+      isStaff, isClient, isExaminer,
+      gate, sign, filters, groups, pages,
+      headCount: received + ' documents received · 1,914 of ' + fmtNum(valuesTotal) + ' values used on a v3 line', asOfLabel,
+      footerCount: 'Showing ' + RD.length + ' of ' + received + ' documents received: every one no v3 line cites (' + uncitedShown + ') and 15 of the 56 that landed on return lines.',
+      engineNote: 'D30 is listed as superseded.' + (cardIn ? ' D71 arrived after v3 and is not in the engine’s list.' : ''),
+      clientTotal: String(clientIn.length), clientShown: String(clientDocs.length), clientLate: String(clientIn.filter(x => x > '2026-03-02T22:15').length),
+      showLate: isStaff && cardIn,
+      late: !(cardIn && isStaff) ? { tword:'', tcls:'', ex:false, head:'', text:'', link:'' } : filed
+        ? { tword:'Re-opened, then closed', tcls:'doc-t-acc', ex:true, head:'13 Jul 2026, 19:02 · Theo’s Social Security card arrived after the clients signed',
+            text:'D71 came in 3 days after the clients signed Form 8879 and FTB 8879 (10 Jul) and two hours after the federal e-file was rejected (17:04). “All documents accounted for” went back to Not done and the reviewer’s sign-off on the document list went stale; the preparer then gave D71 a reason and the reviewer signed the list again before the 14 Jul acceptance.',
+            link:'Open Theo’s SSN check: organizer XXX-XX-3309, card XXX-XX-3390' }
+        : { tword:'Re-opened', tcls:'doc-t-blk', ex:false, head:'13 Jul 2026, 19:02 · Theo’s Social Security card arrived',
+            text:'D71 came in 3 days after the clients signed Form 8879 and FTB 8879 (10 Jul) and two hours after the federal e-file was rejected (17:04). It has no reason yet, so “All documents accounted for” went back to Not done and the reviewer’s sign-off on the document list went stale.',
+            link:'Open Theo’s SSN check: organizer XXX-XX-3309, card XXX-XX-3390' }, showPages: isStaff, showEngineCheck: isStaff && !filed,
+      showJoNote: role === 'jo',
+      goFirm: () => go('firm'), goHome: () => go('home'),
+      openSsn: () => openClaim('theo-ssn'),
+      clientDocs, otherSpouse, att,
+      clientNeeds: needs, clientNeedCount: String(needs.length), clientNeedEx: needs.some(n => n.ex), clientNoNeed: needs.length === 0, clientNoNeedText,
+      clientHomeQ: role === 'ngozi' && asOf < T.signed,
+      clientSend: () => { clientSendEv('', 'a document'); say('Sent. Your tax team sees it now.'); },
+      clientSent: mySent.slice().reverse().map(e => ({ what: e.clientText || 'You sent a document', when: fmtAt(e.at) })),
+      examGroups,
+      msg: st.msg || ''
+    };
+  }
+}
+</script>
+</body>
+</html>

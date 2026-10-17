@@ -1,0 +1,587 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Filing and after</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Instrument+Sans:wght@400;500;600;700&amp;family=Source+Serif+4:opsz,wght@8..60,400;8..60,600&amp;family=IBM+Plex+Mono:wght@400;500&amp;display=swap" rel="stylesheet">
+<style>
+.wp{--bg:oklch(0.975 0.005 250);--surface:oklch(0.995 0.003 250);--sunk:oklch(0.955 0.006 250);--line:oklch(0.89 0.008 250);--ink:oklch(0.24 0.02 255);--ink2:oklch(0.44 0.02 255);--acc:oklch(0.46 0.15 262);--accsoft:oklch(0.94 0.035 262);--blk:oklch(0.50 0.17 32);--blksoft:oklch(0.955 0.03 32);--wrn:oklch(0.48 0.10 70);--wrnsoft:oklch(0.96 0.045 85);--pas:oklch(0.47 0.09 165);--passoft:oklch(0.955 0.03 165);--hl:oklch(0.91 0.13 100);--paper:oklch(0.99 0.006 90)}
+.wp.dark{--bg:oklch(0.19 0.012 255);--surface:oklch(0.23 0.014 255);--sunk:oklch(0.17 0.012 255);--line:oklch(0.33 0.015 255);--ink:oklch(0.93 0.008 255);--ink2:oklch(0.74 0.012 255);--acc:oklch(0.76 0.11 262);--accsoft:oklch(0.30 0.05 262);--blk:oklch(0.74 0.13 35);--blksoft:oklch(0.28 0.05 32);--wrn:oklch(0.80 0.11 80);--wrnsoft:oklch(0.29 0.04 85);--pas:oklch(0.76 0.09 165);--passoft:oklch(0.27 0.04 165);--hl:oklch(0.55 0.10 100);--paper:oklch(0.26 0.01 90)}
+.wp{font-family:'Instrument Sans',system-ui,sans-serif;color:var(--ink);background:var(--bg);font-size:14px;line-height:1.45;min-height:100vh;display:flex;flex-direction:column}
+.fil-page{padding:22px 28px 40px;display:flex;flex-direction:column;gap:22px;max-width:1100px;width:100%;box-sizing:border-box}
+.fil-num{font-variant-numeric:tabular-nums;font-feature-settings:"tnum"}
+.fil-mono{font-family:'IBM Plex Mono',monospace;font-size:12px;color:var(--ink2)}
+.fil-lbl{font-size:11.5px;font-weight:600;letter-spacing:.04em;text-transform:uppercase;color:var(--ink2)}
+.fil-h2{margin:0;font-size:17px;font-weight:600;letter-spacing:-.01em}
+.fil-tag{display:inline-flex;align-items:center;gap:5px;font-size:11.5px;font-weight:600;padding:2px 8px;border-radius:999px;white-space:nowrap}
+.fil-t-blk{color:var(--blk);background:var(--blksoft)}.fil-t-wrn{color:var(--wrn);background:var(--wrnsoft)}.fil-t-pas{color:var(--pas);background:var(--passoft)}.fil-t-acc{color:var(--acc);background:var(--accsoft)}.fil-t-mut{color:var(--ink2);background:var(--sunk)}
+.fil-ex{font-size:10.5px;font-weight:600;letter-spacing:.03em;padding:1px 6px;border-radius:999px;border:1px dashed var(--ink2);color:var(--ink2);white-space:nowrap}
+.fil-btn{font:inherit;font-size:13px;border:1px solid var(--line);background:var(--surface);color:var(--ink);border-radius:8px;padding:7px 12px;cursor:pointer;min-height:36px}
+.fil-btn:hover{border-color:var(--ink2)}
+.fil-btn.primary{background:var(--acc);border-color:var(--acc);color:var(--surface)}
+.fil-btn.off,.fil-btn.off:hover{background:var(--sunk);border-color:var(--line);color:var(--ink2);cursor:not-allowed}
+.fil-btn:focus-visible,.fil-val:focus-visible,.fil-link:focus-visible{outline:2px solid var(--acc);outline-offset:2px}
+.fil-val{font:inherit;font-variant-numeric:tabular-nums;font-weight:600;background:none;border:0;border-bottom:1px dashed var(--acc);color:var(--ink);padding:0 1px;cursor:pointer}
+.fil-val:hover{color:var(--acc)}
+.fil-link{font:inherit;background:none;border:0;padding:0;color:var(--acc);text-decoration:underline;text-underline-offset:2px;cursor:pointer}
+.fil-box{border:1px solid var(--line);border-radius:10px;background:var(--surface)}
+.fil-row{display:flex;flex-wrap:wrap;gap:6px 14px;padding:12px 16px;border-top:1px solid var(--line);align-items:flex-start}
+.fil-row:first-child{border-top:0}
+.fil-when{flex:0 0 118px;color:var(--ink2)}
+.fil-body{flex:1 1 360px;min-width:0;display:flex;flex-direction:column;gap:3px}
+.fil-note{color:var(--ink2);font-size:12.5px}
+.fil-frozen{display:flex;flex-direction:column;gap:10px;padding:16px 18px;border:1px solid var(--line);border-radius:10px;background:var(--paper)}
+.fil-doc{font-family:'Source Serif 4',Georgia,serif;font-size:14.5px;line-height:1.6}
+.fil-kv{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(240px,100%),1fr));gap:8px 24px;font-size:13px}
+.fil-step{display:flex;gap:10px;align-items:flex-start}
+.fil-dot{flex:0 0 22px;height:22px;border-radius:999px;display:inline-flex;align-items:center;justify-content:center;font-size:12px;font-weight:600;background:var(--sunk);color:var(--ink2)}
+.fil-sig{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(300px,100%),1fr));gap:12px}
+.fil-sigcard{display:flex;flex-direction:column;gap:8px;padding:14px 16px;border:1px solid var(--line);border-radius:10px;background:var(--surface)}
+</style>
+</helmet>
+<div class="{{wpClass}}">
+<div class="fil-page">
+
+<header style="display:flex;flex-direction:column;gap:6px">
+<div style="display:flex;flex-wrap:wrap;align-items:center;gap:10px"><span class="fil-lbl">{{eyebrow}}</span><span class="fil-tag fil-t-mut">{{versionText}}</span><span class="fil-tag fil-t-mut" style="{{asOfStyle}}">{{asOfLabel}}</span><span class="fil-tag fil-t-acc" style="{{snapStyle}}">As filed, locked</span></div>
+<h1 style="margin:0;font-size:24px;font-weight:600;letter-spacing:-.015em">{{h1}}</h1>
+<p style="margin:0;max-width:78ch;color:var(--ink2)">{{intro}}</p>
+</header>
+
+<sc-if value="{{showApproval}}" hint-placeholder-val="{{true}}">
+<section aria-labelledby="fil-appr" style="display:flex;flex-direction:column;gap:10px">
+<h2 class="fil-h2" id="fil-appr">{{appr.heading}}</h2>
+<div class="fil-box" style="padding:16px 18px;display:flex;flex-wrap:wrap;gap:12px 18px;align-items:center">
+<span class="fil-tag {{appr.tcls}}">{{appr.tword}}</span>
+<span style="flex:1 1 360px;min-width:0;display:flex;flex-direction:column;gap:3px"><strong style="font-weight:600">{{appr.title}}</strong><span style="color:var(--ink2)">{{appr.text}}</span></span>
+<sc-for list="{{appr.acts}}" as="b" hint-placeholder-count="1">
+<button class="fil-btn {{b.cls}}" type="button" aria-disabled="{{b.ad}}" title="{{b.reason}}" onClick="{{b.go}}">{{b.label}}</button>
+</sc-for>
+</div>
+<div class="fil-sig" role="list" aria-label="E-file signatures, one per spouse">
+<sc-for list="{{sigCards}}" as="g" hint-placeholder-count="2">
+<div class="fil-sigcard" role="listitem">
+<span style="display:flex;flex-wrap:wrap;align-items:center;gap:8px"><strong style="font-weight:600">{{g.name}}</strong><span class="fil-note">{{g.sub}}</span></span>
+<sc-for list="{{g.forms}}" as="s" hint-placeholder-count="2">
+<div style="display:flex;flex-wrap:wrap;align-items:center;gap:8px 12px">
+<span class="fil-tag {{s.tcls}}">{{s.tword}}</span>
+<span style="flex:1 1 220px;min-width:0;display:flex;flex-direction:column;gap:2px"><span>{{s.form}}</span><span class="fil-note">{{s.when}}</span></span>
+<sc-if value="{{s.canSign}}" hint-placeholder-val="{{false}}"><button class="fil-btn primary" type="button" onClick="{{s.sign}}">{{s.label}}</button></sc-if>
+</div>
+</sc-for>
+</div>
+</sc-for>
+</div>
+<sc-if value="{{hasSnap}}" hint-placeholder-val="{{false}}">
+<div class="fil-frozen" style="gap:6px">
+<span style="display:flex;flex-wrap:wrap;align-items:center;gap:8px"><span class="fil-tag fil-t-acc">Signed snapshot</span><strong style="font-weight:600">{{snap.title}}</strong><span class="fil-ex" style="{{snap.exStyle}}">Example</span></span>
+<span>{{snap.text}}</span>
+<sc-if value="{{snap.hasChanged}}" hint-placeholder-val="{{false}}"><span class="fil-note"><span class="fil-tag fil-t-wrn">Changed after signing</span> {{snap.changed}} <span class="fil-ex">Example</span></span></sc-if>
+</div>
+</sc-if>
+<sc-if value="{{canPreview}}" hint-placeholder-val="{{false}}"><div style="display:flex;flex-wrap:wrap;gap:10px;align-items:center"><button class="fil-btn" type="button" aria-pressed="{{previewPressed}}" onClick="{{togglePreview}}">{{previewLabel}}</button><span class="fil-note">{{previewNote}}</span><span class="fil-ex" style="{{previewExStyle}}">Example</span></div></sc-if>
+<sc-if value="{{isClient}}" hint-placeholder-val="{{false}}">
+<div class="fil-box" style="padding:14px 18px;display:flex;flex-direction:column;gap:10px">
+<span class="fil-lbl">What happens next</span>
+<sc-for list="{{clientSteps}}" as="s" hint-placeholder-count="4">
+<div class="fil-step"><span class="fil-dot fil-num">{{s.n}}</span><span>{{s.text}}</span></div>
+</sc-for>
+</div>
+</sc-if>
+</section>
+</sc-if>
+
+<sc-if value="{{showCopy}}" hint-placeholder-val="{{true}}">
+<section aria-labelledby="fil-copy" style="display:flex;flex-direction:column;gap:10px">
+<div style="display:flex;flex-wrap:wrap;align-items:baseline;gap:10px"><h2 class="fil-h2" id="fil-copy">{{copyHeading}}</h2><span class="fil-note">{{copyNote}}</span></div>
+<sc-if value="{{copyReady}}" hint-placeholder-val="{{false}}">
+<div class="fil-box" role="list">
+<sc-for list="{{copyRows}}" as="c" hint-placeholder-count="5">
+<div class="fil-row" role="listitem">
+<span class="fil-body"><strong style="font-weight:600">{{c.title}}</strong><span>{{c.text}}</span></span>
+<sc-if value="{{c.hasOpen}}" hint-placeholder-val="{{true}}"><button class="fil-btn" type="button" onClick="{{c.open}}">Open</button></sc-if>
+</div>
+</sc-for>
+</div>
+<div><button class="fil-btn primary" type="button" onClick="{{downloadCopy}}">{{downloadLabel}}</button></div>
+</sc-if>
+<sc-if value="{{copyWaiting}}" hint-placeholder-val="{{true}}"><p class="fil-note" style="margin:0">{{copyWaitText}}</p></sc-if>
+</section>
+</sc-if>
+
+<sc-if value="{{showFrozen}}" hint-placeholder-val="{{true}}">
+<section aria-labelledby="fil-frz" style="display:flex;flex-direction:column;gap:10px">
+<h2 class="fil-h2" id="fil-frz">As filed: the return as this workpaper finalized it</h2>
+<div class="fil-frozen">
+<div style="display:flex;flex-wrap:wrap;align-items:center;gap:8px"><span class="fil-tag {{frz.tcls}}">{{frz.tword}}</span><span>{{frz.headline}}</span></div>
+<div class="fil-kv">
+<sc-for list="{{frz.rows}}" as="k" hint-placeholder-count="4">
+<div style="display:flex;flex-direction:column;gap:2px"><span class="fil-lbl">{{k.k}}</span><span class="fil-num">{{k.v}}</span></div>
+</sc-for>
+</div>
+<span class="fil-note">{{frz.note}}</span>
+<sc-if value="{{canAmend}}" hint-placeholder-val="{{false}}"><div><button class="fil-btn" type="button" onClick="{{amend}}">Start an amendment on top (Form 1040-X, California Schedule X)</button></div></sc-if>
+</div>
+</section>
+</sc-if>
+
+<sc-if value="{{showTimeline}}" hint-placeholder-val="{{true}}">
+<section aria-labelledby="fil-tl" style="display:flex;flex-direction:column;gap:10px">
+<div style="display:flex;flex-wrap:wrap;align-items:baseline;gap:10px"><h2 class="fil-h2" id="fil-tl">{{tlHeading}}</h2><span class="fil-note">{{tlNote}}</span></div>
+<div class="fil-box" role="list">
+<sc-for list="{{timeline}}" as="t" hint-placeholder-count="10">
+<div class="fil-row" role="listitem" style="{{t.rowStyle}}">
+<span class="fil-when fil-num">{{t.date}}</span>
+<span class="fil-body">
+<span style="display:flex;flex-wrap:wrap;align-items:center;gap:8px"><span class="fil-tag {{t.tcls}}">{{t.tword}}</span><strong style="font-weight:600">{{t.title}}</strong><span class="fil-mono" style="{{t.refStyle}}">{{t.ref}}</span></span>
+<span>{{t.detail}}</span>
+<sc-if value="{{t.hasCaught}}" hint-placeholder-val="{{false}}"><span class="fil-note">{{t.caught}} <button class="fil-link" type="button" onClick="{{t.open}}">{{t.caughtLink}}</button></span></sc-if>
+<sc-if value="{{t.hasOpen}}" hint-placeholder-val="{{false}}"><span><button class="fil-link" type="button" onClick="{{t.open}}">{{t.openLabel}}</button></span></sc-if>
+</span>
+</div>
+</sc-for>
+</div>
+</section>
+</sc-if>
+
+<sc-if value="{{showLetter}}" hint-placeholder-val="{{true}}">
+<section aria-labelledby="fil-566" style="display:flex;flex-direction:column;gap:10px">
+<div style="display:flex;flex-wrap:wrap;align-items:center;gap:10px"><h2 class="fil-h2" id="fil-566">Letter 566: items under examination</h2><span class="fil-tag {{letter.tcls}}">{{letter.tword}}</span></div>
+<p style="margin:0;max-width:80ch;color:var(--ink2)">{{letter.intro}}</p>
+<sc-for list="{{letterItems}}" as="il" hint-placeholder-count="2">
+<article class="fil-box" style="overflow:hidden">
+<div style="display:flex;flex-wrap:wrap;gap:8px 12px;padding:14px 18px;align-items:center">
+<span class="fil-tag fil-t-acc">Under examination</span>
+<strong style="font-weight:600">{{il.title}}</strong>
+<span style="margin-left:auto;display:flex;flex-wrap:wrap;gap:8px;align-items:center"><span class="fil-lbl">As filed</span>
+<sc-if value="{{il.clickable}}" hint-placeholder-val="{{true}}"><button class="fil-val" type="button" onClick="{{il.open}}" aria-label="{{il.aria}}">{{il.value}}</button></sc-if>
+<sc-if value="{{il.plain}}" hint-placeholder-val="{{false}}"><span class="fil-num" style="font-weight:600">{{il.value}}</span></sc-if>
+<span class="fil-ex">Example</span></span>
+</div>
+<div style="padding:0 18px 12px;max-width:84ch"><span class="fil-lbl">Letter item</span> {{il.letter}}</div>
+<div class="fil-doc" style="padding:12px 18px;background:var(--paper);border-top:1px solid var(--line)"><span class="fil-lbl" style="display:block;margin-bottom:4px;font-family:'Instrument Sans',system-ui,sans-serif">How it was built</span>{{il.built}}</div>
+<div style="padding:12px 18px;display:flex;flex-direction:column;gap:6px;background:var(--sunk);font-size:13px">
+<span><span class="fil-lbl">Source documents</span> {{il.src}} <button class="fil-link" type="button" onClick="{{goDocs}}">Open in Documents</button></span>
+<sc-if value="{{il.hasHist}}" hint-placeholder-val="{{true}}"><span><span class="fil-lbl">History</span> {{il.hist}} <span class="fil-ex">Example</span></span></sc-if>
+<span><span class="fil-lbl">Sign-offs</span> {{il.signed}} <span class="fil-ex">Example</span></span>
+</div>
+</article>
+</sc-for>
+<div style="display:flex;flex-wrap:wrap;gap:10px;align-items:center">
+<sc-if value="{{canExport}}" hint-placeholder-val="{{false}}"><button class="fil-btn primary" type="button" onClick="{{exportPack}}">{{exportLabel}}</button></sc-if>
+<span class="fil-note">{{exportNote}}</span>
+</div>
+</section>
+</sc-if>
+
+<sc-if value="{{showPenalty}}" hint-placeholder-val="{{true}}">
+<section aria-labelledby="fil-pen" style="display:flex;flex-direction:column;gap:10px">
+<div style="display:flex;flex-wrap:wrap;align-items:center;gap:10px"><h2 class="fil-h2" id="fil-pen">Penalty and interest</h2><span class="fil-tag {{pen.tcls}}">{{pen.tword}}</span><span class="fil-ex">Example</span></div>
+<p style="margin:0;max-width:80ch;color:var(--ink2)">{{pen.intro}}</p>
+<div class="fil-box" style="padding:14px 18px;display:flex;flex-direction:column;gap:10px">
+<div class="fil-kv">
+<sc-for list="{{pen.rows}}" as="k" hint-placeholder-count="6">
+<div style="display:flex;flex-direction:column;gap:2px"><span class="fil-lbl">{{k.k}}</span><span class="fil-num">{{k.v}}</span></div>
+</sc-for>
+</div>
+<span class="fil-note">{{pen.note}}</span>
+<span class="fil-note">{{pen.irs}}</span>
+</div>
+<div class="fil-box" role="list" aria-label="Penalty decisions">
+<sc-for list="{{penDecisions}}" as="d" hint-placeholder-count="2">
+<div class="fil-row" role="listitem">
+<span class="fil-body">
+<span style="display:flex;flex-wrap:wrap;align-items:center;gap:8px"><span class="fil-tag {{d.tcls}}">{{d.tword}}</span><strong style="font-weight:600">{{d.title}}</strong><span class="fil-ex">Example</span></span>
+<span>{{d.text}}</span>
+<span class="fil-note">{{d.more}}</span>
+<sc-if value="{{d.hasOpen}}" hint-placeholder-val="{{false}}"><span style="display:flex;flex-wrap:wrap;gap:12px"><sc-for list="{{d.links}}" as="x" hint-placeholder-count="2"><button class="fil-link" type="button" onClick="{{x.open}}">{{x.label}}</button></sc-for></span></sc-if>
+</span>
+<sc-if value="{{d.canRecord}}" hint-placeholder-val="{{false}}"><button class="fil-btn" type="button" aria-pressed="{{d.pressed}}" onClick="{{d.record}}">{{d.btn}}</button></sc-if>
+</div>
+</sc-for>
+</div>
+</section>
+</sc-if>
+
+<sc-if value="{{showOutside}}" hint-placeholder-val="{{true}}">
+<section aria-labelledby="fil-out" style="display:flex;flex-direction:column;gap:10px">
+<div style="display:flex;flex-wrap:wrap;align-items:baseline;gap:10px"><h2 class="fil-h2" id="fil-out">Outside filings</h2><span class="fil-note">Every filing outside this return, each marked required, not ours or not needed, with the reason and its source. Form 8938 is inside the return, so it is not listed.</span></div>
+<div class="fil-box" role="list">
+<sc-for list="{{outside}}" as="o" hint-placeholder-count="9">
+<div class="fil-row" role="listitem">
+<span class="fil-body">
+<span style="display:flex;flex-wrap:wrap;align-items:center;gap:8px"><span class="fil-tag {{o.ncls}}">{{o.need}}</span><span class="fil-tag fil-t-mut">{{o.owner}}</span><strong style="font-weight:600">{{o.title}}</strong><span class="fil-ex" style="{{o.exStyle}}">Example</span></span>
+<span>{{o.why}}</span>
+<span class="fil-note">{{o.due}}</span>
+<span class="fil-mono">{{o.src}}</span>
+<sc-if value="{{o.hasOpen}}" hint-placeholder-val="{{false}}"><span><button class="fil-link" type="button" onClick="{{o.open}}">{{o.openLabel}}</button></span></sc-if>
+</span>
+<sc-if value="{{o.canRecord}}" hint-placeholder-val="{{false}}"><button class="fil-btn" type="button" aria-pressed="{{o.pressed}}" onClick="{{o.record}}">{{o.btn}}</button></sc-if>
+</div>
+</sc-for>
+</div>
+</section>
+</sc-if>
+
+<sc-if value="{{showCarry}}" hint-placeholder-val="{{true}}">
+<section aria-labelledby="fil-cf" style="display:flex;flex-direction:column;gap:10px">
+<div style="display:flex;flex-wrap:wrap;align-items:baseline;gap:10px"><h2 class="fil-h2" id="fil-cf">Carryovers to 2026</h2><span class="fil-note">{{carryNote}}</span></div>
+<div class="fil-box" role="list">
+<sc-for list="{{carry}}" as="c" hint-placeholder-count="8">
+<div class="fil-row" role="listitem">
+<span class="fil-body">
+<span style="display:flex;flex-wrap:wrap;align-items:center;gap:8px"><span class="fil-tag {{c.tcls}}">{{c.tword}}</span><strong style="font-weight:600">{{c.title}}</strong><span class="fil-ex" style="{{c.exStyle}}">Example</span></span>
+<sc-if value="{{c.hasVals}}" hint-placeholder-val="{{false}}">
+<span style="display:flex;flex-wrap:wrap;gap:6px 18px;align-items:baseline">
+<sc-for list="{{c.vals}}" as="v" hint-placeholder-count="3">
+<span><span class="fil-lbl">{{v.k}}</span> <button class="fil-val" type="button" onClick="{{v.open}}" aria-label="{{v.aria}}">{{v.v}}</button></span>
+</sc-for>
+</span>
+</sc-if>
+<span>{{c.why}}</span>
+<span class="fil-mono">{{c.src}}</span>
+</span>
+<sc-if value="{{c.canAdd}}" hint-placeholder-val="{{false}}"><button class="fil-btn" type="button" aria-pressed="{{c.pressed}}" onClick="{{c.add}}">{{c.btn}}</button></sc-if>
+</div>
+</sc-for>
+</div>
+<div style="display:flex;flex-wrap:wrap;align-items:baseline;gap:10px;margin-top:6px"><h3 class="fil-h2" style="font-size:15px">Diagnostics resolved</h3><span class="fil-note">Required step 9 of the firm’s 12. Open items here keep that step from being done.</span></div>
+<div class="fil-box" role="list">
+<sc-for list="{{openItems}}" as="o" hint-placeholder-count="3">
+<div class="fil-row" role="listitem">
+<span class="fil-body">
+<span style="display:flex;flex-wrap:wrap;align-items:center;gap:8px"><span class="fil-tag {{o.tcls}}">{{o.tword}}</span><strong style="font-weight:600">{{o.title}}</strong><span class="fil-mono">{{o.code}}</span></span>
+<span>{{o.why}}</span>
+<sc-if value="{{o.hasOpen}}" hint-placeholder-val="{{false}}"><span><button class="fil-link" type="button" onClick="{{o.open}}">{{o.openLabel}}</button></span></sc-if>
+</span>
+</div>
+</sc-for>
+</div>
+</section>
+</sc-if>
+
+<div class="fil-note" role="status" style="min-height:18px">{{msg}}</div>
+</div>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"role":{"editor":"enum","options":["priya","marcus","daniel","helen","sam","jo","ngozi","erik","next","irs"],"default":"daniel"},"dark":{"editor":"boolean","default":false},"openClaim":{"editor":null},"go":{"editor":null},"claimId":{"editor":null,"default":""},"revealed":{"editor":null},"reveal":{"editor":null},"revealLog":{"editor":null},"asOf":{"editor":null,"default":""},"asOfLabel":{"editor":null,"default":""},"storyAt":{"editor":null,"default":""},"events":{"editor":null},"emit":{"editor":null},"lastSeen":{"editor":null},"blockers":{"editor":null},"stage":{"editor":null,"default":""},"spouseOf":{"editor":null},"$preview":{"width":1100,"height":3200}}'>
+class Component extends DCLogic {
+  constructor(p) { super(p); this.state = { added: {}, signed: {}, preview: false, recorded: {}, msg: '' }; }
+  renderVals() {
+    const P = this.props || {};
+    const ROLES = ['priya','marcus','daniel','helen','sam','jo','ngozi','erik','next','irs'];
+    const role = ROLES.indexOf(P.role) >= 0 ? P.role : 'daniel';
+    const noop = () => {};
+    const openClaim = typeof P.openClaim === 'function' ? P.openClaim : noop;
+    const go = typeof P.go === 'function' ? P.go : noop;
+    const emit = typeof P.emit === 'function' ? P.emit : noop;
+    const events = Array.isArray(P.events) ? P.events.filter(e => e && typeof e === 'object') : [];
+    const st = this.state || {};
+    const hide = 'display:none';
+    const isClient = role === 'ngozi' || role === 'erik', isIrs = role === 'irs';
+    const staff = !isClient && !isIrs;
+    const working = ['priya','marcus','daniel','helen'].indexOf(role) >= 0;
+    const say = m => this.setState({ msg: m });
+    const NAMES = { priya:'Priya Raman', marcus:'Marcus Bell', daniel:'Daniel Ortiz', helen:'Helen Strand', sam:'Sam Adeyemi', jo:'Jo Kimura', ngozi:'Ngozi Okafor', erik:'Erik Lindqvist', next:'Priya Raman (2026 return)', irs:'IRS examiner' };
+
+    // One story clock (FIX-ROUND-H3 A): asOf = storyAt from the shell. Defaults so the artboard renders alone.
+    const AS_OF = { sam:'2027-01-15T15:00', next:'2027-01-15T15:00', irs:'2028-01-26T15:00' };
+    const norm = s => (typeof s === 'string' && s) ? (s.length === 10 ? s + 'T23:59' : s.slice(0, 16)) : '';
+    const now = norm(P.storyAt) || norm(P.asOf) || AS_OF[role] || '2026-06-23T06:05';
+    // Packet timeline and tax_agency_records (probes f_probe1.py, h3-F-1.py, h3-F-3.py).
+    const T = { ext:'2026-04-14T15:00', v3:'2026-06-23T06:05', sign:'2026-07-10T20:05', rej:'2026-07-13T17:04', card:'2026-07-13T19:02', fed:'2026-07-14T16:22', ca:'2026-07-15T02:10', paid:'2026-07-20T14:00', tr:'2026-08-03T00:00', ref:'2026-08-21T14:00', qr:'2027-01-04T15:00', next:'2027-01-15T15:00', l566:'2028-01-26T15:00' };
+    const at = k => now >= T[k];
+    const filed = at('fed');
+    const afterRole = role === 'sam' || role === 'next';
+    const asOfLabel = (typeof P.asOfLabel === 'string' && P.asOfLabel) ? P.asOfLabel : (afterRole ? 'Filed' : isIrs ? 'Letter 566, 26 Jan 2028' : 'As of 23 Jun 2026, v3');
+    const cardIn = at('card');
+    const retracted = new Set(events.filter(e => e.retracts != null).map(e => e.retracts));
+    const send = (type, text, extra) => emit(Object.assign({ type, who: role, at: now, claimId: null, groupId: null, retracts: null, text }, extra || {}));
+
+    const evRows = [
+      { at:T.ext, date:'14 Apr 2026', title:'Extension filed with payment', ref:'extension-2026-04-14', detail:'Form 4868 with 36,000 and FTB 3519 with 0, estimated from v2. Filed by Daniel Ortiz.', claim:'ext-pay', openLabel:'Open the extension payment' },
+      { at:T.v3, date:'23 Jun 2026', title:'Return computed: v3', ref:'tl-17', detail:'The latest engine output and the current return, recomputed after the Ridgeline K-1 and state supplement arrived on 22 Jun 2026.' },
+      { at:'2026-06-30T18:02', date:'30 Jun 2026', title:'Client message after the last computation: crypto lot cost', ref:'tl-18 · msg-07', detail:'Erik wrote that the coins were bought in March 2021 “for about 3,050”. It arrived after v3, so v3 does not use it.', claim:'crypto-c6', openLabel:'Open the crypto lot' },
+      { at:'2026-07-01T16:40', date:'1 Jul 2026', title:'Client message after the last computation: St. Brigid gift', ref:'tl-19 · msg-08', detail:'Ngozi wrote: “St. Brigid confirmed by phone the gift was 1,500 - matches our bank statement (check #2207, 12/21/2025).”', claim:'gift-brigid', openLabel:'Open the St. Brigid gift' },
+      { at:T.sign, date:'10 Jul 2026', title:'Clients signed Forms 8879 and FTB 8879', ref:'tl-20', detail:'Both spouses signed electronically, for the return the firm presented for approval. Ngozi wrote: “Reviewed the summary, looks good. Signed the e-file authorization.” The signature PINs are never shown.', irs:'Form 8879 signed electronically.', irsTitle:'Form 8879 signed' },
+      { at:T.rej, date:'13 Jul 2026', title:'Federal e-file rejected; California held', ref:'tl-21', detail:'R0000-504-02: “Dependent’s taxpayer identification number and name control must match the e-file database (dependent 2: Theo Lindqvist-Okafor).” California not transmitted: STATE-HOLD.', claim:'theo-ssn', caught:true },
+      { at:T.card, date:'13 Jul 2026', title:'Theo’s Social Security card received', ref:'tl-22 · D71', detail:'Ngozi wrote: “I must have typed his number wrong in the organizer.”', claim:'theo-ssn', openLabel:'Open Theo’s SSN' },
+      { at:T.fed, date:'14 Jul 2026', title:'Federal e-file accepted', ref:'tl-23', detail:'Accepted on the second transmission. The record locks here, as filed.', irs:'Accepted.' },
+      { at:T.ca, date:'15 Jul 2026', title:'California e-file accepted', ref:'tl-24', detail:'Released after the federal acceptance.' },
+      { at:T.paid, date:'20 Jul 2026', title:'Federal balance paid', ref:'tl-25', detail:'Paid by direct debit, after the 15 Apr 2026 due date, so interest and a failure-to-pay penalty apply. See Penalty and interest below.' },
+      { at:T.ref, date:'21 Aug 2026', title:'CA refund issued', ref:'tl-26', detail:'Overpayment refunded by direct deposit.' },
+      { at:T.qr, date:'4 Jan 2027', title:'Selected for quality review', ref:'tl-27', detail:'Sam Adeyemi, quality reviewer.' },
+      { at:T.next, date:'15 Jan 2027', title:'Next year’s engagement started', ref:'tl-28', detail:'Priya Raman opens this file to roll forward to the 2026 return.' },
+      { at:T.l566, date:'26 Jan 2028', title:'IRS Letter 566 received', ref:'tl-29 · D72', detail:'Correspondence examination of the 2025 return, dated 20 Jan 2028, response due 19 Feb 2028.', irs:'Dated 20 Jan 2028; response due 19 Feb 2028.' }
+    ];
+    const timeline = evRows.filter(e => !isIrs || e.irs).map(e => {
+      const happened = e.at <= now;
+      const caughtNow = !!e.caught && !happened && staff;
+      return {
+        date: e.date, title: isIrs && e.irsTitle ? e.irsTitle : e.title, ref: e.ref, refStyle: isIrs ? hide : '',
+        detail: isIrs ? e.irs : e.detail,
+        tword: happened ? 'Happened' : 'Later in this story (not yet happened)', tcls: happened ? 'fil-t-pas' : 'fil-t-mut', rowStyle: happened ? '' : 'color:var(--ink2)',
+        hasCaught: caughtNow, caught: 'This workpaper flags it before filing: Theo’s SSN differs from his 2024 return, a blocker.', caughtLink: 'Open the check',
+        hasOpen: !isIrs && !caughtNow && !!e.claim, openLabel: e.openLabel || 'Open', open: e.claim ? () => openClaim(e.claim) : noop
+      };
+    });
+
+    // Blockers and stage come from the shell (FIX-ROUND-H3b decisions 1 and 4); standalone fallback mirrors the shell's rule.
+    const FALLBACK_BLOCKERS = [ { claimId:'ca-est', title:'California estimates include a 2024 payment' }, { claimId:'atlas', title:'Card sales counted twice in business income' }, { claimId:'rsu', title:'RSU shares sold with a zero cost basis' }, { claimId:'theo-ssn', title:'Theo’s SSN differs from his 2024 return' } ]
+      .concat(now >= '2026-06-30T18:02' ? [ { claimId:'crypto-c6', title:'Answer arrived after the last computation: crypto lot C6 basis' } ] : [])
+      .concat(now >= '2026-07-01T16:40' ? [ { claimId:'gift-brigid', title:'Answer arrived after the last computation: St. Brigid gift' } ] : []);
+    const BLOCKERS = Array.isArray(P.blockers) ? P.blockers.filter(b => b && typeof b.title === 'string') : FALLBACK_BLOCKERS;
+    const nBlock = BLOCKERS.length;
+    const BLOCK = nBlock ? '“' + BLOCKERS[0].title + '”' + (nBlock > 1 ? ', and ' + (nBlock - 1) + ' more' : '') : '';
+    const APPROVE_BTN = nBlock ? 'Approve and send to client: blocked by ' + BLOCK : 'Approve and send to client';
+    const STAGE = (typeof P.stage === 'string' && P.stage) ? P.stage : (now >= '2026-07-14T16:22' ? 'Filed' : now >= '2026-07-13T17:04' ? 'Filing' : now >= '2026-07-10T20:05' ? 'Approval' : 'Review');
+    const act = (label, o) => ({ label, cls: (o && o.off) ? 'off' : ((o && o.primary) ? 'primary' : ''), ad: (o && o.off) ? 'true' : 'false', reason: (o && o.reason) || '',
+      go: (o && o.fn) ? o.fn : () => say((o && o.off) ? ('Not available: ' + o.reason + '.') : label) });
+
+    // Client e-file signatures (U7): one step per spouse, per form. Packet tl-20 carries a taxpayer and a spouse signature.
+    const FORMS = [
+      { id:'8879', form:'Form 8879, federal e-file signature authorization', label:'Sign Form 8879 (e-file signature authorization)' },
+      { id:'ftb8879', form:'FTB 8879, California e-file signature authorization', label:'Sign FTB 8879 (California e-file signature authorization)' }
+    ];
+    const SPOUSES = [ { id:'ngozi', name:'Ngozi Okafor', sub:'Taxpayer' }, { id:'erik', name:'Erik Lindqvist', sub:'Spouse' } ];
+    const sigOf = {};
+    if (at('sign')) SPOUSES.forEach(s => FORMS.forEach(f => { sigOf[s.id + '-' + f.id] = { when:'Signed 10 Jul 2026, 20:05', src:'packet' }; }));
+    events.filter(e => e.type === 'client_signed' && !retracted.has(e.seq) && e.signer && e.form).forEach(e => { const k = e.signer + '-' + e.form; if (!sigOf[k]) sigOf[k] = { when:'Signed in this story', src:'story' }; });
+    Object.keys(st.signed || {}).forEach(k => { if (st.signed[k] && !sigOf[k]) sigOf[k] = { when:'Signed in this story', src:'story' }; });
+    const signOpen = !at('sign') && !!st.preview && isClient;
+    const sigCards = SPOUSES.map(s => ({ name: s.name, sub: s.sub + (isClient && role === s.id ? ' (you)' : ''),
+      forms: FORMS.map(f => {
+        const k = s.id + '-' + f.id, sg = sigOf[k];
+        const canSign = signOpen && role === s.id && !sg;
+        return { form: f.form, tword: sg ? 'Signed' : 'Not signed', tcls: sg ? 'fil-t-pas' : 'fil-t-mut',
+          when: sg ? sg.when + '. The signature PIN is never shown.' : (isClient && role !== s.id ? s.name.split(' ')[0] + ' signs this separately.' : 'Waiting for this signature.'),
+          canSign, label: f.label,
+          sign: () => { send('client_signed', s.name + ' signed ' + f.form.split(',')[0], { signer: s.id, form: f.id }); this.setState({ signed: { ...(st.signed || {}), [k]: true }, msg: 'Signed: ' + f.form.split(',')[0] + '. A copy of exactly what you signed is kept with your signature.' }); } };
+      }) }));
+    const nSigned = Object.keys(sigOf).length;
+    const hasSnap = nSigned > 0;
+    const snap = at('sign')
+      ? { title:'The return as presented for signing on 10 Jul 2026', exStyle: hide,
+          text:'Kept unchanged with both signatures: the return the firm presented for approval, with the amounts each spouse authorized.',
+          hasChanged: staff && cardIn, changed:'Theo’s SSN was corrected on 13 Jul 2026, after both spouses signed on 10 Jul 2026. Record whether the corrected return is presented again for signature.' }
+      : { title:'The return as presented for signing, in this story', exStyle: '', text:'Each signature keeps a copy of exactly what was signed. If anything changes afterwards, the copy shows the difference.', hasChanged:false, changed:'' };
+
+    let appr;
+    if (isClient) {
+      const t = at('ca') ? ['Filed', 'fil-t-pas', 'Your return is filed', 'The IRS accepted your federal return on 14 Jul 2026 and California accepted on 15 Jul 2026. Your copy is below.']
+        : at('fed') ? ['Accepted', 'fil-t-pas', 'The IRS accepted your federal return', 'Accepted on 14 Jul 2026. California is next.']
+        : at('card') ? ['Sending again', 'fil-t-acc', 'Thank you: Theo’s card arrived', 'We corrected his number and are sending your return again.']
+        : at('rej') ? ['Action needed', 'fil-t-blk', 'The IRS returned your return; we need Theo’s Social Security card', 'The number we sent for Theo did not match IRS records. Please upload a photo of his card.']
+        : at('sign') ? ['Signed', 'fil-t-pas', 'You have both signed', 'Signed on 10 Jul 2026. Your tax team sends your return next.']
+        : st.preview ? ['Preview', 'fil-t-wrn', 'Sign Form 8879 (e-file signature authorization)', 'Each of you signs separately: Form 8879 for the federal return and FTB 8879 for California. This preview shows how it works; your tax team has not approved your return yet.']
+        : ['Locked', 'fil-t-mut', 'Sign Form 8879 (e-file signature authorization)', 'This opens once your tax team has finished and approved your return. We will let you know. Each of you then signs separately.'];
+      appr = { heading:'Your e-file signatures', tword:t[0], tcls:t[1], title:t[2], text:t[3], acts:[] };
+    } else if (at('sign')) appr = { heading:'Client approval and e-file authorization', tword:'Signed', tcls:'fil-t-pas', title:'Both spouses signed electronically on 10 Jul 2026',
+      text:'Forms 8879 and FTB 8879, for the return the firm presented for approval. The signature PINs are never shown.', acts:[] };
+    else appr = { heading:'Client approval and e-file authorization', tword:'Locked', tcls:'fil-t-mut', title: role === 'helen' ? 'Opens for the clients after you approve' : 'Opens for the clients after partner approval',
+      text: (nBlock ? (role === 'helen' ? 'Your approval is blocked by ' : 'Partner approval is blocked by ') + BLOCK + '. Firm rule: “Open review notes block filing.”' : (role === 'helen' ? 'Nothing blocks your approval.' : 'Nothing blocks partner approval.')) + ' Then each spouse signs Form 8879 and FTB 8879 separately.',
+      acts: (role === 'helen' ? [ nBlock ? act(APPROVE_BTN, { off:true, reason:'Blocked: ' + BLOCK }) : act(APPROVE_BTN, { primary:true, fn: () => { send('client_approval_requested', 'Helen Strand approved the return and asked both spouses to sign'); say('Sent: both spouses are asked to sign.'); } }) ] : []).concat([ act('Open Review', { fn: () => go('review') }) ]) };
+
+    const clientSteps = [
+      'Your tax team finishes checking and approves your return.',
+      'Each of you signs here: Form 8879 for the federal return and FTB 8879 for California.',
+      'We send it to the IRS and to California, and tell you when each accepts it.',
+      'Your copy of the filed return appears on this page.'
+    ].map((text, i) => ({ n: i + 1, text }));
+
+    // Client's copy (U17): the as-filed return, both 8879s, acknowledgements, payments. Plain words. Bank account: last 4 only.
+    const copyRows = [
+      { title:'Your 2025 federal return (Form 1040), as filed', text:'Accepted by the IRS on 14 Jul 2026. Confirmation number 71530420261950019871.' },
+      { title:'Your 2025 California return (Form 540NR), as filed', text: at('ca') ? 'Accepted by California on 15 Jul 2026. Confirmation number 71530420261950019872.' : 'Sent to California; waiting for its answer.' },
+      { title:'Form 8879, signed by Ngozi and Erik on 10 Jul 2026', text:'Your permission for us to file your federal return electronically. Your signature PINs are not shown.' },
+      { title:'FTB 8879, signed by Ngozi and Erik on 10 Jul 2026', text:'The same permission for your California return.' }
+    ];
+    if (at('paid')) copyRows.push({ title:'Federal balance paid', text:'Paid by direct debit on 20 Jul 2026, after the 15 Apr due date, so the IRS adds interest and a late-payment charge.' });
+    if (at('ref')) copyRows.push({ title:'California refund', text:'Sent by direct deposit on 21 Aug 2026 to your account ending 9276.' });
+    const copyReady = at('fed') && !isIrs;
+
+    const frz = filed ? {
+      tword:'As filed, locked', tcls:'fil-t-acc',
+      headline: isIrs ? 'Federal return accepted 14 Jul 2026. Nothing in this record can change.' : (at('ca') ? 'Federal accepted 14 Jul 2026; California accepted 15 Jul 2026. Nothing in this record can change.' : 'Federal accepted 14 Jul 2026; California not yet accepted. Nothing in the federal record can change.'),
+      rows: isIrs ? [ { k:'Federal acceptance', v:'14 Jul 2026' }, { k:'Signed', v:'Form 8879, 10 Jul 2026' } ]
+        : [ { k:'Federal acceptance', v:'14 Jul 2026 · submission 71530420261950019871' }, { k:'California acceptance', v: at('ca') ? '15 Jul 2026 · submission 71530420261950019872' : 'Not yet' }, { k:'Signed', v:'Forms 8879 and FTB 8879, 10 Jul 2026, both spouses' }, { k:'Records kept until', v:'14 Jul 2033 (firm rule: 7 years after filing)' } ],
+      note: isIrs ? 'The values are the return as this workpaper finalized it. Each item below shows its filed value, its source documents and how it was built from them.' : 'Amounts are the return as this workpaper finalized it, not engine v3 (packet README: events after v3 mean the return as the workpaper finalizes it). An amendment goes on top as a new version; this record stays as filed.'
+    } : { tword:'Not locked yet', tcls:'fil-t-mut', headline:'The record locks, as filed, when the federal return is accepted.', rows:[ { k:'Stage', v: STAGE }, { k:'Version', v:'v3, none of our changes applied yet' } ], note:'After acceptance, nothing in the filed record can change; corrections go on top as an amendment.' };
+
+    // Letter 566 (tax_agency_records.notices N-2025-L566). Values are this workpaper's finalized ones (FIX-ROUND-2 item 1), tagged Example.
+    const letterHere = at('l566');
+    const letter = { tword: letterHere ? 'Response due 19 Feb 2028' : 'Later in this story: arrives 26 Jan 2028', tcls: letterHere ? 'fil-t-wrn' : 'fil-t-mut',
+      intro: isIrs ? 'Letter 566 dated 20 Jan 2028. As filed: the return as this workpaper finalized it. Each item shows its filed value, its source documents, how it was built from them and who signed it.'
+        : 'Letter 566 dated 20 Jan 2028 (D72, received 26 Jan 2028), response due 19 Feb 2028. The examination response is built from the as-filed record, so each item answers on its own.' };
+    const letterItems = [
+      { title:'Schedule A line 12: noncash charitable contributions (Form 8283)', value:'17,400', clickable:true, plain:false, aria:'As filed 17,400. Open where it came from', claim:'noncash',
+        letter:'Provide acknowledgments and valuation.',
+        built:'200 shares of Northlake Total Market Index Fund given to the Austin Community Foundation, 14,500 (high/low average 72.50 per share), plus a 2012 Subaru Outback given to Lone Star Kids Auto Donation at the charity’s sale price of 2,900 (Form 1098-C box 4c). Total 17,400.',
+        src:'D65 gift acknowledgment · D66 Form 1098-C',
+        hist:'Engine v3: 20,500; adjusted by the firm to 17,400, reason: a donated car the charity sold is limited to its gross proceeds (Form 1098-C box 4c).',
+        signed:'Prepared by Priya Raman; reviewed by Daniel Ortiz; signed by Helen Strand.' },
+      { title:'Schedule C line 1: gross receipts', value:'151,300', clickable:true, plain:false, aria:'As filed 151,300. Open where it came from', claim:'atlas',
+        letter:'Reconcile to Forms 1099-NEC (142,000) and Form 1099-K (12,400) filed by third parties.',
+        built:'Books revenue 151,300 (Lindqvist Studio profit and loss, cash basis). The five Forms 1099-NEC total 142,000, plus 9,300 from clients who sent no 1099. The 12,400 on the Form 1099-K is card money from Atlas already inside books revenue, so it is counted once.',
+        src:'D14 profit and loss · D15 page 3 · D16 to D20 Forms 1099-NEC · D21 Form 1099-K',
+        hist:'Engine v3: 163,700; adjusted by the firm to 151,300, reason: the 12,400 Form 1099-K is already inside books revenue.',
+        signed:'Prepared by Priya Raman; reviewed by Daniel Ortiz; signed by Helen Strand.' }
+    ].map(it => ({ ...it, hasHist: !isIrs, open: it.claim ? () => openClaim(it.claim) : noop }));
+
+    // Penalty and interest (U14): post_filing_rates (probe h3-F-1.py) on v3's federal balance 4,220. Estimate, Example.
+    const day = s => Date.UTC(+s.slice(0, 4), +s.slice(5, 7) - 1, +s.slice(8, 10)) / 86400000;
+    const paid = at('paid');
+    const endS = paid ? '2026-07-20' : now.slice(0, 10);
+    const late = now.slice(0, 10) > '2026-04-15';
+    const days = late ? day(endS) - day('2026-04-15') : 0;
+    let months = 0; while (late && Date.UTC(2026, 3 + months, 15) / 86400000 < day(endS)) months++;
+    const BAL = 4220;
+    const interest = Math.round(BAL * 0.07 * days / 365);
+    const ftp = BAL * 0.005 * months;
+    const pen = {
+      tword: !late ? 'Not due yet' : paid ? 'Paid 20 Jul 2026' : 'Balance unpaid', tcls: !late ? 'fil-t-mut' : paid ? 'fil-t-wrn' : 'fil-t-blk',
+      intro:'The engine does not compute interest or penalties after the due date. This estimate uses the packet’s post-filing rates: IRS interest 7% a year and a failure-to-pay penalty of 0.5% for each month or part of a month. An extension of time to file is not an extension of time to pay.',
+      rows: [
+        { k:'Federal balance due at v3', v:'4,220' }, { k:'Due', v:'15 Apr 2026' },
+        { k:'Paid', v: paid ? '20 Jul 2026, by direct debit' : 'Not paid at this story time' },
+        { k:'Days after the due date', v: String(days) },
+        { k:'Interest, 7% a year', v: late ? 'about ' + interest.toLocaleString('en-US') : '0' },
+        { k:'Failure-to-pay penalty, ' + months + (months === 1 ? ' month' : ' months') + ' at 0.5%', v: late ? 'about ' + ftp.toFixed(2) : '0' },
+        { k:'California', v:'No late-payment charge: CA refund at v3 (8,256)' }
+      ],
+      note:'Estimate on v3’s balance. The finalized return’s balance decides the real figure, and our proposed federal changes may turn the balance into a refund, in which case nothing is owed.' + (late && !paid ? ' The amounts grow until the balance is paid.' : ''),
+      irs: at('tr') ? 'The IRS assessed interest and the failure-to-pay penalty on 3 Aug 2026 (transcript codes 196 and 276, amount “computed by IRS”). The 20 Jul debit is coded 610, payment with return, while a failure-to-pay penalty is assessed: confirm with the IRS before advising the clients.' : 'The IRS computes and assesses the real amounts after payment.'
+    };
+    const rec = st.recorded || {};
+    const mkRec = (id, text) => ({ canRecord: working, pressed: rec[id] ? 'true' : 'false', btn: rec[id] ? 'Decision recorded' : 'Record the decision',
+      record: () => { if (rec[id]) return; send('penalty_decision', text); this.setState({ recorded: { ...rec, [id]: true }, msg: 'Recorded: ' + text }); } });
+    const penDecisions = [
+      { tword:'Decision', tcls:'fil-t-acc', title:'Form 2210 method: regular', text:'The regular method and the annualized method both give a 164 underpayment penalty (engine what-if penalty_annualized), so the regular method stays.',
+        more:'The engine counts withholding as 25,400 only. Excess social security tax of 3,342 also counts as withholding on Form 2210, which lowers the penalty by about 140 (estimate, Example). Correcting the fourth federal estimate raises it by about 17 (estimate, Example).',
+        links:[ { label:'Open the excess social security', open: () => openClaim('excess-ss') }, { label:'Open the federal estimates', open: () => openClaim('fed-est') } ], ...mkRec('m2210', 'Form 2210: regular method kept; both methods give 164') },
+      { tword:'To decide', tcls:'fil-t-wrn', title:'Failure-to-pay penalty: ask for first-time abatement', text:'Once the IRS assesses the penalty, decide whether to ask it to remove the penalty as a first-time abatement. Interest is not removed this way.',
+        more:'Tell the clients that the 20 Jul payment was not the final cost.', links:[], ...mkRec('fta', 'Failure-to-pay penalty: request first-time abatement once assessed') }
+    ].map(d => ({ ...d, hasOpen: d.links.length > 0 }));
+
+    // Outside filings (U13). Facts from D07, D26, D27, D36, D38, D39, household.related_returns, firm.deadlines, ledger GT-B05, GT-C07 (probes h3-F-1, h3-F-4, h3-F-5, h3-F-6, h3-F-7).
+    const orec = (id, text) => ({ canRecord: working && !filed, pressed: rec[id] ? 'true' : 'false', btn: rec[id] ? 'Decision recorded' : 'Record the decision',
+      record: () => { if (rec[id]) return; send('outside_filing_decision', text); this.setState({ recorded: { ...rec, [id]: true }, msg: 'Recorded: ' + text }); } });
+    const noRec = { canRecord:false, pressed:'false', btn:'', record: noop };
+    const OUT = [
+      { id:'fbar', known:'2026-01-21T03:22', need:'Required', ncls:'fil-t-wrn', owner:'Not ours: the client files it', title:'FBAR (FinCEN Form 114) for the Sparbanken Norrland account',
+        why:'Highest balance in 2025 SEK 1,452,300, far over 10,000 dollars. Filed with FinCEN, not with the return. The prior preparer noted: “Sparbanken account: FBAR filed by client separately.”',
+        due:'Due 15 Oct 2026 (automatic extended due date; outside the engagement).', src:'D36 · D07 page 2 · engine info FBAR_OUTSIDE_RETURN · firm deadlines', claim:'sek-fx', openLabel:'Open the Swedish account value', ...noRec },
+      { id:'1099nec', known:'2026-02-11T22:14', need:'Required', ncls:'fil-t-blk', owner:'Not ours: the business files it', title:'Forms 1099-NEC for two contractors', ex:true,
+        why:'Mara Quintero 4,800 and Dev Patel 2,600, paid by ACH; “No Forms 1099 have been issued.” Erik asked us what to do (call of 26 Mar 2026). Advice: file them late now to limit the penalty.',
+        due:'Was due 2 Feb 2026: late. Outside the engagement.', src:'D27 · call-01 · engine warning FORM_1099_FILING', ...orec('1099nec', 'Forms 1099-NEC: advise the clients to file late now') },
+      { id:'3520', known:'2026-01-21T03:22', need:'May be required', ncls:'fil-t-blk', owner:'Open: ask the clients', title:'2023 Form 3520, foreign inheritance', ex:true,
+        why:'Erik inherited the Swedish account from his mother in 2023 (“Account opened 09/2023 (inheritance from Birgitta Lindqvist)”). If she was a foreign person and the inheritance was over 100,000, a 2023 Form 3520 was due. The prior preparer left it open: “2023 Form 3520 (foreign inheritance over 100,000) - discussed? (no note of resolution)”. The 2025 questionnaire asks only about 2025.',
+        due:'A 2023 filing; not part of the 2025 return. Penalty exposure if it was required and not filed.', src:'D36 · D07 page 3 · qa-07 · qa-08', claim:'form-3520', openLabel:'Open the Form 3520 item', ...orec('3520', '2023 Form 3520: ask the clients about Birgitta Lindqvist’s residency') },
+      { id:'5330', known:'2026-04-10T15:32', need:'Required unless withdrawn', ncls:'fil-t-wrn', owner:'Decision: withdraw or pay', title:'Form 5330, excise tax on the SEP excess', ex:true,
+        why:'Erik deposited 18,000 for 2025; the deduction is limited to 15,214, so 2,786 is not deductible. A 10% excise tax (about 279, estimate, Example) applies unless the excess is withdrawn. After our Schedule C fixes the limit falls and the excess grows.',
+        due:'Filed separately from the return.', src:'D26 · Sch1.16 · v3 carryovers out · qa-26', ...orec('5330', 'SEP excess: advise withdrawing it or filing Form 5330') },
+      { id:'or', known:'2026-03-01T23:10', need:'Filed by others', ncls:'fil-t-mut', owner:'Not ours', title:'Oregon composite return, Lindqvist Family Woodworks',
+        why:'“Oregon composite return filed for nonresident shareholders; Oregon tax paid on your behalf 1,580.” Prepared with the 1120-S by Willamette CPA Group. Must agree: the 1,580 and California’s credit for it.',
+        due:'Paid with the composite return in April 2026.', src:'D39 page 2 · household related returns', claim:'or-credit', openLabel:'Open the Oregon credit', ...noRec },
+      { id:'az', known:'2026-06-22T18:55', need:'Filed by others', ncls:'fil-t-mut', owner:'Not ours', title:'Arizona composite return, Ridgeline Real Estate Fund III',
+        why:'“The partnership filed an Arizona composite return on behalf of nonresident partners; no Arizona filing required by the partner.” Prepared with the 1065 by the fund administrator.',
+        due:'No filing for the clients.', src:'D38 · household related returns', ...noRec },
+      { id:'ada', known:'2026-01-12T17:06', need:'Filed by others', ncls:'fil-t-mut', owner:'Not ours', title:'Ada’s own 2025 Form 1040',
+        why:'Ada files her own return with consumer software (summer job W-2 4,100). Must agree: she checked “someone can claim you as a dependent”, and this return claims her as an other dependent (Form 8812 line 6). Not in the packet.',
+        due:'Her own deadline, 15 Apr 2026.', src:'household related returns · F8812.6', ...noRec },
+      { id:'709', known:'2026-02-10T03:35', need:'Not needed', ncls:'fil-t-pas', owner:'Recorded so the answer is on file', title:'Form 709, gift tax return', ex:true,
+        why:'Both 2025 noncash gifts went to charities (Austin Community Foundation; Lone Star Kids Auto Donation), and no gift to a person appears in the documents or answers. None needed.',
+        due:'Nothing to file.', src:'D65 · D66 · qa-08', ...orec('709', 'Form 709: none needed for 2025') }
+    ];
+    const outside = OUT.map(o => {
+      const known = now >= o.known;
+      return { need: known ? o.need : 'Not known yet', ncls: known ? o.ncls : 'fil-t-mut', owner: known ? o.owner : 'Waiting for documents', title: o.title,
+        why: known ? o.why : 'The documents that show this have not arrived at this story time.', due: known ? o.due : '', src: o.src, exStyle: o.ex && known ? '' : hide,
+        hasOpen: known && !!o.claim, openLabel: o.openLabel || '', open: o.claim ? () => openClaim(o.claim) : noop,
+        canRecord: known && o.canRecord, pressed: o.pressed, btn: o.btn, record: o.record };
+    });
+
+    // Carryovers (v3 carryovers_out, planning_reference_2026, D12, qa-06, call 5). Next year's preparer can add items to the 2026 plan.
+    const added = st.added || {};
+    const canAdd = role === 'next';
+    const mk = (id, o) => {
+      const a = !!added[id];
+      return { tword: o.tword || 'Carryover', tcls: o.tcls || 'fil-t-acc', title: o.title, why: o.why, src: o.src, exStyle: o.ex ? '' : hide,
+        hasVals: !!(o.vals && o.vals.length), vals: (o.vals || []).map(v => ({ k: v.k, v: v.v, aria: v.k + ' ' + v.v + '. Open where it came from', open: () => openClaim(v.claim) })),
+        canAdd, pressed: a ? 'true' : 'false', btn: a ? 'Added to 2026 plan' : 'Add to 2026 plan',
+        add: () => { send(a ? 'plan_remove' : 'plan_add', (a ? 'Removed from' : 'Added to') + ' the 2026 plan: ' + o.title); this.setState({ added: { ...added, [id]: !a }, msg: a ? 'Removed from the 2026 plan.' : 'Added to the 2026 plan, with its history.' }); } };
+    };
+    const carry = [
+      mk('iso', { title:'Corvane ISO shares: 1,000 exercised 30 Jul 2025, still held',
+        vals:[ { k:'Regular basis', v:'12,000', claim:'iso-lot' }, { k:'AMT basis', v:'52,000', claim:'iso-lot' }, { k:'Minimum tax credit', v:'3,871', claim:'iso-lot' } ],
+        why:'Exercise price 12.00 and value 52.00 per share. The 40,000 difference is the 2025 AMT adjustment (F6251.2i); when the shares are sold, the gain differs for regular tax and AMT, and the minimum tax credit may come back (Form 8801). A sale after 30 Jul 2026 is a qualifying disposition. The credit moved with each version (3,722, 3,700, 3,871) and is final with the finalized return. Trace gap: “held at year end” rests on the client’s answer qa-06, which the line does not cite.',
+        src:'D12 Form 3921 (ev-0076 to ev-0079) · qa-06 “She still holds those shares.” · v3 carryovers out' }),
+      mk('mtc', { title:'Minimum tax credit from the 2025 AMT, linked to the ISO lot', vals:[ { k:'Credit', v:'3,871', claim:'iso-lot' } ],
+        why:'May be usable in 2026 (Form 8801). It rests on the ISO lot above.', src:'v3 carryovers out · planning reference 2026 · engine diagnostic AMT_CREDIT_CARRYFORWARD' }),
+      mk('hp', { title:'Fremont Way heat pump, a new rental asset', ex: true, vals:[ { k:'Cost', v:'11,000', claim:'heat-pump' } ],
+        why: filed ? 'Depreciated over 27.5 years from August 2025, as recorded in the filed return.' : 'If the proposed change is accepted: depreciated over 27.5 years from August 2025.', src:'D47 invoice · proposed change on SchE.14A' }),
+      mk('theo', { title: cardIn ? 'Theo’s SSN: use the number on his card' : 'Theo’s SSN: use the number on his 2024 return', vals:[ { k:'Ends', v:'3390', claim:'theo-ssn' } ],
+        why: cardIn ? 'The organizer number ended 3309 and caused the July rejection. Carry the card number, not the organizer entry.' : 'The organizer number ends 3309; the 2024 return prints a number ending 3390. Carry the checked number, not the organizer entry.',
+        src: cardIn ? 'D71 Social Security card · D06 2024 return' : 'D06 2024 return (ev-0012)' }),
+      mk('sep', { title:'SEP contribution not deductible for 2025', vals:[], why:'2,786 over the 2025 limit. Erik’s 2026 limit depends on 2026 net profit. See Form 5330 under Outside filings.', src:'v3 carryovers out · planning reference 2026' }),
+      mk('ridge', { title:'Ridgeline capital account at the end of 2025', vals:[], why:'63,660, the opening capital account for 2026.', src:'v3 carryovers out' }),
+      mk('cadep', { title:'California depreciation basis differences', vals:[], why:'SAC-APPL 241.92; STU-PRINTER 11,360; STU-CAMERA 13,040; STU-WORKST 6,000.', src:'v3 carryovers out, California' }),
+      mk('est26', { title:'2026 estimated payments', vals:[], why:'Federal due 15 Apr 2026, 15 Jun 2026, 15 Sep 2026 and 15 Jan 2027: “Pay the lesser of 90% of 2026 tax or 110% of 2025 total tax (2025 AGI over 150,000), in four equal installments.” California due 15 Apr 2026, 15 Jun 2026 and 15 Jan 2027, 30%, 40% and 30%.', src:'planning reference 2026' }),
+      mk('ca', { title:'No California residency in 2026', vals:[], why:'California taxes only California-source income: the Sacramento rental and Ridgeline’s California share.', src:'planning reference 2026' })
+    ];
+    const openItems = [
+      { tword:'Open', tcls:'fil-t-wrn', title:'California AMT not computed', code:'CA_AMT_NOT_COMPUTED · engine warning',
+        why:'From the engine: “California AMT (Schedule P 540NR) not computed: review incentive stock option exercise for California-source allocation.” The packet README also says California AMT is not computed. A person must review it and record the outcome.', claim:'iso-lot', openLabel:'Open the ISO lot' },
+      { tword:'Outside engagement', tcls:'fil-t-mut', title:'Forms 1099-NEC not filed for two contractors', code:'FORM_1099_FILING · engine warning',
+        why:'From the engine: “Schedule C: client paid two contractors 600 or more and has not filed Forms 1099-NEC.” Due 2 Feb 2026; outside the engagement. Listed under Outside filings.' },
+      { tword:'Outside engagement', tcls:'fil-t-mut', title:'FBAR for the Swedish account', code:'FBAR_OUTSIDE_RETURN · engine info',
+        why:'FinCEN Form 114 is due separately (automatic extended due date 15 Oct 2026); not part of this return. Listed under Outside filings.' }
+    ].map(o => ({ ...o, hasOpen: !!o.claim, openLabel: o.openLabel || '', open: o.claim ? () => openClaim(o.claim) : noop }));
+
+    const versionText = isClient ? (filed ? 'Your filed return' : 'Draft, being prepared by your tax team') : filed ? 'As filed: the return as this workpaper finalized it' : 'v3, none of our changes applied yet';
+    return {
+      blockerCount: nBlock,
+      wpClass: 'wp' + ((P.dark ?? false) ? ' dark' : ''),
+      eyebrow: isClient ? 'Your return' : 'Filing and after',
+      h1: isClient ? (filed ? 'Your filed return' : 'Sign and file') : isIrs ? 'The filed return: items under examination' : 'Filing and after',
+      intro: isClient ? 'When your tax team has finished, each of you signs your return here. After it is filed, your copy appears on this page.'
+        : isIrs ? 'Read only. You see the items in Letter 566 as filed, and can export the examination response.'
+        : 'Client approval and e-file signatures, e-file and rejections, the as-filed record, the examiner’s letter, penalty and interest, outside filings and what carries over. Events after v3 are scripted in the packet; each shows whether it has happened yet at this story time.',
+      versionText, asOfLabel, asOfStyle: isClient ? hide : '', canAmend: role === 'next',
+      amend: () => { send('amend_started', 'Amendment opened on top of the filed 2025 return'); say('An amendment opens as a new version on top; the filed record stays as filed.'); },
+      snapStyle: filed && role !== 'next' ? '' : hide,
+      isClient,
+      showApproval: !isIrs, appr, clientSteps, sigCards, hasSnap: hasSnap && !isIrs, snap,
+      canPreview: isClient && !at('sign'), previewPressed: st.preview ? 'true' : 'false', previewLabel: st.preview ? 'Close the preview' : 'Preview how signing works',
+      previewNote: st.preview ? 'Preview: signatures here show how it works.' : 'See the steps before your tax team opens them.', previewExStyle: st.preview ? '' : hide,
+      togglePreview: () => this.setState({ preview: !st.preview }),
+      showCopy: !isIrs, copyHeading: isClient ? 'Your copy' : 'Client’s copy: what Ngozi and Erik receive',
+      copyNote: isClient ? 'Your filed returns, your signed authorizations and the confirmations, in one place.' : 'The as-filed return, both 8879s, the acknowledgements and payments, in the clients’ words.',
+      copyReady, copyWaiting: !copyReady, copyRows: copyRows.map(c => ({ ...c, hasOpen: true, open: () => say('Opens ' + c.title + '.') })),
+      copyWaitText: isClient ? 'Your copy appears here after the IRS and California accept your return.' : 'Appears for the clients once the federal return is accepted.',
+      downloadLabel: isClient ? 'Download your copy' : 'Download the clients’ copy', downloadCopy: () => say('Downloads one file with every item listed above.'),
+      showFrozen: !isClient, frz,
+      showTimeline: !isClient, timeline,
+      tlHeading: isIrs ? 'Filing dates' : 'The season, from the packet timeline',
+      tlNote: isIrs ? '' : 'Happened: by this story time (' + asOfLabel + '). Later in this story: scripted in the packet, not yet happened.',
+      showLetter: !isClient, letter, letterItems, goDocs: () => go('documents'),
+      canExport: isIrs, exportLabel:'Examination response',
+      exportPack: () => say('The examination response downloads here: the two items, their source documents, how each was built and the sign-offs, as filed.'),
+      exportNote: isIrs ? 'The response holds only these two items.' : 'The examiner exports the examination response from this record.',
+      showPenalty: staff, pen, penDecisions,
+      showOutside: staff, outside,
+      showCarry: staff, carry, openItems,
+      carryNote: canAdd ? 'Add items to the 2026 plan; each keeps its history.' : (role === 'sam' || role === 'jo') ? 'Read only.' : 'Next year’s preparer adds these to the 2026 plan.',
+      msg: st.msg || ''
+    };
+  }
+}
+</script>
+</body>
+</html>

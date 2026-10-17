@@ -1,0 +1,802 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Areas</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Instrument+Sans:wght@400;500;600;700&amp;family=Source+Serif+4:opsz,wght@8..60,400;8..60,600&amp;family=IBM+Plex+Mono:wght@400;500&amp;display=swap" rel="stylesheet">
+<style>
+.wp{--bg:oklch(0.975 0.005 250);--surface:oklch(0.995 0.003 250);--sunk:oklch(0.955 0.006 250);--line:oklch(0.89 0.008 250);--ink:oklch(0.24 0.02 255);--ink2:oklch(0.44 0.02 255);--acc:oklch(0.46 0.15 262);--accsoft:oklch(0.94 0.035 262);--blk:oklch(0.50 0.17 32);--blksoft:oklch(0.955 0.03 32);--wrn:oklch(0.48 0.10 70);--wrnsoft:oklch(0.96 0.045 85);--pas:oklch(0.47 0.09 165);--passoft:oklch(0.955 0.03 165);--hl:oklch(0.91 0.13 100);--paper:oklch(0.99 0.006 90)}
+.wp.dark{--bg:oklch(0.19 0.012 255);--surface:oklch(0.23 0.014 255);--sunk:oklch(0.17 0.012 255);--line:oklch(0.33 0.015 255);--ink:oklch(0.93 0.008 255);--ink2:oklch(0.74 0.012 255);--acc:oklch(0.76 0.11 262);--accsoft:oklch(0.30 0.05 262);--blk:oklch(0.74 0.13 35);--blksoft:oklch(0.28 0.05 32);--wrn:oklch(0.80 0.11 80);--wrnsoft:oklch(0.29 0.04 85);--pas:oklch(0.76 0.09 165);--passoft:oklch(0.27 0.04 165);--hl:oklch(0.55 0.10 100);--paper:oklch(0.26 0.01 90)}
+.wp{font-family:'Instrument Sans',system-ui,sans-serif;color:var(--ink);background:var(--bg);font-size:14px;line-height:1.45;min-height:100vh;display:flex;flex-direction:column}
+.area-num{font-variant-numeric:tabular-nums;font-feature-settings:"tnum"}
+.area-mono{font-family:'IBM Plex Mono',monospace;font-size:12px}
+.area-sub{color:var(--ink2);font-size:12.5px}
+.area-h3{margin:0;font-size:13px;font-weight:600;letter-spacing:.02em}
+.area-btn{font:inherit;font-size:13px;border:1px solid var(--line);background:var(--surface);color:var(--ink);border-radius:8px;padding:6px 12px;cursor:pointer;min-height:34px}
+.area-btn:hover{border-color:var(--ink2)}
+.area-btn.primary{background:var(--acc);border-color:var(--acc);color:var(--surface)}
+.area-btn:disabled{cursor:not-allowed;color:var(--ink2);background:var(--sunk);border-color:var(--line)}
+.area-btn:focus-visible,.area-val:focus-visible,.area-toggle:focus-visible{outline:2px solid var(--acc);outline-offset:2px}
+.area-tag{display:inline-flex;align-items:center;gap:5px;font-size:11.5px;font-weight:600;padding:2px 8px;border-radius:999px;white-space:nowrap}
+.area-t-blk{color:var(--blk);background:var(--blksoft)}
+.area-t-wrn{color:var(--wrn);background:var(--wrnsoft)}
+.area-t-pas{color:var(--pas);background:var(--passoft)}
+.area-t-acc{color:var(--acc);background:var(--accsoft)}
+.area-t-mut{color:var(--ink2);background:var(--sunk)}
+.area-ex{font-size:10.5px;font-weight:600;letter-spacing:.03em;padding:1px 6px;border-radius:999px;border:1px dashed var(--ink2);color:var(--ink2);white-space:nowrap;vertical-align:1px}
+.area-card{background:var(--surface);border:1px solid var(--line);border-radius:10px}
+.area-head{display:flex;flex-wrap:wrap;align-items:center;gap:6px 14px;padding:8px 14px}
+.area-toggle{all:unset;box-sizing:border-box;display:inline-flex;align-items:center;gap:8px;cursor:pointer;font-weight:600;font-size:15px;min-height:36px;padding:2px 4px;border-radius:6px;flex:1 1 220px;min-width:0}
+.area-toggle:hover{color:var(--acc)}
+.area-body{border-top:1px solid var(--line);padding:12px 16px 16px;display:flex;flex-direction:column;gap:14px}
+.area-scroll{overflow-x:auto}
+.area-tbl{border-collapse:collapse;width:100%;font-size:13px}
+.area-tbl th{font-size:11.5px;font-weight:600;letter-spacing:.03em;text-transform:uppercase;color:var(--ink2);text-align:left;padding:5px 10px 5px 0;border-bottom:1px solid var(--line);white-space:nowrap}
+.area-tbl td{padding:6px 10px 6px 0;border-bottom:1px solid var(--line);vertical-align:baseline}
+.area-tbl .area-r{text-align:right;white-space:nowrap}
+.area-tbl tr.area-tot td{font-weight:600}
+.area-val{all:unset;box-sizing:border-box;font-weight:600;color:var(--acc);text-decoration:underline;text-underline-offset:3px;cursor:pointer;padding:2px 6px;border-radius:6px;white-space:nowrap}
+.area-val:hover{background:var(--accsoft)}
+.area-val.on{background:var(--accsoft)}
+.area-find{display:flex;flex-wrap:wrap;align-items:baseline;gap:6px 14px;padding:8px 0;border-top:1px solid var(--line)}
+.area-list{margin:0;padding:0;list-style:none;display:flex;flex-direction:column;gap:6px;font-size:13px}
+</style>
+</helmet>
+<div class="{{wpClass}}">
+<div style="display:flex;flex-direction:column;gap:16px;padding:22px 28px;max-width:1080px;width:100%;box-sizing:border-box">
+
+<sc-if value="{{hidden}}" hint-placeholder-val="{{ false }}">
+<div style="background:var(--surface);border:1px solid var(--line);border-radius:10px;padding:16px 18px;display:flex;flex-wrap:wrap;align-items:center;gap:12px">
+<span>{{hiddenText}}</span>
+<button class="area-btn primary" type="button" onClick="{{hiddenGo}}">{{hiddenLabel}}</button>
+</div>
+</sc-if>
+
+<sc-if value="{{shown}}" hint-placeholder-val="{{ true }}">
+<div style="display:flex;flex-direction:column;gap:14px">
+<div style="display:flex;flex-wrap:wrap;align-items:baseline;justify-content:space-between;gap:8px 18px">
+<div style="display:flex;flex-direction:column;gap:4px;min-width:0">
+<h1 style="margin:0;font-size:24px;letter-spacing:-.015em;font-weight:600">Areas</h1>
+<span style="color:var(--ink2);max-width:76ch">{{subline}}</span>
+</div>
+<span class="area-num" style="color:var(--ink2);font-size:12.5px">{{versionNote}} <sc-if value="{{filed}}" hint-placeholder-val="{{ false }}"><span class="area-ex">Example</span></sc-if></span>
+</div>
+
+<p class="area-num" style="margin:0;font-size:13px;max-width:90ch">{{countLine}}</p>
+<sc-if value="{{hasRoleNote}}" hint-placeholder-val="{{ false }}"><p style="margin:0;font-size:13px;color:var(--ink2);max-width:90ch">{{roleNote}}</p></sc-if>
+<sc-if value="{{locked}}" hint-placeholder-val="{{ false }}"><p style="margin:0;font-size:13px;max-width:90ch;display:flex;flex-wrap:wrap;gap:8px;align-items:baseline"><span class="area-tag area-t-mut" title="The return as accepted by the IRS; it cannot be edited, later work attaches to it">As filed, locked</span><span>{{lockedText}}</span></p></sc-if>
+<sc-if value="{{hasEarly}}" hint-placeholder-val="{{ false }}"><p style="margin:0;font-size:13px;max-width:90ch;display:flex;flex-wrap:wrap;gap:8px;align-items:baseline"><span class="area-tag area-t-mut">Later in this story</span><span>{{earlyText}}</span></p></sc-if>
+
+<div role="group" aria-label="Status key" style="display:flex;flex-wrap:wrap;gap:8px 14px;font-size:12.5px;color:var(--ink2)">
+<sc-for list="{{legend}}" as="g" hint-placeholder-count="5"><span style="display:inline-flex;gap:6px;align-items:center" title="{{g.def}}"><span class="area-tag {{g.cls}}">{{g.word}}</span>{{g.text}}</span></sc-for>
+</div>
+
+<div style="display:flex;flex-direction:column;gap:8px">
+<sc-for list="{{areas}}" as="a" hint-placeholder-count="9">
+<section class="area-card" aria-label="{{a.name}}">
+<div class="area-head">
+<button class="area-toggle" type="button" aria-expanded="{{a.expanded}}" aria-controls="{{a.domId}}" onClick="{{a.toggle}}"><svg width="14" height="14" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" style="{{a.chevStyle}}"><path d="M6 3l5 5-5 5"></path></svg><span>{{a.name}}</span></button>
+<span class="area-num area-sub" style="flex:2 1 260px;min-width:0">{{a.headline}}</span>
+<span class="area-num area-sub">{{a.budget}}</span>
+<span class="area-num area-sub">{{a.findCount}}</span>
+<span style="display:inline-flex;gap:6px;align-items:center"><span class="area-tag {{a.tcls}}">{{a.tword}}</span><sc-if value="{{a.tex}}" hint-placeholder-val="{{ false }}"><span class="area-ex">Example</span></sc-if></span>
+</div>
+<sc-if value="{{a.isOpen}}" hint-placeholder-val="{{ false }}">
+<div class="area-body" id="{{a.domId}}">
+<p style="margin:0;color:var(--ink2);font-size:13px;max-width:90ch">{{a.scope}}</p>
+
+<div style="display:flex;flex-direction:column;gap:6px">
+<h3 class="area-h3">This year against last year</h3>
+<div class="area-scroll">
+<table class="area-tbl">
+<thead><tr><th scope="col">Line</th><th scope="col" class="area-r">2024 as filed</th><th scope="col" class="area-r">{{yearHead}}</th></tr></thead>
+<tbody>
+<sc-for list="{{a.summary}}" as="s" hint-placeholder-count="3">
+<tr><td><span>{{s.label}}</span> <span class="area-mono" style="color:var(--ink2)">{{s.key}}</span><span class="area-sub">{{s.note}}</span></td><td class="area-r area-num">{{s.py}}</td><td class="area-r area-num"><sc-if value="{{s.isClaim}}" hint-placeholder-val="{{ false }}"><button class="area-val area-num {{s.on}}" type="button" aria-label="{{s.aria}}" onClick="{{s.open}}">{{s.cy}}</button></sc-if><sc-if value="{{s.isPlain}}" hint-placeholder-val="{{ true }}"><span>{{s.cy}}</span></sc-if> <sc-if value="{{s.ex}}" hint-placeholder-val="{{ false }}"><span class="area-ex">Example</span></sc-if></td></tr>
+</sc-for>
+</tbody>
+</table>
+</div>
+</div>
+
+<sc-for list="{{a.records}}" as="r" hint-placeholder-count="2">
+<div style="display:flex;flex-direction:column;gap:6px">
+<h3 class="area-h3">{{r.title}} <sc-if value="{{r.ex}}" hint-placeholder-val="{{ false }}"><span class="area-ex">Example</span></sc-if></h3>
+<div class="area-scroll">
+<table class="area-tbl">
+<thead><tr><sc-for list="{{r.cols}}" as="c" hint-placeholder-count="4"><th scope="col" class="{{c.cls}}">{{c.t}}</th></sc-for></tr></thead>
+<tbody>
+<sc-for list="{{r.rows}}" as="row" hint-placeholder-count="4">
+<tr class="{{row.cls}}"><sc-for list="{{row.cells}}" as="c" hint-placeholder-count="4"><td class="{{c.cls}}"><sc-if value="{{c.isClaim}}" hint-placeholder-val="{{ false }}"><button class="area-val area-num {{c.on}}" type="button" aria-label="{{c.aria}}" onClick="{{c.open}}">{{c.t}}</button></sc-if><sc-if value="{{c.isPlain}}" hint-placeholder-val="{{ true }}"><span>{{c.t}}</span></sc-if> <sc-if value="{{c.ex}}" hint-placeholder-val="{{ false }}"><span class="area-ex">Example</span></sc-if></td></sc-for></tr>
+</sc-for>
+</tbody>
+</table>
+</div>
+<sc-if value="{{r.hasNote}}" hint-placeholder-val="{{ false }}"><p class="area-sub" style="margin:0;max-width:90ch">{{r.note}}</p></sc-if>
+</div>
+</sc-for>
+
+<div style="display:flex;flex-direction:column;gap:6px">
+<h3 class="area-h3">{{checksHead}}</h3>
+<ul class="area-list">
+<sc-for list="{{a.checks}}" as="k" hint-placeholder-count="3"><li style="display:flex;gap:8px;align-items:baseline"><span class="area-tag {{k.cls}}">{{k.word}}</span><span>{{k.text}}</span></li></sc-for>
+</ul>
+<sc-if value="{{a.hasEngine}}" hint-placeholder-val="{{ false }}">
+<ul class="area-list" aria-label="Engine notes">
+<sc-for list="{{a.engine}}" as="e" hint-placeholder-count="1"><li style="display:flex;gap:8px;align-items:baseline;flex-wrap:wrap"><span class="area-tag area-t-wrn" title="Engine diagnostics: messages the tax software raised itself">From the engine</span><span class="area-mono">{{e.code}}</span><span class="area-sub">({{e.sev}})</span><span>{{e.msg}}</span></li></sc-for>
+</ul>
+</sc-if>
+<sc-if value="{{a.hasEngineNote}}" hint-placeholder-val="{{ false }}"><p class="area-sub" style="margin:0">{{a.engineNote}}</p></sc-if>
+</div>
+
+<div style="display:flex;flex-direction:column;gap:0">
+<h3 class="area-h3" style="padding-bottom:6px">Findings in this area</h3>
+<sc-if value="{{a.noFindings}}" hint-placeholder-val="{{ false }}"><p class="area-sub" style="margin:0;padding:8px 0;border-top:1px solid var(--line)">None of the 27 findings sits in this area.</p></sc-if>
+<sc-for list="{{a.findings}}" as="f" hint-placeholder-count="3">
+<div class="area-find">
+<span class="area-mono" style="color:var(--ink2);min-width:7ch">{{f.gt}}</span>
+<span style="display:flex;flex-direction:column;gap:2px;flex:1 1 300px;min-width:0"><span style="font-weight:500">{{f.title}}</span><span class="area-sub">{{f.effect}} <sc-if value="{{f.effEx}}" hint-placeholder-val="{{ false }}"><span class="area-ex">Example</span></sc-if></span><sc-if value="{{f.hasWhere}}" hint-placeholder-val="{{ false }}"><span class="area-sub">{{f.where}}</span></sc-if><sc-if value="{{f.hasRecNote}}" hint-placeholder-val="{{ false }}"><span class="area-sub">{{f.recNote}}</span></sc-if></span>
+<sc-if value="{{f.isClaim}}" hint-placeholder-val="{{ true }}"><button class="area-val area-num {{f.on}}" type="button" aria-label="{{f.aria}}" onClick="{{f.open}}">{{f.value}}</button></sc-if>
+<span style="display:inline-flex;flex-wrap:wrap;gap:6px;align-items:center"><span class="area-tag {{f.tcls}}">{{f.tword}}</span><sc-if value="{{f.tex}}" hint-placeholder-val="{{ false }}"><span class="area-ex">Example</span></sc-if><sc-if value="{{f.hasAct}}" hint-placeholder-val="{{ false }}"><button class="area-btn" type="button" disabled="{{f.actDis}}" onClick="{{f.act}}">{{f.actLabel}}</button></sc-if><sc-if value="{{f.hasUndo}}" hint-placeholder-val="{{ false }}"><button class="area-btn" type="button" onClick="{{f.undo}}">Undo</button></sc-if><sc-if value="{{f.hasGo}}" hint-placeholder-val="{{ false }}"><button class="area-btn" type="button" onClick="{{f.goRun}}">{{f.goLabel}}</button></sc-if></span>
+</div>
+</sc-for>
+</div>
+
+<sc-if value="{{a.hasCarry}}" hint-placeholder-val="{{ false }}"><p style="margin:0;font-size:13px"><span class="area-tag area-t-acc" title="An amount or open question this return passes to the 2026 return">Carryovers to 2026</span> {{a.carry}}</p></sc-if>
+<sc-if value="{{a.hasAct}}" hint-placeholder-val="{{ false }}">
+<div style="display:flex;flex-wrap:wrap;align-items:center;gap:8px 12px;border-top:1px solid var(--line);padding-top:10px">
+<button class="area-btn primary" type="button" disabled="{{a.actDis}}" onClick="{{a.act}}">{{a.actLabel}}</button>
+<span class="area-sub" style="max-width:70ch">{{a.actReason}}</span>
+</div>
+</sc-if>
+</div>
+</sc-if>
+</section>
+</sc-for>
+</div>
+
+<section class="area-card" aria-labelledby="area-rel-h" style="padding:12px 16px 14px;display:flex;flex-direction:column;gap:8px">
+<div style="display:flex;flex-direction:column;gap:2px">
+<h2 id="area-rel-h" style="margin:0;font-size:15px;font-weight:600">{{rel.title}}</h2>
+<span class="area-sub" style="max-width:90ch">{{rel.sub}}</span>
+</div>
+<div class="area-scroll">
+<table class="area-tbl">
+<thead><tr><th scope="col">Return</th><th scope="col">Prepared by</th><th scope="col">What we received</th><th scope="col">What must agree with this return</th><th scope="col">Result</th></tr></thead>
+<tbody>
+<sc-for list="{{rel.rows}}" as="x" hint-placeholder-count="5">
+<tr><td><span style="font-weight:500;display:block">{{x.who}}</span><span class="area-sub" style="display:block">{{x.ret}}</span></td><td>{{x.by}}</td><td>{{x.got}}</td><td>{{x.agree}}<sc-if value="{{x.hasLink}}" hint-placeholder-val="{{ false }}"> <button class="area-val area-num {{x.on}}" type="button" aria-label="{{x.aria}}" onClick="{{x.open}}">{{x.linkT}}</button></sc-if></td><td><span style="display:inline-flex;flex-wrap:wrap;gap:6px;align-items:center"><span class="area-tag {{x.cls}}">{{x.word}}</span><sc-if value="{{x.ex}}" hint-placeholder-val="{{ false }}"><span class="area-ex">Example</span></sc-if></span></td></tr>
+</sc-for>
+</tbody>
+</table>
+</div>
+<p class="area-sub" style="margin:0;max-width:90ch">{{rel.note}}</p>
+</section>
+
+<p style="margin:0;color:var(--ink2);font-size:12.5px;max-width:90ch">{{footer}}</p>
+<div style="display:flex;flex-wrap:wrap;gap:8px">
+<button class="area-btn" type="button" onClick="{{goMap}}">Open the return map</button>
+<button class="area-btn" type="button" onClick="{{goChecks}}">Open all checks</button>
+</div>
+</div>
+</sc-if>
+</div>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"role":{"editor":"enum","options":["priya","marcus","daniel","helen","sam","jo","ngozi","erik","next","irs"],"default":"daniel"},"dark":{"editor":"boolean","default":false},"claimId":{"editor":"text","default":""},"openClaim":{"editor":null},"go":{"editor":null},"revealed":{"editor":null},"reveal":{"editor":null},"revealLog":{"editor":null},"asOf":{"editor":"text","default":"2026-06-23T06:05"},"asOfLabel":{"editor":"text","default":"As of 23 Jun 2026, v3"},"storyAt":{"editor":"text","default":""},"events":{"editor":null},"emit":{"editor":null},"lastSeen":{"editor":null},"$preview":{"width":980,"height":1800}}'>
+class Component extends DCLogic {
+  constructor(p) { super(p); this.state = { open: { business: true }, done: {}, reviewed: {} }; }
+  renderVals() {
+    const P = this.props || {};
+    const S = this.state || {};
+    const roles = ['priya','marcus','daniel','helen','sam','jo','ngozi','erik','next','irs'];
+    const role = roles.indexOf(P.role) >= 0 ? P.role : 'daniel';
+    const openClaim = typeof P.openClaim === 'function' ? P.openClaim : () => {};
+    const go = typeof P.go === 'function' ? P.go : () => {};
+    const claimId = P.claimId || '';
+    const emit = typeof P.emit === 'function' ? P.emit : () => {};
+    const events = Array.isArray(P.events) ? P.events : [];
+    const isClient = role === 'ngozi' || role === 'erik';
+    const hidden = isClient || role === 'irs';
+    // One story clock per workspace (FIX-ROUND-H3 A): the shell passes asOf = storyAt. Alone, each role falls back to the
+    // time it exists from (sam tl-27, next tl-28, irs tl-29) so the artboard still renders sensibly.
+    const AS_OF = { sam:'2027-01-04T15:00', next:'2027-01-15T15:00', irs:'2028-01-26T15:00' };
+    const asOf = P.asOf || P.storyAt || AS_OF[role] || '2026-06-23T06:05';
+    const ACCEPTED = '2026-07-14T16:22';            // tl-23, federal e-file accepted: the record is locked from here
+    const V3_AT = '2026-06-23T06:05';               // tl-17, v3 computed
+    const filed = role === 'sam' || role === 'next' || asOf >= ACCEPTED;
+    const preV3 = asOf < V3_AT;
+    const asOfLabel = P.asOfLabel || (filed ? 'Filed' : 'As of 23 Jun 2026, v3');
+    const cardIn = asOf >= '2026-07-13T19:02';        // D71, Theo's card
+    const msg07In = asOf >= '2026-06-30T18:02';       // msg-07, the crypto cost
+    const transcript2In = asOf >= '2026-08-03';       // second IRS transcript
+    const wpClass = 'wp' + ((P.dark ?? false) ? ' dark' : '');
+
+    if (hidden) {
+      return {
+        wpClass, hidden: true, shown: false, filed: false,
+        hiddenText: isClient ? 'This page is for your tax team. Your questions and documents are on Home and Documents.' : 'Areas are not part of the examination record. The items under examination are on Filing and after.',
+        hiddenLabel: isClient ? 'Go to Home' : 'Open Filing and after',
+        hiddenGo: () => go(isClient ? 'home' : 'filing'),
+        subline: '', versionNote: '', countLine: '', checksHead: '', hasRoleNote: false, roleNote: '', legend: [], areas: [], yearHead: '', footer: '',
+        hasEarly: false, earlyText: '', locked: false, lockedText: '', rel: { title: '', sub: '', rows: [], note: '' },
+        goMap: () => {}, goChecks: () => {}
+      };
+    }
+
+    const RULE_SELF = 'A person may not review or sign off on work they prepared.';
+    const RULE_PARTNER = 'Any adjustment with a tax effect over 1,000 (federal or state) requires partner sign-off.';
+    const BLOCKED = 'Approve and send to client: blocked by “California estimates include a 2024 payment”, and 3 more';
+    const LEDGER_EST = ' (estimate at v3 rates, Example)';
+
+    // The 8 adjustments shared by every screen (FIX-ROUND-H1 item 4). Filed roles see them adjusted (Example).
+    const ADJ = { 'ca-est':1, 'atlas':1, 'rsu':1, 'theo-ssn':1, 'heat-pump':1, 'fed-est':1, 'care-ein':1, 'noncash':1 };
+
+    // ---- The 27 ledger findings, placed in the packet's own budget areas (firm.budget_hours). Probes: probes/a_*.py.
+    // st: blk Blocking | chk Check failed | jdg Judgment | eng Engine warning only. claim '' = no drawer entry yet.
+    const F = [
+      { gt:'GT-A05', area:'intake', claim:'theo-ssn', st:'blk', value:'XXX-XX-3309', filedValue:'XXX-XX-3390',
+        title: cardIn ? 'Theo’s SSN differed from his 2024 return and his card' : 'Theo’s SSN differs from his 2024 return',
+        effect:'No tax change once fixed. Unfixed, the federal e-file rejects.' },
+      { gt:'GT-B05/C09', area:'intake', claim:'form-3520', resolvedValue:'Raised with the client; tracked into 2026', st:'chk', value:'Open', act:'Raise with the client',
+        title:'Prior preparer’s open item, 2023 Form 3520 (foreign inheritance), has no resolution',
+        effect:'None on 2025. A 2023 penalty exposure the packet does not let us size.' },
+      { gt:'GT-C10', area:'intake', claim:'', st:'eng', go:['checks','Open Checks'],
+        title:'The 2024 return claimed a 300 sq ft home office; the client measured 220 sq ft (D24)',
+        effect:'2024 only: about 400 of deduction, roughly +140 federal' + LEDGER_EST + '.', effEx:true,
+        where:'Shown today only as the engine note HOME_OFFICE_AREA_CHANGE, which treats 2025 as the outlier. No drawer entry in this mock-up.' },
+
+      { gt:'GT-A01', area:'wages', claim:'rsu', st:'blk', value:'$0 basis', filedValue:'$19,100 basis',
+        title:'RSU shares sold with a zero cost basis (lots N1, N3, N4)', effect:'Federal −15,536 · California −2,765 (3 lots) (estimate, Example).' },
+
+      { gt:'GT-B02', area:'invest', claim:'sek-fx', resolvedValue:'$1,871', st:'chk', value:'$1,747', act:'Propose adjustment',
+        title:'Swedish interest converted at the 2024 average rate, not 2025',
+        effect:'Federal +43, California +9' + LEDGER_EST + '.', effEx:true },
+      { gt:'GT-B01', area:'invest', claim:'', st:'chk', go:['checks','Open Checks'],
+        title:'Northlake sweep interest on two forms (D28 and D29), counted twice on Schedule B',
+        effect:'Federal −640, California −127' + LEDGER_EST + '.', effEx:true,
+        where:'On Checks as a not-blocking row. No drawer entry in this mock-up.' },
+      { gt:'GT-B03', area:'invest', claim:'', st:'eng',
+        title: msg07In ? 'Crypto lot C6 still at zero basis after the client sent the real cost on 30 Jun 2026 (msg-07)' : 'Crypto lot C6 at zero basis and the transfer-in date',
+        effect: msg07In ? 'Federal −1,312, California −195' + LEDGER_EST + '.' : 'Not sized until the client gives the cost.', effEx: msg07In,
+        where:'Shown today only as the engine note DIGITAL_ASSET_BASIS_MISSING. No drawer entry in this mock-up.' },
+      { gt:'GT-B04', area:'invest', claim:'', st:'chk', go:['documents','Open Documents'],
+        title:'Meridian lot M18 on page 32 never read, the cause of the engine’s 250 summary mismatch',
+        effect:'Federal −21' + LEDGER_EST + '.', effEx:true,
+        where:'On Documents as a flagged page, beside the engine note. No drawer entry in this mock-up.' },
+
+      { gt:'GT-C01', area:'business', claim:'atlas', st:'blk', value:'$163,700', filedValue:'$151,300',
+        title:'Card sales counted twice in business income', effect:'Federal −4,402 · California −384 (estimate, Example).' },
+      { gt:'GT-A06/C03', area:'business', claim:'sehi', resolvedValue:'$0', st:'chk', value:'$14,400', act:'Propose adjustment',
+        title:'Self-employed health insurance deducted although Erik could join Ngozi’s employer plan (qa-25)',
+        effect:'Federal +4,464, California +605' + LEDGER_EST + '; the QBI effect is not captured. Over 1,000, so partner sign-off would apply.', effEx:true },
+      { gt:'GT-C02', area:'business', claim:'mileage', resolvedValue:'8,100 miles', st:'chk', value:'11,800 miles', act:'Propose adjustment',
+        title:'Mileage log page 3 is a second scan of page 2, so business miles count twice',
+        effect:'Federal +919, California +80' + LEDGER_EST + '.', effEx:true },
+      { gt:'GT-C04', area:'business', claim:'phone-pct', resolvedValue:'$2,172', st:'chk', value:'$3,480', act:'Propose adjustment',
+        title:'Phone and internet at 100% business and Spotify Family deducted; the call notes say 70%, 50% and personal',
+        effect:'Federal +541, California +47' + LEDGER_EST + '.', effEx:true },
+      { gt:'GT-C06', area:'business', claim:'sec179', resolvedValue:'Section 179, $38,000', st:'jdg', value:'$38,000', act:'Record the election',
+        title:'Bonus depreciation chosen for the studio equipment; Section 179 gives the same federal result and saves California tax',
+        effect:'Federal 0, California −1,050 (the engine’s own what-if, equipment_section179). Over 1,000, so partner sign-off would apply.' },
+      { gt:'GT-C07', area:'business', claim:'', st:'chk',
+        title:'SEP contribution 18,000 over the 15,214 limit; the 2,786 excess carries silently with no decision',
+        effect:'10% excise on the excess, about +279' + LEDGER_EST + '.', effEx:true,
+        where:'The engine carries the excess as a carryover and raises no note. No drawer entry in this mock-up.' },
+      { gt:'GT-C08', area:'business', claim:'', st:'eng',
+        title:'Home office simplified method blended across two homes (Sacramento 220 sq ft, Austin 260 sq ft)',
+        effect:'About +195 federal, +17 California if only Austin is claimed' + LEDGER_EST + '.', effEx:true,
+        where:'Shown today only as the engine note HOME_OFFICE_AREA_CHANGE. No drawer entry in this mock-up.' },
+
+      { gt:'GT-C05', area:'rentals', claim:'heat-pump', st:'jdg', value:'$11,000', filedValue:'11,000 capitalized',
+        title:'Heat pump replacement deducted as a repair', effect:'Federal +3,633 · California +896 (the engine’s own what-if, hvac_improvement). Authority to confirm: Treas. Reg. 1.263(a)-3 (Example).' },
+
+      { gt:'GT-A04', area:'deduct', claim:'fed-est', st:'chk', value:'$13,000', filedValue:'$12,000',
+        title:'Federal estimates taken from the client’s guess', effect:'Balance due +1,000 (payments count 1:1). 1,000 is not over 1,000: reviewer sign-off is enough.' },
+      { gt:'GT-A07', area:'deduct', claim:'care-ein', st:'chk', value:'74-3829516', filedValue:'74-3829156',
+        title:'Little Sprouts tax ID misread', effect:'None computable. A wrong provider tax ID can put the 5,000 dependent-care exclusion at risk on IRS matching.' },
+      { gt:'GT-D03', area:'deduct', claim:'noncash', st:'chk', value:'$20,500', filedValue:'$17,400',
+        title:'Donated car at the client’s guess', effect:'Tax effect: about +806 federal, +149 California (estimate at v3 rates, Example). Under 1,000, so reviewer sign-off is enough.' },
+      { gt:'GT-A08', area:'deduct', claim:'bright-oak', resolvedValue:'Bright Oak Kids Club', st:'chk', value:'Bright Oak Preschool', act:'Correct the name',
+        title:'Care provider named “Bright Oak Preschool” on Form 2441; the statement says “Bright Oak Kids Club”', effect:'None. The tax ID 68-0412257 is right.' },
+      { gt:'GT-D01', area:'deduct', claim:'payoff-int', resolvedValue:'$19,697', st:'chk', value:'$21,847', act:'Propose adjustment',
+        title:'Lonestar payoff interest 2,150 counted twice: the Form 1098 already includes it',
+        effect:'Federal +559, California +103' + LEDGER_EST + '.', effEx:true },
+      { gt:'GT-D05', area:'deduct', claim:'excess-ss', resolvedValue:'About $27', st:'chk', value:'$164', act:'Propose adjustment',
+        title:'Underpayment penalty ignores excess social security as withholding',
+        effect:'Federal penalty about −147 (164 to about 17; our recompute, Example).', effEx:true },
+      { gt:'GT-D02', area:'deduct', claim:'salt-d02', st:'chk', value:'$13,420', resolvedValue:'$6,508',
+        title:'Home property tax includes the seller’s share credited at closing (D54)',
+        effect:'Federal +1,462, California +332' + LEDGER_EST + '.', effEx:true,
+        where:'The closing statement (D54) credited the seller’s share 6,912 for 1 Jan to 7 Jul 2025; Schedule A line 5b uses the full Travis County bill 13,420 (D58). The total then falls below the 40,000 cap.' },
+
+      { gt:'GT-A03', area:'ca', claim:'ca-est', st:'blk', value:'$14,000', filedValue:'$10,500',
+        title:'California estimates include a 2024 payment', effect:'CA refund −3,500 (payments count 1:1).' },
+      { gt:'GT-D04', area:'ca', claim:'or-credit', resolvedValue:'$635', st:'jdg', value:'$844', act:'Propose adjustment',
+        title:'Schedule S credit for Oregon tax not limited to California’s tax on the same income',
+        effect:'California +209 if limited to about 635 (arithmetic from the packet). Allowed for a composite return per the FTB Schedule S instructions: authority to confirm (Example).', effEx:true },
+      { gt:'GT-D06', area:'ca', claim:'ca-trace', resolvedValue:'$218,400, trace completed', st:'chk', value:'$218,400', act:'Flag the trace',
+        title:'Schedule CA column D lists only column A as its input; the California adjustment is missing from the trace',
+        effect:'None: the values are right, the trace is incomplete.' },
+      { gt:'GT-A02', area:'ca', claim:'ca-wages', st:'chk', value:'$111,300', resolvedValue:'$22,469', go:['documents','Open Documents'],
+        title:'California wages include Halvorsen pay earned after the move to Texas (box 16 is the whole year)',
+        effect:'California −5,685' + LEDGER_EST + '.', effEx:true,
+        where:'Halvorsen box 16 (D09) is the whole year; the paystub (D73) gives California taxable wages of 22,469 to 15 Jul 2025. California wages 218,400 should be about 129,569.' }
+    ];
+
+    // ---- Engine diagnostics by area (v3 diagnostics[], verbatim).
+    const ENG = {
+      FORM_1099_FILING:['warning','Schedule C: client paid two contractors 600 or more and has not filed Forms 1099-NEC.'],
+      HOME_OFFICE_AREA_CHANGE:['info','Home office area (average 240 sq ft) differs from 2024 (300 sq ft).'],
+      DIGITAL_ASSET_BASIS_MISSING:['warning','Coinhaven lot C6 has no cost basis (transfer in from external wallet). Engine used zero basis and the transfer-in date.'],
+      AMT_CREDIT_CARRYFORWARD:['info','AMT arises from the incentive stock option exercise (a deferral item); a minimum tax credit carryforward to 2026 is expected (Form 8801 next year).'],
+      CA_AMT_NOT_COMPUTED:['warning','California AMT (Schedule P 540NR) not computed: review incentive stock option exercise for California-source allocation.'],
+      LOW_CONFIDENCE_READ:['warning','Handwritten receipt amount read with low confidence (0.41).'],
+      DUE_DILIGENCE_REQUIRED:['warning','Form 8867 must be completed by the preparer for the child tax credit and credit for other dependents.'],
+      AOTC_PHASED_OUT:['info','American opportunity credit fully phased out by modified AGI.'],
+      FBAR_OUTSIDE_RETURN:['info','Foreign account maximum exceeds 10,000 USD: FinCEN Form 114 (FBAR) is due separately (not part of this return; not in engagement scope).'],
+      QUESTIONNAIRE_SALES_CONFLICT:['warning','Questionnaire answer: no investments sold. Documents show 282 brokerage sales and 12 digital asset dispositions.'],
+      BROKER_SUMMARY_DETAIL_MISMATCH:['warning','Meridian 1099-B summary proceeds 71,965.00 differ from the sum of extracted lots 71,715.00.']
+    };
+
+    // ---- Helpers for table cells. A cell is a string, or [text, claimId], or [text, '', true] for an Example value.
+    const cell = (x, right) => {
+      const arr = Array.isArray(x) ? x : [x, ''];
+      const claim = arr[1] || '';
+      const t = String(arr[0]);
+      return { t, isClaim: !!claim, isPlain: !claim, ex: !!arr[2], cls: right ? 'area-r area-num' : '',
+        on: claim && claim === claimId ? 'on' : '', aria: t + ': show where it came from', open: () => { if (claim) openClaim(claim); } };
+    };
+    // rec(title, cols, rows, note, opts): cols ending in '#' are right-aligned numbers.
+    const rec = (title, cols, rows, note, opts) => {
+      const o = opts || {};
+      const right = cols.map(c => c.slice(-1) === '#');
+      return { title, ex: !!o.ex, hasNote: !!note, note: note || '',
+        cols: cols.map((c, i) => ({ t: right[i] ? c.slice(0, -1) : c, cls: right[i] ? 'area-r' : '' })),
+        rows: rows.map(r => ({ cls: r.tot ? 'area-tot' : '', cells: (r.c || r).map((x, i) => cell(x, right[i])) })) };
+    };
+    const tot = (c) => ({ tot: true, c });
+
+    // ---- Area records (the brief's "records a CPA expects"), from the packet. Probes a_6, a_8, a_10, a_11, a_13.
+    const theoRow = cardIn
+      ? [['Theo, dependent 2', ['XXX-XX-3390', 'theo-ssn'], 'XXX-XX-3390 (D06) and XXX-XX-3390 (card, D71)', ['Matches after correction; the organizer had XXX-XX-3309', '', true]]]
+      : [['Theo, dependent 2', ['XXX-XX-3309', 'theo-ssn'], 'XXX-XX-3390 (D06)', 'Mismatch']];
+    const lotsHead = filed ? 'Gain as filed#' : 'Gain on the return#';
+    const lotGain = filed ? [['140', '', true], '2,100', ['(620)', '', true], ['5,880', '', true]] : [['19,240', 'rsu'], '2,100', '18,480', '15,300'];
+    const R = {
+      intake: [
+        rec('Carryovers in: the prior preparer’s and ours', ['Item', 'Prior preparer, 2024', 'Carried into 2025', 'Result'], [
+          ['Short-term capital loss carryover', '3,200', 'SchD.6 (3,200)', 'Agrees'],
+          ['Long-term capital loss carryover', '11,000', 'SchD.14 (11,000)', 'Agrees'],
+          ['Passive losses: Fremont Way 6,300, Barton Hills 9,850', '16,150', 'F8582.1c (16,150), all released in 2025', 'Agrees'],
+          ['IRA basis, Form 8606 line 14', '7,000', 'F8606.2 7,000', 'Agrees'],
+          ['Woodworks S corporation stock basis', '21,300 at end of 2022 (client worksheet)', 'F7203.1 2,300 at start of 2025, rolled with the 2023 K-1 (D40)', 'Rolled; the start figure is unverified'],
+          ['Home office', '300 sq ft (“2 rooms combined?”)', '220 sq ft measured (D24)', '2024 figure looks wrong'] ],
+          'Prior preparer: Delta River Tax Services (Glen Hardesty, EA), 2024 return filed 11 Apr 2025 (D06, D07; prior_years in the packet).'),
+        rec('Open items left by the prior preparer (D07 page 3)', ['Open item, as written', 'Closed by', 'Result'], [
+          ['Obtain 2023 Woodworks K-1 to roll basis forward.', 'D40, received 5 Jun 2026', 'Closed'],
+          ['Confirm 2024 Form 5498 for IRA basis.', 'D42, received 15 Feb 2026', 'Closed'],
+          ['Client to confirm home office square footage.', 'D24, received 18 Feb 2026', 'Closed: 220 sq ft'],
+          ['2023 Form 3520 (foreign inheritance over 100,000) - discussed? (no note of resolution)', 'Nothing in the file', ['Open', 'form-3520']] ]),
+        rec('Identity against the prior year (masked for every role)', ['Person', 'On the return', 'On file', 'Result'], theoRow,
+          role === 'marcus' ? 'Numbers show the last 4 only. Reveal lives in the drawer; you have no sensitive-data clearance, so it is disabled for you. Other identity checks are on Checks.' : 'Numbers show the last 4 only. Reveal lives in the drawer and is logged. Other identity checks are on Checks.')
+      ],
+      wages: [
+        rec('W-2s by employer', ['Employer', 'Box 1 wages#', 'Box 2 federal tax#', 'Box 4 social security#', 'Box 16 CA wages#'], [
+          ['Corvane Systems, Inc. (D08)', '104,600', '15,800', '6,944', '107,100'],
+          ['Halvorsen Data LLC (D09)', '107,800', '9,600', '7,316', ['111,300', 'ca-wages']],
+          tot(['Total', '212,400', '25,400', '14,260', '218,400']) ],
+          'Social security withheld 14,260 against the 10,918 maximum (176,100 × 6.2%): excess 3,342 on Sch3.11. D10 is a phone photo of the Halvorsen W-2, counted once.'),
+        rec('Stock-plan sales: broker against the plan supplement (D28, D11)', ['Lot', 'Proceeds#', 'Broker basis#', 'Supplement basis#', lotsHead], [
+          ['N1 RSU, sold 18 Feb 2025', '19,240', 'Not reported', '19,100', lotGain[0]],
+          ['N2 ESPP, sold 10 Mar 2025', '6,600', '3,825', '4,500', lotGain[1]],
+          ['N3 RSU, sold 20 May 2025', '18,480', 'Not reported', '19,100', lotGain[2]],
+          ['N4 RSU, sold 12 Aug 2025', '15,300', 'Not reported', '9,420', lotGain[3]] ],
+          'The engine matched the ESPP lot to the supplement (ev-0072) but not the three RSU lots. W-2 box 14 RSU 38,200 = 19,100 + 19,100, already taxed as wages.', { ex: filed })
+      ],
+      invest: [
+        rec('Sales detail by Form 8949 box (295 lines)', ['Box', 'Lines#', 'Proceeds#', 'Basis#', 'Adjustments#', 'Gain#'], [
+          ['A, short-term, basis reported', '119', '172,668', '174,039', '1,583', '212'],
+          ['B, short-term, basis not reported', '2', '37,720', '0', '0', ['37,720', 'rsu']],
+          ['D, long-term, basis reported', '160', '248,776', '243,047', '1,580', '7,309'],
+          ['E, long-term, basis not reported', '1', '15,300', '0', '0', '15,300'],
+          ['F, long-term, no Form 1099-B (S corporation)', '1', '21,215', '0', '0', '21,215'],
+          ['H, digital assets, short-term', '7', '20,135', '16,721', '0', '3,414'],
+          ['K, digital assets, long-term', '5', '14,698', '8,851', '0', '5,847'],
+          tot(['All boxes', '295', '530,512', '442,657', '3,163', '91,017']) ],
+          'Schedule D net 185,027 = these 91,017 + Form 4797 gain 105,040 + K-1 gain 1,350 + capital gain distributions 1,820 − loss carryovers 14,200. The 2,300-row Brightpath detail (D74) stays in its own view.'),
+        rec('Interest by payer (Schedule B)', ['Payer', 'Document', 'Amount#'], [
+          ['Northlake Securities, bank sweep', 'D28', '1,840'],
+          ['Northlake Bank, N.A.', 'D29', '1,840'],
+          ['Meridian Brokerage, U.S. Treasury', 'D31', '410'],
+          ['Austin Community Credit Union', 'D32', '312'],
+          ['Sacramento Valley Bank', 'D33', '96'],
+          ['Sparbanken Norrland, SEK 18,450 at 10.56', 'D36', ['1,747', 'sek-fx']],
+          ['Lindqvist Family Woodworks, K-1 box 4', 'D39', '85'],
+          ['Ridgeline Real Estate Fund III, K-1 box 5', 'D37', '120'],
+          tot(['Total, line 4', '', '6,450']) ])
+      ],
+      business: [
+        rec('Books to tax: Lindqvist Studio (D14 to Schedule C)', ['Item', 'Books#', 'Return#', 'Difference#'], [
+          ['Income', '151,300', ['163,700', 'atlas'], '+12,400'],
+          ['Car: fuel replaced by standard mileage', '3,100', ['8,260', 'mileage'], '+5,160'],
+          ['Depreciation', '7,600', ['38,000', 'sec179'], '+30,400'],
+          ['Health insurance, Erik (moved to Schedule 1)', '14,400', ['0', 'sehi'], '−14,400'],
+          ['Meals', '3,960', '1,980', '−1,980'],
+          ['Telephone and internet', '3,480', ['3,480', 'phone-pct'], '0'],
+          ['Other expenses as booked', '28,926', '28,926', '0'],
+          ['Home office', 'none', '1,200', '+1,200'],
+          tot(['Net', '89,834', '81,854', '−7,980']) ],
+          'Every difference between the books and the return is a line here; the return’s total expenses are 80,646 (SchC.28).', { ex: false }),
+        rec('Depreciation by asset, studio', ['Asset', 'Cost#', 'In service', 'Method', 'Federal 2025#', 'California 2025#', 'AMT 2025#'], [
+          ['STU-PRINTER, large-format printer', '14,200', '21 Mar 2025', '100% special', '14,200', '2,840', '14,200'],
+          ['STU-CAMERA, camera system', '16,300', '21 Mar 2025', '100% special', '16,300', '3,260', '16,300'],
+          ['STU-WORKST, workstation', '7,500', '21 Mar 2025', '100% special', '7,500', '1,500', '7,500'],
+          ['STU-LAPTOP, laptop', '2,800', '3 Feb 2022', 'Section 179 in 2022', '0', '0', '0'],
+          tot(['Total', '40,800', '', '', ['38,000', 'sec179'], '7,600', '38,000']) ],
+          'California does not allow federal bonus depreciation, so it adds back 30,400 (SchCA540NR.12.C).'),
+        rec('Mileage log by page (D23)', ['Page', 'Months', 'Trips#', 'Page total#'], [
+          ['1', 'Jan to Apr', '20', '2,600'],
+          ['2', 'May to Aug', '22', '3,700'],
+          ['3', '“Second scan of the May-Aug sheet”', '22', ['3,700', 'mileage']],
+          ['4', 'Sep to Dec', '18', '1,800'],
+          tot(['On the return', '', '82', '11,800']) ],
+          'Odometer 41,220 to 58,960: 17,740 miles in the year. Business share 66% as filed, 46% without the second scan.')
+      ],
+      rentals: [
+        rec('Depreciation by asset, rentals', ['Asset', 'Cost#', 'In service', 'Federal 2025#', 'California 2025#', 'AMT 2025#'], [
+          ['SAC-BLDG, 1450 Fremont Way building (land 156,000 not depreciated)', '364,000', '1 Jul 2019', '13,236', '13,236', '13,236'],
+          ['SAC-APPL, appliances', '4,200', '10 May 2021', '0', '484', '0'],
+          ['SAC-ROOF, roof replacement', '18,000', '18 Apr 2022', '655', '655', '655'],
+          ['AUS-BLDG, 1200 Barton Hills Dr 4C (land 62,000), sold 15 Oct 2025', '248,000', '1 Apr 2020', '7,139', '7,139', '7,139'],
+          ['AUS-FLOOR, flooring, sold 15 Oct 2025', '6,600', '1 Sep 2022', '190', '190', '190'],
+          filed ? ['Heat pump, Delta Breeze (D47)', '11,000', '2025', ['Capitalized, 27.5 years', '', true], '', ''] : ['Heat pump, Delta Breeze (D47): not on the schedule', '11,000', '2025', ['Deducted as a repair', 'heat-pump'], '', ''] ],
+          'Federal and California differ only on the 2021 appliances, where federal took 100% bonus.'),
+        rec('Sale of 1200 Barton Hills Dr 4C (Form 4797)', ['Item', 'Amount#'], [
+          ['Gross sales price', '395,000'],
+          ['Cost or other basis plus expense of sale', '340,300'],
+          ['Depreciation allowed', '50,340'],
+          ['Adjusted basis', '289,960'],
+          tot(['Gain', '105,040']),
+          ['Unrecaptured section 1250 gain (Schedule D line 19)', '50,340'],
+          ['Suspended passive loss released by the sale', '9,850'] ])
+      ],
+      pass: [
+        rec('K-1 lines and where they land', ['Entity', 'Box', 'Amount#', 'On the return'], [
+          ['Lindqvist Family Woodworks, Inc. (D39)', '1, ordinary business income', '18,400', 'SchE.28A'],
+          ['Lindqvist Family Woodworks, Inc. (D39)', '4, interest', '85', 'SchB.1.7'],
+          ['Lindqvist Family Woodworks, Inc. (D39)', '16D, distributions', '42,000', 'F7203.6'],
+          ['Lindqvist Family Woodworks, Inc. (D39)', 'Statement: Oregon composite tax', '1,580', ['ScheduleS.credit 844', 'or-credit']],
+          ['Ridgeline Real Estate Fund III LP (D37)', '2, net rental income', '8,400', 'SchE.28B'],
+          ['Ridgeline Real Estate Fund III LP (D37)', '5, interest', '120', 'SchB.1.8'],
+          ['Ridgeline Real Estate Fund III LP (D37)', '9a, long-term gain', '1,350', 'SchD.12'],
+          ['Ridgeline Real Estate Fund III LP (D37)', '21, foreign taxes', '210', 'Sch3.1'],
+          ['Ridgeline state supplement (D38)', 'California share of box 2', '22%', 'SchCA540NR.17.E'] ]),
+        rec('Basis by year', ['Year', 'Woodworks stock basis, end of year', 'Source', 'Ridgeline capital account#'], [
+          ['2022', '21,300', 'Client worksheet in the prior preparer’s file', ''],
+          ['2023', '15,400 (21,300 + 14,100 − 20,000)', '2023 K-1 (D40)', ''],
+          ['2024', '2,300 (15,400 + 16,900 − 30,000)', '2024 K-1 on the prior return', '60,000'],
+          ['2025', '0; distributions 21,215 over basis taxed as gain', '2025 K-1 (D39), Form 7203', '63,660'] ],
+          'The packet’s basis_records leave 2023 and 2024 blank; v3 rolls them with the 2023 K-1 and starts 2025 at 2,300 (F7203.1). Ridgeline outside basis was never computed.')
+      ],
+      deduct: [
+        rec('Mortgage interest by document (Schedule A line 8a)', ['Document', 'Amount#', 'Result'], [
+          ['Lonestar Mortgage, Form 1098 box 1 (D55)', '13,900', 'Used; includes interest paid at payoff'],
+          ['Pecan Federal Savings, Form 1098 box 1 (D57)', '997', 'Used'],
+          ['Lonestar payoff statement, interest (D56)', ['2,150', 'payoff-int'], 'Already inside the Form 1098'],
+          ['Lonestar, Form 1098 box 6 purchase points (D55)', '4,800', 'Used'],
+          tot(['Line 8a', '21,847', '']) ]),
+        rec('Home property tax against the closing statement (Schedule A line 5)', ['Item', 'Amount#', 'Source'], [
+          ['Travis County 2025 bill, paid 18 Dec 2025, on line 5b', ['13,420', 'salt-d02'], 'D58'],
+          ['Seller’s credit at closing, 1 Jan to 7 Jul 2025', '6,912', 'D54, used on no line'],
+          ['The buyers’ share, 8 Jul to 31 Dec 2025', ['6,508', '', true], '13,420 − 6,912'],
+          ['State income taxes, line 5a', '27,870', 'CA withholding and payments made in 2025'],
+          tot(['Line 5d total; line 5e after the 40,000 cap', '41,290; 40,000', '']) ],
+          'With the buyers’ share only, the total is 34,378, below the cap, so the deduction falls by 5,622.'),
+        rec('Payments and penalty', ['Item', 'On the return#', 'Record', 'Result'], [
+          ['Federal estimated payments, F1040.26', ['13,000', 'fed-est'], 'IRS transcript code 670: 12,000', 'Differs by 1,000'],
+          ['Extension payment, Sch3.10', ['36,000', 'ext-pay'], transcript2In ? 'IRS transcript of 3 Aug 2026: 36,000 on 14 Apr 2026' : 'Paid 14 Apr 2026 with Form 4868; after the 12 Mar 2026 transcript', transcript2In ? 'Agrees' : 'Not yet on a transcript'],
+          ['Excess social security, Sch3.11', '3,342', 'W-2 box 4, D08 and D09', 'Agrees'],
+          ['Estimated tax penalty, F1040.38', ['164', 'excess-ss'], ['About 17 with excess social security as withholding', '', true], 'Differs'] ]),
+        rec('Care providers (Form 2441)', ['Name on the return', 'Name printed', 'Tax ID on the return', 'Tax ID printed', 'Amount#'], [
+          [['Bright Oak Preschool', 'bright-oak'], 'Bright Oak Kids Club (D61)', '68-0412257', '68-0412257', '5,400'],
+          ['Little Sprouts Learning Center', 'Little Sprouts Learning Center (D62)', ['74-3829516', 'care-ein'], '74-3829156', '4,200'] ],
+          'Tax IDs of businesses are never masked.')
+      ],
+      ca: [
+        rec('Residency and the state split', ['Period', 'State', 'Days#'], [
+          ['1 Jan to 14 Jul 2025', 'California, resident', '195'],
+          ['15 Jul to 31 Dec 2025', 'Texas, resident', '170'] ],
+          'California taxes all income while resident and California-source income after. Interest, dividends, business and K-1 items are split by these days.'),
+        rec('Schedule CA (540NR), selected lines', ['Line', 'A federal#', 'B subtractions#', 'C additions#', 'D California law#', 'E California#', 'Inputs listed for D'], [
+          ['1 Wages', '212,400', 'none', '6,000', ['218,400', 'ca-trace'], ['218,400', 'ca-wages'], '1.A only'],
+          ['2 Taxable interest', '6,450', '410', 'none', '6,040', '3,227', '2.A only'],
+          ['12 Business income', '81,854', 'none', '30,400', '112,254', '59,971', '12.A only'],
+          ['17 Rental, partnerships, S corporations', '(11,830)', '484', 'none', '(12,314)', '(16,310)', '17.A only'] ],
+          'Column D is A − B + C and every value is right, but the inputs listed for D name only column A.'),
+        rec('Credit for tax paid to Oregon (Schedule S)', ['Step', 'Amount#'], [
+          ['Oregon composite tax paid for Erik (D39 statement)', '1,580'],
+          ['Claimed: 1,580 × 195/365', ['844', 'or-credit']],
+          ['Oregon income in the resident period: 18,400 × 195/365', '9,830'],
+          ['Limit: 9,830 ÷ 305,349 California AGI × 19,718 California tax', ['About 635', '', true]] ])
+      ],
+      partner: [
+        rec('Changes over 1,000 that need partner sign-off', ['Change', 'Tax effect', 'Result'], [
+          [['California estimates include a 2024 payment', 'ca-est'], 'CA refund −3,500', filed ? ['Signed (Helen Strand)', '', true] : 'Waiting for partner'],
+          [['Card sales counted twice in business income', 'atlas'], 'Federal −4,402 · California −384 (estimate, Example)', filed ? ['Signed (Helen Strand)', '', true] : 'Waiting for partner'],
+          [['RSU shares sold with a zero cost basis', 'rsu'], 'Federal −15,536 · California −2,765 (estimate, Example)', filed ? ['Signed (Helen Strand)', '', true] : 'Waiting for partner'],
+          [['Heat pump replacement deducted as a repair', 'heat-pump'], 'Federal +3,633 · California +896', filed ? ['Signed (Helen Strand)', '', true] : 'Waiting for partner'] ],
+          'Firm rule: “' + RULE_PARTNER + '”'),
+        rec(filed ? 'Findings on Areas over 1,000' : 'Findings on Areas over 1,000, not yet proposed', ['Finding', 'Tax effect', 'Result'], [
+          [['Self-employed health insurance', 'sehi'], ['Federal +4,464, California +605', '', true], filed ? ['Resolved before filing', '', true] : 'Not yet proposed'],
+          [['Section 179 election for the studio equipment', 'sec179'], 'California −1,050', filed ? ['Resolved before filing', '', true] : 'Not yet proposed'] ],
+          filed ? 'Resolved in Areas before filing (Example); they are not among the 8 adjustments in the Changes list.' : 'These would join the partner list once proposed; they are not among the 8 adjustments in this mock-up.')
+      ]
+    };
+
+    // ---- Checks by area. [word, class, text]
+    const K = {
+      intake: [cardIn ? ['Passes','pas','Identity against the prior year: Theo’s SSN differed from his 2024 return and his card; corrected before the accepted e-file of 14 Jul 2026.'] : ['Fails','blk','Identity against the prior year: Theo’s SSN differs from his 2024 return.'],
+        ['Fails','wrn','Prior preparer’s open items: 1 of 4 has no resolution (2023 Form 3520).'],
+        ['Fails','wrn','Prior-year figure against its source: 2024 home office 300 sq ft, measured 220 sq ft (D24).'],
+        ['Passes','pas','Carryovers in: capital loss, passive loss and IRA basis agree to the 2024 return.']],
+      wages: [['Fails','blk','Stock-plan supplement against broker lots: 3 RSU lots sold with zero basis.'],
+        ['Passes','pas','W-2 box 1 and box 2 sums agree to the return (212,400 and 25,400); the phone photo D10 is counted once.'],
+        ['Passes','pas','Excess social security: 14,260 withheld against the 10,918 maximum gives 3,342.']],
+      invest: [['Fails','wrn','Same money on two documents: Northlake sweep interest 1,840 on D28 and on D29.'],
+        ['Fails','wrn','Exchange-rate year: Sparbanken interest converted at the 2024 average (10.56), not the 2025 average (9.86).'],
+        ['Fails','wrn','Unread page: Meridian lot M18 on page 32 (proceeds 250) is in no extracted value.'],
+        ['Passes','pas','Every sale line’s short or long term matches its dates.']],
+      business: [['Fails','blk','Gross receipts reconciliation: return 163,700 against books 151,300; the Form 1099-K 12,400 is inside the books.'],
+        ['Fails','wrn','Duplicate page: mileage log pages 2 and 3 carry the same 22 trips.'],
+        ['Fails','wrn','Client answer gates a line: qa-25 says Erik could join Ngozi’s employer plan; Sch1.17 deducts 14,400.'],
+        ['Fails','wrn','Mixed-use expense at 100%: the call notes (call-01) give phone 70%, internet 50%, Spotify personal.'],
+        ['Fails','wrn','Election with a better alternative: Section 179 gives the same federal tax and California −1,050.'],
+        ['Fails','wrn','SEP limit against the deposit: 18,000 deposited, 15,214 deductible, 2,786 excess with no decision recorded.'],
+        ['Fails','wrn','Home office: simplified method used for two homes in one year.'],
+        ['Passes','pas','Books to tax reconciles: 89,834 books net to 81,854 net profit, every difference shown.']],
+      rentals: [['Judgment','wrn','Repair or improvement: the 11,000 heat pump replacement (D47) sits inside repairs.'],
+        ['Swing','wrn','Repairs 3,900 in 2024 to 13,300 in 2025: over 10% and over 1,000 (firm variance rule).'],
+        ['Passes','pas','Depreciation recomputes for every rental asset; the sale basis 340,300 and gain 105,040 agree.']],
+      pass: [['Passes','pas','Woodworks basis roll-forward recomputes: 21,215 of distributions over basis taxed as gain.'],
+        ['Open','wrn','The 2022 starting basis 21,300 rests on a client worksheet in the prior preparer’s file; not verified.'],
+        ['Passes','pas','Ridgeline capital: 60,000 + 9,870 − 6,000 − 210 = 63,660.']],
+      deduct: [['Fails','wrn','Same money on two documents: the payoff interest 2,150 (D56) is inside the Lonestar Form 1098 box 1 (D55).'],
+        ['Fails','wrn','Closing statement tax credit unused: the seller’s 6,912 credit (D54) feeds no line.'],
+        ['Fails','wrn','Client value against a third-party form: car at 6,000 (qa-39), gross proceeds 2,900 (D66 box 4c).'],
+        ['Fails','wrn','Payment tie-out: federal estimates 13,000 against the IRS record 12,000.'],
+        ['Fails','wrn','Name on the return against the document: Bright Oak Preschool against Bright Oak Kids Club (D61).'],
+        ['Fails','wrn','Printed against read: Little Sprouts tax ID printed 74-3829156, read 74-3829516 at 0.97.'],
+        ['Fails','wrn','Penalty inputs: excess social security 3,342 not counted as withholding on Form 2210.'],
+        ['Self-review','acc','Extension payment 36,000 filed by Daniel Ortiz: another reviewer signs it.']],
+      ca: [['Fails','blk','Payment year against return year: the 15 Sep 2025 FTB payment is marked tax year 2024.'],
+        ['Fails','wrn','State wages against residency dates: Halvorsen box 16 is the whole year; the paystub (D73) gives 22,469 to 15 Jul.'],
+        ['Fails','wrn','Credit limit not applied: Schedule S 844 is 1,580 × 195/365; the limit is about 635.'],
+        ['Fails','wrn','Trace: Schedule CA column D lists only column A as its input on lines 1, 2, 12 and 17.'],
+        ['Passes','pas','Residency days: 195 (1 Jan to 14 Jul 2025) agree to the household record.']],
+      partner: [['Waiting','acc','4 changes over 1,000 wait for partner sign-off.'],
+        ['Blocked','blk','Approval to send to the client waits on 4 blockers.']]
+    };
+    const KF = {   // after filing: the 8 adjustments are signed (Example)
+      partner: [['Signed','pas','4 changes over 1,000 signed by the partner (Example).'], ['Filed','mut','Return accepted. As filed, locked.']]
+    };
+    const E = {
+      intake: [], wages: ['AMT_CREDIT_CARRYFORWARD','CA_AMT_NOT_COMPUTED'],
+      invest: ['QUESTIONNAIRE_SALES_CONFLICT','BROKER_SUMMARY_DETAIL_MISMATCH','DIGITAL_ASSET_BASIS_MISSING','FBAR_OUTSIDE_RETURN'],
+      business: ['FORM_1099_FILING','HOME_OFFICE_AREA_CHANGE'], rentals: [], pass: [],
+      deduct: ['LOW_CONFIDENCE_READ','DUE_DILIGENCE_REQUIRED','AOTC_PHASED_OUT'], ca: ['CA_AMT_NOT_COMPUTED'], partner: []
+    };
+    const ENOTE = { pass: 'Engine: SCORP_BASIS_INCOMPLETE and K1_EXPECTED_NOT_RECEIVED (v1, v2) cleared in v3 by D40, D37 and D38.' };
+
+    // ---- Summary lines: [label, key, 2024, 2025 (v3), claim, filed value]. 2024 = prior_years.return_2024.lines.
+    const SUM = {
+      intake: [['Adjusted gross income','F1040.11','228,409','445,590'], ['Residency','household','California, full year','California to 14 Jul, Texas from 15 Jul'], ['Paid preparer','prepared_by','Delta River Tax Services','Miraflores']],
+      wages: [['Wages, W-2 box 1','F1040.1a','156,039','212,400'], ['Excess social security withheld','Sch3.11','Not on the 2024 return','3,342'], ['ISO exercise, AMT adjustment','F6251.2i','Not on the 2024 return','40,000','iso-lot']],
+      invest: [['Taxable interest','F1040.2b','2,310','6,450'], ['Ordinary dividends','F1040.3b','6,240','7,060'], ['Capital gain or (loss)','F1040.7','(3,000)','185,027']],
+      business: [['Gross receipts','SchC.1','128,400','163,700','atlas','151,300'], ['Business miles','SchC.44a','7,400','11,800','mileage','8,100'], ['Home office','SchC.30','1,500 (300 sq ft)','1,200 (average 240 sq ft)'], ['Self-employed health insurance','Sch1.17','0','14,400','sehi','0'], ['Net profit','SchC.31','71,900','81,854']],
+      rentals: [['Rents, 1450 Fremont Way','SchE.3A','36,600','37,200'], ['Repairs, 1450 Fremont Way','SchE.14A','3,900','13,300','repairs','2,300'], ['Gain on the Barton Hills condo sale','F4797.25','No sale','105,040'], ['Total rental real estate','SchE.26','(24,800)','(38,630)']],
+      pass: [['Woodworks K-1, ordinary income','SchE.28A','16,900','18,400'], ['Ridgeline K-1, rental income','SchE.28B','7,900','8,400'], ['Woodworks distributions, box 16D','F7203.6','30,000','42,000'], ['Distributions over stock basis','F7203.excess','Not computed (basis assumed sufficient)','21,215']],
+      deduct: [['Deduction taken','F1040.12','29,200 standard','85,706 itemized'], ['Child tax credit / credit for other dependents','F1040.19','2,500','400'], ['Federal estimated payments','F1040.26','6,000','13,000','fed-est','12,000'], ['Estimated tax penalty','F1040.38','Not on the 2024 return','164','excess-ss','About 27']],
+      ca: [['California AGI; 2024 Form 540 line 17','F540NR.32','230,809','305,349'], ['California total tax; 2024 Form 540 line 64','F540NR.64','12,520','18,874'], ['California estimated payments; 2024 Form 540 line 72','F540NR.72','3,000','14,000','ca-est','10,500']],
+      partner: [['Federal total tax','F1040.24','37,557','81,962'], ['Federal balance due, refund negative; 2024 line 34','F1040.37','(393)','4,220'], ['California balance due, refund negative; 2024 Form 540 line 111','F540NR.97','1,240','(8,256)']]
+    };
+    const TOTAL = { 'SchC.31':1, 'SchE.26':1, 'F1040.11':1, 'F1040.7':1, 'F1040.24':1, 'F1040.37':1, 'F540NR.97':1, 'F540NR.64':1, 'F540NR.32':1, 'F1040.12':1 };
+
+    const AREAS = [
+      ['intake','Intake and engagement',1.5,'Engagement, identity, the prior preparer’s file and what we carried in from it.'],
+      ['wages','Wages and stock compensation',3.0,'W-2s, the Corvane RSU, ESPP and ISO stock, and excess social security.'],
+      ['invest','Investments and digital assets',4.0,'Brokerage 1099s, crypto, the Swedish account and Schedule B.'],
+      ['business','Business',3.5,'Lindqvist Studio, Schedule C: books to tax, mileage, equipment, self-employed deductions.'],
+      ['rentals','Rentals and sale',3.5,'1450 Fremont Way, the Barton Hills condo and its sale, rental depreciation.'],
+      ['pass','Pass-throughs and basis',2.0,'The Woodworks S corporation and the Ridgeline partnership: K-1 lines and basis by year.'],
+      ['deduct','Deductions and credits',2.0,'Schedule A, credits, and the federal payments and penalty (the packet has no budget area for payments, so they sit here).'],
+      ['ca','California',1.5,'The part-year California return: residency split, Schedule CA, Schedule S and state payments.'],
+      ['partner','Partner review',1.0,'What waits on the partner before the return can go to the client.']
+    ];
+
+    const fmt$ = (v) => /^[0-9,]+$/.test(v) ? '$' + v : (/^\([0-9,]+\)$/.test(v) ? '−$' + v.slice(1, -1) : v);
+    const isWorkingPrep = (role === 'priya' || role === 'marcus') && !filed;
+    const open = S.open || {};
+    const done = S.done || {};          // local echo: key -> true (recorded) or false (undone), until the shell's events say so
+    const reviewedLocal = S.reviewed || {};
+    const WHO = { priya:'Priya Raman', marcus:'Marcus Bell', daniel:'Daniel Ortiz', helen:'Helen Strand', jo:'Jo Kimura', sam:'Sam Adeyemi', next:'Next year’s preparer' };
+    // Shared event list (FIX-ROUND-H3 B). An event is live unless a later event retracts its seq.
+    const retracted = {};
+    events.forEach(e => { if (e && e.retracts != null) retracted[e.retracts] = true; });
+    const liveEv = (pred) => { let hit = null; events.forEach(e => { if (e && !retracted[e.seq] && e.retracts == null && pred(e)) hit = e; }); return hit; };
+    const evProposal = (k) => liveEv(e => e.type === 'proposal' && (e.claimId === k || e.findingId === k));
+    const evReviewed = (k) => liveEv(e => e.type === 'area-reviewed' && e.area === k);
+    const recordedOf = (k) => (k in done) ? { on: !!done[k], ev: done[k] ? evProposal(k) : null } : { on: !!evProposal(k), ev: evProposal(k) };
+    const reviewedOf = (k) => (k in reviewedLocal) ? !!reviewedLocal[k] : !!evReviewed(k);
+    const reviewed = {};
+    AREAS.forEach(a => { reviewed[a[0]] = reviewedOf(a[0]); });
+    const fmtAt = (at) => { const m = /^(\d{4})-(\d{2})-(\d{2})T(\d{2}):(\d{2})/.exec(at || ''); if (!m) return ''; const MON = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec']; return (+m[3]) + ' ' + MON[+m[2] - 1] + ' ' + m[1] + ', ' + m[4] + ':' + m[5]; };
+    const OVER = { 'sehi':1, 'sec179':1 };   // findings whose tax effect is over 1,000 (the shell notifies the partner)
+
+    const status = { blk:['Blocking','area-t-blk'], chk:['Check failed','area-t-wrn'], jdg:['Judgment','area-t-wrn'], eng:['Engine note only','area-t-wrn'] };
+    const mkFinding = (f) => {
+      const adjusted = !!ADJ[f.claim];
+      let tword, tcls, tex = false, value = f.value || '';
+      if (filed) {
+        if (adjusted) { tword = 'Adjusted before filing'; tcls = 'area-t-acc'; tex = true; value = f.filedValue || value; }
+        else { tword = 'Resolved before filing'; tcls = 'area-t-pas'; tex = true; value = f.resolvedValue || value; }
+      } else { tword = status[f.st][0]; tcls = status[f.st][1]; }
+      const k = f.claim || f.gt;
+      const rec0 = recordedOf(k);
+      const isDone = rec0.on;
+      const hasAct = isWorkingPrep && !!f.act;
+      const recWho = rec0.ev ? ((rec0.ev.who || 'Someone') + (rec0.ev.at ? ', story time ' + fmtAt(rec0.ev.at) : '')) : 'you';
+      const goTo = filed ? null : (f.go || (adjusted ? ['changes', 'Open in Changes'] : null));
+      return { gt: f.gt, title: f.title, effect: f.effect, effEx: !!f.effEx, hasWhere: !!f.where, where: f.where || '',
+        isClaim: !!f.claim, value, on: f.claim && f.claim === claimId ? 'on' : '', aria: f.title + ', ' + value + ': show where it came from',
+        open: () => { if (f.claim) openClaim(f.claim); },
+        tword, tcls, tex,
+        hasAct, actLabel: isDone ? 'Proposal recorded' : (f.act || ''), actDis: isDone,
+        hasRecNote: hasAct && isDone, recNote: 'Recorded by ' + recWho + '. It goes to Changes for review.',
+        act: () => {
+          if (!hasAct || isDone) return;
+          emit({ type: 'proposal', claimId: f.claim || '', findingId: f.gt, area: f.area, who: WHO[role] || role, role,
+            overThreshold: !!OVER[f.claim], text: (f.act || 'Proposal') + ': ' + f.title });
+          this.setState({ done: Object.assign({}, this.state.done || {}, { [k]: true }) });
+        },
+        hasUndo: hasAct && isDone,
+        undo: () => {
+          if (!hasAct || !isDone) return;
+          const ev = evProposal(k);
+          emit({ type: 'undo', claimId: f.claim || '', findingId: f.gt, area: f.area, who: WHO[role] || role, role,
+            retracts: ev ? ev.seq : null, text: 'Proposal withdrawn: ' + f.title });
+          this.setState({ done: Object.assign({}, this.state.done || {}, { [k]: false }) });
+        },
+        hasGo: !!goTo, goLabel: goTo ? goTo[1] : '', goRun: () => { if (goTo) go(goTo[0]); } };
+    };
+
+    const areas = AREAS.map(([key, name, hours, scope]) => {
+      const fs = F.filter(f => f.area === key);
+      const findings = fs.map(mkFinding);
+      const blk = fs.some(f => f.st === 'blk');
+      let tword, tcls, tex = false;
+      if (filed) { tword = 'Filed'; tcls = 'area-t-mut'; }
+      else if (reviewed[key]) { tword = 'Reviewed'; tcls = 'area-t-pas'; }
+      else if (blk) { tword = 'Blocking'; tcls = 'area-t-blk'; }
+      else if (fs.length) { tword = 'Check failed'; tcls = 'area-t-wrn'; }
+      else if (key === 'partner') { tword = 'Waiting for partner'; tcls = 'area-t-acc'; }
+      else { tword = 'No open findings'; tcls = 'area-t-pas'; }
+      const sumRows = SUM[key];
+      const anyAdj = filed && sumRows.some(s => s[5]);
+      const summary = sumRows.map(s => {
+        const claim = s[4] || '';
+        const useFiled = filed && s[5];
+        const cy = fmt$(useFiled ? s[5] : s[3]);
+        const note = useFiled ? ' · engine v3 ' + s[3] + (ADJ[claim] ? ', adjusted by the firm' : ', resolved before filing') : (anyAdj && TOTAL[s[1]] ? ' · v3, not recomputed' : '');
+        return { label: s[0], key: s[1], note, py: fmt$(s[2]), cy, isClaim: !!claim, isPlain: !claim, ex: !!useFiled,
+          on: claim && claim === claimId ? 'on' : '', aria: s[0] + ', ' + cy + ': show where it came from', open: () => { if (claim) openClaim(claim); } };
+      });
+      const head = sumRows[0];
+      const headline = head[0] + ' ' + fmt$(filed && head[5] ? head[5] : head[3]) + ' (2024: ' + fmt$(head[2]) + ')';
+      const engine = (E[key] || []).map(code => ({ code, sev: ENG[code][0], msg: ENG[code][1] }));
+      const checks = (filed && KF[key] ? KF[key] : K[key]).map(k => ({ word: k[0], cls: 'area-t-' + k[1], text: k[2] }));
+      // Area action per role.
+      let hasAct = false, actLabel = '', actDis = true, actReason = '', act = () => {};
+      const failing = checks.filter(k => k.word === 'Fails' || k.word === 'Judgment').length;
+      if (role === 'daniel' && key !== 'partner' && !filed) {
+        hasAct = true;
+        actLabel = reviewed[key] ? 'Reviewed by you, this session' : 'Mark area reviewed';
+        if (key === 'deduct') { actDis = true; actReason = 'Firm rule: “' + RULE_SELF + '” You filed the extension payment in this area (Sch3.10).'; }
+        else if (reviewed[key]) { actDis = true; actReason = 'Recorded with your name and the time.'; }
+        else if (failing) { actDis = true; actReason = 'Resolve or record the ' + failing + (failing === 1 ? ' failing check' : ' failing checks') + ' first.'; }
+        else { actDis = false; actReason = 'Every check passes or is recorded as open.'; act = () => {
+          emit({ type: 'area-reviewed', area: key, claimId: '', who: WHO[role] || role, role, text: 'Area marked reviewed: ' + name });
+          this.setState({ reviewed: Object.assign({}, this.state.reviewed || {}, { [key]: true }) }); }; }
+      }
+      if (role === 'helen' && key === 'partner' && !filed) { hasAct = true; actLabel = BLOCKED; actDis = true; actReason = 'Firm rule: “' + RULE_PARTNER + '”'; }
+      const CARRY = { wages: 'ISO share lot (1,000 shares, AMT basis 52,000) and the minimum tax credit 3,871.', intake: 'The 2023 Form 3520 question, tracked with the client (Example).', business: 'SEP contribution not deductible for 2025: 2,786. California basis differences on the studio equipment.', rentals: 'California basis difference on the 2021 appliances: 241.92.' };
+      const carry = role === 'next' ? (CARRY[key] || '') : '';
+      const isOpen = !!open[key];
+      return { key, name, domId: 'area-' + key, scope, budget: hours.toFixed(1) + ' h budget', headline,
+        findCount: fs.length + (fs.length === 1 ? ' finding' : ' findings') + (filed && fs.length ? ', all resolved before filing' : ''),
+        tword, tcls, tex, isOpen, expanded: isOpen ? 'true' : 'false', chevStyle: isOpen ? 'transform:rotate(90deg);flex:none' : 'flex:none',
+        toggle: () => this.setState({ open: Object.assign({}, this.state.open || {}, { [key]: !(this.state.open || {})[key] }) }),
+        summary, records: R[key], checks, engine, hasEngine: engine.length > 0, hasEngineNote: !!ENOTE[key], engineNote: ENOTE[key] || '',
+        findings, noFindings: findings.length === 0, hasCarry: !!carry, carry, hasAct, actLabel, actDis, actReason, act };
+    });
+
+    const nNew = F.filter(f => f.claim && !ADJ[f.claim]).length;
+    const nOld = F.filter(f => ADJ[f.claim]).length;
+    const nNone = F.filter(f => !f.claim).length;
+    const roleNotes = {
+      priya: 'You can record a proposal on any finding here; it goes to Changes for review.',
+      marcus: 'You can record a proposal on any finding here. Identifiers stay masked for you: no sensitive-data clearance.',
+      daniel: 'You can mark an area reviewed once its checks pass or are recorded as open. Your own extension payment sits in Deductions and credits.',
+      helen: 'The partner area lists what waits on your sign-off.',
+      jo: 'Read only for you. Budget hours per area are the firm’s (packet firm.budget_hours).',
+      sam: 'Read only. The return as filed, area by area. The 8 adjustments show their filed values; the other findings were resolved before filing and show the corrected value (all Example). Records tables keep the v3 figures.',
+      next: 'Read only. What this return hands to 2026, area by area. Findings were resolved before filing (Example); records tables keep the v3 figures.'
+    };
+    // ---- Related returns (household.related_returns; probes h3-A-1..4). Receipt is measured on the story clock.
+    const got = (at) => asOf >= at;
+    const D39_AT = '2026-03-01T23:10', D40_AT = '2026-06-05T00:41', D37_AT = '2026-06-22T18:55';
+    const relRow = (o) => Object.assign({ hasLink: false, linkT: '', on: '', aria: '', open: () => {}, ex: false }, o,
+      o.claim ? { hasLink: true, on: o.claim === claimId ? 'on' : '', aria: o.linkT + ': show where it came from', open: () => openClaim(o.claim) } : {});
+    const woodGot = got(D39_AT) ? ('2025 K-1 (D39, received 1 Mar 2026)' + (got(D40_AT) ? ' and 2023 K-1 (D40, received 5 Jun 2026)' : '')) : 'Not received yet';
+    const ridgeGot = got(D37_AT) ? 'K-1 (D37) and state supplement (D38), received 22 Jun 2026' : 'Not received yet';
+    const rel = {
+      title: 'Related returns',
+      sub: 'Returns other people file for this household or its entities. We do not prepare them, but each must agree with this return.',
+      rows: [
+        relRow({ who: 'Ada Lindqvist-Okafor', ret: '2025 Form 1040, her own (summer job W-2 4,100)', by: 'Ada, using consumer software',
+          got: 'Not in this file; her return is not part of this packet',
+          agree: 'She checked “someone can claim you as a dependent”. That agrees with this return counting her as the other dependent on Form 8812 line 6 (1 × 500).',
+          word: 'Agrees, return not seen', cls: 'area-t-wrn' }),
+        relRow({ who: 'Lindqvist Family Woodworks, Inc.', ret: '2025 Form 1120-S', by: 'Willamette CPA Group (not this firm)', got: woodGot,
+          agree: 'K-1 box 1 18,400 on SchE.28A; box 4 85 on Schedule B; box 16D 42,000 on F7203.6; box 17V QBI 18,400 on F8995.2.2.',
+          word: got(D39_AT) ? 'Agrees' : 'Waiting for the K-1', cls: got(D39_AT) ? 'area-t-pas' : 'area-t-wrn' }),
+        relRow({ who: 'Lindqvist Family Woodworks, Inc.', ret: 'Oregon composite return', by: 'Willamette CPA Group (not this firm)',
+          got: got(D39_AT) ? 'Statement on the 2025 K-1 (D39): Oregon tax paid for Erik 1,580' : 'Not received yet',
+          agree: 'The 1,580 is the base of the California credit for tax paid to Oregon (Schedule S), claimed at', claim: got(D39_AT) ? 'or-credit' : '', linkT: filed ? '$635' : '$844',
+          word: filed ? 'Resolved before filing' : (got(D39_AT) ? 'Check failed' : 'Waiting for the K-1'), cls: filed ? 'area-t-pas' : 'area-t-wrn', ex: filed }),
+        relRow({ who: 'Ridgeline Real Estate Fund III LP', ret: '2025 Form 1065', by: 'The fund administrator', got: ridgeGot,
+          agree: 'K-1 box 2 8,400 on SchE.28B; box 5 120 on Schedule B; box 9a 1,350 on SchD.12; box 21 210 inside Sch3.1 (396); California share 22% (D38) on Schedule CA.',
+          word: got(D37_AT) ? 'Agrees' : 'Waiting for the K-1', cls: got(D37_AT) ? 'area-t-pas' : 'area-t-wrn' }),
+        relRow({ who: 'Ridgeline Real Estate Fund III LP', ret: 'Arizona composite return', by: 'The fund administrator',
+          got: got(D37_AT) ? 'State supplement (D38): “The partnership filed an Arizona composite return on behalf of nonresident partners; no Arizona filing required by the partner.”' : 'Not received yet',
+          agree: 'No Arizona return for Erik. The packet does not state the Arizona tax paid for him, and this return claims no credit for it.',
+          word: got(D37_AT) ? 'No filing needed' : 'Waiting for the K-1', cls: got(D37_AT) ? 'area-t-pas' : 'area-t-wrn' })
+      ],
+      note: 'From the household record’s related returns. The 1120-S and the 1065 themselves are not in the file; only the K-1s and the state supplement are.'
+    };
+    const lockedRole = filed && role !== 'sam' && role !== 'next';
+    return {
+      wpClass, hidden: false, shown: true, filed, rel,
+      locked: filed, lockedText: !filed ? '' : 'The federal return was accepted on 14 Jul 2026, so this record is read only' + (lockedRole ? ' for you too' : '') + '. Later work attaches to it as new events.',
+      hasEarly: preV3, earlyText: preV3 ? 'Story time is ' + fmtAt(asOf) + ', before v3 is computed on 23 Jun 2026. The figures below are v3’s, shown ahead of time for this mock-up.' : '',
+      hiddenText: '', hiddenLabel: '', hiddenGo: () => {},
+      subline: filed
+        ? 'The return as filed, by the firm’s budget areas: each area’s summary against 2024, the records behind it, its checks and the findings inside it.'
+        : 'The return by the firm’s budget areas: each area’s summary against 2024, the records a reviewer expects, its checks and the findings inside it. Select any linked number to see where it came from.',
+      versionNote: filed ? 'As filed: the return as this workpaper finalized it · ' + asOfLabel : asOfLabel + ' · none of our changes applied yet',
+      countLine: '9 areas from the packet’s budget (firm.budget_hours), in its order. 27 findings: ' + nOld + ' on claims shown elsewhere, ' + nNew + ' with their own drawer entry here, ' + nNone + ' without a drawer entry in this mock-up.',
+      hasRoleNote: !!roleNotes[role] && !lockedRole, roleNote: roleNotes[role] || '',
+      legend: [
+        { word:'Blocking', cls:'area-t-blk', text:'stops filing', def:'The return cannot go to the client until this is resolved.' },
+        { word:'Check failed', cls:'area-t-wrn', text:'our check disagrees', def:'One of our checks compared the return with a document and they differ.' },
+        { word:'Judgment', cls:'area-t-wrn', text:'needs a recorded decision', def:'The rules allow more than one answer; the preparer records the choice and the authority.' },
+        { word:'Engine note only', cls:'area-t-wrn', text:'no check of ours yet', def:'Engine diagnostics: a message the tax software raised itself, not one of our checks.' },
+        { word:'No open findings', cls:'area-t-pas', text:'', def:'Nothing in this area disagrees with its documents.' }
+      ],
+      yearHead: filed ? '2025 as filed' : '2025, v3',
+      checksHead: filed ? 'Checks as they stood on v3, before the adjustments' : 'Checks on this area',
+      areas,
+      footer: 'Areas and hours are the packet’s own (firm.budget_hours). Records come from the packet: prior_years, return_versions[v3].assets and lines, documents. Tax effects marked Example are our estimates at v3 rates; the build recomputes.',
+      goMap: () => go('map'), goChecks: () => go('checks')
+    };
+  }
+}
+</script>
+</body>
+</html>

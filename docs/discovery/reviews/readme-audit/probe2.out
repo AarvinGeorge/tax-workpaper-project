@@ -1,0 +1,116 @@
+== packet == {'name': 'Okafor-Lindqvist household - tax year 2025', 'version': '1.0', 'generated': '2026-10-12', 'client_id': 'CL-20417'}
+== household keys == ['filing_status', 'tax_year', 'entered_by', 'people', 'addresses', 'residency', 'bank_account_for_refund_or_payment', 'prior_year_agi_for_esignature', 'related_returns']
+people fields: [['id', 'role', 'name', 'ssn', 'dob', 'occupation', 'ip_pin', 'phone', 'email']] n 4
+   ngozi taxpayer Ngozi Okafor ssn ...2287 ip_pin set months None fts None rel None
+   erik spouse Erik Lindqvist ssn ...9134 ip_pin None months None fts None rel None
+   ada dependent Ada Lindqvist-Okafor ssn ...1106 ip_pin None months 12 fts True rel daughter
+   theo dependent Theo Lindqvist-Okafor ssn ...3309 ip_pin None months 12 fts None rel son
+addresses: [{'from': '2019-06-01', 'to': '2025-07-14', 'address': '2814 Alder Glen Way, Sacramento, CA 95818', 'type': 'rented home'}, {'from': '2025-07-15', 'to': None, 'address': '7709 Barton Ridge Dr, Austin, TX 78746', 'type': 'owned home (purchased 2025-07-08)'}]
+residency: [{'state': 'CA', 'from': '2025-01-01', 'to': '2025-07-14', 'status': 'resident'}, {'state': 'TX', 'from': '2025-07-15', 'to': '2025-12-31', 'status': 'resident'}]
+bank: {'routing': '990000017', 'account': '4483019276', 'type': 'checking', 'bank': 'Austin Community Credit Union'}
+prior_year_agi_for_esignature: 228409.0
+related_returns: [
+ {
+  "who": "Ada Lindqvist-Okafor",
+  "return": "2025 Form 1040 (her own; summer job W-2 4,100; checked 'someone can claim you as a dependent')",
+  "prepared_by": "Ada, using consumer software",
+  "in_this_packet": false
+ },
+ {
+  "who": "Lindqvist Family Woodworks, Inc.",
+  "return": "2025 Form 1120-S and Oregon composite return",
+  "prepared_by": "Willamette CPA Group (not this firm)",
+  "in_this_packet": "K-1s only (D39, D40)"
+ },
+ {
+  "who": "Ridgeline Real Estate Fund III LP",
+  "return": "2025 Form 1065 and Arizona composite return",
+  "prepared_by": "fund administrator",
+  "in_this_packet": "K-1 and state supplement only (D37, D38)"
+ }
+]
+
+== documents == 74
+doc keys: [(('belongs_to', 'document_type', 'extraction', 'file_name', 'id', 'issuer', 'page_count', 'pages', 'received_at', 'tax_year', 'title', 'uploaded_by'), 72), (('belongs_to', 'document_type', 'extraction', 'file_name', 'id', 'issuer', 'marked_corrected', 'page_count', 'pages', 'received_at', 'tax_year', 'title', 'uploaded_by'), 2)]
+belongs_to: Counter({'joint': 30, 'spouse': 22, 'taxpayer': 17, 'dependent:theo': 3, 'dependent:ada': 2})
+document_type: Counter({'1099-NEC': 5, '1099-composite': 4, '1098': 4, 'identity_document': 3, 'W-2': 3, '1099-INT': 3, 'donation_receipt': 3, 'invoice': 2, 'K-1-1120S': 2, '5498': 2, 'dependent_care_statement': 2, 'payment_confirmation': 2, 'irs_notice': 2, 'engagement_letter': 1, 'consent_7216': 1, 'irs_ip_pin_notice': 1, 'prior_year_return': 1, 'prior_workpaper': 1, 'stock_plan_supplement': 1, '3921': 1, '3922': 1, 'books_profit_loss': 1, 'books_transaction_detail': 1, '1099-K': 1, 'mileage_log': 1, 'client_note': 1, 'insurance_statement': 1, 'retirement_contribution': 1, 'books_report': 1, '1099-DA': 1, 'transaction_export': 1, 'foreign_bank_statement': 1, 'K-1-1065': 1, 'K-1-state-supplement': 1, '1099-R': 1, '1099-SA': 1, '5498-SA': 1, 'rental_owner_statement': 1, 'property_tax_bill': 1, 'rental_ledger': 1, 'closing_statement_seller': 1, '1099-S': 1, 'closing_statement_buyer': 1, 'payoff_statement': 1, 'property_tax_receipt': 1, '1098-T': 1, 'letter': 1, '1098-C': 1, 'irs_transcript': 1, 'paystub': 1})
+uploaded_by: Counter({'client': 70, 'firm': 4})
+tax_year: Counter({'2025': 68, '2024': 4, '2023': 2})
+marked_corrected: [('D31', True)]
+extraction status: Counter({'extracted': 68, 'not_extracted': 4, 'partial': 2})
+extraction reasons: [('D07', 'not_extracted', 'Narrative workpaper export; its content is reproduced as structured data in prior_years.prior_preparer_workpaper.'), ('D30', 'partial', "Page 32 ('Additional transactions') was not read by the pipeline."), ('D31', 'partial', "Page 32 ('Additional transactions') was not read by the pipeline."), ('D69', 'not_extracted', 'Agency transcript; reproduced as structured data in tax_agency_records.irs_account_transcript_2025.'), ('D70', 'not_extracted', 'Resolved prior-year notice; summarized in tax_agency_records.notices.'), ('D72', 'not_extracted', 'Examination letter received after filing; summarized in tax_agency_records.notices.')]
+extraction keys: Counter({('reason', 'status', 'values'): 74})
+issuer sample: Counter({'str': 74}) Miraflores
+received_at range: 2026-01-12T17:04:00Z 2028-01-26T15:00:00Z
+
+== extracted_values == 3012
+value_type: Counter({'money': 1253, 'date': 754, 'text': 474, 'code': 323, 'integer': 95, 'quantity': 51, 'boolean': 45, 'percent': 6, 'ssn': 5, 'ein': 5, 'account_number': 1})
+text_as_read empty: 7
+confidence <0.9: [('ev-0919', 0.6), ('ev-1049', 0.41)]  min 0.41
+position keys: Counter({('x0', 'x1', 'y0', 'y1'): 3012})
+ev keys: [(('confidence', 'document_id', 'field', 'id', 'label', 'page', 'position', 'text_as_read', 'value', 'value_type'), 3012)]
+extraction.values type: int sum: 3012
+extraction.values sample: 3
+
+== client == ['questionnaire', 'messages', 'call_notes'] qa 45 msg 10 calls 1
+qa keys: ['id', 'question', 'answer', 'answered_by', 'answered_at'] answered_by: Counter({'Ngozi Okafor': 30, 'Erik Lindqvist': 15})
+msg keys: ['id', 'sent_at', 'from', 'to', 'text'] from/to: Counter({('Ngozi Okafor', 'firm'): 6, ('Erik Lindqvist', 'firm'): 4})
+call keys: ['id', 'date', 'participants', 'notes'] ['Erik Lindqvist', 'Priya Raman (preparer)']
+
+== prior_years == ['return_2024', 'prior_preparer_workpaper', 'asset_records', 'basis_records', 'carryovers_into_2025']
+return_2024 keys: ['prepared_by', 'filed', 'residency', 'dependents', 'lines', 'line_labels', 'line_sources', 'notes', 'K1_1120S', 'K1_1065'] lines 106 line_sources sample [('F1040.1a', 'ev-2909'), ('F1040.2b', 'ev-2910')] notes n 3
+K1_1120S: {'box1': 16900, 'box16D': 30000}
+K1_1065: {'partnership': 'Ridgeline Real Estate Fund III LP', 'box2': 7900, 'ending_capital': 60000}
+dependents: [{'name': 'Ada Lindqvist-Okafor', 'ssn': 'XXX-XX-1106'}, {'name': 'Theo Lindqvist-Okafor', 'ssn': 'XXX-XX-3390'}]
+prior_preparer_workpaper keys: ['source_document', 'summary_memo', 'notes', 'open_items_left_by_prior_preparer', 'depreciation_schedule']
+asset_records n: 6 keys: ['asset_id', 'description', 'activity', 'cost', 'placed_in_service', 'method', 'life_years', 'disposed', 'land_value', 'federal', 'california', 'amt_difference', 'sources']
+   SAC-BLDG Rental: 1450 Fremont Way, Sacramento 364000.0 156000.0 SL / mid-month 27.5 disposed None amt_diff {} src ['prior_preparer_depreciation_schedule']
+   SAC-APPL Rental: 1450 Fremont Way, Sacramento 4200.0 None Federal: 100% bonus in 2021; CA: 200DB half-year 5 disposed None amt_diff {} src ['prior_preparer_depreciation_schedule']
+   SAC-ROOF Rental: 1450 Fremont Way, Sacramento 18000.0 None SL / mid-month 27.5 disposed None amt_diff {} src ['prior_preparer_depreciation_schedule']
+   AUS-BLDG Rental: 1200 Barton Hills Dr Unit 4C, Austin 248000.0 62000.0 SL / mid-month 27.5 disposed 2025-10-15 amt_diff {} src ['prior_preparer_depreciation_schedule']
+   AUS-FLOOR Rental: 1200 Barton Hills Dr Unit 4C, Austin 6600.0 None SL / mid-month 27.5 disposed 2025-10-15 amt_diff {} src ['prior_preparer_depreciation_schedule']
+   STU-LAPTOP Business: Lindqvist Studio 2800.0 None Section 179 5 disposed None amt_diff {} src ['prior_preparer_depreciation_schedule']
+basis_records: {"scorp_lindqvist_family_woodworks": [{"year": 2022, "ending_stock_basis": 21300, "source": "client worksheet in prior preparer file"}, {"year": 2023, "ending_stock_basis": null, "source": "missing - 2023 K-1 not in prior file"}, {"year": 2024, "k1_income": 16900, "distributions": 30000, "ending_stock_basis": null, "source": "2024 K-1 (prior return)"}], "partnership_ridgeline": [{"year": 2024, "ending_capital_account": 60000, "outside_basis": null, "source": "2024 K-1; outside basis never computed"}], "ira_nondeductible_basis_ngozi": [{"year": 2024, "form_8606_line_14": 7000, "source": "2024 Form 8606"}], "home_7709_barton_ridge": [{"event": "purchase 2025-07-08", "price": 685000, "source": "D54"}]}
+carryovers_into_2025: {"capital_loss_short": 3200, "capital_loss_long": 11000, "passive_1450_fremont": 6300, "passive_1200_barton_hills": 9850, "section_1231_losses": 0, "charitable": 0, "amt_credit": 0, "nol": 0, "foreign_tax_credit": 0, "qbi_loss": 0, "california": {"capital_loss_short": 3200, "capital_loss_long": 11000, "passive_1450_fremont": 6300, "passive_1200_barton_hills": 9850, "note": "Same as federal except depreciation: the 2021 appliances (SAC-APPL) have remaining California basis because California did not allow the federal 100% special depreciation."}, "sources": "2024 return (D06 pages 6 and 9) and prior preparer workpaper (D07)"}
+
+== tax_agency_records == ['irs_account_transcript_2025', 'ftb_account', 'notices', 'efile']
+  snapshot 2026-03-12 [('2025-04-15', '670', 3000), ('2025-06-16', '670', 3000), ('2025-09-15', '670', 3000), ('2026-01-15', '670', 3000)]
+  snapshot 2026-08-03 [('2025-04-15', '670', 3000), ('2025-06-16', '670', 3000), ('2025-09-15', '670', 3000), ('2026-01-15', '670', 3000), ('2026-04-14', '670', 36000), ('2026-04-14', '460', 0), ('2026-07-14', '150', 'total tax on the return as filed (your final return)'), ('2026-07-20', '610', 'balance due on the return as filed'), ('2026-08-03', '196/276', 'computed by IRS')]
+ftb_account: {"as_of": "2026-03-12", "tax_year_2025_payments": [{"date": "2025-04-15", "amount": 3500}, {"date": "2025-06-16", "amount": 3500}, {"date": "2026-01-15", "amount": 3500}], "tax_year_2024_payments_after_filing": [{"date": "2025-09-15", "amount": 3500, "note": "Web Pay payment designated tax year 2024; held as a 2024 credit"}]}
+notices: [{'id': 'N-2023-CP2000', 'agency': 'IRS', 'type': 'CP2000', 'tax_year': '2023', 'dated': '2024-07-08', 'summary': 'Proposed 1,092 additional tax for an unreported Form 1099-B sale (proceeds 4,200).', 'status': 'Resolved 2024-11-18: basis 3,960 substantiated; no change.', 'document': 'D70'}, {'id': 'N-2025-L566', 'agency': 'IRS', 'type': 'Letter 566 (correspondence examination)', 'tax_year': '2025', 'dated': '2028-01-20', 'response_due': '2028-02-19', 'document': 'D72', 'items_under_examination': "['Noncash charitable contributions claimed on Schedule A line 12 (Form 8283): provide acknowledgments and valuation.', '"}]
+efile: [{'date': '2026-07-13T17:04:00Z', 'jurisdiction': 'federal', 'submission_id': '71530420261940012345', 'status': 'rejected', 'errors': '[{\'code\': \'R0000-504-02\', \'message\': "Dependent\'s taxpayer identification number and name control mu'}, {'date': '2026-07-13T17:04:00Z', 'jurisdiction': 'california', 'submission_id': '71530420261940012346', 'status': 'not_transmitted', 'errors': "[{'code': 'STATE-HOLD', 'message': 'State return held because the federal return was rejected.'}]"}, {'date': '2026-07-14T16:22:00Z', 'jurisdiction': 'federal', 'submission_id': '71530420261950019871', 'status': 'accepted'}, {'date': '2026-07-15T02:10:00Z', 'jurisdiction': 'california', 'submission_id': '71530420261950019872', 'status': 'accepted'}]
+
+== timeline == 29 events: Counter({'document_received': 7, 'return_computed': 3, 'client_message': 2, 'engagement_signed': 1, 'questionnaire_submitted': 1, 'client_marked_upload_complete': 1, 'work_started': 1, 'irs_transcript_pulled': 1, 'staff_joined_engagement': 1, 'client_call': 1, 'extension_filed_with_payment': 1, 'client_approved_and_signed_8879': 1, 'efile_rejected': 1, 'efile_accepted_federal': 1, 'efile_accepted_california': 1, 'federal_balance_paid': 1, 'california_refund_issued': 1, 'quality_review_selected_return': 1, 'next_year_engagement_started': 1, 'notice_received': 1})
+actors: Counter({'None': 22, 'st-01': 4, 'st-04': 1, 'st-02': 1, 'st-06': 1})
+ids not tl-: ['extension-2026-04-14']
+refs prefix kinds: Counter({'msg': 6, 'agency': 6, 'v2': 2, 'D01': 1, 'D02': 1, 'qa': 1, 'v1': 1, 'D69': 1, 'D31': 1, 'call': 1, 'D73': 1, 'D26': 1, 'D43': 1, 'D40': 1, 'D37': 1, 'D38': 1, 'v3': 1, 'D71': 1, 'D72': 1})
+tl-20 detail keys: [('tl-20', 'Form 8879 and FTB 8879 signed electronically. Taxpayer PIN 41207; spouse PIN 88310. Amounts: as shown on the return the firm presented for approval (your final return).'), ('tl-21', 'None'), ('tl-25', 'Balance due on the filed federal return paid by direct debit (after 2026-04-15: interest and failure-to-pay penalty apply).'), ('tl-26', 'Overpayment on the filed California return refunded by direct deposit.')]
+
+== v3 lines ==
+forms used: [('F1040', 31), ('F2210', 3), ('F2441', 6), ('F4562-C', 4), ('F4562-E', 2), ('F4797', 11), ('F540NR', 19), ('F6251', 11), ('F7203', 9), ('F8283', 2), ('F8582', 5), ('F8606', 14), ('F8812', 8), ('F8863', 3), ('F8867', 1), ('F8889', 6), ('F8938', 3), ('F8949', 302), ('F8959', 7), ('F8960', 9), ('F8995', 9), ('FTB3885A', 4), ('FTB5805', 1), ('Sch1', 8), ('Sch2', 6), ('Sch3', 5), ('SchA', 13), ('SchB', 16), ('SchC', 26), ('SchCA540NR', 30), ('SchD', 16), ('SchE', 29), ('SchSE', 7), ('ScheduleS', 1)]
+form_codes not used in v3: ['F8995A'] used not in form_codes: []
+value types: Counter({'int': 316, 'float': 298, 'str': 13})
+text/ratio lines: [('SchB.7a', 'Yes'), ('SchB.7b', 'Sweden'), ('SchB.8', 'No'), ('F8606.10', 0.99815), ('SchC.43', '2021-06-01'), ('SchC.I', 'Yes'), ('SchC.J', 'No'), ('SchE.1A', '1450 Fremont Way, Sacramento CA'), ('SchE.1B', '1200 Barton Hills Dr Unit 4C, Austin TX'), ('SchE.2A', '365 / 0'), ('SchE.2B', '273 / 0'), ('F4797.20', '2020-03-01 / 2025-10-15'), ('F8949.A.X92', -0.13), ('F8949.D.X141', -0.39), ('F8938.req', 'Yes'), ('F8867.status', 'Not completed'), ('F540NR.34', 0.6347), ('F540NR.36', 0.0766)]
+rules used: 94 null rule: 0
+rules in engine_reference not used by any v3 line: ['R-CA-CAPGAIN', 'R-CA-DIVIDENDS', 'R-CA-IRA']
+rules used not in engine_reference: []
+source prefixes: Counter({'ev-': 1956, 'asset:': 18, 'py:': 12, 'ref:param.': 10, 'qa-': 9, 'household:': 6, 'ref:fx.': 3, 'timeline:': 1})
+doc:#page refs anywhere: []
+lines with note: 23 with no sources: 196 with inputs: 221
+inputs that aren't line keys in same version: []
+ref:param names cited: ['ref:fx.SEK.2024_average', 'ref:fx.SEK.2025_year_end', 'ref:param.amt_exemption', 'ref:param.brackets_mfj', 'ref:param.ca_brackets_mfj', 'ref:param.ca_std_deduction_mfj', 'ref:param.mileage_rate', 'ref:param.qbi_threshold', 'ref:param.salt_cap', 'ref:param.ss_wage_base', 'ref:param.std_deduction_mfj']
+household: cited: ['household:ada', 'household:erik', 'household:ngozi', 'household:theo']
+agency: cited: []
+py: cited: ['py:/basis_records/scorp_lindqvist_family_woodworks/0', 'py:/carryovers_into_2025/capital_loss_long', 'py:/carryovers_into_2025/capital_loss_short', 'py:/carryovers_into_2025/passive_1200_barton_hills', 'py:/carryovers_into_2025/passive_1450_fremont', 'py:/carryovers_into_2025/section_1231_losses', 'py:/return_2024/K1_1120S', 'py:/return_2024/lines/CA540.64', 'py:/return_2024/lines/F1040.24', 'py:/return_2024/lines/F8606.14']
+timeline: cited: ['timeline:extension-2026-04-14']
+asset: cited: ['asset:AUS-BLDG', 'asset:AUS-FLOOR', 'asset:SAC-APPL', 'asset:SAC-BLDG', 'asset:SAC-ROOF', 'asset:STU-CAMERA', 'asset:STU-PRINTER', 'asset:STU-WORKST']
+F8949 lots sample: [('F8949.B.N1', 19240.0), ('F8949.A.N2', 2100.0), ('F8949.B.N3', 18480.0), ('F8949.E.N4', 15300.0)]
+SchCA540NR sample: [('SchCA540NR.1.A', 212400), ('SchCA540NR.1.C', 6000), ('SchCA540NR.1.D', 218400), ('SchCA540NR.1.E', 218400), ('SchCA540NR.2.A', 6450), ('SchCA540NR.2.B', 410)]
+diagnostics refs: [('DIGITAL_ASSET_BASIS_MISSING', ['ev-0879', 'ev-0881', 'ev-0882', 'ev-0918', 'ev-0919']), ('AMT_CREDIT_CARRYFORWARD', ['F6251.11']), ('AOTC_PHASED_OUT', ['F8863.7']), ('FBAR_OUTSIDE_RETURN', ['F8938.1.max']), ('FORM_1099_FILING', ['SchC.I', 'SchC.J']), ('DUE_DILIGENCE_REQUIRED', ['F8867.status']), ('CA_AMT_NOT_COMPUTED', ['F6251.2i']), ('HOME_OFFICE_AREA_CHANGE', ['SchC.30']), ('QUESTIONNAIRE_SALES_CONFLICT', ['qa-14']), ('LOW_CONFIDENCE_READ', ['ev-1049']), ('BROKER_SUMMARY_DETAIL_MISMATCH', ['ev-0703'])]
+assets v3: [('SAC-BLDG', None, {'prior_accumulated': 72248.47, 'depreciation_2025': 13236.36, 'accumulated_end': 85484.83}, {'prior_accumulated': 72248.47, 'depreciation_2025': 13236.36, 'accumulated_end': 85484.83}, {'depreciation_2025': 13236.36, 'difference_from_regular': 0.0}, ['py:/asset_records']), ('SAC-APPL', None, {'prior_accumulated': 4200.0, 'depreciation_2025': 0.0, 'accumulated_end': 4200.0}, {'prior_accumulated': 3474.24, 'depreciation_2025': 483.84, 'accumulated_end': 3958.08}, {'depreciation_2025': 0.0, 'difference_from_regular': 0.0}, ['py:/asset_records']), ('SAC-ROOF', None, {'prior_accumulated': 1772.74, 'depreciation_2025': 654.55, 'accumulated_end': 2427.29}, {'prior_accumulated': 1772.74, 'depreciation_2025': 654.55, 'accumulated_end': 2427.29}, {'depreciation_2025': 654.55, 'difference_from_regular': 0.0}, ['py:/asset_records']), ('AUS-BLDG', '2025-10-15', {'prior_accumulated': 42460.6, 'depreciation_2025': 7139.39, 'accumulated_end': 49599.99}, {'prior_accumulated': 42460.6, 'depreciation_2025': 7139.39, 'accumulated_end': 49599.99}, {'depreciation_2025': 7139.39, 'difference_from_regular': 0.0}, ['py:/asset_records', 'ev-1019', 'ev-1021', 'ev-1018']), ('AUS-FLOOR', '2025-10-15', {'prior_accumulated': 550.0, 'depreciation_2025': 190.0, 'accumulated_end': 740.0}, {'prior_accumulated': 550.0, 'depreciation_2025': 190.0, 'accumulated_end': 740.0}, {'depreciation_2025': 190.0, 'difference_from_regular': 0.0}, ['py:/asset_records', 'ev-1022']), ('STU-LAPTOP', None, {'prior_accumulated': 2800.0, 'depreciation_2025': 0.0, 'accumulated_end': 2800.0}, {'prior_accumulated': 2800.0, 'depreciation_2025': 0.0, 'accumulated_end': 2800.0}, {'depreciation_2025': 0.0, 'difference_from_regular': 0.0}, ['py:/asset_records']), ('STU-PRINTER', None, {'prior_accumulated': 0.0, 'depreciation_2025': 14200.0, 'accumulated_end': 14200.0}, {'prior_accumulated': 0.0, 'depreciation_2025': 2840.0, 'accumulated_end': 2840.0}, {'depreciation_2025': 14200.0, 'difference_from_regular': 0.0}, ['ev-0141', 'ev-0145']), ('STU-CAMERA', None, {'prior_accumulated': 0.0, 'depreciation_2025': 16300.0, 'accumulated_end': 16300.0}, {'prior_accumulated': 0.0, 'depreciation_2025': 3260.0, 'accumulated_end': 3260.0}, {'depreciation_2025': 16300.0, 'difference_from_regular': 0.0}, ['ev-0142', 'ev-0145']), ('STU-WORKST', None, {'prior_accumulated': 0.0, 'depreciation_2025': 7500.0, 'accumulated_end': 7500.0}, {'prior_accumulated': 0.0, 'depreciation_2025': 1500.0, 'accumulated_end': 1500.0}, {'depreciation_2025': 7500.0, 'difference_from_regular': 0.0}, ['ev-0143', 'ev-0145'])]
+changes kinds: Counter({'changed': 87, 'added': 2})
+D06 line_sources count: 106
+
+== all ref kinds across packet (regex scan of strings) ==
+Counter({'ev-1': 3601, 'ev-2': 3428, 'ev-0': 1960, 'D74': 1830, 'D23': 339, 'D30': 163, 'D31': 163, 'D06': 111, 'D35': 56, 'py:/': 56, 'asset:': 54, 'D28': 53, 'D34': 53, 'ref:param.': 30, 'ev-3': 26, 'qa-3': 26, 'D10': 24, 'D14': 24, 'D08': 23, 'D68': 22, 'D09': 21, 'qa-2': 21, 'D21': 18, 'household:': 18, 'msg-0': 14, 'D11': 13, 'D51': 13, 'qa-1': 13, 'D39': 12, 'qa-4': 12, 'D13': 10, 'D15': 10, 'D37': 10, 'D46': 10, 'D67': 10, 'qa-0': 10, 'D12': 9, 'D22': 9, 'D54': 9, 'ref:fx.': 9, 'D01': 8, 'D36': 8, 'D41': 8, 'D50': 8, 'D57': 8, 'D65': 8, 'D16': 7, 'D17': 7, 'D18': 7, 'D19': 7, 'D20': 7, 'D24': 7, 'D38': 7, 'D40': 7, 'D55': 7, 'D59': 7, 'D02': 6, 'D04': 6, 'D05': 6, 'D27': 6, 'D42': 6, 'D44': 6, 'D47': 6, 'D48': 6, 'D49': 6, 'D56': 6, 'D61': 6, 'D62': 6, 'D63': 6, 'D66': 6, 'agency:/': 6, 'D03': 5, 'D07': 5, 'D25': 5, 'D26': 5, 'D29': 5, 'D32': 5, 'D33': 5, 'D43': 5, 'D45': 5, 'D52': 5, 'D53': 5, 'D58': 5, 'D60': 5, 'D64': 5, 'D70': 5, 'D73': 5, 'D69': 4, 'D71': 3, 'D72': 3, 'msg-1': 2, 'call-0': 2, 'timeline:': 1})
+doc: refs: []

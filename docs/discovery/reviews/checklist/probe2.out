@@ -1,0 +1,29 @@
+entered_by: client (organizer), 2026-01-20
+qa answered_by: Counter({'Ngozi Okafor': 30, 'Erik Lindqvist': 15})
+qa answered_at: Counter({'2026-01-20': 45})
+   qa-06 Erik Lindqvist | Did you receive any stock compensation (RSUs, options, ESPP)? => Yes - RSUs and ESPP at Corvane, and Ngozi exercised her Corvane ISOs in July bef
+   qa-14 Ngozi Okafor | Did you sell any stocks, bonds, mutual funds or other investments in 2 => No
+   qa-15 Erik Lindqvist | Did you buy, sell or trade cryptocurrency or other digital assets? => Erik has some crypto on Coinhaven. We didn't really sell, just moved things arou
+   qa-25 Ngozi Okafor | Was Erik eligible for health coverage through Ngozi's employer in 2025 => Yes - both of Ngozi's employers offer family coverage, but Erik kept his own ind
+   qa-31 Ngozi Okafor | IRA details: amounts, prior basis, year-end balance => Ngozi put 7,000 in for 2025 and converted it. Prior basis: none that I know of -
+   qa-39 Erik Lindqvist | Charitable: non-cash gifts => Donated stock to our donor-advised fund in December, and donated our old Subaru 
+   qa-41 Ngozi Okafor | Federal estimated payment for the 4th quarter: date and amount => Paid January 14, 2026 - 4,000 I think.
+   qa-45 Erik Lindqvist | Is there anything else we should know? => Ngozi's new employer kept withholding California tax until September by mistake.
+v3 lines citing 'qa-': 9 e.g. ['SchC.I', 'SchC.J', 'F8889.15', 'SchE.1A', 'SchE.9A', 'SchE.1B', 'F8283.A1.vehicle', 'F1040.26']
+v3 lines citing 'msg-': 0 e.g. []
+v3 lines citing 'call-': 0 e.g. []
+v3 lines citing 'py:': 10 e.g. ['F8606.2', 'F4797.8', 'F7203.1', 'SchD.6', 'SchD.14', 'F8582.1c', 'SchE.22A', 'SchE.22B']
+v3 lines citing 'agency:': 0 e.g. []
+v3 lines citing 'household:': 3 e.g. ['F8812.4', 'F8812.6', 'F540NR.39']
+v3 lines citing 'ref:': 13 e.g. ['SchB.1.6', 'SchC.9', 'SchSE.10', 'SchA.5e', 'F1040.12', 'F8995.15.1', 'F8995.15.2', 'F1040.16']
+v3 lines citing 'timeline:': 1 e.g. ['Sch3.10']
+v3 lines citing 'doc:': 0 e.g. []
+v3 lines citing 'asset:': 11 e.g. ['F4562-E.total-A', 'F4562-E.total-B', 'F4797.23', 'SchCA540NR.12.C', 'SchCA540NR.12.E', 'SchCA540NR.17.B', 'SchCA540NR.17.E', 'FTB3885A.SAC-APPL']
+v3 str-valued lines: [('SchB.7a', 'Yes'), ('SchB.7b', 'Sweden'), ('SchB.8', 'No'), ('SchC.43', '2021-06-01'), ('SchC.I', 'Yes'), ('SchC.J', 'No'), ('SchE.1A', '1450 Fremont Way, Sacramento CA'), ('SchE.1B', '1200 Barton Hills Dr Unit 4C, Austin TX'), ('SchE.2A', '365 / 0'), ('SchE.2B', '273 / 0'), ('F4797.20', '2020-03-01 / 2025-10-15'), ('F8938.req', 'Yes'), ('F8867.status', 'Not completed')]
+tl-20 detail (PINs redacted): Form 8879 and FTB 8879 signed electronically. Taxpayer PIN #####; spouse PIN #####. Amounts: as shown on the return the firm presented for approval (your final return).
+D72 pages: [(1, 'See tax_agency_records.notices (Letter 566 dated 01/20/2028).')]
+Traceback (most recent call last):
+  File "/private/tmp/claude-501/-Users-aarvingeorge-Documents-Climb-Profile-Builder-tech-personal-projects-tax-workpaper-project/9cc2f380-a009-45a0-913e-e17f89510bc5/scratchpad/hybrid/review/checklist/probe2.py", line 31, in <module>
+    print("D74 page_count:", D["D74"]["page_count"], "values:", len(D["D74"]["extraction"].get("values", [])))
+                                                                ~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+TypeError: object of type 'int' has no len()

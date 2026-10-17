@@ -1,0 +1,367 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Firm</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Instrument+Sans:wght@400;500;600;700&amp;family=Source+Serif+4:opsz,wght@8..60,400;8..60,600&amp;family=IBM+Plex+Mono:wght@400;500&amp;display=swap" rel="stylesheet">
+<style>
+.wp{--bg:oklch(0.975 0.005 250);--surface:oklch(0.995 0.003 250);--sunk:oklch(0.955 0.006 250);--line:oklch(0.89 0.008 250);--ink:oklch(0.24 0.02 255);--ink2:oklch(0.44 0.02 255);--acc:oklch(0.46 0.15 262);--accsoft:oklch(0.94 0.035 262);--blk:oklch(0.50 0.17 32);--blksoft:oklch(0.955 0.03 32);--wrn:oklch(0.48 0.10 70);--wrnsoft:oklch(0.96 0.045 85);--pas:oklch(0.47 0.09 165);--passoft:oklch(0.955 0.03 165);--hl:oklch(0.91 0.13 100);--paper:oklch(0.99 0.006 90)}
+.wp.dark{--bg:oklch(0.19 0.012 255);--surface:oklch(0.23 0.014 255);--sunk:oklch(0.17 0.012 255);--line:oklch(0.33 0.015 255);--ink:oklch(0.93 0.008 255);--ink2:oklch(0.74 0.012 255);--acc:oklch(0.76 0.11 262);--accsoft:oklch(0.30 0.05 262);--blk:oklch(0.74 0.13 35);--blksoft:oklch(0.28 0.05 32);--wrn:oklch(0.80 0.11 80);--wrnsoft:oklch(0.29 0.04 85);--pas:oklch(0.76 0.09 165);--passoft:oklch(0.27 0.04 165);--hl:oklch(0.55 0.10 100);--paper:oklch(0.26 0.01 90)}
+.wp{font-family:'Instrument Sans',system-ui,sans-serif;color:var(--ink);background:var(--bg);font-size:14px;line-height:1.45;min-height:100vh;display:flex;flex-direction:column}
+.firm-page{padding:22px 28px 40px;display:flex;flex-direction:column;gap:24px;max-width:1100px;width:100%;box-sizing:border-box}
+.firm-num{font-variant-numeric:tabular-nums;font-feature-settings:"tnum"}
+.firm-mono{font-family:'IBM Plex Mono',monospace;font-size:12px;color:var(--ink2)}
+.firm-lbl{font-size:11.5px;font-weight:600;letter-spacing:.04em;text-transform:uppercase;color:var(--ink2)}
+.firm-h2{margin:0;font-size:17px;font-weight:600;letter-spacing:-.01em}
+.firm-tag{display:inline-flex;align-items:center;gap:5px;font-size:11.5px;font-weight:600;padding:2px 8px;border-radius:999px;white-space:nowrap}
+.firm-t-blk{color:var(--blk);background:var(--blksoft)}.firm-t-wrn{color:var(--wrn);background:var(--wrnsoft)}.firm-t-pas{color:var(--pas);background:var(--passoft)}.firm-t-acc{color:var(--acc);background:var(--accsoft)}.firm-t-mut{color:var(--ink2);background:var(--sunk)}
+.firm-ex{font-size:10.5px;font-weight:600;letter-spacing:.03em;padding:1px 6px;border-radius:999px;border:1px dashed var(--ink2);color:var(--ink2);white-space:nowrap}
+.firm-btn{font:inherit;font-size:13px;border:1px solid var(--line);background:var(--surface);color:var(--ink);border-radius:8px;padding:7px 12px;cursor:pointer;min-height:36px}
+.firm-btn:hover{border-color:var(--ink2)}
+.firm-btn.primary{background:var(--acc);border-color:var(--acc);color:var(--surface)}
+.firm-btn:focus-visible,.firm-link:focus-visible{outline:2px solid var(--acc);outline-offset:2px}
+.firm-link{font:inherit;background:none;border:0;padding:0;color:var(--acc);text-decoration:underline;text-underline-offset:2px;cursor:pointer}
+.firm-box{border:1px solid var(--line);border-radius:10px;background:var(--surface)}
+.firm-row{display:flex;flex-wrap:wrap;gap:6px 14px;padding:11px 16px;border-top:1px solid var(--line);align-items:flex-start}
+.firm-row:first-child{border-top:0}
+.firm-note{color:var(--ink2);font-size:12.5px}
+.firm-scroll{overflow-x:auto}
+.firm-table{width:100%;border-collapse:collapse;font-size:13px}
+.firm-table th{text-align:left;font-size:11.5px;font-weight:600;letter-spacing:.04em;text-transform:uppercase;color:var(--ink2);padding:9px 14px;border-bottom:1px solid var(--line);white-space:nowrap}
+.firm-table td{padding:9px 14px;border-top:1px solid var(--line);vertical-align:top}
+.firm-table tr:first-child td{border-top:0}
+.firm-r{text-align:right}
+.firm-quote{font-family:'Source Serif 4',Georgia,serif;font-size:14.5px;line-height:1.55;margin:0;padding:10px 14px;background:var(--paper);border:1px solid var(--line);border-radius:8px}
+.firm-btn.off,.firm-btn.off:hover{background:var(--sunk);border-color:var(--line);color:var(--ink2);cursor:not-allowed}
+.firm-cols{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(300px,100%),1fr));gap:16px}
+</style>
+</helmet>
+<div class="{{wpClass}}">
+<div class="firm-page">
+
+<sc-if value="{{noAccess}}" hint-placeholder-val="{{false}}">
+<section style="display:flex;flex-direction:column;gap:10px;max-width:62ch">
+<h1 style="margin:0;font-size:22px;font-weight:600">{{noAccessTitle}}</h1>
+<p style="margin:0">{{noAccessText}}</p>
+<div><button class="firm-btn" type="button" onClick="{{goBack}}">{{noAccessBtn}}</button></div>
+</section>
+</sc-if>
+
+<sc-if value="{{hasAccess}}" hint-placeholder-val="{{true}}">
+<header style="display:flex;flex-direction:column;gap:6px">
+<div style="display:flex;flex-wrap:wrap;align-items:center;gap:10px"><span class="firm-lbl">Firm</span><span class="firm-tag firm-t-mut">Miraflores</span><span class="firm-tag firm-t-mut">{{asOfLabel}}</span><span class="firm-tag firm-t-mut" style="{{readOnlyStyle}}">Read only</span></div>
+<h1 style="margin:0;font-size:24px;font-weight:600;letter-spacing:-.015em">{{h1}}</h1>
+<p style="margin:0;max-width:78ch;color:var(--ink2)">{{intro}}</p>
+</header>
+
+<section aria-labelledby="firm-std" style="display:flex;flex-direction:column;gap:12px">
+<div style="display:flex;flex-wrap:wrap;align-items:center;gap:10px">
+<h2 class="firm-h2" id="firm-std">Firm standards</h2>
+<span class="firm-tag firm-t-acc">{{versionTag}}</span><span class="firm-ex" style="{{versionExStyle}}">Example</span>
+<span style="margin-left:auto;display:flex;flex-wrap:wrap;align-items:center;gap:10px">
+<sc-if value="{{isJo}}" hint-placeholder-val="{{true}}"><button class="firm-btn primary" type="button" aria-pressed="{{editPressed}}" onClick="{{toggleEdit}}">{{editLabel}}</button></sc-if>
+<sc-if value="{{notJo}}" hint-placeholder-val="{{false}}"><span class="firm-note">Only the firm administrator can change standards.</span></sc-if>
+</span>
+</div>
+<sc-if value="{{editing}}" hint-placeholder-val="{{false}}">
+<div class="firm-box" style="padding:12px 16px;display:flex;flex-wrap:wrap;gap:10px;align-items:center"><span class="firm-tag firm-t-wrn">Draft</span><span style="flex:1 1 360px">Editing makes version 3. Version 2 stays in force and in the history until you publish; work signed under version 2 keeps that version’s wording. Return values stay read only for you.</span><button class="firm-btn" type="button" onClick="{{publish}}">Publish version 3</button></div>
+</sc-if>
+
+<div class="firm-box">
+<div class="firm-row"><span class="firm-lbl" style="flex:1 1 100%">Version history</span></div>
+<sc-for list="{{versions}}" as="v" hint-placeholder-count="2">
+<div class="firm-row"><span class="firm-tag {{v.tcls}}">{{v.tword}}</span><strong style="font-weight:600">{{v.name}}</strong><span style="flex:1 1 320px;min-width:0">{{v.what}}</span><span class="firm-ex" style="{{v.exStyle}}">Example</span></div>
+</sc-for>
+</div>
+
+<div class="firm-cols">
+<div class="firm-box">
+<div class="firm-row"><span class="firm-lbl">The 12 required steps</span></div>
+<ol style="margin:0;padding:10px 16px 12px 40px;display:flex;flex-direction:column;gap:5px">
+<sc-for list="{{steps}}" as="s" hint-placeholder-count="12">
+<li>{{s.name}} <span class="firm-note">{{s.note}}</span></li>
+</sc-for>
+</ol>
+</div>
+<div class="firm-box">
+<div class="firm-row"><span class="firm-lbl">Verification types</span></div>
+<ul style="margin:0;padding:10px 16px 6px 34px;display:flex;flex-direction:column;gap:4px">
+<sc-for list="{{verifs}}" as="x" hint-placeholder-count="5"><li>{{x.name}}</li></sc-for>
+</ul>
+<div class="firm-row"><span class="firm-lbl" style="flex:1 1 100%">Variance review</span><span>Flag a swing when it changes over 10% and over 1,000 vs prior year.</span></div>
+<div class="firm-row"><span class="firm-lbl" style="flex:1 1 100%">Review levels</span><span>Preparer, then reviewer, then partner.</span></div>
+</div>
+</div>
+
+<div class="firm-box">
+<div class="firm-row"><span class="firm-lbl" style="flex:1 1 100%">Rules, and where each one acts</span></div>
+<sc-for list="{{rules}}" as="r" hint-placeholder-count="7">
+<div class="firm-row" style="flex-direction:column;gap:6px">
+<span style="display:flex;flex-wrap:wrap;align-items:center;gap:8px"><span class="firm-tag {{r.tcls}}">{{r.tword}}</span><span class="firm-note">{{r.where}}</span><sc-if value="{{r.hasGo}}" hint-placeholder-val="{{false}}"><button class="firm-link" type="button" onClick="{{r.go}}">{{r.goLabel}}</button></sc-if></span>
+<p class="firm-quote">“{{r.text}}”</p>
+<sc-if value="{{r.tightened}}" hint-placeholder-val="{{false}}">
+<div style="display:flex;flex-direction:column;gap:6px">
+<span class="firm-lbl">Starter rule from the packet, as delivered</span>
+<p class="firm-quote" style="background:var(--sunk);color:var(--ink2)">“{{r.starter}}”</p>
+<span class="firm-note">{{r.why}}</span>
+</div>
+</sc-if>
+</div>
+</sc-for>
+</div>
+</section>
+
+<section aria-labelledby="firm-staff" style="display:flex;flex-direction:column;gap:10px">
+<div style="display:flex;flex-wrap:wrap;align-items:baseline;gap:10px"><h2 class="firm-h2" id="firm-staff">Staff and clearance</h2><span class="firm-note">From the packet’s firm staff list. Assigned at the start: Priya Raman prepares, Daniel Ortiz reviews, Helen Strand is the partner and signs as paid preparer.</span></div>
+<div class="firm-box firm-scroll">
+<table class="firm-table">
+<thead><tr><th scope="col">Name</th><th scope="col">Role</th><th scope="col">Credential</th><th scope="col">Sensitive data</th><th scope="col">Active from</th><th scope="col">At this story time</th><th scope="col">Note</th></tr></thead>
+<tbody>
+<sc-for list="{{staffRows}}" as="p" hint-placeholder-count="6">
+<tr><td><strong style="font-weight:600">{{p.name}}</strong></td><td>{{p.role}}</td><td>{{p.cred}}</td><td><span class="firm-tag {{p.ccls}}">{{p.clear}}</span></td><td class="firm-num">{{p.from}}</td><td><span class="firm-tag {{p.acls}}">{{p.active}}</span></td><td>{{p.note}}</td></tr>
+</sc-for>
+</tbody>
+</table>
+</div>
+<span class="firm-note">Client users: Ngozi Okafor and Erik Lindqvist. Each answers questions and signs the e-file authorizations separately.</span>
+</section>
+
+<section aria-labelledby="firm-asg" style="display:flex;flex-direction:column;gap:10px">
+<div style="display:flex;flex-wrap:wrap;align-items:baseline;gap:10px"><h2 class="firm-h2" id="firm-asg">Assignments</h2><span class="firm-note">{{asgNote}}</span></div>
+<div class="firm-box" role="list">
+<sc-for list="{{asgRows}}" as="a" hint-placeholder-count="6">
+<div class="firm-row" role="listitem">
+<span class="firm-tag {{a.tcls}}">{{a.tword}}</span>
+<span style="flex:1 1 320px;min-width:0;display:flex;flex-direction:column;gap:2px"><strong style="font-weight:600">{{a.who}}: {{a.what}}</strong><span class="firm-note">{{a.note}}</span></span>
+<span class="firm-mono">{{a.src}}</span>
+<sc-if value="{{a.canMove}}" hint-placeholder-val="{{false}}"><button class="firm-btn" type="button" onClick="{{a.move}}">{{a.moveLabel}}</button></sc-if>
+</div>
+</sc-for>
+</div>
+</section>
+
+<section aria-labelledby="firm-log" style="display:flex;flex-direction:column;gap:10px">
+<div style="display:flex;flex-wrap:wrap;align-items:baseline;gap:10px"><h2 class="firm-h2" id="firm-log">View log</h2><span class="firm-note">Every reveal of a masked number, by anyone, is one row: who, which number, when. Never the value. Rows marked This session are live; rows marked Example are examples.</span></div>
+<div class="firm-box firm-scroll">
+<table class="firm-table">
+<thead><tr><th scope="col">Who</th><th scope="col">What was revealed</th><th scope="col">When</th><th scope="col">Source</th></tr></thead>
+<tbody>
+<sc-for list="{{logRows}}" as="l" hint-placeholder-count="4">
+<tr><td><strong style="font-weight:600">{{l.who}}</strong></td><td>{{l.what}}</td><td class="firm-num">{{l.when}}</td><td><span class="firm-tag {{l.tcls}}" style="{{l.liveStyle}}">This session</span><span class="firm-ex" style="{{l.exStyle}}">Example</span></td></tr>
+</sc-for>
+</tbody>
+</table>
+</div>
+<span class="firm-note">{{logNote}}</span>
+</section>
+
+<section aria-labelledby="firm-time" style="display:flex;flex-direction:column;gap:10px">
+<div style="display:flex;flex-wrap:wrap;align-items:baseline;gap:10px"><h2 class="firm-h2" id="firm-time">Time against budget</h2><span class="firm-note">Budget by area is from the packet. The packet records no time, so hours used are examples.</span></div>
+<div class="firm-box firm-scroll">
+<table class="firm-table">
+<thead><tr><th scope="col">Area</th><th scope="col" class="firm-r">Budget</th><th scope="col" class="firm-r">Used <span class="firm-ex">Example</span></th><th scope="col">Status</th></tr></thead>
+<tbody>
+<sc-for list="{{budget}}" as="b" hint-placeholder-count="10">
+<tr><td>{{b.area}}</td><td class="firm-num firm-r">{{b.budget}} h</td><td class="firm-num firm-r">{{b.used}} h</td><td><span class="firm-tag {{b.tcls}}">{{b.tword}}</span></td></tr>
+</sc-for>
+</tbody>
+</table>
+</div>
+</section>
+
+<section aria-labelledby="firm-status" style="display:flex;flex-direction:column;gap:10px">
+<div style="display:flex;flex-wrap:wrap;align-items:baseline;gap:10px"><h2 class="firm-h2" id="firm-status">Deadlines and file status</h2><span class="firm-note">{{dlNote}}</span></div>
+<div class="firm-box" role="list">
+<sc-for list="{{status}}" as="s" hint-placeholder-count="8">
+<div class="firm-row" role="listitem"><span class="firm-tag {{s.tcls}}">{{s.tword}}</span><strong style="font-weight:600;flex:1 1 280px">{{s.what}}</strong><span class="firm-num" style="flex:0 0 auto">{{s.date}}</span><sc-if value="{{s.canWarn}}" hint-placeholder-val="{{false}}"><button class="firm-btn {{s.wcls}}" type="button" aria-disabled="{{s.wad}}" onClick="{{s.warn}}">{{s.wlabel}}</button></sc-if><span class="firm-note" style="flex:1 1 100%">{{s.note}}</span></div>
+</sc-for>
+</div>
+</section>
+
+<div class="firm-note" role="status" style="min-height:18px">{{msg}}</div>
+</sc-if>
+
+</div>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"role":{"editor":"enum","options":["priya","marcus","daniel","helen","sam","jo","ngozi","erik","next","irs"],"default":"jo"},"dark":{"editor":"boolean","default":false},"openClaim":{"editor":null},"go":{"editor":null},"claimId":{"editor":null,"default":""},"revealed":{"editor":null},"reveal":{"editor":null},"revealLog":{"editor":null},"asOf":{"editor":null,"default":""},"asOfLabel":{"editor":null,"default":""},"storyAt":{"editor":null,"default":""},"events":{"editor":null},"emit":{"editor":null},"lastSeen":{"editor":null},"blockers":{"editor":null},"stage":{"editor":null,"default":""},"spouseOf":{"editor":null},"$preview":{"width":1100,"height":3000}}'>
+class Component extends DCLogic {
+  constructor(p) { super(p); this.state = { editing: false, warned: {}, msg: '' }; }
+  renderVals() {
+    const P = this.props || {};
+    const ROLES = ['priya','marcus','daniel','helen','sam','jo','ngozi','erik','next','irs'];
+    const role = ROLES.indexOf(P.role) >= 0 ? P.role : 'daniel';
+    const noop = () => {};
+    const go = typeof P.go === 'function' ? P.go : noop;
+    const emit = typeof P.emit === 'function' ? P.emit : noop;
+    const events = Array.isArray(P.events) ? P.events.filter(e => e && typeof e === 'object') : [];
+    const log = Array.isArray(P.revealLog) ? P.revealLog : [];
+    const st = this.state || {};
+    const hide = 'display:none';
+    const isJo = role === 'jo';
+    const isClient = role === 'ngozi' || role === 'erik';
+    const noAccess = isClient || role === 'irs';
+    // One story clock (FIX-ROUND-H3 A): asOf = storyAt from the shell. Defaults so the artboard renders alone.
+    const AS_OF = { sam:'2027-01-15T15:00', next:'2027-01-15T15:00', irs:'2028-01-26T15:00' };
+    const norm = s => (typeof s === 'string' && s) ? (s.length === 10 ? s + 'T23:59' : s.slice(0, 16)) : '';
+    const now = norm(P.storyAt) || norm(P.asOf) || AS_OF[role] || '2026-06-23T06:05';
+    const T = { ext:'2026-04-14T15:00', marcus:'2026-03-24T15:00', sign:'2026-07-10T20:05', fed:'2026-07-14T16:22', ca:'2026-07-15T02:10', qr:'2027-01-04T15:00', next:'2027-01-15T15:00' };
+    const at = k => now >= T[k];
+    const filed = at('fed');
+    const retracted = new Set(events.filter(e => e.retracts != null).map(e => e.retracts));
+    const send = (type, text, extra) => emit(Object.assign({ type, who: role, at: now, claimId: null, groupId: null, retracts: null, text }, extra || {}));
+    const MON = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+    const fmtD = s => (+s.slice(8, 10)) + ' ' + MON[+s.slice(5, 7) - 1] + ' ' + s.slice(0, 4);
+    const day = s => Date.UTC(+s.slice(0, 4), +s.slice(5, 7) - 1, +s.slice(8, 10)) / 86400000;
+    const today = now.slice(0, 10);
+    const daysFrom = d => day(today) - day(d);
+
+    // firm.starter_standards (probe f_probe2.py), copied exactly.
+    const STARTER_MASK = 'Staff without sensitive-data clearance see SSNs, bank and account numbers and IP PINs masked; every unmasked view is logged.';
+    const steps = ['Engagement letter and consents signed','Identity verified','Prior-year return reviewed','All documents accounted for','Prior-year variances explained','Carryovers agreed to prior year','Estimated payments agreed to IRS and FTB records','Due diligence completed','Diagnostics resolved','Reviewer sign-off','Partner sign-off','Client approval and e-file authorization']
+      .map((name, i) => ({ name, note: i === 3 ? '(stays open while any document received before filing has no confirmed reason)' : i === 8 ? '(includes the engine’s California AMT warning)' : '' }));
+    const verifs = ['Agreed to source document','Recalculated','Confirmed with client','Agreed to prior year','Agreed to third-party record'].map(name => ({ name }));
+    const rules = [
+      { text:'A person may not review or sign off on work they prepared.', where:'Acts on Review and Changes: Daniel filed the 36,000 extension payment, so his sign-off on it is disabled.', screen:'review', goLabel:'Open Review' },
+      { text:'Any adjustment with a tax effect over 1,000 (federal or state) requires partner sign-off.', where:'Acts on Changes: each entry says whether it needs the partner.', screen:'changes', goLabel:'Open Changes' },
+      { text:'Every judgment call records the authority relied on.', where:'Acts on Changes: the heat pump entry records its authority.', screen:'changes', goLabel:'Open Changes' },
+      { text:'Due diligence must be documented for the child tax credit, credit for other dependents, American opportunity credit, earned income credit and head of household status.', where:'Acts on Checks: the engine says Form 8867 must be completed.', screen:'checks', goLabel:'Open Checks' },
+      { text:'Open review notes block filing.', where:'Acts on Review: the partner’s approval names the first blocker.', screen:'review', goLabel:'Open Review' },
+      { text:'SSNs, bank and account numbers and IP PINs are masked for every role, with the last 4 shown. A reveal lasts the session for that number and writes one row to the view log: who, which number, when, never the value. Staff without sensitive-data clearance cannot reveal. Identity checks compare on the server and show match or mismatch. EINs are never masked.',
+        tightened:true, starter: STARTER_MASK,
+        why:'Tightened from the starter rule: masking everyone means the only unmasked views are reveals, so every unmasked view is logged, as the rule asks, and the log stays readable. The packet lets the firm change its standards through the administrator role.',
+        where:'Acts everywhere a number is masked, and on this page’s view log.', screen:'', goLabel:'' },
+      { text:'Records are retained 7 years after filing, then destroyed.', where:'Acts on Deadlines and file status: kept until 14 Jul 2033, 7 years after the federal acceptance on 14 Jul 2026.', screen:'', goLabel:'' }
+    ].map(r => ({ ...r, tword: r.tightened ? 'Tightened from the starter rule' : 'As in the starter standards', tcls: r.tightened ? 'firm-t-wrn' : 'firm-t-mut',
+      tightened: !!r.tightened, starter: r.starter || '', why: r.why || '', hasGo: !!r.screen, go: r.screen ? () => go(r.screen) : noop }));
+    const published = events.some(e => e.type === 'standards_published' && !retracted.has(e.seq));
+    const versions = (published ? [ { tword:'In force', tcls:'firm-t-pas', name:'Version 3', what:'Published by Jo Kimura in this story. Work signed under version 2 keeps that version’s wording.', ex:false } ] : []).concat([
+      { tword: published ? 'Superseded' : 'In force', tcls: published ? 'firm-t-mut' : 'firm-t-pas', name:'Version 2', what:'Masking rule tightened (masked for every role, logged reveals, EINs never masked). Published by Jo Kimura.', ex:true },
+      { tword:'Superseded', tcls:'firm-t-mut', name:'Version 1', what:'The starter standards as delivered in the packet: 5 verification types, variance review, 3 review levels, 7 rules, 12 required steps. Superseded by version 2.', ex:true }
+    ]).map(v => ({ ...v, exStyle: v.ex ? '' : hide }));
+
+    // firm.staff (probes f_probe2.py, h3-F-1.py): active_from decides who exists at this story time.
+    const staffRows = [
+      ['Priya Raman','Preparer','None','Cleared','2025-08-01',''],
+      ['Daniel Ortiz','Reviewer','CPA','Cleared','2021-01-04',''],
+      ['Helen Strand','Partner','CPA','Cleared','2018-05-01','Signs returns as paid preparer.'],
+      ['Marcus Bell','Preparer','None','Not cleared','2026-03-24','Background check pending; no access to full SSNs or bank numbers.'],
+      ['Jo Kimura','Firm administrator','None','Cleared','2020-02-10',''],
+      ['Sam Adeyemi','Quality reviewer','CPA','Cleared','2027-01-04','']
+    ].map(([name, r, cred, clear, from, note]) => { const on = today >= from; return { name, role: r, cred, clear, ccls: clear === 'Cleared' ? 'firm-t-pas' : 'firm-t-blk', from: fmtD(from), note,
+      active: on ? 'Active' : 'Joins on ' + fmtD(from), acls: on ? 'firm-t-pas' : 'firm-t-mut' }; });
+
+    // Assignments (U5): firm.assignment_at_start, tl-09, tl-27, tl-28; reassignments are events.
+    const canAssign = (isJo || role === 'helen') && !filed;
+    const asgEv = events.filter(e => e.type === 'assignment' && e.slot === 'preparer' && !retracted.has(e.seq) && e.retracts == null).sort((a, b) => (b.seq || 0) - (a.seq || 0))[0];
+    const prep = asgEv && asgEv.assignee === 'marcus' ? 'marcus' : 'priya';
+    const NAME = { priya:'Priya Raman', marcus:'Marcus Bell' };
+    const other = prep === 'priya' ? 'marcus' : 'priya';
+    const asgRows = [
+      { tword:'Assigned', tcls:'firm-t-pas', who: NAME[prep], what:'preparer, 2025 return', src: asgEv ? 'Reassigned in this story' : 'assignment at start',
+        note: (asgEv ? asgEv.text + '. ' : '') + (prep === 'marcus' ? 'Marcus has no sensitive-data clearance: Theo’s SSN item stays with a cleared preparer.' : 'Prepares from the start of the engagement.'),
+        canMove: canAssign && (other !== 'marcus' || at('marcus')), moveLabel: 'Reassign to ' + NAME[other],
+        move: () => { const text = 'Preparer for the 2025 return reassigned from ' + NAME[prep] + ' to ' + NAME[other]; send('assignment', text, { slot:'preparer', assignee: other }); this.setState({ msg: 'Saved: ' + text + '. ' + NAME[other] + ' is notified.' }); } },
+      { tword:'Assigned', tcls:'firm-t-pas', who:'Daniel Ortiz', what:'reviewer, 2025 return', src:'assignment at start', note:'Reviews; may not sign off what he prepared (the 36,000 extension payment).', canMove:false, moveLabel:'', move: noop },
+      { tword:'Assigned', tcls:'firm-t-pas', who:'Helen Strand', what:'partner, 2025 return', src:'assignment at start', note:'Partner sign-off; signs the return as paid preparer.', canMove:false, moveLabel:'', move: noop },
+      { tword: at('marcus') ? 'No assignment' : 'Not joined yet', tcls:'firm-t-mut', who:'Marcus Bell', what:'joined the engagement', src:'tl-09', note: at('marcus') ? 'Joined 24 Mar 2026; the packet gives him no assignment.' : 'Joins the engagement on 24 Mar 2026.', canMove:false, moveLabel:'', move: noop },
+      { tword: at('qr') ? 'Assigned' : 'Later in this story', tcls: at('qr') ? 'firm-t-pas' : 'firm-t-mut', who:'Sam Adeyemi', what:'quality review of the filed return', src:'tl-27', note: at('qr') ? 'Selected this return for quality review on 4 Jan 2027.' : 'Sam joins on 4 Jan 2027 and selects this return for quality review.', canMove:false, moveLabel:'', move: noop },
+      { tword: at('next') ? 'Assigned' : 'Later in this story', tcls: at('next') ? 'firm-t-pas' : 'firm-t-mut', who:'Priya Raman', what:'preparer, 2026 return', src:'tl-28', note: at('next') ? 'Opened this file on 15 Jan 2027 to roll forward.' : 'Next year’s engagement starts on 15 Jan 2027.', canMove:false, moveLabel:'', move: noop }
+    ];
+
+    // View log: only the shell's revealLog prop (live rows, plus the shell's Example rows flagged example:true). Never a value.
+    const asOfLabel = (typeof P.asOfLabel === 'string' && P.asOfLabel) ? P.asOfLabel : (filed ? 'Filed' : 'As of 23 Jun 2026, v3');
+    const live = log.map(r => ({ who: String((r && r.who) || 'Someone'), what: String((r && r.what) || 'a masked number'), when: String((r && r.when) || 'This session'), ex: !!(r && r.example) }));
+    const logRows = live.map(r => ({ ...r, liveStyle: r.ex ? hide : '', exStyle: r.ex ? '' : hide, tcls:'firm-t-acc' }));
+    const nLive = live.filter(r => !r.ex).length;
+
+    // firm.budget_hours (probe f_probe2.py). Hours used: not in the packet, Example values.
+    const B = [['Intake and engagement',1.5,1.5],['Wages and stock compensation',3.0,2.5],['Investments and digital assets',4.0,5.5],['Business',3.5,3.0],['Rentals and sale',3.5,2.5],['Pass-throughs and basis',2.0,1.5],['Deductions and credits',2.0,1.5],['California',1.5,1.0],['Partner review',1.0,0.0]];
+    const word = (b, u) => u > b ? ['Over','firm-t-blk'] : u === b ? ['At budget','firm-t-wrn'] : ['Within','firm-t-pas'];
+    const budget = B.map(([area, b, u]) => { const w = word(b, u); return { area, budget: b.toFixed(1), used: u.toFixed(1), tword: w[0], tcls: w[1] }; });
+    const tb = B.reduce((s, x) => s + x[1], 0), tu = B.reduce((s, x) => s + x[2], 0);
+    const tw = word(tb, tu);
+    budget.push({ area:'All areas', budget: tb.toFixed(1), used: tu.toFixed(1), tword: tw[0], tcls: tw[1] });
+
+    // firm.deadlines (probe h3-F-1.py), measured on the story clock. Warnings go to the assignee and Jo (shell recipient rule).
+    const warned = st.warned || {};
+    const due = (d, done, doneNote, openNote, o) => {
+      const late = daysFrom(d);
+      if (done) return { tword: (o && o.doneWord) || 'Met', tcls: (o && o.doneCls) || 'firm-t-pas', note: doneNote, overdue: false };
+      if (late > 0) return { tword: (o && o.outside) ? 'Late, outside engagement' : 'Overdue by ' + late + (late === 1 ? ' day' : ' days'), tcls: (o && o.outside) ? 'firm-t-wrn' : 'firm-t-blk', note: openNote + ((o && o.outside) ? ' ' + late + ' days late at this story time.' : ''), overdue: !(o && o.outside), late };
+      if (late > -15) return { tword: 'Due in ' + (-late) + (late === -1 ? ' day' : ' days'), tcls:'firm-t-wrn', note: openNote, overdue: false, soon: true };
+      return { tword: 'Due in ' + (-late) + ' days', tcls:'firm-t-mut', note: openNote, overdue: false };
+    };
+    // Blockers and stage come from the shell (FIX-ROUND-H3b decisions 1 and 4); standalone fallback mirrors the shell's rule.
+    const FALLBACK_BLOCKERS = [ { claimId:'ca-est', title:'California estimates include a 2024 payment' }, { claimId:'atlas', title:'Card sales counted twice in business income' }, { claimId:'rsu', title:'RSU shares sold with a zero cost basis' }, { claimId:'theo-ssn', title:'Theo’s SSN differs from his 2024 return' } ]
+      .concat(now >= '2026-06-30T18:02' ? [ { claimId:'crypto-c6', title:'Answer arrived after the last computation: crypto lot C6 basis' } ] : [])
+      .concat(now >= '2026-07-01T16:40' ? [ { claimId:'gift-brigid', title:'Answer arrived after the last computation: St. Brigid gift' } ] : []);
+    const BLOCKERS = Array.isArray(P.blockers) ? P.blockers.filter(b => b && typeof b.title === 'string') : FALLBACK_BLOCKERS;
+    const nBlock = BLOCKERS.length;
+    const BLOCK = nBlock ? '“' + BLOCKERS[0].title + '”' + (nBlock > 1 ? ', and ' + (nBlock - 1) + ' more' : '') : '';
+    const APPROVE_BTN = nBlock ? 'Approve and send to client: blocked by ' + BLOCK : 'Approve and send to client';
+    const STAGE = (typeof P.stage === 'string' && P.stage) ? P.stage : (now >= '2026-07-14T16:22' ? 'Filed' : now >= '2026-07-13T17:04' ? 'Filing' : now >= '2026-07-10T20:05' ? 'Approval' : 'Review');
+    const NUMW = ['None','One','Two','Three','Four','Five','Six','Seven'];
+    const stage = STAGE;
+    const DL = [
+      { id:'orig', what:'Federal Form 1040 and California 540NR: original due date', date:'2026-04-15',
+        r: due('2026-04-15', at('ext'), 'Extended: Form 4868 with 36,000 and FTB 3519 with 0 filed 14 Apr 2026 by Daniel Ortiz. An extension of time to file is not an extension of time to pay.', 'No extension filed yet.', { doneWord:'Extended', doneCls:'firm-t-mut' }) },
+      { id:'ext', what:'Extended due date, federal and California', date:'2026-10-15',
+        r: due('2026-10-15', at('ca'), 'Met: federal accepted 14 Jul 2026; California accepted 15 Jul 2026.', at('ext') ? 'Open. The extension moved the filing date; the internal dates below did not move.' : 'Applies once an extension is filed.') },
+      { id:'handoff', what:'Internal: preparer hand-off to review', date:'2026-03-27',
+        r: due('2026-03-27', false, '', 'The packet records no hand-off. Documents kept arriving after this date.') },
+      { id:'review', what:'Internal: review complete', date:'2026-04-08',
+        r: due('2026-04-08', at('sign'), 'Missed: review finished before the clients signed on 10 Jul 2026.', 'Review is still open' + (nBlock ? '; ' + (NUMW[nBlock] || String(nBlock)).toLowerCase() + (nBlock === 1 ? ' blocker: ' : ' blockers: ') + BLOCK + '.' : '.'), { doneWord:'Missed', doneCls:'firm-t-blk' }) },
+      { id:'fbar', what:'FinCEN 114 (FBAR), automatic extended due date', date:'2026-10-15',
+        r: due('2026-10-15', false, '', 'Outside the engagement; the client files it himself.', { outside:true }) },
+      { id:'1099', what:'Forms 1099-NEC for 2025 contractor payments', date:'2026-02-02',
+        r: due('2026-02-02', false, '', 'Outside the engagement. The engine warns the client paid two contractors 600 or more and filed no Forms 1099-NEC.', { outside:true }) }
+    ];
+    // An item that is closed by filing (hand-off) reads Missed after filing rather than counting days forever.
+    if (filed) DL.find(x => x.id === 'handoff').r = { tword:'Missed', tcls:'firm-t-blk', note:'The packet records no hand-off.', overdue:false };
+    const status = [ { tword:'Stage', tcls:'firm-t-acc', what: stage === 'Review' ? 'Review, v3, none of our changes applied yet' : stage === 'Approval' ? 'Approval: signed by both spouses' : stage === 'Filing' ? 'Filing: e-file sent, being corrected or accepted' : 'Filed: as filed, locked', date:'', note: stage === 'Review' ? (nBlock ? (NUMW[nBlock] || String(nBlock)) + (nBlock === 1 ? ' blocker open.' : ' blockers open.') + ' Helen’s button: ' + APPROVE_BTN + '.' : 'No blockers open. Helen’s button: ' + APPROVE_BTN + '.') : stage === 'Approval' ? 'Signed 10 Jul 2026.' : stage === 'Filing' ? 'Rejected 13 Jul 2026 for Theo’s SSN; sent again after the fix.' : 'Federal accepted 14 Jul 2026' + (at('ca') ? '; California accepted 15 Jul 2026.' : '.'), canWarn:false, wcls:'', wad:'false', wlabel:'', warn: noop } ]
+      .concat(DL.map(x => {
+        const w = !!warned[x.id];
+        const text = x.what + ' is ' + (x.r.late || 0) + ' days overdue at ' + fmtD(today);
+        return { tword: x.r.tword, tcls: x.r.tcls, what: x.what, date: fmtD(x.date), note: x.r.note,
+          canWarn: isJo && !!x.r.overdue, wcls: w ? 'off' : '', wad: w ? 'true' : 'false', wlabel: w ? 'Warning sent' : 'Send a deadline warning',
+          warn: () => { if (w) return; send('deadline_warning', text, { deadline: x.id }); this.setState({ warned: { ...warned, [x.id]: true }, msg: 'Sent: ' + text + '. The assignee and you are notified.' }); } };
+      }));
+    if (at('qr')) status.push({ tword:'Selected', tcls:'firm-t-acc', what:'Quality review', date:'4 Jan 2027', note:'Return selected for quality review (Sam Adeyemi).', canWarn:false, wcls:'', wad:'false', wlabel:'', warn: noop });
+    if (filed) status.push({ tword:'Kept', tcls:'firm-t-mut', what:'Records retained until', date:'14 Jul 2033', note:'Firm rule: 7 years after filing, then destroyed.', canWarn:false, wcls:'', wad:'false', wlabel:'', warn: noop });
+    const nOver = DL.filter(x => x.r.overdue).length;
+
+    const readOnly = !isJo;
+    return {
+      wpClass: 'wp' + ((P.dark ?? false) ? ' dark' : ''),
+      noAccess, hasAccess: !noAccess,
+      noAccessTitle: isClient ? 'This page is for your tax team' : 'Not part of the record under examination',
+      noAccessText: isClient ? 'Your part is to answer questions, upload documents, and sign your return once your tax team has finished.' : 'The items under examination, as filed, are on Filing and after.',
+      noAccessBtn: isClient ? 'Go to your home page' : 'Go to Filing and after',
+      goBack: () => go(isClient ? 'home' : 'filing'),
+      h1: isJo ? 'Standards, sensitive data, time and status' : 'How the firm works on this file',
+      intro: isJo ? 'You can change the firm standards, warn people about deadlines, reassign the preparer, and see who revealed what, time against budget and file status. Return values are read only for you.' : 'Read only. The firm administrator owns these standards; every screen applies them.',
+      readOnlyStyle: readOnly ? '' : hide,
+      isJo, notJo: !isJo,
+      editing: isJo && !!st.editing, editPressed: st.editing ? 'true' : 'false', editLabel: st.editing ? 'Stop editing' : 'Edit firm standards',
+      toggleEdit: () => this.setState({ editing: !st.editing, msg: '' }),
+      publish: () => { send('standards_published', 'Firm standards version 3 published by Jo Kimura'); this.setState({ editing: false, msg: 'Published version 3; version 2 stays in the history. The partner is notified.' }); },
+      versionTag: published ? 'Version 3' : 'Version 2', versionExStyle: published ? hide : '',
+      versions, steps, verifs, rules, staffRows,
+      asgRows, asgNote: canAssign ? 'Reassigning is saved as an event and notifies the new assignee.' : 'From the packet’s assignment at the start and its timeline. The administrator or the partner reassigns.',
+      logRows, logNote: nLive ? (nLive + ' reveal' + (nLive === 1 ? '' : 's') + ' logged in this session.') : (logRows.length ? 'No live reveals in this session yet; the rows shown are examples. ' : 'No reveals in this session yet. ') + 'A reveal anywhere in the workpaper adds a row here.',
+      budget, status, asOfLabel, blockerCount: nBlock,
+      dlNote: 'Measured at this story time (' + fmtD(today) + '). ' + (nOver ? nOver + ' internal deadline' + (nOver === 1 ? ' is' : 's are') + ' overdue.' : 'No internal deadline is overdue.'),
+      msg: st.msg || ''
+    };
+  }
+}
+</script>
+</body>
+</html>

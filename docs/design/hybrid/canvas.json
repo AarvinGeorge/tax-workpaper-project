@@ -1,0 +1,144 @@
+{
+ "v": 3,
+ "createdOnFiles": {
+  "v": 1,
+  "at": "2026-10-16T20:47:34Z"
+ },
+ "title": "Tax workpaper hybrid mock-up",
+ "launch": {
+  "view": "focused",
+  "file": "Main.dc.html"
+ },
+ "pages": [],
+ "boards": {
+  "Main.dc.html": {
+   "x": 0,
+   "y": 0,
+   "w": 1440,
+   "h": 900,
+   "title": "Hybrid workpaper: click through every role here",
+   "expand": "fill",
+   "is_interactive": true
+  },
+  "Home.dc.html": {
+   "x": 0,
+   "y": 1500,
+   "w": 980,
+   "h": 900,
+   "title": "Home",
+   "expand": "fill",
+   "is_interactive": true
+  },
+  "ReturnMap.dc.html": {
+   "x": 1060,
+   "y": 1500,
+   "w": 980,
+   "h": 1600,
+   "title": "Return map",
+   "expand": "fill",
+   "is_interactive": true
+  },
+  "Documents.dc.html": {
+   "x": 3180,
+   "y": 1500,
+   "w": 1100,
+   "h": 2400,
+   "title": "Documents",
+   "expand": "fill",
+   "is_interactive": true
+  },
+  "Checks.dc.html": {
+   "x": 4360,
+   "y": 1500,
+   "w": 1100,
+   "h": 900,
+   "title": "Checks inbox (from B)",
+   "expand": "fill",
+   "is_interactive": true
+  },
+  "Review.dc.html": {
+   "x": 5540,
+   "y": 1500,
+   "w": 1100,
+   "h": 900,
+   "title": "Review (from C)",
+   "expand": "fill",
+   "is_interactive": true
+  },
+  "Changes.dc.html": {
+   "x": 6720,
+   "y": 1500,
+   "w": 1100,
+   "h": 1400,
+   "title": "Changes",
+   "expand": "fill",
+   "is_interactive": true
+  },
+  "Filing.dc.html": {
+   "x": 7900,
+   "y": 1500,
+   "w": 1100,
+   "h": 2200,
+   "title": "Filing and after",
+   "expand": "fill",
+   "is_interactive": true
+  },
+  "Firm.dc.html": {
+   "x": 9080,
+   "y": 1500,
+   "w": 1100,
+   "h": 2600,
+   "title": "Firm",
+   "expand": "fill",
+   "is_interactive": true
+  },
+  "ClaimDrawer.dc.html": {
+   "x": 10260,
+   "y": 1500,
+   "w": 440,
+   "h": 1100,
+   "title": "Claim drawer (right pane)",
+   "expand": "fill",
+   "is_interactive": true
+  },
+  "Areas.dc.html": {
+   "x": 2120,
+   "y": 1500,
+   "w": 980,
+   "h": 1800,
+   "title": "Areas (records a CPA expects)",
+   "expand": "fill",
+   "is_interactive": true
+  }
+ },
+ "order": [
+  "Main.dc.html",
+  "Home.dc.html",
+  "ReturnMap.dc.html",
+  "Areas.dc.html",
+  "Documents.dc.html",
+  "Checks.dc.html",
+  "Review.dc.html",
+  "Changes.dc.html",
+  "Filing.dc.html",
+  "Firm.dc.html",
+  "ClaimDrawer.dc.html"
+ ],
+ "notes": {
+  "heading": {
+   "x": 0,
+   "y": -300,
+   "text": "Hybrid: A's three panes, B's inbox as Checks, C's review as Review",
+   "kind": "title1",
+   "maxW": 10700
+  },
+  "parts": {
+   "x": 0,
+   "y": 1200,
+   "text": "The screens on their own (the shell above mounts each in its centre)",
+   "kind": "title1",
+   "maxW": 10700
+  }
+ },
+ "designSystems": []
+}

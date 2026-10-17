@@ -1,0 +1,451 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Changes</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Instrument+Sans:wght@400;500;600;700&amp;family=Source+Serif+4:opsz,wght@8..60,400;8..60,600&amp;family=IBM+Plex+Mono:wght@400;500&amp;display=swap" rel="stylesheet">
+<style>
+.wp{--bg:oklch(0.975 0.005 250);--surface:oklch(0.995 0.003 250);--sunk:oklch(0.955 0.006 250);--line:oklch(0.89 0.008 250);--ink:oklch(0.24 0.02 255);--ink2:oklch(0.44 0.02 255);--acc:oklch(0.46 0.15 262);--accsoft:oklch(0.94 0.035 262);--blk:oklch(0.50 0.17 32);--blksoft:oklch(0.955 0.03 32);--wrn:oklch(0.48 0.10 70);--wrnsoft:oklch(0.96 0.045 85);--pas:oklch(0.47 0.09 165);--passoft:oklch(0.955 0.03 165);--hl:oklch(0.91 0.13 100);--paper:oklch(0.99 0.006 90)}
+.wp.dark{--bg:oklch(0.19 0.012 255);--surface:oklch(0.23 0.014 255);--sunk:oklch(0.17 0.012 255);--line:oklch(0.33 0.015 255);--ink:oklch(0.93 0.008 255);--ink2:oklch(0.74 0.012 255);--acc:oklch(0.76 0.11 262);--accsoft:oklch(0.30 0.05 262);--blk:oklch(0.74 0.13 35);--blksoft:oklch(0.28 0.05 32);--wrn:oklch(0.80 0.11 80);--wrnsoft:oklch(0.29 0.04 85);--pas:oklch(0.76 0.09 165);--passoft:oklch(0.27 0.04 165);--hl:oklch(0.55 0.10 100);--paper:oklch(0.26 0.01 90)}
+.wp{font-family:'Instrument Sans',system-ui,sans-serif;color:var(--ink);background:var(--bg);font-size:14px;line-height:1.45;min-height:100vh;display:flex;flex-direction:column}
+.chg-page{padding:22px 28px 40px;display:flex;flex-direction:column;gap:16px;max-width:1100px;width:100%;box-sizing:border-box}
+.chg-num{font-variant-numeric:tabular-nums;font-feature-settings:"tnum"}
+.chg-mono{font-family:'IBM Plex Mono',monospace;font-size:12px;color:var(--ink2)}
+.chg-lbl{font-size:11.5px;font-weight:600;letter-spacing:.04em;text-transform:uppercase;color:var(--ink2)}
+.chg-h2{margin:0;font-size:17px;font-weight:600;letter-spacing:-.01em}
+.chg-tag{display:inline-flex;align-items:center;gap:5px;font-size:11.5px;font-weight:600;padding:2px 8px;border-radius:999px;white-space:nowrap}
+.chg-t-blk{color:var(--blk);background:var(--blksoft)}.chg-t-wrn{color:var(--wrn);background:var(--wrnsoft)}.chg-t-pas{color:var(--pas);background:var(--passoft)}.chg-t-acc{color:var(--acc);background:var(--accsoft)}.chg-t-mut{color:var(--ink2);background:var(--sunk)}
+.chg-ex{font-size:10.5px;font-weight:600;letter-spacing:.03em;padding:1px 6px;border-radius:999px;border:1px dashed var(--ink2);color:var(--ink2);white-space:nowrap}
+.chg-btn{font:inherit;font-size:13px;border:1px solid var(--line);background:var(--surface);color:var(--ink);border-radius:8px;padding:7px 12px;cursor:pointer;min-height:36px}
+.chg-btn:hover{border-color:var(--ink2)}
+.chg-btn.primary{background:var(--acc);border-color:var(--acc);color:var(--surface)}
+.chg-btn.off,.chg-btn.off:hover{background:var(--sunk);border-color:var(--line);color:var(--ink2);cursor:not-allowed}
+.chg-btn:focus-visible,.chg-val:focus-visible,.chg-chip:focus-visible,.chg-link:focus-visible{outline:2px solid var(--acc);outline-offset:2px}
+.chg-chip{font:inherit;font-size:13px;border:1px solid var(--line);background:var(--surface);color:var(--ink);border-radius:999px;padding:5px 12px;cursor:pointer;min-height:32px}
+.chg-chip.on{background:var(--accsoft);border-color:var(--acc);color:var(--acc);font-weight:600}
+.chg-val{font:inherit;font-variant-numeric:tabular-nums;font-weight:600;background:none;border:0;border-bottom:1px dashed var(--acc);color:var(--ink);padding:0 1px;cursor:pointer}
+.chg-val:hover{color:var(--acc)}
+.chg-link{font:inherit;background:none;border:0;padding:0;color:var(--acc);text-decoration:underline;text-underline-offset:2px;cursor:pointer}
+.chg-list{display:flex;flex-direction:column;border:1px solid var(--line);border-radius:10px;background:var(--surface);overflow:hidden}
+.chg-entry{display:flex;flex-direction:column;gap:10px;padding:16px 18px;border-top:1px solid var(--line)}
+.chg-entry:first-child{border-top:0}
+.chg-entry.on{background:var(--accsoft)}
+.chg-head{display:flex;flex-wrap:wrap;align-items:center;gap:8px 12px}
+.chg-ba{display:flex;flex-wrap:wrap;align-items:baseline;gap:8px 14px;font-size:15px}
+.chg-arrow{color:var(--ink2)}
+.chg-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(260px,100%),1fr));gap:8px 24px;font-size:13px}
+.chg-field{display:flex;flex-direction:column;gap:2px;min-width:0}
+.chg-acts{display:flex;flex-wrap:wrap;align-items:center;gap:8px}
+.chg-note{color:var(--ink2);font-size:12.5px}
+.chg-wi{display:flex;flex-direction:column;gap:10px;padding:16px 18px;border:1px dashed var(--ink2);border-radius:10px;background:var(--sunk)}
+.chg-wibox{display:flex;flex-direction:column;gap:10px;padding:14px 16px;border:1px solid var(--line);border-radius:10px;background:var(--surface)}
+.chg-scroll{overflow-x:auto}
+.chg-table{width:100%;border-collapse:collapse;font-size:13px}
+.chg-table th{text-align:left;font-size:11.5px;font-weight:600;letter-spacing:.04em;text-transform:uppercase;color:var(--ink2);padding:7px 12px;border-bottom:1px solid var(--line);white-space:nowrap}
+.chg-table td{padding:7px 12px;border-top:1px solid var(--line);font-variant-numeric:tabular-nums;white-space:nowrap}
+.chg-table th[scope="row"]{text-transform:none;letter-spacing:0;font-size:13px;color:var(--ink);font-weight:500;border-top:1px solid var(--line)}
+.chg-r{text-align:right}
+.chg-live{display:flex;flex-wrap:wrap;align-items:baseline;gap:4px 12px;padding:10px 16px;border-top:1px solid var(--line);font-size:13px}
+.chg-live:first-child{border-top:0}
+.chg-live.gone{color:var(--ink2);text-decoration:line-through}
+</style>
+</helmet>
+<div class="{{wpClass}}">
+<div class="chg-page">
+
+<sc-if value="{{noAccess}}" hint-placeholder-val="{{false}}">
+<section style="display:flex;flex-direction:column;gap:10px;max-width:62ch">
+<h1 style="margin:0;font-size:22px;font-weight:600">{{noAccessTitle}}</h1>
+<p style="margin:0">{{noAccessText}}</p>
+<div><button class="chg-btn" type="button" onClick="{{goBack}}">{{noAccessBtn}}</button></div>
+</section>
+</sc-if>
+
+<sc-if value="{{hasAccess}}" hint-placeholder-val="{{true}}">
+<header style="display:flex;flex-direction:column;gap:6px">
+<div style="display:flex;flex-wrap:wrap;align-items:center;gap:10px"><span class="chg-lbl" title="Adjustments and change log">Changes</span><span class="chg-tag chg-t-mut">{{versionText}}</span><span class="chg-tag chg-t-mut" style="{{readOnlyStyle}}">{{readOnlyWord}}</span></div>
+<h1 style="margin:0;font-size:24px;font-weight:600;letter-spacing:-.015em">Our adjustments over the packet</h1>
+<p style="margin:0;max-width:78ch;color:var(--ink2)"><span class="chg-tag chg-t-mut" style="margin-right:6px">{{asOfLabel}}</span>The packet stays read only. Each adjustment is a new entry that keeps the original value, the reason, the authority or evidence relied on, the <span title="How much the tax owed changes because of this one adjustment">tax effect</span> and who did it. Entries are never edited or deleted; a correction is a new entry on top. Tax effects are each change taken alone, at v3 rates or from the engine’s what-if where one exists (fixes interact; the real system recomputes).</p>
+</header>
+
+<div role="group" aria-label="Filter changes" style="display:flex;flex-wrap:wrap;align-items:center;gap:8px">
+<sc-for list="{{filters}}" as="f" hint-placeholder-count="4">
+<button class="chg-chip {{f.on}}" type="button" aria-pressed="{{f.pressed}}" onClick="{{f.pick}}">{{f.label}} <span class="chg-num">{{f.count}}</span></button>
+</sc-for>
+<span class="chg-note">Counts are of the entries below; proposals are <span class="chg-ex">Example</span> until someone in the firm makes them.</span>
+</div>
+
+<sc-if value="{{showBulk}}" hint-placeholder-val="{{false}}">
+<div style="display:flex;flex-wrap:wrap;align-items:center;gap:10px;padding:10px 14px;border:1px solid var(--line);border-radius:10px;background:var(--surface)">
+<span class="chg-num">{{bulkCount}} selected</span>
+<button class="chg-btn {{bulkCls}}" type="button" aria-disabled="{{bulkAd}}" onClick="{{bulkSend}}">Send selected to review</button>
+<sc-if value="{{canUndo}}" hint-placeholder-val="{{false}}"><button class="chg-btn" type="button" onClick="{{undo}}">Undo</button></sc-if>
+<span class="chg-note">{{bulkMsg}}</span>
+</div>
+</sc-if>
+
+<div class="chg-list" role="list" aria-label="Change log">
+<sc-for list="{{entries}}" as="e" hint-placeholder-count="8">
+<article class="chg-entry {{e.on}}" role="listitem">
+<div class="chg-head">
+<sc-if value="{{e.selectable}}" hint-placeholder-val="{{false}}"><label style="display:inline-flex;align-items:center;gap:6px;font-size:12.5px;color:var(--ink2)"><input type="checkbox" checked="{{e.checked}}" onChange="{{e.toggle}}"> Select</label></sc-if>
+<span class="chg-tag {{e.tcls}}">{{e.tword}}</span>
+<span class="chg-tag chg-t-blk" style="{{e.blockStyle}}">Blocking</span>
+<strong style="font-weight:600;font-size:15px">{{e.title}}</strong>
+<span class="chg-mono">{{e.line}}</span>
+</div>
+<div class="chg-ba">
+<span class="chg-lbl">Before</span><button class="chg-val" type="button" onClick="{{e.open}}" aria-label="{{e.beforeAria}}">{{e.before}}</button>
+<span class="chg-arrow" aria-hidden="true"><svg width="18" height="12" viewBox="0 0 18 12" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M1 6h15M11 1l5 5-5 5"></path></svg></span>
+<span class="chg-lbl">After</span><button class="chg-val" type="button" onClick="{{e.open}}" aria-label="{{e.afterAria}}">{{e.after}}</button>
+<span class="chg-num chg-tag chg-t-acc" style="white-space:normal">{{e.effect}}</span><span class="chg-ex" style="{{e.effectExStyle}}">Example</span>
+</div>
+<sc-if value="{{e.hasLive}}" hint-placeholder-val="{{false}}"><div style="display:flex;flex-wrap:wrap;align-items:center;gap:8px;font-size:13px"><span class="chg-tag chg-t-wrn">In this story</span><span>{{e.live}}</span></div></sc-if>
+<div class="chg-grid">
+<div class="chg-field"><span class="chg-lbl">Reason</span><span>{{e.reason}}</span></div>
+<div class="chg-field"><span class="chg-lbl">{{e.basisLbl}}</span><span>{{e.basis}} <span class="chg-ex" style="{{e.basisExStyle}}">Example</span></span><span class="chg-note" style="{{e.ruleStyle}}">Firm rule: “Every judgment call records the authority relied on.”</span></div>
+<div class="chg-field"><span class="chg-lbl">Who</span><span>{{e.who}} <span class="chg-ex" style="{{e.whoExStyle}}">Example</span></span></div>
+<div class="chg-field"><span class="chg-lbl">Partner sign-off</span><span>{{e.partner}}</span><span class="chg-note" style="{{e.partnerRuleStyle}}">Firm rule: “Any adjustment with a tax effect over 1,000 (federal or state) requires partner sign-off.”</span></div>
+<div class="chg-field"><span class="chg-lbl">Sign-offs</span><span>{{e.signoffs}} <span class="chg-ex" style="{{e.signExStyle}}">Example</span></span></div>
+<div class="chg-field" style="{{e.extraStyle}}"><span class="chg-lbl">{{e.extraLbl}}</span><span>{{e.extra}}</span><sc-if value="{{e.hasExtraLink}}" hint-placeholder-val="{{false}}"><span><button class="chg-link" type="button" onClick="{{e.openExtra}}">{{e.extraLink}}</button></span></sc-if></div>
+</div>
+<div class="chg-acts" style="{{e.actsStyle}}">
+<sc-for list="{{e.acts}}" as="b" hint-placeholder-count="2">
+<button class="chg-btn {{b.cls}}" type="button" aria-disabled="{{b.ad}}" title="{{b.reason}}" onClick="{{b.go}}">{{b.label}}</button>
+</sc-for>
+<span class="chg-note">{{e.actNote}}</span>
+</div>
+</article>
+</sc-for>
+</div>
+<p class="chg-note" style="margin:0;max-width:78ch">Not an adjustment: the federal extension payment of <button class="chg-val" type="button" onClick="{{openExt}}" aria-label="Extension payment 36,000. Open where it came from">36,000</button> was filed by Daniel Ortiz on 14 Apr 2026, so he may not sign it off. <button class="chg-link" type="button" onClick="{{goReview}}">See it on Review</button></p>
+
+<section aria-labelledby="chg-live" style="display:flex;flex-direction:column;gap:8px">
+<div style="display:flex;flex-wrap:wrap;align-items:baseline;gap:10px"><h2 class="chg-h2" id="chg-live">Recorded in this story</h2><span class="chg-note">Each action here is saved as an event with who did it and the story time; an undo is a new event that cancels the earlier one.</span></div>
+<sc-if value="{{hasLive}}" hint-placeholder-val="{{false}}">
+<div class="chg-list" role="list">
+<sc-for list="{{liveRows}}" as="l" hint-placeholder-count="3">
+<div class="chg-live {{l.cls}}" role="listitem"><span class="chg-num chg-mono">{{l.at}}</span><strong style="font-weight:600">{{l.who}}</strong><span style="flex:1 1 300px;min-width:0">{{l.text}}</span><span class="chg-tag {{l.tcls}}">{{l.state}}</span><sc-if value="{{l.hasClaim}}" hint-placeholder-val="{{false}}"><button class="chg-link" type="button" onClick="{{l.open}}">Open the number</button></sc-if></div>
+</sc-for>
+</div>
+</sc-if>
+<sc-if value="{{noLive}}" hint-placeholder-val="{{true}}"><p class="chg-note" style="margin:0">Nothing recorded on this page yet in this story.</p></sc-if>
+</section>
+
+<section class="chg-wi" aria-labelledby="chg-wi-h">
+<div style="display:flex;flex-wrap:wrap;align-items:center;gap:10px"><h2 class="chg-h2" id="chg-wi-h" title="Planner: try an alternative treatment and see its result">What-ifs</h2><span class="chg-tag chg-t-wrn">Not a change; nothing is saved to the return</span></div>
+<p class="chg-note" style="margin:0;max-width:80ch">The engine’s own results for the alternatives in the packet, each taken alone on v3, without our adjustments. Trying one never notifies anyone and never blocks anything. Rate-based estimates elsewhere can mislead when a threshold moves; these are full engine runs.</p>
+<div role="group" aria-label="Choose a what-if" style="display:flex;flex-wrap:wrap;gap:8px">
+<sc-for list="{{wiChips}}" as="w" hint-placeholder-count="6">
+<button class="chg-chip {{w.on}}" type="button" aria-pressed="{{w.pressed}}" onClick="{{w.pick}}">{{w.label}}</button>
+</sc-for>
+</div>
+<sc-if value="{{wiOpen}}" hint-placeholder-val="{{false}}">
+<div class="chg-wibox">
+<div style="display:flex;flex-wrap:wrap;align-items:center;gap:8px"><span class="chg-tag chg-t-mut">{{wi.kind}}</span><strong style="font-weight:600">{{wi.title}}</strong><span class="chg-mono">{{wi.ref}}</span></div>
+<span>{{wi.desc}}</span>
+<div class="chg-scroll">
+<table class="chg-table">
+<thead><tr><th scope="col"></th><th scope="col" class="chg-r">{{wi.baseHead}}</th><th scope="col" class="chg-r">{{wi.altHead}}</th><th scope="col" class="chg-r">{{wi.chgHead}}</th></tr></thead>
+<tbody>
+<sc-for list="{{wi.rows}}" as="r" hint-placeholder-count="6">
+<tr><th scope="row">{{r.k}}</th><td class="chg-r">{{r.base}}</td><td class="chg-r">{{r.alt}}</td><td class="chg-r">{{r.chg}}</td></tr>
+</sc-for>
+</tbody>
+</table>
+</div>
+<span class="chg-note">{{wi.lines}}</span>
+<sc-if value="{{wi.hasSample}}" hint-placeholder-val="{{false}}"><span style="display:flex;flex-wrap:wrap;gap:4px 16px"><sc-for list="{{wi.sample}}" as="s" hint-placeholder-count="4"><span class="chg-mono">{{s.t}}</span></sc-for></span></sc-if>
+<span>{{wi.note}}</span>
+<div><button class="chg-btn" type="button" onClick="{{wiClose}}">Close the what-if</button></div>
+</div>
+</sc-if>
+</section>
+
+<div class="chg-note" role="status" style="min-height:18px">{{msg}}</div>
+</sc-if>
+
+</div>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"role":{"editor":"enum","options":["priya","marcus","daniel","helen","sam","jo","ngozi","erik","next","irs"],"default":"daniel"},"dark":{"editor":"boolean","default":false},"openClaim":{"editor":null},"go":{"editor":null},"claimId":{"editor":null,"default":""},"revealed":{"editor":null},"reveal":{"editor":null},"revealLog":{"editor":null},"asOf":{"editor":null,"default":""},"asOfLabel":{"editor":null,"default":""},"storyAt":{"editor":null,"default":""},"events":{"editor":null},"emit":{"editor":null},"lastSeen":{"editor":null},"blockers":{"editor":null},"stage":{"editor":null,"default":""},"spouseOf":{"editor":null},"$preview":{"width":1100,"height":1900}}'>
+class Component extends DCLogic {
+  constructor(p) { super(p); this.state = { filter: 'all', picked: {}, sent: null, sentGroup: '', wi: '', msg: '' }; }
+  renderVals() {
+    const P = this.props || {};
+    const ROLES = ['priya','marcus','daniel','helen','sam','jo','ngozi','erik','next','irs'];
+    const role = ROLES.indexOf(P.role) >= 0 ? P.role : 'daniel';
+    const noop = () => {};
+    const openClaim = typeof P.openClaim === 'function' ? P.openClaim : noop;
+    const go = typeof P.go === 'function' ? P.go : noop;
+    const reveal = typeof P.reveal === 'function' ? P.reveal : noop;
+    const emit = typeof P.emit === 'function' ? P.emit : noop;
+    const events = Array.isArray(P.events) ? P.events.filter(e => e && typeof e === 'object') : [];
+    const revealed = Array.isArray(P.revealed) ? P.revealed : [];
+    const claimId = typeof P.claimId === 'string' ? P.claimId : '';
+    const st = this.state || {};
+    const hide = 'display:none';
+    const isClient = role === 'ngozi' || role === 'erik';
+    // One story clock (FIX-ROUND-H3 A): the shell passes asOf = storyAt. Defaults so the artboard renders alone.
+    const AS_OF = { sam:'2027-01-15T15:00', next:'2027-01-15T15:00', irs:'2028-01-26T15:00' };
+    const norm = s => (typeof s === 'string' && s) ? (s.length === 10 ? s + 'T23:59' : s.slice(0, 16)) : '';
+    const asOf = norm(P.storyAt) || norm(P.asOf) || AS_OF[role] || '2026-06-23T06:05';
+    const accepted = asOf >= '2026-07-14T16:22';
+    const filed = accepted;
+    const asOfLabel = (typeof P.asOfLabel === 'string' && P.asOfLabel) ? P.asOfLabel : (filed ? 'Filed' : 'As of 23 Jun 2026, v3');
+    const cardIn = asOf >= '2026-07-13T19:02';
+    const readOnly = role === 'sam' || role === 'next' || role === 'jo' || filed;
+    const preparer = (role === 'priya' || role === 'marcus') && !filed;
+    const RULE_SELF = 'A person may not review or sign off on work they prepared.';
+    const RULE_MASK = '“Staff without sensitive-data clearance see SSNs, bank and account numbers and IP PINs masked; every unmasked view is logged.”';
+    const NAMES = { priya:'Priya Raman', marcus:'Marcus Bell', daniel:'Daniel Ortiz', helen:'Helen Strand', sam:'Sam Adeyemi', jo:'Jo Kimura', ngozi:'Ngozi Okafor', erik:'Erik Lindqvist', next:'Priya Raman (2026 return)', irs:'IRS examiner' };
+    const MON = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+    const fmtAt = s => { const t = norm(s); if (!t) return 'Story time not set'; const d = +t.slice(8, 10); return d + ' ' + MON[+t.slice(5, 7) - 1] + ' ' + t.slice(0, 4) + (t.length > 10 ? ', ' + t.slice(11, 16) : ''); };
+
+    // Every entry: values from the packet and the ledger (docs/ground-truth). Who/when of a proposal is Example: the packet holds no firm work.
+    const data = [
+      { id:'ca-est', kind:'fix', block:true, title:'California estimates include a 2024 payment', line:'F540NR.72 · 2025 California estimated tax payments',
+        before:'14,000', after:'10,500', effect:'CA refund −3,500', over:true,
+        reason:'The 15 Sep 2025 payment of 3,500 is marked tax year 2024 on the FTB Web Pay confirmation, and the FTB holds it as a 2024 credit. The engine counted payments by date, not by tax year.',
+        basisLbl:'Evidence relied on', basis:'D68 FTB Web Pay confirmations (ev-1074 to ev-1076: 2025-09-15, 3,500, tax year 2024); FTB account record: 2025 payments on 15 Apr 2025, 16 Jun 2025 and 15 Jan 2026. Verification: agreed to third-party record.',
+        who:'Proposed by Priya Raman, preparer' },
+      { id:'atlas', kind:'fix', block:true, title:'Card sales counted twice in business income', line:'SchC.1 · Gross receipts',
+        before:'163,700', after:'151,300', effect:'Federal −4,402 · California −384 (estimate, Example)', over:true,
+        reason:'Atlas paid 12,400 by card through Paywell. The books already include it, and the engine added the Form 1099-K amount on top.',
+        basisLbl:'Evidence relied on', basis:'D15 page 3 (12,400 of Atlas’s 41,200 arrived through Paywell); D21 Form 1099-K 12,400; Forms 1099-NEC D16 to D20 total 142,000, plus 9,300 from clients who sent no 1099, equals books revenue 151,300 (D14). Verification: recalculated; agreed to third-party record.',
+        who:'Proposed by Priya Raman, preparer' },
+      { id:'rsu', kind:'fix', block:true, title:'RSU shares sold with a zero cost basis', line:'F8949.B.N1 · Corvane RSU lot (same fix on N3 and N4)',
+        before:'0 basis', after:'19,100 basis', effect:'Federal −15,536 · California −2,765 (three lots) (estimate, Example)', over:true,
+        reason:'The broker left the basis blank for these noncovered shares and the pipeline read the blank as zero. The vest value was already taxed as wages, so the same income was taxed twice. Lots N3 (19,100) and N4 (9,420) take the same fix.',
+        basisLbl:'Evidence relied on', basis:'D11 page 2: lot RSU-2502 adjusted basis 19,100.00; RSU-2505 19,100.00; RSU-2308 9,420.00. D08 Corvane W-2 box 14: RSU 38,200.00. Verification: agreed to source document; recalculated.',
+        who:'Proposed by Priya Raman, preparer' },
+      { id:'theo-ssn', kind:'fix', block:true, title: cardIn ? 'Theo’s SSN differed from his 2024 return and his card' : 'Theo’s SSN differs from his 2024 return', line:'Dependent 2 · identity (household entry)',
+        before:'XXX-XX-3309', after:'XXX-XX-3390', effect:'No tax change; e-file rejects if unfixed', over:false, ssn:true,
+        reason:'The number typed in the organizer has its last two digits swapped. The 2024 return, in the file since 21 Jan 2026, prints the other number.' + (cardIn ? ' Theo’s card, received 13 Jul 2026, agrees.' : ''),
+        basisLbl:'Evidence relied on', basis: (cardIn ? 'D06 2024 return (ev-0012) and D71 Social Security card: both end 3390.' : 'D06 2024 return (ev-0012): ends 3390.') + ' Compared on the server as match or mismatch; values stay masked, last 4 shown. Verification: agreed to prior year' + (cardIn ? '; agreed to source document.' : '.'),
+        who:'Proposed by Priya Raman, preparer' },
+      { id:'heat-pump', kind:'judgment', block:false, title:'Heat pump replacement: an improvement, not a repair', line:'SchE.14A · Repairs, 1450 Fremont Way',
+        before:'13,300 repairs', after:'2,300 repairs + 11,000 asset', effect:'Federal +3,633 · California +896', over:true,
+        reason:'The furnace and AC were removed and a new heat pump system installed under a building permit. Replacing a whole building system is an improvement: depreciated over 27.5 years, straight line, mid-month, placed in service August 2025 (2025 depreciation 150). Effect from the engine’s own what-if (hvac_improvement).',
+        basisLbl:'Authority relied on', basis:'Authority to confirm: Treas. Reg. 1.263(a)-3 (Example). Replacing a building’s whole heating and cooling system is a restoration and betterment, so it is capitalized; the small-taxpayer safe harbor reaches at most 10,000 and this job is 11,000. Facts: D47 invoice (Permit #B25-31877), call of 26 Mar 2026 (call-01), questionnaire qa-37.',
+        who:'Proposed by Priya Raman, preparer',
+        extraLbl:'Variance', extra:'Repairs changed over 10% and over 1,000 vs prior year: 3,900 in 2024, 13,300 in 2025.', extraLink:'See the repairs swing', extraClaim:'repairs' },
+      { id:'fed-est', kind:'fix', block:false, title:'Federal estimates: fourth payment from a client guess', line:'F1040.26 · 2025 estimated tax payments',
+        before:'13,000', after:'12,000', effect:'Federal balance due +1,000', over:false,
+        reason:'Only three payments have confirmations, so the engine took the fourth from the questionnaire (“4,000 I think”). The IRS record shows 3,000 on 15 Jan 2026.',
+        basisLbl:'Evidence relied on', basis:'IRS account transcript (D69, pulled 12 Mar 2026): four code 670 payments of 3,000; D67 EFTPS confirmations; qa-41. Verification: agreed to third-party record.',
+        who:'Proposed by Priya Raman, preparer',
+        partnerNote:'Not required: the tax effect is exactly 1,000, which is not over 1,000. Reviewer sign-off is enough.' },
+      { id:'care-ein', kind:'fix', block:false, title:'Childcare provider tax ID misread', line:'F2441.1b · Care provider tax ID',
+        before:'74-3829516', after:'74-3829156', effect:'No tax change computed', over:false,
+        reason:'The statement prints 74-3829156; the pipeline read 74-3829516 at 0.97 confidence and the return carries it. A wrong provider ID can put the 5,000 dependent-care exclusion at risk on IRS matching.',
+        basisLbl:'Evidence relied on', basis:'D62 Little Sprouts statement, printed “Tax ID 74-3829156”; ev-1045 read 74-3829516. EINs are never masked. Verification: agreed to source document.',
+        who:'Proposed by Priya Raman, preparer' },
+      { id:'noncash', kind:'fix', block:false, title:'Donated car limited to the charity’s sale price', line:'SchA.12 · Gifts other than by cash or check (Form 8283)',
+        before:'20,500', after:'17,400', effect:'Tax effect: about +806 federal, +149 California (estimate at v3 rates, Example). Under 1,000, so reviewer sign-off is enough.', over:false,
+        reason:'The engine took the car at the client’s estimate of 6,000 (“Kelley Blue Book said about 6,000”, qa-39). The charity sold the car, so the gift is limited to its gross proceeds on Form 1098-C, 2,900. Stock 14,500 plus car 2,900 = 17,400.',
+        basisLbl:'Evidence relied on', basis:'D66 Form 1098-C: “Box 4a vehicle sold in arm’s length transaction to unrelated party checked; 4b date of sale 09/09/2025; 4c gross proceeds from sale 2,900.00.” (ev-1054). D65: “… high/low average 72.50 per share = 14,500.00.” Verification: agreed to third-party record.',
+        who:'Proposed by Priya Raman, preparer',
+        partnerNote:'Not required: reviewer sign-off is enough.' }
+    ];
+    const ADJ = data.map(d => d.id);
+    // Blockers and stage come from the shell (FIX-ROUND-H3b decisions 1 and 4); standalone fallback mirrors the shell's rule.
+    const FALLBACK_BLOCKERS = [ { claimId:'ca-est', title:'California estimates include a 2024 payment' }, { claimId:'atlas', title:'Card sales counted twice in business income' }, { claimId:'rsu', title:'RSU shares sold with a zero cost basis' }, { claimId:'theo-ssn', title:'Theo’s SSN differs from his 2024 return' } ]
+      .concat(asOf >= '2026-06-30T18:02' ? [ { claimId:'crypto-c6', title:'Answer arrived after the last computation: crypto lot C6 basis' } ] : [])
+      .concat(asOf >= '2026-07-01T16:40' ? [ { claimId:'gift-brigid', title:'Answer arrived after the last computation: St. Brigid gift' } ] : []);
+    const BLOCKERS = Array.isArray(P.blockers) ? P.blockers.filter(b => b && typeof b.title === 'string') : FALLBACK_BLOCKERS;
+    const nBlock = BLOCKERS.length;
+    const BLOCK = nBlock ? '“' + BLOCKERS[0].title + '”' + (nBlock > 1 ? ', and ' + (nBlock - 1) + ' more' : '') : '';
+    const APPROVE_BTN = nBlock ? 'Approve and send to client: blocked by ' + BLOCK : 'Approve and send to client';
+    const STAGE = (typeof P.stage === 'string' && P.stage) ? P.stage : (asOf >= '2026-07-14T16:22' ? 'Filed' : asOf >= '2026-07-13T17:04' ? 'Filing' : asOf >= '2026-07-10T20:05' ? 'Approval' : 'Review');
+    const BSET = new Set(BLOCKERS.map(b => b.claimId));
+    data.forEach(d => { d.block = BSET.has(d.id); });
+
+    // Events (FIX-ROUND-H3 B): every action calls emit; undo is a compensating event with retracts.
+    const retracted = new Set(events.filter(e => e.retracts != null).map(e => e.retracts));
+    const maxSeq = events.reduce((m, e) => (typeof e.seq === 'number' && e.seq > m) ? e.seq : m, 0);
+    const send = (type, cid, text, extra) => emit(Object.assign({ type, who: role, at: asOf, claimId: cid || null, groupId: null, retracts: null, text }, extra || {}));
+    const CHG_TYPES = ['review_note','send_back','signoff','correction','withdraw','follow_up','sent_to_review','undo','adjustment','value_changed','ssn_typed'];
+    const maskFor = (e, t) => {
+      // Per-recipient wording at read time: Marcus never sees identifier digits.
+      if (role === 'marcus' && (e.claimId === 'theo-ssn' || /SSN|identifier|XXX-XX-\d/i.test(t) || /(number|ends|card|PIN|account|routing)[^.\d]{0,24}\d{3,4}\b/i.test(t))) return 'An identifier was corrected or reviewed.';
+      return t;
+    };
+    const liveText = e => String(e.text || e.type || 'An action was recorded');
+    const mine = events.filter(e => !e.replayed && (CHG_TYPES.indexOf(e.type) >= 0 || ADJ.indexOf(e.claimId) >= 0));
+    const liveRows = mine.slice().sort((a, b) => (b.seq || 0) - (a.seq || 0)).slice(0, 8).map(e => {
+      const gone = retracted.has(e.seq), isUndo = e.retracts != null;
+      return { at: fmtAt(e.at), who: NAMES[e.who] || String(e.who || 'Someone'), text: maskFor(e, liveText(e)),
+        state: isUndo ? 'Undo' : gone ? 'Undone' : (e.example || e.tag === 'Example') ? 'Example' : 'Saved', tcls: isUndo || gone ? 'chg-t-mut' : 'chg-t-pas', cls: gone ? 'gone' : '',
+        hasClaim: ADJ.indexOf(e.claimId) >= 0, open: () => openClaim(e.claimId) };
+    });
+    const liveFor = id => {
+      const hit = events.filter(e => e.claimId === id && !retracted.has(e.seq) && e.retracts == null && ['adjustment','value_changed'].indexOf(e.type) >= 0).sort((a, b) => (b.seq || 0) - (a.seq || 0))[0];
+      return hit ? ((NAMES[hit.who] || String(hit.who || 'Someone')) + ', ' + fmtAt(hit.at) + ': ' + maskFor(hit, liveText(hit))) : '';
+    };
+
+    const tagFor = d => d.kind === 'judgment' ? { tword:'Judgment', tcls:'chg-t-wrn' } : d.kind === 'recorded' ? { tword:'Recorded', tcls:'chg-t-mut' } : filed ? { tword:'Applied', tcls:'chg-t-pas' } : { tword:'Proposed', tcls:'chg-t-acc' };
+    const filters = [
+      { id:'all', label:'All', test: () => true },
+      { id:'partner', label:'Need partner sign-off', test: d => d.over },
+      { id:'judgment', label:'Judgment calls', test: d => d.kind === 'judgment' },
+      { id:'blocking', label:'Blocking filing', test: d => d.block }
+    ];
+    const fid = filters.some(f => f.id === st.filter) ? st.filter : 'all';
+    const fTest = filters.find(f => f.id === fid).test;
+    const picked = st.picked || {};
+
+    const say = m => this.setState({ msg: m });
+    const act = (label, d, o) => ({ label, cls: (o && o.off) ? 'off' : ((o && o.primary) ? 'primary' : ''), ad: (o && o.off) ? 'true' : 'false', reason: (o && o.reason) || '',
+      go: (o && o.fn) ? o.fn : (o && o.off) ? () => say('Not available: ' + o.reason)
+        : () => { send((o && o.type) || 'follow_up', d.id, label + ': ' + d.title, (o && o.level) ? { level: o.level } : null); say('Saved: “' + label + '” on ' + d.title + '. The people it concerns are notified.'); } });
+
+    const actsFor = d => {
+      if (readOnly) return [];
+      if (role === 'daniel') {
+        if (d.preparedBy === 'daniel') return [ act('Leave a review note', d, { primary:true, type:'review_note' }), act('Sign off', d, { off:true, reason: RULE_SELF }) ];
+        return [ act('Leave a review note', d, { primary:true, type:'review_note' }), act('Send back', d, { type:'send_back' }), act('Sign off as reviewer', d, { type:'signoff', level:'reviewer' }) ];
+      }
+      if (role === 'helen') {
+        if (!d.over) return [ act('Leave a review note', d, { type:'review_note' }) ];
+        return [ act('Partner sign-off', d, { primary:true, type:'signoff', level:'partner' }), act('Leave a review note', d, { type:'review_note' }) ];
+      }
+      if (preparer) {
+        if (d.ssn) {
+          if (role === 'marcus') return [ act('Type the corrected number', d, { off:true, reason:'Needs sensitive-data clearance: typing the number needs a reveal. Firm rule: ' + RULE_MASK }) ];
+          if (revealed.indexOf('ssn-theo') >= 0) return [ act('Type the corrected number', d, { primary:true, type:'ssn_typed' }), act('Withdraw proposal', d, { type:'withdraw' }) ];
+          return [ act('Reveal to type the number (logged)', d, { primary:true, fn: () => { reveal('ssn-theo'); say('Reveal logged for Theo’s SSN for this session. The log records who and which number, never the value.'); } }), act('Withdraw proposal', d, { type:'withdraw' }) ];
+        }
+        return [ act('Add a correction on top', d, { type:'correction' }), act('Withdraw proposal', d, { type:'withdraw' }) ];
+      }
+      return [];
+    };
+
+    const signoffsFor = d => {
+      if (filed) return { text: d.over ? 'Preparer: Signed (Priya Raman). Reviewer: Signed (Daniel Ortiz). Partner: Signed (Helen Strand).' : 'Preparer: Signed (Priya Raman). Reviewer: Signed (Daniel Ortiz).', ex:true };
+      return { text: d.over ? 'Reviewer: not yet. Partner: not yet.' : 'Reviewer: not yet.', ex:false };
+    };
+
+    const entries = data.filter(fTest).map(d => {
+      const t = tagFor(d);
+      const so = signoffsFor(d);
+      const acts = actsFor(d);
+      const partner = d.partnerNote ? d.partnerNote : d.over ? 'Required: tax effect over 1,000.' : 'Not required: tax effect not over 1,000.';
+      const open = () => openClaim(d.id);
+      const live = liveFor(d.id);
+      return {
+        id: d.id, title: d.title, line: d.line, before: d.before, after: d.after, effect: d.effect,
+        beforeAria: 'Before: ' + d.before + '. Open where it came from', afterAria: 'After: ' + d.after + '. Open where it came from',
+        reason: d.reason, basisLbl: d.basisLbl, basis: d.basis, basisExStyle: d.basisEx ? '' : hide, effectExStyle: d.effectEx ? '' : hide, ruleStyle: d.kind === 'judgment' ? '' : hide,
+        who: filed ? d.who.replace('Proposed by', 'Made by') : d.who, whoExStyle: '',
+        partner, partnerRuleStyle: '',
+        signoffs: so.text, signExStyle: so.ex ? '' : hide,
+        extraStyle: d.extra ? '' : hide, extraLbl: d.extraLbl || '', extra: d.extra || '', extraLink: d.extraLink || '',
+        hasExtraLink: !!d.extraClaim, openExtra: () => openClaim(d.extraClaim || d.id),
+        tword: t.tword, tcls: t.tcls, blockStyle: d.block && !filed ? '' : hide,
+        on: claimId === d.id ? 'on' : '', open, hasLive: !!live, live,
+        selectable: preparer, checked: !!picked[d.id],
+        toggle: () => this.setState({ picked: { ...picked, [d.id]: !picked[d.id] }, sent: null }),
+        acts, actsStyle: acts.length ? '' : hide, actNote: ''
+      };
+    });
+
+    // What-ifs: the packet's what_if.alternatives (5) and what_if.extension (probe h3-F-2.py). Selecting one only sets local state: no emit, ever.
+    const n = v => (v < 0 ? '−' : '') + Math.abs(v).toLocaleString('en-US');
+    const sg = v => v === 0 ? 'No change' : (v > 0 ? '+' : '−') + Math.abs(v).toLocaleString('en-US');
+    const bal = v => v < 0 ? 'refund ' + Math.abs(v).toLocaleString('en-US') : Math.abs(v).toLocaleString('en-US') + ' due';
+    const WI = [
+      { id:'equipment_section179', label:'Section 179 on studio equipment', desc:'Studio equipment (38,000): elect section 179 instead of 100% special depreciation.',
+        f:[81962, 81962, 4220, 4220, 164, 164], c:[18874, 17824, -8256, -9306], lines:22,
+        sample:['F4562-C.12: 0 to 38,000','F4562-C.14: 38,000 to 0','SchCA540NR.12.C: 30,400 to 10,400','F540NR.17: 481,096 to 461,096'],
+        note:'Federal tax is the same either way (100% special depreciation and section 179 both deduct the full 38,000). California does not follow special depreciation, so the election lowers California tax by 1,050. An election is a judgment: record it with its authority.' },
+      { id:'equipment_no_bonus', label:'No special depreciation', desc:'Studio equipment: elect out of special depreciation; regular 5-year MACRS.',
+        f:[81962, 92207, 4220, 14465, 164, 164], c:[18874, 18614, -8256, -8516], lines:75,
+        sample:['F4562-C.14: 38,000 to 0','F4562-C.19a: 0 to 7,600','SchC.31: 81,854 to 112,254','SchSE.10: 9,373 to 12,855'],
+        note:'Spreads the deduction over five years: federal tax rises 10,245 this year; California falls 260.' },
+      { id:'hvac_improvement', label:'Heat pump as an improvement', desc:'Treat the 11,000 HVAC replacement at 1450 Fremont Way as an improvement depreciated over 27.5 years instead of a repair.',
+        f:[81962, 85595, 4220, 7853, 164, 164], c:[18874, 19770, -8256, -7360], lines:63,
+        sample:['SchE.14A: 13,300 to 2,300','F4562-E.total-A: 13,891 to 14,041','SchE.41: −11,830 to −980','Sch1.5: −11,830 to −980'],
+        note:'This is the treatment our heat pump adjustment proposes; its tax effect (+3,633 federal, +896 California) is taken from this run.', claim:'heat-pump' },
+      { id:'standard_deduction', label:'Standard deduction', desc:'Take the standard deduction instead of itemizing.',
+        f:[81962, 94268, 4220, 16526, 164, 164], c:[18874, 18874, -8256, -8256], lines:20,
+        sample:['F1040.12: 85,706 to 31,500','F1040.15: 346,913 to 402,744','F1040.16: 59,727 to 73,127','F6251.2a: 40,000 to 31,500'],
+        note:'Itemizing saves 12,306 federal at v3. California is unchanged: its deduction is figured separately.' },
+      { id:'penalty_annualized', label:'Annualized penalty method', desc:'Use the annualized income installment method for the underpayment penalty.',
+        f:[81962, 81962, 4220, 4220, 164, 164], c:[18874, 18874, -8256, -8256], lines:0, sample:[],
+        note:'Both methods give the same 164 penalty, so the regular method stays. The decision is recorded on Filing and after, under Penalty and interest.' }
+    ];
+    const wiChips = WI.map(w => ({ id: w.id, label: w.label })).concat([{ id:'extension', label:'The April extension estimate' }]);
+    const pickWi = id => this.setState({ wi: st.wi === id ? '' : id });
+    let wi = null;
+    if (st.wi === 'extension') {
+      wi = { kind:'Recorded estimate, not a what-if', title:'The April extension estimate', ref:'what_if.extension · based on v2 · 14 Apr 2026',
+        desc:'The estimate made on 14 Apr 2026 from v2 that sized the extension payment. Rule: “balance due rounded up to the next 500”.',
+        baseHead:'Federal', altHead:'California', chgHead:'Paid with the extension',
+        rows:[ { k:'Estimated total tax', base:'77,470', alt:'17,999', chg:'' }, { k:'Payments', base:'41,742', alt:'27,130', chg:'' }, { k:'Estimated balance', base:'35,728 due', alt:'refund 9,131', chg:'' }, { k:'Paid', base:'', alt:'', chg:'36,000 federal (Form 4868) · 0 California (FTB 3519)' } ],
+        lines:'Computed from v2, which still carried the client’s 4,000 guess for the fourth federal estimate.', hasSample:false, sample:[],
+        note:'An extension of time to file is not an extension of time to pay.' };
+    } else {
+      const w = WI.find(x => x.id === st.wi);
+      if (w) wi = { kind:'Engine what-if on v3', title: w.label, ref:'what_if.alternatives · ' + w.id, desc: w.desc,
+        baseHead:'v3', altHead:'What-if', chgHead:'Change',
+        rows:[
+          { k:'Federal total tax', base:n(w.f[0]), alt:n(w.f[1]), chg:sg(w.f[1] - w.f[0]) },
+          { k:'Federal balance', base:bal(w.f[2]), alt:bal(w.f[3]), chg:sg(w.f[3] - w.f[2]) },
+          { k:'Federal underpayment penalty', base:n(w.f[4]), alt:n(w.f[5]), chg:sg(w.f[5] - w.f[4]) },
+          { k:'California total tax', base:n(w.c[0]), alt:n(w.c[1]), chg:sg(w.c[1] - w.c[0]) },
+          { k:'California balance', base:bal(w.c[2]), alt:bal(w.c[3]), chg:sg(w.c[3] - w.c[2]) }
+        ],
+        lines: w.lines ? (w.lines + ' return lines change. First four:') : 'No return line changes.', hasSample: w.sample.length > 0, sample: w.sample.map(t => ({ t })),
+        note: w.note };
+    }
+    const wiEmpty = { kind:'', title:'', ref:'', desc:'', baseHead:'', altHead:'', chgHead:'', rows:[], lines:'', hasSample:false, sample:[], note:'' };
+
+    const countFor = f => data.filter(f.test).length;
+    const nPicked = Object.keys(picked).filter(k => picked[k]).length;
+    const versionText = filed ? 'As filed: the return as this workpaper finalized it' : 'v3, none of our changes applied yet';
+    const noAccess = isClient || role === 'irs';
+    return {
+      wpClass: 'wp' + ((P.dark ?? false) ? ' dark' : ''),
+      hasAccess: !noAccess, noAccess,
+      noAccessTitle: isClient ? 'This page is for your tax team' : 'Not part of the record under examination',
+      noAccessText: isClient ? 'Your part is to answer questions, upload documents, and sign your return once your tax team has finished.' : 'The items under examination, as filed, are on Filing and after.',
+      noAccessBtn: isClient ? 'Go to your home page' : 'Go to Filing and after',
+      goBack: () => go(isClient ? 'home' : 'filing'),
+      versionText, readOnlyStyle: readOnly ? '' : hide, readOnlyWord: filed ? 'As filed, locked' : 'Read only',
+      filters: filters.map(f => ({ label: f.label, count: countFor(f), on: f.id === fid ? 'on' : '', pressed: f.id === fid ? 'true' : 'false', pick: () => this.setState({ filter: f.id }) })),
+      entries,
+      showBulk: preparer, bulkCount: nPicked, bulkCls: nPicked ? 'primary' : 'off', bulkAd: nPicked ? 'false' : 'true',
+      bulkSend: () => {
+        if (!nPicked) { say('Select one or more entries first.'); return; }
+        const groupId = 'chg-send-' + (maxSeq + 1);
+        const ids = Object.keys(picked).filter(k => picked[k]);
+        send('sent_to_review', null, ids.length + (ids.length === 1 ? ' entry' : ' entries') + ' sent to review', { groupId, claimIds: ids });
+        this.setState({ sent: picked, sentGroup: groupId, picked: {}, msg: '' });
+      },
+      canUndo: !!st.sent,
+      undo: () => {
+        const ev = events.find(e => e.groupId === st.sentGroup && e.type === 'sent_to_review');
+        const k = Object.keys(st.sent || {}).filter(x => (st.sent || {})[x]).length;
+        send('undo', null, 'Undone: ' + k + (k === 1 ? ' entry' : ' entries') + ' sent to review', { retracts: ev && typeof ev.seq === 'number' ? ev.seq : null, groupId: st.sentGroup || null });
+        this.setState({ picked: st.sent || {}, sent: null, sentGroup: '', msg: 'Undone: a new event cancels the earlier one.' });
+      },
+      bulkMsg: st.sent ? ('Sent ' + Object.keys(st.sent).filter(k => st.sent[k]).length + ' to review as one grouped event. Undo adds a new event that cancels it.') : 'Act on many entries at once; one event, one undo.',
+      liveRows, hasLive: liveRows.length > 0, noLive: liveRows.length === 0,
+      wiChips: wiChips.map(c => ({ label: c.label, on: st.wi === c.id ? 'on' : '', pressed: st.wi === c.id ? 'true' : 'false', pick: () => pickWi(c.id) })),
+      wiOpen: !!wi, wi: wi || wiEmpty, wiClose: () => this.setState({ wi: '' }),
+      msg: st.msg || '', asOfLabel,
+      openExt: () => openClaim('ext-pay'), goReview: () => go('review'),
+      blockerCount: nBlock
+    };
+  }
+}
+</script>
+</body>
+</html>

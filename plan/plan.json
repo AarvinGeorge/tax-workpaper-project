@@ -3,8 +3,8 @@
     "project": "Tax workpaper case study",
     "subtitle": "A web-native workpaper for the invented Okafor-Lindqvist household's 2025 return: every number traced to its source, every packet mistake surfaced. Due Fri 16 Oct 2026, 21:00 EDT.",
     "mode": "light",
-    "plan_version": "0.2.0",
-    "updated": "2026-10-16T04:15:05Z",
+    "plan_version": "0.4.0",
+    "updated": "2026-10-17T03:56:32Z",
     "changelog": [
       {
         "version": "0.1.0",
@@ -15,6 +15,16 @@
         "version": "0.2.0",
         "date": "2026-10-16",
         "note": "Hunt done; section-by-section discovery started."
+      },
+      {
+        "version": "0.3.0",
+        "date": "2026-10-17",
+        "note": "Pipeline figure added; discovery moved to done; design work (hybrid mock-up, checklists) is the active item."
+      },
+      {
+        "version": "0.4.0",
+        "date": "2026-10-17",
+        "note": "Build started: spec, plan, five lanes."
       }
     ]
   },
@@ -44,20 +54,20 @@
       "name": "Core idea and data model",
       "short": "Model",
       "what": "One short decision on the central idea (every number carries source, confidence, verification and failing checks) and the data model behind it.",
-      "build": "active",
+      "build": "done",
       "plan": "none",
       "where": "No plan yet",
-      "evidence": "docs/discovery/01–09 with Fable reviews in docs/discovery/reviews/ (16 Oct)"
+      "evidence": "spec docs/superpowers/specs/2026-10-17-workpaper-build-design.md; mock-up v9"
     },
     {
       "id": 4,
       "name": "Thin deployed slice",
       "short": "App",
       "what": "Load the packet as delivered, trace any number to a simulated source document and field, surface every logged mistake, role switcher, saving, live link.",
-      "build": "not-started",
-      "plan": "none",
-      "where": "No plan yet",
-      "evidence": ""
+      "build": "active",
+      "plan": "planned",
+      "where": "project-build/ (plan: docs/superpowers/plans/2026-10-17-workpaper-build.md)",
+      "evidence": "project-build/: scaffold, packet hash test and loader (3 tests pass, 17 Oct 00:00)"
     },
     {
       "id": 5,
@@ -73,54 +83,63 @@
   "plans": {
     "done": [
       {
-        "name": "Hunt the packet's confident mistakes (time-boxed)",
-        "why": "The brief says the packet contains confident mistakes; the ones found decide what the data model must carry.",
-        "unblocks": "The core-idea brainstorm and the data model.",
+        "name": "Design: hybrid mock-up and the brief and README checklists",
+        "why": "Aarvin chose the hybrid frame; the mock-up is the design reference for the build, and the checklists make sure nothing in the brief or README is missed before the spec.",
+        "unblocks": "The written spec (docs/superpowers/specs/) and the build plan, then the build on Aarvin's go.",
         "stage": "recorded",
-        "capability": 1,
+        "capability": 3,
+        "plan_file": "docs/design/hybrid/HYBRID-BRIEF.md",
         "tasks": [
           {
-            "name": "Read the brief and the packet README",
+            "name": "Directions A, B and C, reviewed; hybrid frame chosen",
+            "state": "done",
+            "note": "canvas https://claude.ai/artifact/3SjRkRoEYHNHaDixg9M7j4"
+          },
+          {
+            "name": "Hybrid mock-up rounds H1 and H2 (Areas, search), Fable reviews 1-6",
+            "state": "done",
+            "note": "https://claude.ai/artifact/RW8BgnvPMRwFzFjZyVVHoy version 7"
+          },
+          {
+            "name": "Brief checklist: Fable blind pass plus Aarvin's handwritten notes",
+            "state": "done",
+            "note": "docs/discovery/11-brief-checklist.md: 88 items; U1-U20 UI gaps, B1-B18 backend, When column"
+          },
+          {
+            "name": "README checklist: Fable line by line",
+            "state": "done",
+            "note": "61 lines; B19-B26 added (finalized version, reference resolver, version-bound tax effects)"
+          },
+          {
+            "name": "Round H3: live notifications, story clock, Erik, U1-U20",
+            "state": "done",
+            "note": "six Opus authors; Fable review 7: reconciles with fixes, 4 must-fixes"
+          },
+          {
+            "name": "Round H3b: fixes, test first; all 7 suites pass",
+            "state": "done",
+            "note": "Fable re-review 8 running"
+          },
+          {
+            "name": "Publish hybrid version 8 after Fable says ready",
             "state": "done"
           },
           {
-            "name": "Wages, people, credits, retirement, payments",
+            "name": "Pipeline visual for the video",
             "state": "done",
-            "note": "8 confirmed (4 high) in docs/ground-truth/01-wages-people-credits.md"
-          },
-          {
-            "name": "Investments, crypto, foreign account, K-1s",
-            "state": "done",
-            "note": "5 confirmed in docs/ground-truth/02-investments-foreign-k1.md"
-          },
-          {
-            "name": "Business, rentals, rental sale, depreciation",
-            "state": "done",
-            "note": "10 confirmed (4 high) in docs/ground-truth/03-business-rentals-assets.md; two overlap other areas"
-          },
-          {
-            "name": "California-Texas split, deductions, whole-return math",
-            "state": "done",
-            "note": "6 confirmed in docs/ground-truth/04-state-deductions-integrity.md; line-math checker 0 mismatches on 148 lines"
-          },
-          {
-            "name": "Merge into one ledger and review with Aarvin",
-            "state": "done",
-            "note": "Index in docs/ground-truth/README.md; 5 high findings spot-checked; walked through with Aarvin 15 Oct"
+            "note": "first version rejected by Aarvin 22:53 EDT; redesign as a 16:9 visual"
           }
         ],
-        "status": "Hunt finished: 27 distinct mistakes (6 high), ledger in docs/ground-truth/.",
-        "updated": "2026-10-15T22:35:02Z",
-        "period": "15 Oct 2026",
-        "outcome": "27 distinct mistakes (6 high) with evidence; engine arithmetic verified sound"
-      }
-    ],
-    "now": [
+        "status": "Design frozen at mock-up v9.",
+        "updated": "2026-10-17T03:56:32Z",
+        "period": "15-16 Oct 2026",
+        "outcome": "Hybrid mock-up v9 (design frozen), brief and README checklists, pipeline visual; Fable fresh-eyes assessment."
+      },
       {
         "name": "Discovery: what the app must do, section by section",
         "why": "Aarvin wants each requirement in the brief examined in depth (packet measurements, each role's view, real-world edge cases) before deciding scope.",
         "unblocks": "The round 1/2/3 scope decision and the data model.",
-        "stage": "grounded",
+        "stage": "recorded",
         "capability": 3,
         "tasks": [
           {
@@ -175,21 +194,121 @@
           },
           {
             "name": "Research: Unlimited-OCR fit; local PII redaction",
-            "state": "active",
+            "state": "done",
             "note": "OCR report done (don't build; design for it); PII research running"
           },
           {
             "name": "Reconcile ledger (docs/ground-truth/reconciliation-queue.md)",
-            "state": "active",
+            "state": "done",
             "note": "25 items; C05, A06, D04 applied"
           },
           {
             "name": "Walk Aarvin through each section; answer open questions",
+            "state": "done"
+          }
+        ],
+        "status": "Discovery 1-10 written by Opus 5.5 and reviewed by Fable 5.1; synthesis in docs/discovery/10-how-it-comes-together.md.",
+        "updated": "2026-10-17T02:54:01Z",
+        "period": "16 Oct 2026",
+        "outcome": "Ten discovery sections, each cross-model reviewed; five design calls accepted (docs/discovery/reviews/five-calls/)."
+      },
+      {
+        "name": "Hunt the packet's confident mistakes (time-boxed)",
+        "why": "The brief says the packet contains confident mistakes; the ones found decide what the data model must carry.",
+        "unblocks": "The core-idea brainstorm and the data model.",
+        "stage": "recorded",
+        "capability": 1,
+        "tasks": [
+          {
+            "name": "Read the brief and the packet README",
+            "state": "done"
+          },
+          {
+            "name": "Wages, people, credits, retirement, payments",
+            "state": "done",
+            "note": "8 confirmed (4 high) in docs/ground-truth/01-wages-people-credits.md"
+          },
+          {
+            "name": "Investments, crypto, foreign account, K-1s",
+            "state": "done",
+            "note": "5 confirmed in docs/ground-truth/02-investments-foreign-k1.md"
+          },
+          {
+            "name": "Business, rentals, rental sale, depreciation",
+            "state": "done",
+            "note": "10 confirmed (4 high) in docs/ground-truth/03-business-rentals-assets.md; two overlap other areas"
+          },
+          {
+            "name": "California-Texas split, deductions, whole-return math",
+            "state": "done",
+            "note": "6 confirmed in docs/ground-truth/04-state-deductions-integrity.md; line-math checker 0 mismatches on 148 lines"
+          },
+          {
+            "name": "Merge into one ledger and review with Aarvin",
+            "state": "done",
+            "note": "Index in docs/ground-truth/README.md; 5 high findings spot-checked; walked through with Aarvin 15 Oct"
+          }
+        ],
+        "status": "Hunt finished: 27 distinct mistakes (6 high), ledger in docs/ground-truth/.",
+        "updated": "2026-10-15T22:35:02Z",
+        "period": "15 Oct 2026",
+        "outcome": "27 distinct mistakes (6 high) with evidence; engine arithmetic verified sound"
+      }
+    ],
+    "now": [
+      {
+        "name": "Build and deploy the thin, honest workpaper",
+        "why": "Hand-in 1: a working web app from a link; items 2-4 depend on it.",
+        "unblocks": "The errors write-up, the one-page, the AI-usage note and the video.",
+        "stage": "building",
+        "capability": 4,
+        "plan_file": "docs/superpowers/plans/2026-10-17-workpaper-build.md",
+        "tasks": [
+          {
+            "name": "Spec, Fable spec review, plan",
+            "state": "done",
+            "note": "docs/superpowers/specs/2026-10-17-workpaper-build-design.md (section 11 = review amendments)"
+          },
+          {
+            "name": "Scaffold, packet copy with hash test, loader, contracts",
+            "state": "done",
+            "note": "3 tests pass"
+          },
+          {
+            "name": "Lane A checks library (every ledger finding)",
+            "state": "active"
+          },
+          {
+            "name": "Lane B references, documents, versions",
+            "state": "active"
+          },
+          {
+            "name": "Lane C events, store, policy, clock, API",
+            "state": "active"
+          },
+          {
+            "name": "Lane D1 shell, Start here, Return, Documents, drawer",
+            "state": "active"
+          },
+          {
+            "name": "Lane D2 Checks, Review, Changes, Filing, Firm, Areas, Findings",
+            "state": "active"
+          },
+          {
+            "name": "Integrate, deploy, grader walk",
+            "state": "todo"
+          },
+          {
+            "name": "Fable review of the deployed app; must-fixes only",
+            "state": "todo"
+          },
+          {
+            "name": "Code freeze 14:00 EDT Sat",
             "state": "todo"
           }
         ],
-        "status": "All 9 discovery sections reviewed by a second model and fixed; ledger reconciliation and PII research in progress.",
-        "updated": "2026-10-16T04:15:05Z"
+        "status": "Five lanes building in parallel since 00:05 EDT Sat.",
+        "updated": "2026-10-17T03:56:32Z"
       }
     ],
     "next": [
@@ -199,13 +318,6 @@
         "unblocks": "The plan for the thin slice.",
         "stage": "intent",
         "capability": 3
-      },
-      {
-        "name": "Build and deploy the thin slice",
-        "why": "A working, deployed core beats breadth with one day available.",
-        "unblocks": "Widening in rounds, each redeployed.",
-        "stage": "intent",
-        "capability": 4
       },
       {
         "name": "Write the hand-in documents and record the video",

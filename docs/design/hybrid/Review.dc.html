@@ -1,0 +1,403 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Review and sign-off</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Instrument+Sans:wght@400;500;600;700&amp;family=Source+Serif+4:opsz,wght@8..60,400;8..60,600&amp;family=IBM+Plex+Mono:wght@400;500&amp;display=swap" rel="stylesheet">
+<style>
+.wp{--bg:oklch(0.975 0.005 250);--surface:oklch(0.995 0.003 250);--sunk:oklch(0.955 0.006 250);--line:oklch(0.89 0.008 250);--ink:oklch(0.24 0.02 255);--ink2:oklch(0.44 0.02 255);--acc:oklch(0.46 0.15 262);--accsoft:oklch(0.94 0.035 262);--blk:oklch(0.50 0.17 32);--blksoft:oklch(0.955 0.03 32);--wrn:oklch(0.48 0.10 70);--wrnsoft:oklch(0.96 0.045 85);--pas:oklch(0.47 0.09 165);--passoft:oklch(0.955 0.03 165);--hl:oklch(0.91 0.13 100);--paper:oklch(0.99 0.006 90)}
+.wp.dark{--bg:oklch(0.19 0.012 255);--surface:oklch(0.23 0.014 255);--sunk:oklch(0.17 0.012 255);--line:oklch(0.33 0.015 255);--ink:oklch(0.93 0.008 255);--ink2:oklch(0.74 0.012 255);--acc:oklch(0.76 0.11 262);--accsoft:oklch(0.30 0.05 262);--blk:oklch(0.74 0.13 35);--blksoft:oklch(0.28 0.05 32);--wrn:oklch(0.80 0.11 80);--wrnsoft:oklch(0.29 0.04 85);--pas:oklch(0.76 0.09 165);--passoft:oklch(0.27 0.04 165);--hl:oklch(0.55 0.10 100);--paper:oklch(0.26 0.01 90)}
+.wp{font-family:'Instrument Sans',system-ui,sans-serif;color:var(--ink);background:var(--bg);font-size:14px;line-height:1.45;min-height:100vh;display:flex;flex-direction:column}
+.rev-num{font-variant-numeric:tabular-nums;font-feature-settings:"tnum"}
+.rev-mono{font-family:'IBM Plex Mono',monospace;font-size:12px}
+.rev-btn{font:inherit;font-size:13px;border:1px solid var(--line);background:var(--surface);color:var(--ink);border-radius:8px;padding:7px 12px;cursor:pointer;min-height:36px}
+.rev-btn:hover{border-color:var(--ink2)}
+.rev-btn.primary{background:var(--acc);border-color:var(--acc);color:var(--surface)}
+.rev-btn:disabled,.rev-btn:disabled:hover{background:var(--sunk);border-color:var(--line);color:var(--ink2);cursor:not-allowed}
+.rev-btn:focus-visible,.rev-tab:focus-visible,.rev-link:focus-visible{outline:2px solid var(--acc);outline-offset:2px}
+.rev-tab{all:unset;cursor:pointer;padding:10px 4px;margin-right:18px;border-bottom:2px solid transparent;color:var(--ink2);font-weight:500}
+.rev-tab.on{border-bottom-color:var(--acc);color:var(--ink)}
+.rev-tag{display:inline-flex;align-items:center;font-size:11.5px;font-weight:600;padding:2px 8px;border-radius:999px;white-space:nowrap}
+.rev-t-blk{color:var(--blk);background:var(--blksoft)}.rev-t-wrn{color:var(--wrn);background:var(--wrnsoft)}.rev-t-pas{color:var(--pas);background:var(--passoft)}.rev-t-acc{color:var(--acc);background:var(--accsoft)}.rev-t-neu{color:var(--ink2);background:var(--sunk)}
+.rev-ex{font-size:10.5px;font-weight:600;letter-spacing:.03em;padding:1px 6px;border-radius:999px;border:1px dashed var(--ink2);color:var(--ink2);white-space:nowrap;vertical-align:1px}
+.rev-lbl{font-size:11.5px;font-weight:600;letter-spacing:.04em;text-transform:uppercase;color:var(--ink2)}
+.rev-card{border:1px solid var(--line);border-radius:10px;background:var(--surface)}
+.rev-doc{font-family:'Source Serif 4',Georgia,serif;font-size:14.5px;line-height:1.6;background:var(--paper);border-top:1px solid var(--line);border-bottom:1px solid var(--line);padding:12px 16px}
+.rev-doc mark{background:var(--hl);color:inherit;padding:1px 2px;border-radius:2px;box-shadow:0 0 0 2px var(--hl)}
+.rev-row{display:flex;flex-wrap:wrap;align-items:center;gap:10px;padding:12px 16px;border-bottom:1px solid var(--line)}
+.rev-link{all:unset;cursor:pointer;color:var(--acc);text-decoration:underline;text-underline-offset:2px;font-variant-numeric:tabular-nums;border-radius:4px}
+.rev-old{color:var(--ink2);text-decoration:line-through;text-decoration-thickness:1px}
+.rev-diff{display:grid;grid-template-columns:minmax(0,1.3fr) minmax(0,1fr) minmax(0,1.6fr);gap:6px 18px;padding:12px 16px;border-bottom:1px solid var(--line);align-items:start}
+@media (max-width:760px){.rev-diff{grid-template-columns:minmax(0,1fr)}}
+</style>
+</helmet>
+<div class="{{wpClass}}">
+<section aria-label="Review" style="display:flex;flex-direction:column;gap:16px;padding:18px 20px;min-width:0;flex:1">
+
+<sc-if value="{{showReview}}" hint-placeholder-val="{{ true }}">
+<div style="display:flex;flex-wrap:wrap;align-items:baseline;gap:10px">
+<h1 style="margin:0;font-size:20px;font-weight:600;letter-spacing:-.01em">{{heading}}</h1>
+<span style="color:var(--ink2)">{{subhead}}</span>
+</div>
+
+<div class="rev-card" style="padding:14px 16px;display:flex;flex-wrap:wrap;align-items:center;gap:12px">
+<strong>{{statusHead}}</strong>
+<sc-for list="{{statusTags}}" as="g" hint-placeholder-count="3"><span class="rev-tag {{g.cls}}">{{g.text}}</span></sc-for>
+<span style="margin-left:auto;display:flex;flex-wrap:wrap;gap:8px;align-items:center;justify-content:flex-end">
+<span style="color:var(--ink2);font-size:12.5px;max-width:52ch;text-align:right">{{mergeNote}}</span>
+<sc-for list="{{mergeBtns}}" as="b" hint-placeholder-count="2"><button class="rev-btn {{b.cls}}" type="button" disabled="{{b.dis}}" onClick="{{b.run}}">{{b.label}}</button></sc-for>
+</span>
+</div>
+
+<sc-if value="{{showSince}}" hint-placeholder-val="{{ true }}">
+<div class="rev-card">
+<div class="rev-row" style="justify-content:space-between"><span class="rev-lbl">Since you last looked</span><span style="color:var(--ink2);font-size:12.5px">{{sinceNote}}</span></div>
+<sc-for list="{{since}}" as="e" hint-placeholder-count="2">
+<div class="rev-row"><strong style="font-weight:600">{{e.who}}</strong><span style="flex:1 1 280px">{{e.text}} <sc-if value="{{e.ex}}" hint-placeholder-val="{{ false }}"><span class="rev-ex">Example</span></sc-if></span><span class="rev-num" style="color:var(--ink2);font-size:12.5px">{{e.when}}</span><button class="rev-btn" type="button" style="min-height:30px;padding:4px 10px" onClick="{{e.openIt}}">{{e.btn}}</button></div>
+</sc-for>
+<sc-if value="{{sinceEmpty}}" hint-placeholder-val="{{ false }}"><div class="rev-row" style="border-bottom:0;color:var(--ink2);font-size:13px">Nothing new since you last looked.</div></sc-if>
+</div>
+</sc-if>
+
+<div role="tablist" aria-label="Review views" style="display:flex;flex-wrap:wrap;border-bottom:1px solid var(--line)">
+<sc-for list="{{tabs}}" as="t" hint-placeholder-count="3"><button class="rev-tab {{t.on}}" role="tab" type="button" aria-selected="{{t.sel}}" onClick="{{t.pick}}">{{t.name}} <span class="rev-num" style="color:var(--ink2)">{{t.count}}</span></button></sc-for>
+</div>
+
+<sc-if value="{{showChanges}}" hint-placeholder-val="{{ true }}">
+<div class="rev-card">
+<div class="rev-row" style="justify-content:space-between"><span class="rev-lbl">{{changesHead}}</span><span style="color:var(--ink2);font-size:12.5px;max-width:70ch">Firm rule: “Any adjustment with a tax effect over 1,000 (federal or state) requires partner sign-off.”</span></div>
+<sc-for list="{{changes}}" as="c" hint-placeholder-count="8">
+<div class="rev-row" style="align-items:flex-start">
+<span style="flex:1 1 260px;display:flex;flex-direction:column;gap:3px;min-width:0"><strong style="font-weight:600">{{c.title}}</strong><span class="rev-mono" style="color:var(--ink2)">{{c.line}}</span>
+<sc-if value="{{c.hasAuth}}" hint-placeholder-val="{{ false }}"><span style="display:flex;flex-wrap:wrap;gap:6px;align-items:center;font-size:12.5px;color:var(--ink2)">{{c.auth}}</span></sc-if></span>
+<span class="rev-num" style="flex:0 1 220px;display:flex;flex-direction:column;gap:3px"><span><span class="rev-old">{{c.from}}</span> <span aria-hidden="true">to</span> <button class="rev-link" type="button" onClick="{{c.openIt}}" aria-label="Where {{c.to}} came from">{{c.to}}</button></span><span style="color:var(--ink2);font-size:12.5px">{{c.effect}}</span></span>
+<span style="flex:0 1 260px;display:flex;flex-wrap:wrap;gap:6px;justify-content:flex-end"><span class="rev-tag {{c.scls}}">{{c.status}}</span><span class="rev-tag {{c.pcls}}">{{c.ptext}}</span></span>
+</div>
+</sc-for>
+<div class="rev-row" style="border-bottom:0;font-size:13px;color:var(--ink2)"><span style="flex:1 1 320px">{{changesFoot}}</span><button class="rev-btn primary" type="button" onClick="{{goChanges}}">Open Changes</button></div>
+</div>
+</sc-if>
+
+<sc-if value="{{showNotes}}" hint-placeholder-val="{{ false }}">
+<p style="margin:0;color:var(--ink2);font-size:13px">Firm rule: “Open review notes block filing.” The packet holds no review work, so every note here is an example. Daniel’s own extension payment is on Sign-offs. A question to a colleague is not a review note; ask it on the number itself.</p>
+<sc-for list="{{threads}}" as="th" hint-placeholder-count="4">
+<article class="rev-card" style="overflow:hidden">
+<div style="padding:8px 16px 0"><span class="rev-lbl">{{th.group}}</span></div>
+<div style="display:flex;flex-wrap:wrap;align-items:center;gap:10px;padding:8px 16px 12px">
+<span class="rev-tag {{th.tcls}}">{{th.status}}</span><span class="rev-tag {{th.sevcls}}">{{th.sev}}</span>
+<strong>{{th.who}}</strong><span style="color:var(--ink2)">on</span><button class="rev-link rev-mono" type="button" onClick="{{th.openIt}}">{{th.line}}</button>
+<span style="color:var(--ink2);margin-left:auto;display:flex;gap:8px;align-items:center">{{th.when}} <span class="rev-ex">Example</span></span>
+</div>
+<p style="margin:0;padding:0 16px 12px;max-width:72ch">{{th.text}}</p>
+<div class="rev-doc"><span class="rev-mono" style="display:block;color:var(--ink2);margin-bottom:6px">{{th.doc}}</span>{{th.pre}}<mark>{{th.hl}}</mark>{{th.post}}</div>
+<div style="padding:10px 16px;display:flex;flex-wrap:wrap;gap:10px;align-items:center;background:var(--sunk)">
+<span style="color:var(--ink2);font-size:13px;display:flex;flex-direction:column;gap:2px;flex:1 1 320px"><span>{{th.reply}}</span><span>{{th.rule}}</span></span>
+<span style="display:flex;flex-wrap:wrap;gap:8px">
+<sc-for list="{{th.acts}}" as="a" hint-placeholder-count="2"><button class="rev-btn {{a.cls}}" type="button" disabled="{{a.dis}}" onClick="{{a.run}}">{{a.label}}</button></sc-for>
+</span>
+</div>
+</article>
+</sc-for>
+</sc-if>
+
+<sc-if value="{{showSign}}" hint-placeholder-val="{{ false }}">
+<div class="rev-card">
+<div class="rev-row" style="justify-content:space-between"><span style="display:flex;gap:8px;align-items:center"><span class="rev-lbl">Sign-offs by level</span><span class="rev-ex">Example</span></span><span style="color:var(--ink2);font-size:12.5px">Review levels from the firm standards: preparer, reviewer, partner.</span></div>
+<sc-for list="{{levels}}" as="s" hint-placeholder-count="4">
+<div class="rev-row"><span style="flex:1 1 220px"><strong style="font-weight:600">{{s.who}}</strong><br><span style="color:var(--ink2);font-size:12.5px">{{s.role}}</span></span><span class="rev-tag {{s.cls}}">{{s.state}}</span></div>
+</sc-for>
+</div>
+<sc-if value="{{hasLive}}" hint-placeholder-val="{{ false }}">
+<div class="rev-card">
+<div class="rev-row" style="justify-content:space-between"><span class="rev-lbl">Sign-offs recorded in this workspace</span><span style="color:var(--ink2);font-size:12.5px;max-width:60ch">From the event list. A sign-off goes stale when the value changes after it.</span></div>
+<sc-for list="{{liveSigns}}" as="s" hint-placeholder-count="2">
+<div class="rev-row" style="align-items:flex-start">
+<span style="flex:1 1 300px;display:flex;flex-direction:column;gap:3px"><strong style="font-weight:600">{{s.title}}</strong><span style="color:var(--ink2);font-size:13px">{{s.why}}</span></span>
+<span style="display:flex;flex-direction:column;gap:6px;align-items:flex-end"><span class="rev-tag {{s.cls}}" title="{{s.def}}">{{s.state}}</span><button class="rev-btn" type="button" style="min-height:30px;padding:4px 10px" onClick="{{s.openIt}}">Where it came from</button></span>
+</div>
+</sc-for>
+</div>
+</sc-if>
+<div class="rev-card">
+<div class="rev-row" style="justify-content:space-between"><span style="display:flex;gap:8px;align-items:center"><span class="rev-lbl">Sign-offs on lines</span><span class="rev-ex">Example</span></span><span style="color:var(--ink2);font-size:12.5px;max-width:60ch">{{signIntro}}</span></div>
+<sc-for list="{{lineSigns}}" as="s" hint-placeholder-count="4">
+<div class="rev-row" style="align-items:flex-start">
+<span style="flex:1 1 300px;display:flex;flex-direction:column;gap:3px"><strong style="font-weight:600">{{s.title}}</strong><button class="rev-link rev-mono" type="button" style="align-self:flex-start" onClick="{{s.openIt}}">{{s.line}}</button><span style="color:var(--ink2);font-size:13px">{{s.why}}</span></span>
+<span style="display:flex;flex-direction:column;gap:6px;align-items:flex-end"><span class="rev-tag {{s.cls}}" title="{{s.def}}">{{s.state}}</span><sc-for list="{{s.acts}}" as="a" hint-placeholder-count="1"><button class="rev-btn {{a.cls}}" type="button" style="min-height:30px;padding:4px 10px" disabled="{{a.dis}}" onClick="{{a.run}}">{{a.label}}</button></sc-for></span>
+</div>
+</sc-for>
+</div>
+</sc-if>
+</sc-if>
+
+<sc-if value="{{showToast}}" hint-placeholder-val="{{ false }}">
+<div role="status" style="align-self:flex-start;display:flex;align-items:center;gap:12px;padding:10px 14px;border-radius:10px;background:var(--ink);color:var(--bg);font-size:13px">{{toastMsg}} <button class="rev-btn" type="button" style="min-height:30px;padding:4px 10px" onClick="{{undoToast}}">Undo</button><button class="rev-btn" type="button" style="min-height:30px;padding:4px 10px" onClick="{{clearToast}}">Dismiss</button></div>
+</sc-if>
+<sc-if value="{{showAway}}" hint-placeholder-val="{{ false }}">
+<div style="padding:12px 0;display:flex;flex-direction:column;gap:12px;align-items:flex-start;max-width:60ch">
+<p style="margin:0">{{awayText}}</p>
+<button class="rev-btn primary" type="button" onClick="{{awayGo}}">{{awayBtn}}</button>
+</div>
+</sc-if>
+</section>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"role":{"editor":"enum","options":["priya","marcus","daniel","helen","sam","jo","ngozi","erik","next","irs"],"default":"daniel"},"dark":{"editor":"boolean","default":false},"openClaim":{"editor":null},"go":{"editor":null},"claimId":{"editor":null,"default":""},"revealed":{"editor":null},"reveal":{"editor":null},"revealLog":{"editor":null},"asOf":{"editor":null,"default":""},"asOfLabel":{"editor":null,"default":""},"storyAt":{"editor":null,"default":""},"events":{"editor":null},"emit":{"editor":null},"lastSeen":{"editor":null},"blockers":{"editor":null},"stage":{"editor":null,"default":""},"spouseOf":{"editor":null},"$preview":{"width":1100,"height":900}}'>
+class Component extends DCLogic {
+  constructor(p){ super(p); this.state = { tab: null, toast: null, lastGroup: null, localEv: [] }; }
+  renderVals() {
+    const P = this.props || {};
+    const S = this.state || {};
+    const noop = () => {};
+    const ROLES = ['priya','marcus','daniel','helen','sam','jo','ngozi','erik','next','irs'];
+    const role = ROLES.indexOf(P.role) >= 0 ? P.role : 'daniel';
+    const openClaim = typeof P.openClaim === 'function' ? P.openClaim : noop;
+    const go = typeof P.go === 'function' ? P.go : noop;
+    const NAME = { priya:'Priya Raman', marcus:'Marcus Bell', daniel:'Daniel Ortiz', helen:'Helen Strand', sam:'Sam Adeyemi', jo:'Jo Kimura', ngozi:'Ngozi Okafor', erik:'Erik Lindqvist', next:'Next year’s preparer', irs:'IRS examiner' };
+    // One story clock per workspace (H3 A). The shell passes asOf = storyAt; these defaults let the file render alone.
+    const AS_OF = { sam:'2027-01-15T15:00', next:'2027-01-15T15:00', irs:'2028-01-26T15:00' };
+    const asOf = (typeof P.asOf === 'string' && P.asOf) ? P.asOf : (typeof P.storyAt === 'string' && P.storyAt) ? P.storyAt : (AS_OF[role] || '2026-06-23T06:05');
+    const at16 = asOf.slice(0, 16);
+    // Stage comes from the shell (H3b decision 4); alone, it derives from the full story timestamp (tl-23 federal acceptance).
+    const filed = typeof P.stage === 'string' && P.stage ? P.stage === 'Filed' : at16 >= '2026-07-14T16:22';
+    const asOfLabel = typeof P.asOfLabel === 'string' && P.asOfLabel ? P.asOfLabel : (filed ? 'Filed' : 'As of 23 Jun 2026, v3');
+    const RULE_SELF = 'A person may not review or sign off on work they prepared.';
+    const RULE_PARTNER = 'Any adjustment with a tax effect over 1,000 (federal or state) requires partner sign-off.';
+    const RULE_NOTES = 'Open review notes block filing.';
+    const MON = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+    const fmt = (t) => { const m = /^(\d{4})-(\d{2})-(\d{2})T(\d{2}:\d{2})/.exec(String(t || '')); return m ? (+m[3]) + ' ' + MON[+m[2] - 1] + ' ' + m[1] + ', ' + m[4] : String(t || ''); };
+    const hhmm = (t) => { const m = /T(\d{2}:\d{2})/.exec(String(t || '')); return m ? m[1] : ''; };
+    const WORKING = ['priya','marcus','daniel','helen','jo'];
+    const locked = filed && WORKING.indexOf(role) >= 0;
+    const START = { sam: ['2027-01-04T15:00', 'Sam joins on 4 Jan 2027.'], next: ['2027-01-15T15:00', 'Next year’s preparer starts on 15 Jan 2027 (tl-28).'] };
+    const notYet = START[role] && at16 < START[role][0];
+    const client = role === 'ngozi' || role === 'erik';
+    const prep = !filed && (role === 'priya' || role === 'marcus');
+    const away = client || role === 'irs' || !!notYet;
+
+    // ---- The event list (H3 B). The shell owns it; alone, this file keeps a local list so every action still shows.
+    const shell = typeof P.emit === 'function';
+    // The actor is a role key (H3b decision 2): `by` when a view renamed `who`, else `who`; a display name maps back to its key.
+    const KEYOF = {}; Object.keys(NAME).forEach(k => { KEYOF[NAME[k]] = k; KEYOF[NAME[k].split(' ')[0]] = k; });
+    const actorKey = (e) => ROLES.indexOf(e.by) >= 0 ? e.by : ROLES.indexOf(e.who) >= 0 ? e.who : (KEYOF[e.who] || KEYOF[e.whoName] || e.by || e.who || '');
+    const EV = (Array.isArray(P.events) ? P.events : []).concat(shell ? [] : (S.localEv || [])).filter(e => e && typeof e === 'object')
+      .map(e => Object.assign({}, e, { who: actorKey(e), whoName: e.whoName || NAME[actorKey(e)] || String(e.who || 'The workpaper') }));
+    const retracted = new Set(EV.filter(e => e.retracts != null).map(e => e.retracts));
+    const live = EV.filter(e => e.retracts == null && !retracted.has(e.seq));
+    const LS = P.lastSeen && typeof P.lastSeen === 'object' ? P.lastSeen : {};
+    const replayMax = EV.filter(e => e.replayed).reduce((m, e) => Math.max(m, +e.seq || 0), 0);
+    const seen = typeof LS[role] === 'number' ? LS[role] : replayMax;
+    let gseq = 0;
+    const newGroup = () => 'rev-' + role + '-' + asOf + '-' + EV.length + '-' + (++gseq);
+    const emit = (e) => {
+      const ev = Object.assign({ who: role, at: asOf, type: 'note', claimId: '', itemId: '', itemIds: [], groupId: newGroup(), retracts: null, text: '', screen: 'review' }, e);
+      if (shell) P.emit(ev);
+      else this.setState(s => { const L = s.localEv || []; const seq = EV.concat(L).reduce((m, x) => Math.max(m, +x.seq || 0), 0) + 1; return { localEv: L.concat([Object.assign({}, ev, { seq })]) }; });
+      return ev.groupId;
+    };
+    const keyOf = (e) => e.itemId || e.claimId || '';
+    const touchesKey = (e, k) => !!k && (e.itemId === k || e.claimId === k || (Array.isArray(e.itemIds) && e.itemIds.indexOf(k) >= 0));
+    const IDCLAIMS = ['theo-ssn', 'id-tie'];
+    // Marcus: no digits of any identifier, including "ends 3390" (H3b decision 5).
+    const IDTXT = /SSN|Social Security|XXX-XX|\d{3}-\d{2}-\d{4}|\b(identifier|card|ends|ending|last four|last 4|account|PIN)\b[^.;]{0,30}\b\d{3,4}\b/i;
+    const scrubbed = (e) => role === 'marcus' && (IDCLAIMS.indexOf(e.claimId) >= 0 || IDCLAIMS.indexOf(e.itemId) >= 0 || IDTXT.test(String(e.text || '')));
+    const say = (e) => scrubbed(e) ? 'an identifier was corrected' : String(e.text || '').replace(/\bPINs?\b[^.;]*/gi, 'signature PINs (not shown)');
+    const CHANGE = ['adjustment', 'value_changed', 'edit'];
+    const act = (label, primary, dis, run) => ({ label, cls: primary && !dis ? 'primary' : '', dis: !!dis, run: dis ? noop : (run || noop) });
+    const toast = (msg, g) => this.setState({ toast: msg, lastGroup: g || null });
+
+    // The one adjustments list (FIX-ROUND-H1 item 4). Reasons, evidence and actions live on the Changes screen.
+    // partner: 'yes' when the packet tax effect is over 1,000; 'no' when it is not.
+    const CH = [
+      { id:'ca-est', title:'California estimated payments', line:'F540NR.72', from:'14,000', to:'10,500', effect:'CA refund −3,500', partner:'yes' },
+      { id:'atlas', title:'Schedule C gross receipts', line:'SchC.1', from:'163,700', to:'151,300', effect:'Fed −4,402 · CA −384 (est., Example)', partner:'yes' },
+      { id:'rsu', title:'RSU sale basis', line:'F8949.B.N1 and 2 more lots', from:'0 basis', to:'19,100 basis', effect:'Fed −15,536 · CA −2,765 (est., Example)', partner:'yes' },
+      { id:'theo-ssn', title:'Theo’s SSN', line:'Dependent 2', from:'XXX-XX-3309', to:'XXX-XX-3390', effect: filed ? 'No tax effect · from the 2024 return and his card' : 'No tax effect · from the 2024 return', partner:'no' },
+      { id:'heat-pump', title:'Rental heat pump: repair or improvement', line:'SchE.14A', from:'13,300 repairs', to:'2,300 repairs', effect:'Fed +3,633 · CA +896 (engine what-if)', partner:'yes',
+        auth:'Authority to confirm: Treas. Reg. 1.263(a)-3 (Example)' },
+      { id:'fed-est', title:'Federal estimated payments', line:'F1040.26', from:'13,000', to:'12,000', effect:'Fed balance +1,000', partner:'no', atLimit:true },
+      { id:'care-ein', title:'Childcare provider tax ID', line:'F2441.1b', from:'74-3829516', to:'74-3829156', effect:'No tax effect', partner:'no' },
+      { id:'noncash', title:'Gifts other than by cash or check', line:'SchA.12', from:'20,500', to:'17,400', effect:'Tax effect: about +806 federal, +149 California (estimate at v3 rates, Example). Under 1,000, so reviewer sign-off is enough.', partner:'no', ptext:'Under 1,000, so reviewer sign-off is enough' }
+    ];
+    const nPartner = CH.filter(c => c.partner === 'yes').length;
+    const applied = (id) => live.some(e => touchesKey(e, id) && e.type === 'adjustment');
+    const changes = CH.map(c => ({
+      title: c.title, line: c.line, from: c.from, to: c.to, effect: c.effect, auth: c.auth || '', hasAuth: !!c.auth,
+      status: filed ? 'In the filed return (Example)' : applied(c.id) ? 'Applied in this workspace' : 'Proposed, not applied', scls: filed || applied(c.id) ? 'rev-t-pas' : 'rev-t-acc',
+      ptext: c.partner === 'yes' ? (filed ? 'Partner: Signed (Example)' : 'Partner sign-off needed')
+        : c.ptext ? c.ptext
+        : c.atLimit ? '1,000 is not over 1,000: reviewer sign-off is enough' : 'Reviewer sign-off is enough',
+      pcls: c.partner === 'yes' ? (filed ? 'rev-t-pas' : 'rev-t-wrn') : 'rev-t-neu',
+      openIt: () => openClaim(c.id)
+    }));
+
+    // Review notes (C's threads). The packet holds no review work: every note is Example-tagged.
+    // Open or resolved comes from the events on the note (review_note_resolved / review_note_reopened).
+    const base = [
+      { id:'t1', claim:'ca-est', sev:'Blocking', who:'Daniel Ortiz', line:'F540NR.72', at:'2026-06-23T05:02', text:'This includes the September payment, but the confirmation says it was for tax year 2024. Should be 10,500. Blocking.', doc:'D68 · FTB Web Pay confirmations · page 1', pre:'FTB Web Pay confirmations: … 2025-06-16 3,500.00 tax year 2025 (estimated payment); ', hl:'2025-09-15 3,500.00 tax year 2024 (estimated payment)', post:'; 2026-01-15 3,500.00 tax year 2025 (estimated payment).', reply:'Priya: agreed, adjusting now.', effect:'CA refund −$3,500' },
+      { id:'t2', claim:'atlas', sev:'Blocking', who:'Daniel Ortiz', line:'SchC.1', at:'2026-06-23T04:51', text:'The 12,400 card payment from Atlas is already in the books. The 1099-K is counted a second time.', doc:'D15 · Lindqvist Studio (QuickBooks Online) transaction detail · page 3', pre:'Deposits detail: Atlas Outdoor Gear paid 41,200.00 in 2025, ', hl:'of which 12,400.00 arrived through Paywell Payments card processing', post:' (deposited gross; processing fees booked to Bank and merchant fees) and 28,800.00 by ACH. …', reply:'No reply yet. Assigned to Priya.', effect:'Fed −$4,402' },
+      { id:'t3', claim:'heat-pump', sev:'Judgment', who:'Helen Strand', line:'SchE.14A', at:'2026-06-22T17:30', text:'A full heat pump system is an improvement, not a repair. Record the judgment, the authority relied on, and depreciate it.', doc:'D47 · Delta Breeze Heating & Air invoice · page 1', pre:'Invoice 5521 dated 08/12/2025. Removed failed 2004 gas furnace and 3-ton AC condenser. ', hl:'Installed new 3-ton heat pump system', post:' with air handler, new line set and thermostat. Total 11,000.00. …', reply:'Priya: will record the election and reason.', effect:'Fed +$3,633' }
+    ];
+    const noteKey = (t) => 'note-' + t.id;
+    const noteEv = (t) => live.filter(e => touchesKey(e, noteKey(t)));
+    const isResolved = (t) => { const s = noteEv(t).filter(e => e.type === 'review_note_resolved' || e.type === 'review_note_reopened').pop(); return !!s && s.type === 'review_note_resolved'; };
+    const freshOn = (t) => live.some(e => (touchesKey(e, noteKey(t)) || touchesKey(e, t.claim)) && +e.seq > seen && e.who !== role);
+    const groupFor = t => freshOn(t) ? 'Since you last looked'
+      : role === 'daniel' ? 'Needs review'
+      : role === 'helen' ? (t.sev === 'Blocking' ? 'Blocks your approval' : 'Waiting for partner')
+      : (t.sev === 'Blocking' ? 'Fix first: blocks filing' : 'Then: judgment to record');
+    const toggle = (t, r) => () => { const g = emit({ type: r ? 'review_note_reopened' : 'review_note_resolved', itemId: noteKey(t), claimId: t.claim, title: t.text, text: (r ? 'reopened' : 'resolved') + ' the review note on ' + t.line + ' (Example)', example: true }); toast(r ? 'Note reopened.' : 'Note resolved.', g); };
+    const reply = (t) => () => { const g = emit({ type:'review_note_reply', itemId: noteKey(t), claimId: t.claim, title: t.text, text: 'replied to the review note on ' + t.line + ' (Example)', example: true }); toast('Reply sent on ' + t.line + '.', g); };
+    // Example notes carry story timestamps and appear only once the story clock has reached them.
+    const ordered = base.filter(t => at16 >= t.at).sort((a, b) => (freshOn(b) ? 1 : 0) - (freshOn(a) ? 1 : 0));
+    const threads = ordered.map(t => {
+      const r = filed ? true : isResolved(t);
+      const replies = noteEv(t).filter(e => e.type === 'review_note_reply').length;
+      let acts = [];
+      if (prep || (role === 'daniel' && !filed)) acts = [act('Reply', false, false, reply(t)), act(r ? 'Reopen' : 'Resolve', false, false, toggle(t, r))];
+      else if (role === 'helen' && !filed) acts = [act('Reply', false, false, reply(t))];
+      return { group: groupFor(t), status: r ? 'Resolved' : 'Open', tcls: r ? 'rev-t-pas' : 'rev-t-wrn', sev: t.sev, sevcls: t.sev === 'Blocking' ? 'rev-t-blk' : t.sev === 'Judgment' ? 'rev-t-wrn' : 'rev-t-acc',
+        who: t.who, line: t.line, when: fmt(t.at), text: t.text, doc: t.doc, pre: t.pre, hl: t.hl, post: t.post, reply: t.reply + (replies ? ' ' + replies + ' more in this workspace.' : ''),
+        rule: t.effect ? 'Tax effect ' + t.effect + '. Firm rule: “' + RULE_PARTNER + '”' : '', acts, openIt: () => openClaim(t.claim) };
+    });
+    const openNotes = threads.filter(t => t.status === 'Open').length;
+
+    // Sign-offs. Example rows: stale because the v3 line changes are real (changes_from_previous); the sign-offs are examples.
+    const LSG = [
+      { id:'s-sche', claim:'', title:'Total partnership and S corporation income', line:'SchE.32', state:'Stale', cls:'rev-t-wrn',
+        why:'Daniel Ortiz signed this on v2. v3 changed it from 18,400 to 26,800 after the Ridgeline K-1 arrived, so the sign-off reopened.', resign:'daniel' },
+      { id:'s-owe', claim:'', title:'Amount you owe', line:'F1040.37', state:'Stale', cls:'rev-t-wrn',
+        why:'Priya Raman marked this prepared on v2. v3 changed it from 35,728 to 4,220, so it needs preparing and review again.', resign:'priya' },
+      { id:'s-w2', claim:'', title:'Wages', line:'F1040.1a', state:'Current', cls:'rev-t-pas',
+        why:'Daniel Ortiz signed this on v2. Unchanged in v3 (212,400), so the sign-off still holds.', resign:'' },
+      { id:'s-ext', claim:'ext-pay', title:'Amount paid with extension request', line:'Sch3.10', state:'Needs another reviewer', cls:'rev-t-acc',
+        why:'36,000 paid with Form 4868 on 14 Apr 2026. Daniel Ortiz filed it (timeline extension-2026-04-14). Firm rule: “' + RULE_SELF + '”', resign:'other' }
+    ];
+    const STALE_DEF = 'The value changed after this sign-off; whoever signed must review it again.';
+    const lineSigns = LSG.map(s => {
+      let state = s.state, cls = s.cls, acts = [];
+      const again = live.some(e => e.type === 'signoff' && touchesKey(e, s.id) && e.who === s.resign);
+      const sign = (msg, type) => () => { const g = emit({ type: type || 'signoff', itemId: s.id, claimId: s.claim, title: s.title, text: (type === 'prepared' ? 'marked ' : 'signed off ') + '“' + s.title + '” on v3' }); toast(msg, g); };
+      if (filed) { state = 'Signed (Example)'; cls = 'rev-t-pas'; }
+      else if (again) { state = 'Signed again'; cls = 'rev-t-pas'; }
+      else if (role === 'daniel') {
+        if (s.id === 's-ext') acts = [act('Sign off: you prepared this', false, true)];
+        else if (s.resign === 'daniel') acts = [act('Review again and sign off', true, false, sign('Signed again on v3.'))];
+      } else if (prep && s.resign === 'priya' && role === 'priya') {
+        acts = [act('Mark prepared again', true, false, sign('Marked prepared again on v3.', 'prepared'))];
+      }
+      const why = filed ? (s.id === 's-ext' ? 'Signed by a reviewer who did not file the extension.' : 'Signed on the version that was filed.') : s.why;
+      return { title: s.title, line: s.line, why, state, cls, def: state === 'Stale' ? STALE_DEF : '', acts, openIt: () => s.claim ? openClaim(s.claim) : go('changes') };
+    });
+    // Sign-offs recorded in this workspace, each checked against later changes on the same number (stale from events).
+    const liveSigns = live.filter(e => e.type === 'signoff' && !LSG.some(s => touchesKey(e, s.id))).map(sg => {
+      const keys = [sg.claimId, sg.itemId].concat(Array.isArray(sg.itemIds) ? sg.itemIds : []).filter(Boolean);
+      const later = live.find(e => +e.seq > +sg.seq && keys.some(k => touchesKey(e, k)) && (CHANGE.indexOf(e.type) >= 0 || e.type === 'signoff_stale'));
+      const changer = later && CHANGE.indexOf(later.type) >= 0 ? later : later ? (live.filter(e => +e.seq < +later.seq && keys.some(k => touchesKey(e, k)) && CHANGE.indexOf(e.type) >= 0).pop() || later) : null;
+      const signer = sg.whoName;
+      return { title: sg.title || say(sg), state: later ? 'Stale: the value changed after you signed' : 'Current', cls: later ? 'rev-t-wrn' : 'rev-t-pas', def: later ? STALE_DEF : 'Nothing has changed since this sign-off.',
+        why: signer + ' signed at ' + fmt(sg.at) + '.' + (changer ? ' Then: ' + changer.whoName + (scrubbed(changer) ? ': ' : ' ') + say(changer) + (changer.from || changer.to ? ' (' + (changer.from || '?') + ' to ' + (changer.to || '?') + ')' : '') + ' at ' + hhmm(changer.at) + '.' : ''),
+        openIt: () => sg.claimId ? openClaim(sg.claimId) : go('checks') };
+    });
+    const nStaleLive = liveSigns.filter(s => s.cls === 'rev-t-wrn').length;
+    const levels = (filed
+      ? [['Priya Raman','Preparer','Signed','rev-t-pas'],['Daniel Ortiz','Reviewer','Signed','rev-t-pas'],['Helen Strand','Partner','Signed','rev-t-pas'],['Ngozi Okafor','Client: Sign Form 8879 (e-file signature authorization)','Signed','rev-t-pas'],['Erik Lindqvist','Client: Sign Form 8879 (e-file signature authorization)','Signed','rev-t-pas']]
+      : (() => {
+          const sent = live.some(e => e.type === 'review_requested');
+          const toClient = live.some(e => e.type === 'client_approval_requested');
+          const revSigned = live.some(e => e.type === 'approval_requested');
+          return [['Priya Raman','Preparer', sent ? 'Sent to reviewer' : 'Not yet', sent ? 'rev-t-pas' : 'rev-t-neu'],['Daniel Ortiz','Reviewer', revSigned ? 'Signed' : 'Stale', revSigned ? 'rev-t-pas' : 'rev-t-wrn'],['Helen Strand','Partner', toClient ? 'Approved' : 'Waiting', toClient ? 'rev-t-pas' : 'rev-t-neu'],
+            ['Ngozi Okafor','Client: Sign Form 8879 (e-file signature authorization)', toClient ? 'Sent to sign' : 'Not sent', 'rev-t-neu'],['Erik Lindqvist','Client: Sign Form 8879 (e-file signature authorization)', toClient ? 'Sent to sign' : 'Not sent', 'rev-t-neu']];
+        })())
+      .map(([who, r, state, cls]) => ({ who, role: r, state, cls }));
+
+    // Status strip and the merge-style buttons per role. The blocker count comes from the shared blocker list and the events.
+    // Answers that arrived after v3 (msg-07 30 Jun 18:02, msg-08 1 Jul 16:40) become blockers once the story clock passes them.
+    const LATE = [['crypto-c6','Answer arrived after the last computation: crypto lot C6 basis','2026-06-30T18:02','msg-07'], ['gift-brigid','Answer arrived after the last computation: St. Brigid gift','2026-07-01T16:40','msg-08']];
+    const BLOCKERS = [['ca-est','California estimates include a 2024 payment'], ['atlas','Card sales counted twice in business income'], ['rsu','RSU shares sold with a zero cost basis'], ['theo-ssn','Theo’s SSN differs from his 2024 return']]
+      .concat(LATE.filter(l => at16 >= l[2]));
+    const openBlockers = filed ? [] : BLOCKERS.filter(([id, , , msg]) => !live.some(e => (e.claimId === id && (e.type === 'adjustment' || e.type === 'cleared')) || (msg && Array.isArray(e.itemIds) && e.itemIds.indexOf(msg) >= 0)));
+    // The shell's `blockers` prop is the one source of truth (H3b decision 1); alone, computed here the same way.
+    const propBlk = Array.isArray(P.blockers) ? P.blockers.filter(b => b && b.claimId) : null;
+    const blk = propBlk ? propBlk.map(b => [b.claimId, b.title || (BLOCKERS.find(x => x[0] === b.claimId) || [])[1] || b.claimId]) : openBlockers;
+    const nBlock = blk.length;
+    const firstBlock = nBlock ? blk[0][1] : '';
+    const blockTxt = (n) => n + ' blocker' + (n === 1 ? '' : 's');
+    let statusHead = nBlock || openNotes ? 'Not ready to file.' : 'Ready for partner approval.';
+    let statusTags = [ { cls: nBlock ? 'rev-t-blk' : 'rev-t-pas', text: blockTxt(nBlock) }, { cls:'rev-t-wrn', text: openNotes + ' open review notes (Example)' }, { cls:'rev-t-wrn', text: nPartner + ' changes need partner sign-off' } ]
+      .concat(nStaleLive ? [ { cls:'rev-t-wrn', text: nStaleLive + ' sign-off' + (nStaleLive === 1 ? '' : 's') + ' gone stale' } ] : []);
+    let mergeBtns = [], mergeNote = '';
+    if (locked) {
+      statusHead = 'As filed, locked.';
+      statusTags = [ { cls:'rev-t-pas', text:'Filed' } ];
+      mergeNote = 'Accepted on 14 Jul 2026 (tl-23). The review record is read only; later work attaches as new events.';
+      mergeBtns = [ act('Open Filing and after', false, false, () => go('filing')) ];
+    } else if (prep) {
+      const sent = live.some(e => e.type === 'review_requested' && e.who === role);
+      mergeBtns = [ act(sent ? 'Sent to reviewer' : 'Mark prepared and send to reviewer', true, sent, () => { const g = emit({ type:'review_requested', assignee:'daniel', text: 'marked the return prepared and sent it to Daniel Ortiz for review' }); toast('Sent to Daniel Ortiz for review.', g); }) ];
+      mergeNote = nBlock ? blockTxt(nBlock) + (nBlock === 1 ? ' is' : ' are') + ' still open; the reviewer will see them.' : 'No blockers open.';
+    } else if (role === 'daniel') {
+      const done = live.some(e => e.type === 'approval_requested' && e.who === role);
+      mergeBtns = [ act('Send back to preparer', false, false, () => { const g = emit({ type:'sent_back', assignee:'priya', text: 'sent the return back to Priya Raman' }); toast('Sent back to Priya Raman.', g); }),
+        nBlock ? act('Sign off the review: waits for ' + blockTxt(nBlock), true, true)
+          : act(done ? 'Review signed off' : 'Sign off the review and request partner approval', true, done, () => { const g = emit({ type:'approval_requested', assignee:'helen', text: 'signed off the review and asked Helen Strand to approve' }); toast('Sent to Helen Strand for approval.', g); }) ];
+      mergeNote = 'Firm rule: “' + RULE_SELF + '” Your sign-off is disabled on the extension payment you filed (Sch3.10).';
+    } else if (role === 'helen') {
+      const sentC = live.some(e => e.type === 'client_approval_requested' && e.who === role);
+      mergeBtns = [ nBlock ? act('Approve and send to client: blocked by “' + firstBlock + '”' + (nBlock > 1 ? ', and ' + (nBlock - 1) + ' more' : ''), true, true)
+        : openNotes ? act('Approve and send to client: blocked by ' + openNotes + ' open review note' + (openNotes === 1 ? '' : 's'), true, true)
+        : act(sentC ? 'Sent to the client' : 'Approve and send to client', true, sentC, () => { const g = emit({ type:'client_approval_requested', text: 'approved the return and sent it to Ngozi and Erik to sign', clientText:'Your return is ready for you to review and sign.' }); toast('Sent to Ngozi and Erik to sign Form 8879.', g); }) ];
+      mergeNote = 'Firm rule: “' + RULE_NOTES + '” ' + openNotes + ' review notes open (Example).';
+    } else if (role === 'jo') {
+      mergeNote = 'Read only for you. Review levels and rules are firm standards you can change.';
+      mergeBtns = [ act('Open firm standards', false, false, () => go('firm')) ];
+    } else if (role === 'sam') {
+      const started = live.some(e => e.type === 'qr_finding' && e.who === role && !e.itemId);
+      statusHead = 'Selected for quality review, 4 Jan 2027.';
+      statusTags = [ { cls:'rev-t-pas', text:'Filed' } ];
+      mergeBtns = [ act(started ? 'Finding left' : 'Leave a quality-review finding', true, started, () => { const g = emit({ type:'qr_finding', text: 'started a quality-review finding on this return' }); toast('Quality-review finding started.', g); }) ];
+      mergeNote = 'Read only. The filed record with its full internal history.';
+    } else if (role === 'next') {
+      statusHead = '2025 return, read only.';
+      statusTags = [ { cls:'rev-t-pas', text:'Filed' } ];
+      mergeNote = 'How the 2025 return was reviewed, for your 2026 plan.';
+    }
+    // "Since you last looked": every event after this person's last look, by someone else, newest first.
+    const sinceEv = live.filter(e => +e.seq > seen && e.who !== role && e.type !== 'undo').slice(-6).reverse();
+    const since = sinceEv.map(e => ({ who: e.whoName, text: say(e), ex: !!e.example || /Example/.test(String(e.tag || '')), when: 'story time ' + fmt(e.at),
+      btn: e.claimId ? 'Open the number' : 'Open', openIt: () => e.claimId ? openClaim(e.claimId) : go(e.screen && e.screen !== 'review' ? e.screen : 'changes') }));
+    const TABS = filed ? [['changes','Adjustments in the filed return', CH.length], ['sign','Sign-offs', LSG.length + liveSigns.length]]
+      : [['changes','Changes against v3', CH.length], ['notes','Review notes', openNotes], ['sign','Sign-offs', LSG.length + liveSigns.length]];
+    const tab = TABS.some(t => t[0] === S.tab) ? S.tab : 'changes';
+    const tabs = TABS.map(([key, name, count]) => ({ name, count, on: tab === key ? 'on' : '', sel: tab === key ? 'true' : 'false', pick: () => this.setState({ tab: key }) }));
+    return {
+      wpClass: 'wp' + ((P.dark ?? false) ? ' dark' : ''),
+      showReview: !away, showAway: away,
+      heading: filed ? 'Review record' : 'Review',
+      subhead: filed ? asOfLabel + ' · As filed, locked: the return as this workpaper finalized it' : asOfLabel + ' · Our changes against engine v3, review notes and sign-offs',
+      statusHead, statusTags, mergeBtns, mergeNote, tabs,
+      showSince: !away, since, sinceEmpty: since.length === 0, sinceNote: since.length ? since.length + ' event' + (since.length === 1 ? '' : 's') + ' from the workspace’s event list' : 'From the workspace’s event list',
+      showChanges: tab === 'changes', showNotes: tab === 'notes', showSign: tab === 'sign',
+      changesHead: filed ? 'Adjustments in the filed return (values are examples until the workpaper finalizes)' : 'Our ' + CH.length + ' proposed changes against v3: ' + (CH.filter(c => applied(c.id)).length || 'none') + ' applied',
+      changesFoot: 'Reasons, evidence, who and when for each change, and the engine’s own 89 line changes from v2 to v3, are on the Changes screen.',
+      changes, threads, levels, lineSigns, liveSigns, hasLive: liveSigns.length > 0,
+      signIntro: filed ? 'Every sign-off on the filed record.' : 'A sign-off reopens when what was signed changes. The line changes are from the packet; the sign-offs are examples.',
+      goChanges: () => go('changes'),
+      showToast: !!S.toast, toastMsg: S.toast || '',
+      clearToast: () => this.setState({ toast: null, lastGroup: null }),
+      undoToast: () => { const g = S.lastGroup; const target = g ? EV.filter(e => e.groupId === g && e.retracts == null).pop() : null; if (target) emit({ type:'undo', retracts: target.seq, claimId: target.claimId || '', itemId: target.itemId || '', text: 'undid: ' + say(target) }); this.setState({ toast: null, lastGroup: null }); },
+      awayText: notYet ? START[role][1] + ' Move the story clock in the header to see this screen.' : client ? 'This part is for your tax team. Nothing here needs you.' : 'This view is not part of the filed record. The items under examination are in Filing and after.',
+      awayBtn: notYet ? 'Go to Home' : client ? 'Go to your home page' : 'Go to Filing and after',
+      awayGo: () => go(notYet || client ? 'home' : 'filing')
+    };
+  }
+}
+</script>
+</body>
+</html>

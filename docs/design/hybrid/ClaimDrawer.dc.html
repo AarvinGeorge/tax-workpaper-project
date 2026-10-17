@@ -1,0 +1,1045 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Claim drawer</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Instrument+Sans:wght@400;500;600;700&amp;family=Source+Serif+4:opsz,wght@8..60,400;8..60,600&amp;family=IBM+Plex+Mono:wght@400;500&amp;display=swap" rel="stylesheet">
+<style>
+body{margin:0}
+.wp{--bg:oklch(0.975 0.005 250);--surface:oklch(0.995 0.003 250);--sunk:oklch(0.955 0.006 250);--line:oklch(0.89 0.008 250);--ink:oklch(0.24 0.02 255);--ink2:oklch(0.44 0.02 255);--acc:oklch(0.46 0.15 262);--accsoft:oklch(0.94 0.035 262);--blk:oklch(0.50 0.17 32);--blksoft:oklch(0.955 0.03 32);--wrn:oklch(0.48 0.10 70);--wrnsoft:oklch(0.96 0.045 85);--pas:oklch(0.47 0.09 165);--passoft:oklch(0.955 0.03 165);--hl:oklch(0.91 0.13 100);--paper:oklch(0.99 0.006 90)}
+.wp.dark{--bg:oklch(0.19 0.012 255);--surface:oklch(0.23 0.014 255);--sunk:oklch(0.17 0.012 255);--line:oklch(0.33 0.015 255);--ink:oklch(0.93 0.008 255);--ink2:oklch(0.74 0.012 255);--acc:oklch(0.76 0.11 262);--accsoft:oklch(0.30 0.05 262);--blk:oklch(0.74 0.13 35);--blksoft:oklch(0.28 0.05 32);--wrn:oklch(0.80 0.11 80);--wrnsoft:oklch(0.29 0.04 85);--pas:oklch(0.76 0.09 165);--passoft:oklch(0.27 0.04 165);--hl:oklch(0.55 0.10 100);--paper:oklch(0.26 0.01 90)}
+.wp{font-family:'Instrument Sans',system-ui,sans-serif;color:var(--ink);background:var(--bg);font-size:14px;line-height:1.45;min-height:100vh;display:flex;flex-direction:column}
+.drw-root{font-family:'Instrument Sans',system-ui,sans-serif;color:var(--ink);background:var(--sunk);font-size:14px;line-height:1.45;padding:18px 20px;display:flex;flex-direction:column;gap:14px;box-sizing:border-box;min-height:100%}
+.drw-num{font-variant-numeric:tabular-nums;font-feature-settings:"tnum"}
+.drw-mono{font-family:'IBM Plex Mono',monospace;font-size:12px}
+.drw-lbl{font-size:11.5px;font-weight:600;letter-spacing:.04em;text-transform:uppercase;color:var(--ink2)}
+.drw-tag{display:inline-flex;align-items:center;gap:5px;font-size:11.5px;font-weight:600;padding:2px 8px;border-radius:999px;white-space:nowrap}
+.drw-t-blk{color:var(--blk);background:var(--blksoft)}
+.drw-t-wrn{color:var(--wrn);background:var(--wrnsoft)}
+.drw-t-pas{color:var(--pas);background:var(--passoft)}
+.drw-t-acc{color:var(--acc);background:var(--accsoft)}
+.drw-t-mut{color:var(--ink2);background:var(--surface);border:1px solid var(--line)}
+.drw-ex{font-size:10.5px;font-weight:600;letter-spacing:.03em;padding:1px 6px;border-radius:999px;border:1px dashed var(--ink2);color:var(--ink2);white-space:nowrap;vertical-align:1px}
+.drw-sec{display:flex;flex-direction:column;gap:6px;padding-top:12px;border-top:1px solid var(--line)}
+.drw-page{font-family:'Source Serif 4',Georgia,serif;font-size:15px;line-height:1.65;background:var(--paper);border:1px solid var(--line);border-radius:6px;padding:18px 20px;color:var(--ink)}
+.drw-page mark{background:var(--hl);color:inherit;padding:1px 2px;border-radius:2px;box-shadow:0 0 0 2px var(--hl)}
+.drw-btn{font:inherit;font-size:13px;border:1px solid var(--line);background:var(--surface);color:var(--ink);border-radius:8px;padding:7px 12px;cursor:pointer;min-height:36px}
+.drw-btn:hover{border-color:var(--ink2)}
+.drw-btn.primary{background:var(--acc);border-color:var(--acc);color:var(--surface)}
+.drw-btn.off,.drw-btn.off:hover{background:var(--sunk);border-color:var(--line);color:var(--ink2);cursor:not-allowed}
+.drw-btn:focus-visible,.drw-link:focus-visible{outline:2px solid var(--acc);outline-offset:2px}
+.drw-link{all:unset;color:var(--acc);text-decoration:underline;text-underline-offset:2px;cursor:pointer;font-size:13px}
+.drw-kind{display:flex;flex-wrap:wrap;align-items:baseline;gap:6px 10px;padding:10px 12px;background:var(--surface);border:1px solid var(--line);border-radius:8px}
+.drw-conf{display:flex;flex-wrap:wrap;align-items:baseline;gap:6px 10px;font-size:12.5px;color:var(--ink2)}
+.drw-row{display:flex;flex-wrap:wrap;align-items:baseline;gap:6px 8px}
+.drw-panel{display:flex;flex-direction:column;gap:8px;padding:12px;background:var(--surface);border:1px solid var(--line);border-radius:8px}
+.drw-quote{font-family:'Source Serif 4',Georgia,serif;font-size:14px;line-height:1.55;color:var(--ink)}
+.drw-field{font:inherit;font-size:13px;color:var(--ink);background:var(--surface);border:1px solid var(--line);border-radius:8px;padding:7px 10px;box-sizing:border-box;width:100%;max-width:100%}
+.drw-field:focus-visible{outline:2px solid var(--acc);outline-offset:1px}
+.drw-warn{margin:0;font-size:12.5px;color:var(--wrn);background:var(--wrnsoft);padding:6px 10px;border-radius:6px}
+.drw-err{margin:0;font-size:12.5px;color:var(--blk);background:var(--blksoft);padding:6px 10px;border-radius:6px}
+.drw-diff{display:flex;flex-wrap:wrap;gap:6px 10px;align-items:baseline;font-variant-numeric:tabular-nums}
+.drw-del{text-decoration:line-through;color:var(--ink2)}
+.drw-item{display:flex;flex-direction:column;gap:6px;padding:8px 0;border-top:1px solid var(--line)}
+</style>
+</helmet>
+<div class="{{wpClass}}">
+<section class="drw-root" aria-label="Where this number came from">
+<div style="display:flex;justify-content:space-between;align-items:center;gap:10px">
+<span class="drw-lbl">{{headLbl}}</span>
+<sc-if value="{{showClose}}" hint-placeholder-val="{{ true }}">
+<button class="drw-btn" type="button" aria-label="Close the panel" onClick="{{close}}">Close</button>
+</sc-if>
+</div>
+
+<sc-if value="{{empty}}" hint-placeholder-val="{{ false }}">
+<div style="display:flex;flex-direction:column;align-items:flex-start;gap:10px;padding:28px 4px">
+<svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" style="color:var(--ink2)"><path d="M6 3h9l4 4v14H6z"></path><path d="M15 3v4h4"></path><path d="M9 12h7"></path><path d="M9 16h5"></path></svg>
+<p style="margin:0;font-size:15px;font-weight:600">{{emptyText}}</p>
+<p style="margin:0;color:var(--ink2);max-width:40ch">{{emptySub}}</p>
+</div>
+</sc-if>
+
+<sc-if value="{{notFound}}" hint-placeholder-val="{{ false }}">
+<p style="margin:0;color:var(--ink2);padding:20px 4px">{{notFoundText}}</p>
+</sc-if>
+
+<sc-if value="{{has}}" hint-placeholder-val="{{ true }}">
+<div style="display:flex;flex-direction:column;gap:6px">
+<div class="drw-row"><span class="drw-tag {{D.statusCls}}">{{D.statusWord}}</span>
+<sc-if value="{{S.line}}" hint-placeholder-val="{{ true }}"><span class="drw-mono" style="color:var(--ink2)">{{D.line}}</span></sc-if>
+</div>
+<h2 style="margin:2px 0 0;font-size:19px;line-height:1.3;letter-spacing:-.01em;font-weight:600">{{D.title}}</h2>
+<div class="drw-row" style="margin-top:2px">
+<span class="drw-num" style="font-size:26px;font-weight:600;letter-spacing:-.02em">{{D.value}}</span>
+<sc-if value="{{D.valueEx}}" hint-placeholder-val="{{ false }}"><span class="drw-ex">Example</span></sc-if>
+</div>
+<sc-if value="{{S.valueNote}}" hint-placeholder-val="{{ false }}"><span style="font-size:12.5px;color:var(--ink2)">{{D.valueNote}}</span></sc-if>
+<p style="margin:4px 0 0;max-width:60ch">{{D.why}}</p>
+</div>
+
+<sc-if value="{{S.kind}}" hint-placeholder-val="{{ true }}">
+<div style="display:flex;flex-direction:column;gap:8px">
+<div class="drw-kind"><span class="drw-lbl" title="What sort of record this number rests on, for example an IRS record or a form from a third party. It is a label, not a trust score.">Kind of source</span><span style="font-weight:600">{{D.kind}}</span></div>
+<sc-if value="{{S.conf}}" hint-placeholder-val="{{ true }}">
+<div class="drw-conf"><span class="drw-lbl" title="How surely the document reading step read the text, from 0 to 1.">Pipeline read</span><span class="drw-num">{{D.conf}}</span><span>How surely the text was read, not how far to trust the source.</span></div>
+</sc-if>
+</div>
+</sc-if>
+
+<sc-if value="{{S.page}}" hint-placeholder-val="{{ true }}">
+<div style="display:flex;flex-direction:column;gap:8px">
+<div style="display:flex;justify-content:space-between;align-items:baseline;gap:10px;flex-wrap:wrap"><span class="drw-lbl">{{D.docLbl}}</span><span class="drw-mono" style="color:var(--ink2)">{{D.docRef}}</span></div>
+<div style="font-weight:600">{{D.docTitle}}</div>
+<div class="drw-page">{{D.pre}}<mark>{{D.hl}}</mark>{{D.post}}</div>
+<sc-if value="{{S.field}}" hint-placeholder-val="{{ true }}"><div style="font-size:12.5px"><span style="color:var(--ink2)">Field:</span> {{D.field}}</div></sc-if>
+<sc-if value="{{S.pos}}" hint-placeholder-val="{{ true }}"><div class="drw-mono" style="color:var(--ink2)">Box on the page: {{D.pos}} (the packet&#39;s synthetic position, fractions from the top left)</div></sc-if>
+<sc-if value="{{S.pageNote}}" hint-placeholder-val="{{ true }}"><div style="font-size:12.5px;color:var(--ink2)">Highlighted: the exact text this number depends on. Simulated from the packet; a real page image can replace it without changing the link.</div></sc-if>
+</div>
+</sc-if>
+
+<sc-if value="{{S.ids}}" hint-placeholder-val="{{ false }}">
+<div class="drw-sec">
+<span class="drw-lbl">{{idsLbl}}</span>
+<sc-for list="{{D.ids}}" as="k" hint-placeholder-count="2">
+<div style="display:flex;flex-wrap:wrap;align-items:center;gap:8px 10px">
+<span style="min-width:120px">{{k.label}}</span>
+<span class="drw-mono drw-num">{{k.shown}}</span>
+<span class="drw-tag {{k.stateCls}}">{{k.stateWord}}</span>
+<sc-if value="{{k.showBtn}}" hint-placeholder-val="{{ true }}">
+<button class="drw-btn {{k.btnCls}}" type="button" aria-disabled="{{k.ad}}" onClick="{{k.go}}">{{k.btnLabel}}</button>
+</sc-if>
+</div>
+</sc-for>
+<span style="font-size:12.5px;color:var(--ink2)">{{maskNote}}</span>
+<sc-if value="{{S.identity}}" hint-placeholder-val="{{ false }}">
+<div class="drw-row" style="font-size:13px"><span class="drw-tag drw-t-blk">Mismatch</span><span>{{D.identity}}</span></div>
+</sc-if>
+</div>
+</sc-if>
+
+<sc-if value="{{S.others}}" hint-placeholder-val="{{ true }}">
+<div class="drw-sec">
+<span class="drw-lbl">{{othersLbl}}</span>
+<sc-for list="{{D.others}}" as="o" hint-placeholder-count="2">
+<div style="font-size:13px">{{o.text}}</div>
+</sc-for>
+</div>
+</sc-if>
+
+<sc-if value="{{S.built}}" hint-placeholder-val="{{ true }}">
+<div class="drw-sec"><span class="drw-lbl">{{builtLbl}}</span><span>{{D.built}}</span></div>
+</sc-if>
+
+<sc-if value="{{S.fails}}" hint-placeholder-val="{{ true }}">
+<div class="drw-sec">
+<span class="drw-lbl">{{failsLbl}}</span>
+<sc-for list="{{D.fails}}" as="f" hint-placeholder-count="2">
+<div style="display:flex;gap:8px;align-items:flex-start;font-size:13px"><span class="drw-tag {{f.cls}}" style="margin-top:1px">{{f.word}}</span><span>{{f.text}} <sc-if value="{{f.ex}}" hint-placeholder-val="{{ false }}"><span class="drw-ex">Example</span></sc-if></span></div>
+</sc-for>
+</div>
+</sc-if>
+
+<sc-if value="{{S.checked}}" hint-placeholder-val="{{ true }}">
+<div class="drw-sec">
+<span class="drw-lbl">{{checkedLbl}}</span>
+<sc-for list="{{D.checked}}" as="c" hint-placeholder-count="1">
+<div style="font-size:13px"><strong style="font-weight:600">{{c.type}}</strong> {{c.who}} <sc-if value="{{c.ex}}" hint-placeholder-val="{{ true }}"><span class="drw-ex">Example</span></sc-if></div>
+</sc-for>
+<sc-if value="{{S.needed}}" hint-placeholder-val="{{ true }}"><div style="font-size:13px;color:var(--ink2)">{{D.needed}}</div></sc-if>
+</div>
+</sc-if>
+
+<sc-if value="{{S.history}}" hint-placeholder-val="{{ true }}">
+<div class="drw-sec"><span class="drw-lbl">{{historyLbl}}</span><span>{{D.history}} <sc-if value="{{D.historyEx}}" hint-placeholder-val="{{ false }}"><span class="drw-ex">Example</span></sc-if></span></div>
+</sc-if>
+
+<sc-if value="{{S.effect}}" hint-placeholder-val="{{ true }}">
+<div class="drw-sec"><span class="drw-lbl" title="How much tax changes if this item is adjusted.">Tax effect</span><span class="drw-num">{{D.effect}} <sc-if value="{{D.effectEx}}" hint-placeholder-val="{{ false }}"><span class="drw-ex">Example</span></sc-if></span><span style="font-size:12.5px;color:var(--ink2)">{{D.effectNote}}</span></div>
+</sc-if>
+
+<sc-if value="{{S.need}}" hint-placeholder-val="{{ false }}">
+<div class="drw-sec"><span class="drw-lbl">What we need from you</span><span>{{D.need}} <span class="drw-ex">Example</span></span><sc-if value="{{S.askedOf}}" hint-placeholder-val="{{ false }}"><span style="font-size:12.5px;color:var(--ink2)">{{D.askedOf}}</span></sc-if></div>
+</sc-if>
+
+<sc-if value="{{S.links}}" hint-placeholder-val="{{ false }}">
+<div class="drw-sec">
+<span class="drw-lbl">Related</span>
+<sc-for list="{{D.links}}" as="l" hint-placeholder-count="1">
+<button class="drw-link" type="button" onClick="{{l.go}}">{{l.label}}</button>
+</sc-for>
+</div>
+</sc-if>
+
+<sc-if value="{{S.late}}" hint-placeholder-val="{{ false }}">
+<div class="drw-sec">
+<span class="drw-lbl" title="A client answer came in after the return was last computed, so the numbers do not include it yet.">{{lateLbl}}</span>
+<div class="drw-row" style="font-size:13px"><span class="drw-tag {{late.cls}}">{{late.word}}</span><span>{{late.text}}</span></div>
+<sc-if value="{{late.quote}}" hint-placeholder-val="{{ false }}"><div class="drw-quote">{{late.quote}}</div></sc-if>
+</div>
+</sc-if>
+
+<sc-if value="{{S.signoffs}}" hint-placeholder-val="{{ false }}">
+<div class="drw-sec">
+<span class="drw-lbl" title="A sign-off covers the value as it was when signed. If the value changes, the sign-off goes stale and must be given again.">{{signoffsLbl}}</span>
+<sc-for list="{{signoffs}}" as="g" hint-placeholder-count="1">
+<div class="drw-row" style="font-size:13px"><span class="drw-tag {{g.cls}}">{{g.word}}</span><span>{{g.text}}</span></div>
+</sc-for>
+</div>
+</sc-if>
+
+<sc-if value="{{S.live}}" hint-placeholder-val="{{ false }}">
+<div class="drw-sec">
+<span class="drw-lbl">{{liveLbl}}</span>
+<sc-for list="{{liveRows}}" as="r" hint-placeholder-count="2">
+<div class="drw-row" style="font-size:13px"><span class="drw-mono drw-num" style="color:var(--ink2)">{{r.when}}</span><span>{{r.text}}</span><sc-if value="{{r.hasWord}}" hint-placeholder-val="{{ false }}"><span class="drw-tag {{r.cls}}">{{r.word}}</span></sc-if><sc-if value="{{r.ex}}" hint-placeholder-val="{{ false }}"><span class="drw-ex">Example</span></sc-if></div>
+</sc-for>
+</div>
+</sc-if>
+
+<sc-if value="{{S.evidence}}" hint-placeholder-val="{{ false }}">
+<div class="drw-sec">
+<span class="drw-lbl">{{evidenceLbl}}</span>
+<sc-for list="{{evidence}}" as="v" hint-placeholder-count="1">
+<div class="drw-row" style="font-size:13px"><span class="drw-mono drw-num" style="color:var(--ink2)">{{v.when}}</span><span>{{v.text}}</span><sc-if value="{{v.ex}}" hint-placeholder-val="{{ false }}"><span class="drw-ex">Example</span></sc-if></div>
+</sc-for>
+</div>
+</sc-if>
+
+<sc-if value="{{S.thread}}" hint-placeholder-val="{{ false }}">
+<div class="drw-sec">
+<span class="drw-lbl">{{threadLbl}}</span>
+<span style="font-size:12.5px;color:var(--ink2)">Not review notes: a question to a colleague does not block, send back or sign anything.</span>
+<sc-for list="{{thread}}" as="t" hint-placeholder-count="2">
+<div style="display:flex;flex-direction:column;gap:2px;font-size:13px"><span style="color:var(--ink2);font-size:12.5px">{{t.head}} <sc-if value="{{t.ex}}" hint-placeholder-val="{{ false }}"><span class="drw-ex">Example</span></sc-if></span><span>{{t.text}}</span></div>
+</sc-for>
+</div>
+</sc-if>
+
+<div style="display:flex;flex-wrap:wrap;align-items:center;gap:8px;padding-top:14px;border-top:1px solid var(--line)">
+<sc-for list="{{acts}}" as="b" hint-placeholder-count="3">
+<button class="drw-btn {{b.cls}}" type="button" aria-disabled="{{b.ad}}" title="{{b.reason}}" onClick="{{b.go}}">{{b.label}}</button>
+</sc-for>
+<sc-if value="{{S.noAct}}" hint-placeholder-val="{{ false }}"><span style="color:var(--ink2);font-size:12.5px">{{noAct}}</span></sc-if>
+</div>
+<sc-if value="{{undo.show}}" hint-placeholder-val="{{ false }}"><div><button class="drw-link" type="button" onClick="{{undo.go}}">{{undo.label}}</button></div></sc-if>
+
+<sc-if value="{{refuse.show}}" hint-placeholder-val="{{ false }}">
+<div class="drw-panel" role="alert">
+<span style="font-weight:600">{{refuse.text}}</span>
+<div class="drw-diff"><span class="drw-lbl">Their change</span><span class="drw-del">{{refuse.before}}</span><span aria-hidden="true">to</span><span style="font-weight:600">{{refuse.after}}</span></div>
+<div><button class="drw-btn" type="button" onClick="{{refuse.ack}}">Mark the change reviewed</button></div>
+</div>
+</sc-if>
+
+<sc-if value="{{att.open}}" hint-placeholder-val="{{ false }}">
+<div class="drw-panel" role="group" aria-label="Attach evidence">
+<div class="drw-row"><span class="drw-lbl">Attach evidence</span><span style="font-size:12.5px;color:var(--ink2)">{{att.sub}}</span></div>
+<div class="drw-row" role="radiogroup" aria-label="Kind of evidence">
+<sc-for list="{{att.kinds}}" as="k" hint-placeholder-count="3">
+<button class="drw-btn {{k.cls}}" type="button" role="radio" aria-checked="{{k.on}}" onClick="{{k.go}}">{{k.label}}</button>
+</sc-for>
+</div>
+<sc-if value="{{att.isMsg}}" hint-placeholder-val="{{ true }}">
+<div>
+<sc-for list="{{att.items}}" as="it" hint-placeholder-count="1">
+<div class="drw-item"><span style="font-weight:600;font-size:13px">{{it.label}}</span><span class="drw-quote">{{it.quote}}</span><div><button class="drw-btn {{it.cls}}" type="button" aria-disabled="{{it.ad}}" onClick="{{it.go}}">{{it.btn}}</button></div></div>
+</sc-for>
+<sc-if value="{{att.noItems}}" hint-placeholder-val="{{ false }}"><p style="margin:0;font-size:13px;color:var(--ink2)">{{att.noItemsText}}</p></sc-if>
+</div>
+</sc-if>
+<sc-if value="{{att.isFile}}" hint-placeholder-val="{{ false }}">
+<div style="display:flex;flex-direction:column;gap:8px"><p style="margin:0;font-size:13px;color:var(--ink2)">{{att.fileText}}</p><div><button class="drw-btn primary" type="button" onClick="{{att.pickFile}}">Choose a file (simulated)</button></div></div>
+</sc-if>
+<sc-if value="{{att.isNote}}" hint-placeholder-val="{{ false }}">
+<div style="display:flex;flex-direction:column;gap:6px">
+<label for="drw-note" class="drw-lbl">Note</label>
+<textarea id="drw-note" class="drw-field" rows="3" value="{{att.note}}" onChange="{{att.setNote}}"></textarea>
+<sc-if value="{{att.warn}}" hint-placeholder-val="{{ false }}"><p class="drw-warn">{{att.warnText}}</p></sc-if>
+<div><button class="drw-btn primary" type="button" onClick="{{att.saveNote}}">Attach note</button></div>
+</div>
+</sc-if>
+<sc-if value="{{att.hasErr}}" hint-placeholder-val="{{ false }}"><p class="drw-err" role="alert">{{att.err}}</p></sc-if>
+<div><button class="drw-link" type="button" onClick="{{att.close}}">Close</button></div>
+</div>
+</sc-if>
+
+<sc-if value="{{ask.open}}" hint-placeholder-val="{{ false }}">
+<div class="drw-panel" role="group" aria-label="Ask a colleague">
+<span class="drw-lbl">{{ask.title}}</span>
+<span style="font-size:12.5px;color:var(--ink2)">A question to a colleague is not a review note: it does not block, send back or sign anything.</span>
+<label for="drw-ask-to" class="drw-lbl">To</label>
+<select id="drw-ask-to" class="drw-field" value="{{ask.to}}" onChange="{{ask.setTo}}">
+<sc-for list="{{ask.colleagues}}" as="o" hint-placeholder-count="3"><option value="{{o.key}}">{{o.name}}</option></sc-for>
+</select>
+<label for="drw-ask-text" class="drw-lbl">Question</label>
+<textarea id="drw-ask-text" class="drw-field" rows="3" value="{{ask.text}}" onChange="{{ask.setText}}"></textarea>
+<sc-if value="{{ask.warn}}" hint-placeholder-val="{{ false }}"><p class="drw-warn">{{ask.warnText}}</p></sc-if>
+<sc-if value="{{ask.hasErr}}" hint-placeholder-val="{{ false }}"><p class="drw-err" role="alert">{{ask.err}}</p></sc-if>
+<div class="drw-row"><button class="drw-btn primary" type="button" onClick="{{ask.send}}">{{ask.sendLabel}}</button><button class="drw-link" type="button" onClick="{{ask.close}}">Close</button></div>
+</div>
+</sc-if>
+
+<sc-if value="{{S.ruleNote}}" hint-placeholder-val="{{ false }}"><div style="font-size:12.5px;color:var(--ink2)">{{ruleNote}}</div></sc-if>
+<div role="status" style="color:var(--ink2);font-size:12.5px;min-height:18px">{{msg}}</div>
+</sc-if>
+</section>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"role":{"editor":"enum","options":["priya","marcus","daniel","helen","sam","jo","ngozi","erik","next","irs"],"default":"daniel"},"claimId":{"editor":"enum","options":["","ca-est","atlas","rsu","theo-ssn","heat-pump","ext-pay","fed-est","repairs","care-ein","iso-lot","noncash","sehi","bright-oak","sek-fx","form-3520","mileage","phone-pct","sec179","payoff-int","or-credit","excess-ss","ca-trace","ca-wages","salt-d02","crypto-c6","gift-brigid"],"default":"ca-est"},"dark":{"editor":"boolean","default":false},"openClaim":{"editor":null},"go":{"editor":null},"revealed":{"editor":null},"reveal":{"editor":null},"revealLog":{"editor":null},"asOf":{"editor":null},"asOfLabel":{"editor":null},"storyAt":{"editor":null},"events":{"editor":null},"emit":{"editor":null},"lastSeen":{"editor":null},"spouseOf":{"editor":null},"stage":{"editor":null},"blockers":{"editor":null},"$preview":{"width":440,"height":1100}}'>
+class Component extends DCLogic {
+  constructor(p) { super(p); this.state = { msg: '', msgKey: '', localRevealed: [], localEvents: [], ack: {}, refuseKey: '', att: null, ask: null }; }
+  renderVals() {
+    const P = this.props || {};
+    const role = P.role ?? 'daniel';
+    const claimId = P.claimId ?? 'ca-est';
+    const openClaim = typeof P.openClaim === 'function' ? P.openClaim : () => {};
+    const go = typeof P.go === 'function' ? P.go : () => {};
+    const standalone = typeof P.reveal !== 'function';
+    const revealed = Array.isArray(P.revealed) ? P.revealed : this.state.localRevealed;
+    const reveal = standalone ? (k => { if (role !== 'marcus' && !this.state.localRevealed.includes(k)) this.setState({ localRevealed: [...this.state.localRevealed, k] }); }) : P.reveal;
+
+    const RULE_SELF = '“A person may not review or sign off on work they prepared.”';
+    const RULE_PARTNER = '“Any adjustment with a tax effect over 1,000 (federal or state) requires partner sign-off.”';
+    const RULE_JUDGE = '“Every judgment call records the authority relied on.”';
+    const RULE_MASK = '“Staff without sensitive-data clearance see SSNs, bank and account numbers and IP PINs masked; every unmasked view is logged.”';
+    const SIGNED = 'Signed: Priya Raman, preparer; Daniel Ortiz, reviewer; Helen Strand, partner.';
+    const FILED = 'As filed, locked: the return as this workpaper finalized it';
+
+    // Identifier keys used by this drawer. Masked text only; the mock never holds a full number.
+    const IDS = {
+      'ssn-theo': { label: 'Theo’s SSN', clientLabel: 'Theo’s Social Security number' },
+      'ssn-ada': { label: 'Ada’s SSN', clientLabel: 'Ada’s Social Security number' }
+    };
+
+    // Every claim the drawer knows. Facts checked against the packet and ledger (see report).
+    const C = {
+      'ca-est': { pos: 'ev-1076: x0, y0 0.09, 0.637 to 0.3546, 0.654', st: 'blk', word: 'Blocking', title: 'California estimates include a 2024 payment', line: 'F540NR.72 · California estimated payments', value: '$14,000',
+        why: 'The 15 Sep 2025 payment was made for tax year 2024. The pipeline read the year correctly, but the engine still added it to 2025 estimates.',
+        kind: 'State agency record: FTB Web Pay confirmation', conf: '0.98 for the tax year (ev-1076); 0.99 for date and amount',
+        doc: 'D68 · page 1', docTitle: 'California FTB Web Pay confirmations', field: 'Payment 5 tax year, read as 2024 (ev-1076)',
+        pre: 'FTB Web Pay confirmations: 2025-01-15 3,000.00 tax year 2024 (estimated payment); 2025-03-28 1,240.00 tax year 2024 (balance due); 2025-04-15 3,500.00 tax year 2025 (estimated payment); 2025-06-16 3,500.00 tax year 2025 (estimated payment); ', hl: '2025-09-15 3,500.00 tax year 2024', post: ' (estimated payment); 2026-01-15 3,500.00 tax year 2025 (estimated payment).',
+        others: ['State agency record: FTB account, tax year 2025 payments 15 Apr 2025, 16 Jun 2025, 15 Jan 2026 (3 × 3,500). The 15 Sep 2025 payment is held as a 2024 credit.'],
+        built: 'Sum of FTB payments dated 15 Apr 2025 to 15 Jan 2026 (rule R-CA-ESTIMATED-PAYMENTS): 4 × 3,500 = 14,000. The rule counts by date and ignores the tax year printed on each payment. Cites ev-1068 to ev-1079.',
+        fails: [['Fails', 'blk', 'Payment tie-out: return 14,000 against the FTB account 10,500; difference 3,500.'], ['Fails', 'blk', 'Payment year differs from return year: the 15 Sep 2025 payment is marked tax year 2024.']],
+        checked: [['Agreed to source document:', 'Priya Raman, 12 Mar 2026.', true]], needed: 'Still needed: agreed to third-party record (FTB account).',
+        history: 'Engine v1, v2 and v3: 14,000. No change by the firm yet.', effect: 'CA refund −3,500 (payments count 1:1).', partner: true, adjust: 'Adjust to $10,500',
+        c: { title: 'Your California payment on 15 Sep 2025', value: '$3,500', why: 'Your FTB Web Pay confirmation marks this payment for tax year 2024. We want to count it in the right year.', docTitle: 'Your FTB Web Pay confirmations', need: 'Confirm the payment was for 2024, or tell us if you meant it for 2025.', act: 'Answer' },
+        f: { word: 'Adjusted', value: '$10,500', history: 'Engine v3: 14,000; adjusted by the firm to 10,500, reason: the 15 Sep 2025 payment is marked tax year 2024 and the FTB holds it as a 2024 credit.' } },
+
+      'atlas': { pos: 'ev-0110: x0, y0 0.2879, 0.8199 to 0.6085, 0.8516', st: 'blk', word: 'Blocking', title: 'Card sales counted twice in business income', line: 'SchC.1 · Gross receipts', value: '$163,700',
+        why: 'Atlas paid 12,400 by card through Paywell. The books already include it, and the engine added the Form 1099-K again.',
+        kind: 'Client’s own record: QuickBooks transaction detail, Lindqvist Studio', conf: '0.99 (ev-0110)',
+        doc: 'D15 · page 3', docTitle: 'Lindqvist Studio, transaction detail', field: 'Atlas Outdoor Gear total receipts 41,200.00 (ev-0110)',
+        pre: '… Deposits detail: Atlas Outdoor Gear paid 41,200.00 in 2025, ', hl: 'of which 12,400.00 arrived through Paywell Payments card processing', post: ' (deposited gross; processing fees booked to Bank and merchant fees) and 28,800.00 by ACH. …',
+        others: ['Third-party form: Form 1099-K, Paywell Payments (D21, box 1a 12,400.00, ev-0127, read 0.99).', 'Client’s own record: Profit and Loss, total income 151,300.00 (D14, ev-0103).', 'Third-party forms: five Forms 1099-NEC (D16 to D20), total 142,000.'],
+        built: 'Books revenue 151,300 plus Form 1099-K amounts not matched to a books deposit, 12,400 (rule R-SCHC-GROSS) = 163,700.',
+        fails: [['Fails', 'blk', 'Same money on two documents: the 12,400 on the Form 1099-K is inside the Atlas deposits on the transaction detail, page 3.'], ['Fails', 'blk', 'Gross receipts reconciliation: Forms 1099-NEC 142,000 plus 9,300 from clients with no form = 151,300, the books total; the return is 12,400 higher.']],
+        checked: [], needed: 'None yet. Needed: agreed to source document (D15) and agreed to third-party record (Form 1099-K).',
+        history: 'Engine v1, v2 and v3: 163,700. No change by the firm yet.', effect: 'Federal −4,402 · California −384 (estimate, Example).', partner: true, adjust: 'Adjust to $151,300',
+        c: { title: 'Card payments from Atlas Outdoor Gear', value: '$12,400', why: 'Atlas paid part of what it owed the studio by card through Paywell. We want to be sure this money is counted once, not twice.', docTitle: 'Lindqvist Studio transaction detail', need: 'Were these card payments already part of the studio deposits you gave us?', act: 'Answer' },
+        f: { word: 'Adjusted', value: '$151,300', title: 'Schedule C gross receipts, line 1',
+          why: 'Lindqvist Studio gross receipts. The Paywell Form 1099-K amount of 12,400 is card sales from Atlas Outdoor Gear already inside books revenue, so it is counted once.',
+          built: 'Books revenue 151,300 (D14). The Form 1099-K 12,400 (D21) is inside books revenue (D15 page 3), so it is not added again. Forms 1099-NEC (D16 to D20) total 142,000; clients with no form 9,300.',
+          history: 'Engine v3: 163,700; adjusted by the firm to 151,300, reason: the 12,400 Form 1099-K is already inside books revenue.' },
+        irs: true },
+
+      'rsu': { pos: 'ev-0498: x0, y0 0.2288, 0.3816 to 0.4362, 0.4043', st: 'blk', word: 'Blocking', title: 'RSU shares sold with a zero cost basis', line: 'F8949.B.N1 · Corvane RSU lot N1 (also N3, N4)', value: '$0 basis',
+        why: 'The broker form left the basis blank. The pipeline turned the blank into zero, so income already taxed on the W-2 is taxed again.',
+        kind: 'Third-party form: Form 1099-B, Northlake Securities', conf: '0.98 for a blank field read as 0.00 (ev-0498)',
+        doc: 'D28 · page 3', docTitle: 'Northlake Securities 2025 consolidated Form 1099', field: 'Lot N1 cost basis: nothing printed, read as 0.00 (ev-0498)',
+        pre: '… N1 Corvane Systems Inc (RSU) 400 sh acquired 2025-02-15 sold 2025-02-18 proceeds 19,240.00 ', hl: 'basis (not reported)', post: ' short-term noncovered; …',
+        others: ['Third-party form: Corvane stock plan supplemental statement (D11 page 2): Lot RSU-2502 adjusted basis 19,100.00 (ev-0066, read 0.99). Lots RSU-2505 19,100.00 and RSU-2308 9,420.00 match N3 and N4.'],
+        built: 'Proceeds 19,240 minus basis 0 = gain 19,240 (rule R-8949-LOT). The rule replaces broker basis with the supplement only when matched; the ESPP lot matched, the three RSU lots did not.',
+        fails: [['Fails', 'blk', 'Noncovered lot with a blank basis read as zero.'], ['Fails', 'blk', 'Unused evidence: supplement lots RSU-2502, RSU-2505 and RSU-2308 match no Form 8949 basis.']],
+        checked: [], needed: 'None yet. Needed: agreed to source document (D11) and recalculated.',
+        history: 'Engine v1, v2 and v3: basis 0 on lots N1, N3 and N4. No change by the firm yet.', effect: 'Federal −15,536 · California −2,765 (3 lots) (estimate, Example).', partner: true, adjust: 'Use supplement basis $19,100',
+        c: { title: 'Your Corvane RSU sales', value: '$19,100 cost for the shares sold 18 Feb 2025', why: 'Your broker form left the cost of these shares blank. Your Corvane stock plan statement gives the cost, and that amount was already taxed in your pay. We use it so the same income is not taxed twice.', docTitle: 'Your Northlake brokerage form', need: 'Nothing needed from you right now.', act: 'Ask your tax team' },
+        f: { word: 'Adjusted', value: '$19,100 basis', history: 'Engine v3: basis 0; adjusted by the firm to 19,100 from the stock plan supplement (lots N3 at 19,100 and N4 at 9,420 likewise).' } },
+
+      'theo-ssn': { pos: 'ev-0012: x0, y0 0.3493, 0.7716 to 0.6822, 0.8013', st: 'blk', word: 'Blocking', title: 'Theo’s SSN differed from his 2024 return and his card', line: 'F8812.4 · Dependent 2, Theo', value: 'XXX-XX-3309',
+        why: 'The number typed in the organizer has two digits swapped. Last year’s return and the card both show the other number.',
+        kind: 'Typed by the client: organizer entry, 20 Jan 2026', conf: 'No read: typed by the client, not taken from a document',
+        doc: 'D06 · page 1', docTitle: '2024 Form 1040 as filed (Delta River Tax Services)', field: 'Dependent 2 SSN (ev-0012, read 0.99)',
+        pre: '… Dependents: Ada Lindqvist-Okafor SSN XXX-XX-1106; Theo Lindqvist-Okafor SSN ', hl: 'XXX-XX-3390', post: '. …',
+        others: ['Identity document: Social Security card photo (D71, received 13 Jul 2026): XXX-XX-3390 (ev-1080, read 0.99).'],
+        built: 'Copied from the organizer. The return’s dependent line cites only the organizer entry (household:theo).',
+        fails: [['Fails', 'blk', 'Identity tie-out against the 2024 return.'], ['Fails', 'blk', 'Identity tie-out against the Social Security card.']],
+        identity: 'Organizer against the 2024 return and the card: last four differ. Compared on the server; no full number is shown.',
+        checked: [], needed: 'None yet. Needed: agreed to prior year (2024 return) and agreed to source document (card, D71).',
+        history: 'Organizer entry 20 Jan 2026; unchanged in v1, v2 and v3.', effect: 'No tax change once fixed. Unfixed, the federal e-file rejects.', partner: false, adjust: 'Use the number on the 2024 return', needsClearance: true,
+        ids: ['ssn-theo', 'ssn-ada'], idShown: { 'ssn-theo': 'XXX-XX-3390', 'ssn-ada': 'XXX-XX-1106' },
+        c: { title: 'Theo’s Social Security number', value: 'Ends 3390 on his card', why: 'Your organizer shows a number ending 3309. The card you sent on 13 Jul and last year’s return both end 3390. Two digits may have been swapped.', docTitle: 'Theo’s Social Security card (your photo)', pre: 'Social Security card: Theo Lindqvist-Okafor, ', hl: 'XXX-XX-3390', post: '.', need: 'Please confirm Theo’s Social Security number ends in 3390, as on his card.', act: 'Answer', ids: ['ssn-theo'] },
+        f: { word: 'Adjusted', value: 'XXX-XX-3390', valueEx: false, history: 'Organizer XXX-XX-3309. Federal e-file rejected 13 Jul 2026 (R0000-504-02, dependent 2); the client sent the card the same day; federal e-file accepted 14 Jul 2026.' } },
+
+      'heat-pump': { pos: 'ev-1004: x0, y0 0.1014, 0.0711 to 0.2742, 0.0851', st: 'wrn', word: 'Judgment', title: 'Heat pump replacement deducted as a repair', line: 'SchE.14A · Repairs, 1450 Fremont Way (includes HVAC 11,000)', value: '$11,000',
+        why: 'A new heat pump system replacing the furnace and condenser is an improvement, depreciated over 27.5 years, not a repair. This is the one judgment call on the return.',
+        kind: 'Third-party form: contractor invoice, Delta Breeze Heating & Air', conf: '0.99 for the invoice total (ev-1004)',
+        doc: 'D47 · page 1', docTitle: 'Invoice, Delta Breeze Heating & Air (1450 Fremont Way)', field: 'Invoice total 11,000.00 (ev-1004); the highlighted words decide repair or improvement',
+        pre: 'Invoice 5521 dated 08/12/2025. Removed failed 2004 gas furnace and 3-ton AC condenser. ', hl: 'Installed new 3-ton heat pump system', post: ' with air handler, new line set and thermostat. Total 11,000.00. 10-year parts warranty. Permit #B25-31877.',
+        others: ['Third-party statement: owner statement, Capitol Keys Property Management (D46): repairs 13,300.00 including HVAC 11,000.00 (ev-1000).', 'Typed by the client: questionnaire qa-37, “We had to replace the HVAC at Fremont Way in August - 11,000.”', 'Call note call-01, 26 Mar 2026: the whole system was replaced with a heat pump.'],
+        built: 'The owner statement’s repairs total 13,300 includes the HVAC job; the engine deducted all of it as repairs (rule R-RENTAL-LINE).',
+        fails: [['Judgment', 'wrn', 'Repair or improvement: the invoice says “installed new … system” and names a permit; 11,000 is over the 10,000 small-taxpayer safe harbor.'], ['Recorded', 'acc', 'Decision: record as an improvement, 27.5-year straight line from Aug 2025 (2025 depreciation 150). Authority to confirm: Treas. Reg. 1.263(a)-3 (Example).']],
+        failsEx: true,
+        checked: [['Confirmed with client:', 'Priya Raman, call of 26 Mar 2026 (call-01).', false]], needed: 'Still needed: agreed to source document (D47).',
+        history: 'Engine v1, v2 and v3: 13,300 in repairs. Firm rule: ' + RULE_JUDGE, effect: 'Federal +3,633 · California +896 (the engine’s own what-if, hvac_improvement).', partner: true, adjust: 'Record as improvement',
+        c: { title: 'Permit for the Fremont Way heat pump', value: 'Permit #B25-31877', why: 'Your contractor’s invoice mentions a building permit for the new heat pump. A copy helps us record the new system correctly.', docTitle: 'Delta Breeze Heating & Air invoice', pre: 'Invoice 5521 dated 08/12/2025. Removed failed 2004 gas furnace and 3-ton AC condenser. Installed new 3-ton heat pump system with air handler, new line set and thermostat. Total 11,000.00. 10-year parts warranty. ', hl: 'Permit #B25-31877', post: '.', need: 'Please upload a copy of the permit, if you have one.', act: 'Upload' },
+        f: { word: 'Decided', value: '$11,000 asset, 27.5 years', history: 'Engine v3: 13,300 in repairs; the firm recorded the 11,000 heat pump as an improvement. Authority to confirm: Treas. Reg. 1.263(a)-3 (Example).' },
+        links: [['Repairs swing at Fremont Way', 'repairs']] },
+
+      'ext-pay': { st: 'acc', word: 'Needs review', title: 'Federal extension payment of 36,000', line: 'Sch3.10 · Amount paid with extension request', value: '$36,000', preparedBy: 'daniel',
+        why: 'Paid with Form 4868 on 14 Apr 2026, estimated from v2. The return carries the same amount.',
+        kind: 'Firm record: extension filed with payment, 14 Apr 2026, actor Daniel Ortiz', conf: 'No read: a firm record, not taken from a document',
+        doc: 'timeline · extension-2026-04-14', docTitle: 'Extension filed with payment', field: 'Detail of the timeline event',
+        pre: 'Form 4868 with ', hl: '36,000', post: ' and FTB 3519 with 0 (estimated from v2; see what_if.extension).',
+        others: ['The 12 Mar 2026 IRS transcript predates this payment, so it cannot confirm it yet.', 'Sized from v2, which carried the client’s 4,000 guess for the January estimate.'],
+        built: 'Amount paid with Form 4868, rule R-EXTENSION-PAYMENT. 0 in v1 and v2; 36,000 from v3.',
+        fails: [], checked: [], needed: 'None yet. Needed: agreed to third-party record (IRS account transcript).',
+        history: 'Filed 14 Apr 2026 by Daniel Ortiz (packet timeline).', effect: 'None while it agrees to the IRS record.', partner: false, adjust: 'Agree to the IRS record',
+        c: { title: 'The payment sent with your extension', value: '$36,000 on 14 Apr 2026', why: 'Your tax team sent this federal payment with your extension request. It counts toward your 2025 tax.', docTitle: 'Your extension request', ref: '', pre: 'Federal extension request sent 14 Apr 2026 with a payment of ', hl: '36,000', post: '.', need: 'Nothing needed from you.', act: 'Ask your tax team' },
+        f: { word: 'Agreed', value: '$36,000', valueEx: false, history: 'IRS account transcript (as of 3 Aug 2026) shows 36,000 paid 14 Apr 2026.' },
+        links: [['Federal estimated payments', 'fed-est']] },
+
+      'fed-est': { st: 'wrn', word: 'Check failed', title: 'Federal estimates taken from the client’s guess', line: 'F1040.26 · 2025 estimated tax payments', value: '$13,000',
+        why: 'The payment confirmations cover three payments, so the engine used the questionnaire for the fourth. The IRS record shows 3,000 on 15 Jan 2026, not 4,000.',
+        kind: 'Typed by the client: questionnaire answer (qa-41), for the fourth payment', conf: 'No read: a typed answer, not taken from a document',
+        doc: 'qa-41 · questionnaire', docTitle: 'Questionnaire answer, Ngozi Okafor, 20 Jan 2026', field: 'Answer to “Federal estimated payment for the 4th quarter: date and amount”',
+        pre: 'Federal estimated payment for the 4th quarter: date and amount. ', hl: 'Paid January 14, 2026 - 4,000 I think.', post: '',
+        others: ['Third-party record: EFTPS confirmations (D67): 3,000 on 15 Apr, 16 Jun and 15 Sep 2025 (ev-1056 to ev-1061).', 'IRS record: account transcript as of 12 Mar 2026, code 670: four payments of 3,000, the last on 15 Jan 2026.'],
+        built: '3 × 3,000 from EFTPS plus 4,000 from the questionnaire = 13,000 (rule R-ESTIMATED-PAYMENTS).',
+        fails: [['Fails', 'wrn', 'Payment tie-out: return 13,000 against the IRS record 12,000; difference 1,000.'], ['Unverified', 'wrn', 'The fourth payment rests only on a client answer until a verification type is recorded.']],
+        checked: [], needed: 'None yet. Needed: agreed to third-party record (IRS account transcript).',
+        history: 'Engine v1, v2 and v3: 13,000. No change by the firm yet.', effect: 'Balance due +1,000 (payments count 1:1); underpayment penalty about +17.', effectNote: '1,000 is not over 1,000: reviewer sign-off is enough.', partner: false, adjust: 'Adjust to $12,000',
+        c: { title: 'Your January 2026 federal payment', value: '$3,000 on 15 Jan 2026 in IRS records', why: 'You told us you paid about 4,000 on 14 Jan 2026. The IRS record shows a payment of 3,000 on 15 Jan 2026.', docTitle: 'Your questionnaire answer', ref: '', need: 'Please check your bank statement and tell us the amount you paid.', act: 'Answer' },
+        f: { word: 'Adjusted', value: '$12,000', history: 'Engine v3: 13,000; adjusted by the firm to 12,000, reason: the IRS record shows 3,000 on 15 Jan 2026, not the 4,000 in the questionnaire.' },
+        links: [['Federal extension payment', 'ext-pay']] },
+
+      'repairs': { pos: 'ev-1000: x0, y0 0.2038, 0.0538 to 0.3684, 0.08', st: 'wrn', word: 'Swing', title: 'Rental repairs up from last year', line: 'SchE.14A · Repairs, 1450 Fremont Way', value: '$13,300',
+        why: 'Repairs rose from 3,900 in 2024 to 13,300 in 2025. 11,000 of it is the heat pump job, which is the judgment item.',
+        kind: 'Third-party statement: owner statement, Capitol Keys Property Management', conf: '0.99 (ev-1000)',
+        doc: 'D46 · page 1', docTitle: 'Capitol Keys Property Management, 2025 owner statement (1450 Fremont Way)', field: 'Repairs and maintenance 13,300.00 (ev-1000)',
+        pre: '… Rent collected 37,200.00 (3,100.00 x 12). Management fees (8%) 2,976.00. ', hl: 'Repairs and maintenance 13,300.00', post: ': plumbing 640.00; gutter cleaning 410.00; interior paint touch-up 1,250.00; HVAC 11,000.00 (Delta Breeze Heating & Air, 08/12/2025). Days rented 365; owner use 0 days.',
+        others: ['Prior-year return: 2024 repairs 3,900 (py:/return_2024/lines/SchE.14A).'],
+        built: 'Repairs as reported on the owner statement (rule R-RENTAL-LINE).',
+        fails: [['Swing', 'wrn', 'Variance flag: changed over 10% and over 1,000 vs prior year (3,900 in 2024, 13,300 in 2025).']],
+        checked: [], needed: 'None yet. Needed: agreed to prior year and an explanation recorded.',
+        history: 'Engine v1, v2 and v3: 13,300.', effect: 'Follows the heat pump decision.', partner: false, adjust: 'Explain the swing',
+        c: { title: 'Repairs at your Fremont Way rental', value: '$13,300 in 2025', why: 'Repairs were 3,900 last year. Most of this year’s amount is the new heat pump.', docTitle: 'Your property manager’s owner statement', need: 'Nothing needed beyond the heat pump permit.', act: 'Ask your tax team' },
+        f: { word: 'Follows heat pump', value: '$2,300', history: 'Engine v3: 13,300; the firm moved the 11,000 heat pump to a depreciable asset, leaving 2,300.' },
+        links: [['Heat pump: repair or improvement', 'heat-pump']] },
+
+      'care-ein': { pos: 'ev-1045: x0, y0 0.3744, 0.5369 to 0.6868, 0.5648', st: 'wrn', word: 'Check failed', title: 'Little Sprouts tax ID misread', line: 'F2441.1b · Care provider, Little Sprouts Learning Center', value: '74-3829516',
+        why: 'The statement prints 74-3829156. The pipeline read 74-3829516, and the return carries the misread number.',
+        kind: 'Third-party statement: childcare provider statement, Little Sprouts Learning Center', conf: '0.97 (ev-1045)',
+        doc: 'D62 · page 1', docTitle: 'Little Sprouts Learning Center, 2025 statement (Theo)', field: 'Provider tax ID, read 74-3829516 (ev-1045)',
+        pre: 'Little Sprouts Learning Center, 4410 Bee Cave Rd, Austin TX. ', hl: 'Tax ID 74-3829156', post: '. After-school care for Theo Lindqvist-Okafor August 18 - December 19, 2025: total paid 4,200.00.',
+        others: ['Business tax IDs (EINs) are never masked, for any role: this mistake sits inside one.'],
+        built: 'Provider name and tax ID copied from the read value into the Form 2441 label (rule R-DEP-CARE-PROVIDER).',
+        fails: [['Fails', 'wrn', 'Printed against read: the page prints 74-3829156; the value read is 74-3829516. A high read confidence is not proof.']],
+        checked: [], needed: 'None yet. Needed: agreed to source document (D62).',
+        history: 'Engine v1, v2 and v3 label: 74-3829516.', effect: 'None computable. A wrong provider tax ID can put the 5,000 dependent-care exclusion at risk on IRS matching.', partner: false, adjust: 'Use the printed tax ID',
+        c: { title: 'Little Sprouts’ tax ID', value: '74-3829156 on your statement', why: 'We copy the tax ID exactly as printed on the Little Sprouts statement you sent.', docTitle: 'Your Little Sprouts statement', need: 'Nothing needed from you.', act: 'Ask your tax team' },
+        f: { word: 'Adjusted', value: '74-3829156', history: 'Engine v3 label: 74-3829516; corrected by the firm to the printed 74-3829156.' } },
+
+      'iso-lot': { pos: 'ev-0077: x0, y0 0.4494, 0.254 to 0.6059, 0.2808', st: 'acc', word: 'Carryover', title: 'ISO share lot for next year', line: 'F6251.2i · ISO exercise, AMT adjustment 40,000', value: '1,000 shares',
+        why: 'Ngozi exercised 1,000 Corvane ISOs on 30 Jul 2025 and still holds them. Next year needs both costs: regular basis 12,000 and AMT basis 52,000. A next-year item, not a packet mistake.',
+        kind: 'Third-party form: Form 3921, Corvane Systems', conf: '0.99 (ev-0076 to ev-0079)',
+        doc: 'D12 · page 1', docTitle: 'Form 3921, exercise of incentive stock option (Corvane)', field: 'Boxes 3, 4 and 5 (ev-0077, ev-0078, ev-0079)',
+        pre: 'Form 3921 2025. Transferor Corvane Systems, Inc. Employee Ngozi Okafor. Date option granted 03/01/2022. Date exercised 07/30/2025. ', hl: 'Exercise price per share 12.00. FMV per share on exercise date 52.00. Shares transferred 1,000.', post: '',
+        others: ['Typed by the client: questionnaire qa-06, “She still holds those shares.” The line does not cite it.', 'Minimum tax credit carried to 2026: 3,871 (carryovers_out).'],
+        built: 'AMT adjustment 1,000 × (52 − 12) = 40,000 (rule R-AMT-ISO, shares held at year end). Lot record: 1,000 shares, regular basis 12,000, AMT basis 52,000, linked to the minimum tax credit 3,871.',
+        fails: [['Trace gap', 'wrn', '“Held at year end” rests on qa-06, which the line does not cite.'], ['Engine', 'wrn', 'CA_AMT_NOT_COMPUTED (warning): California AMT not computed; open under “Diagnostics resolved”.'], ['Engine', 'acc', 'AMT_CREDIT_CARRYFORWARD (info): Form 8801 expected next year.']],
+        checked: [['Agreed to source document:', 'Priya Raman, 24 Jun 2026.', true]], needed: 'A sale after 30 Jul 2026 is a qualifying disposition.',
+        history: 'Engine v1, v2 and v3: 40,000. Minimum tax credit 3,722, then 3,700, then 3,871.', effect: 'None in 2025 beyond the AMT already computed; the lot sets next year’s gain.', partner: false, adjust: 'Save the lot to Carryovers to 2026', signable: true,
+        c: { title: 'Your Corvane ISO shares', value: '1,000 shares you still hold', why: 'You exercised these options on 30 Jul 2025 at 12.00 a share when they were worth 52.00. We keep both costs on record so the sale is reported correctly when you sell.', docTitle: 'Your Form 3921 from Corvane', need: 'Tell us if you sell any of these shares.', act: 'Ask your tax team' },
+        f: { word: 'Carryover', value: '1,000 shares', history: 'Lot record from Form 3921 and the questionnaire: regular basis 12,000, AMT basis 52,000, linked to the minimum tax credit 3,871. Qualifying disposition only if sold after 30 Jul 2026.' } },
+
+      'noncash': { pos: 'ev-1054: x0, y0 0.1446, 0.2436 to 0.2634, 0.2717', st: 'wrn', word: 'Adjustment', title: 'Donated car at the client’s guess', line: 'SchA.12 · Gifts other than by cash or check', value: '$20,500',
+        why: 'The car is deducted at 6,000 from the questionnaire. The charity sold it for 2,900, and a sold car is limited to the gross proceeds on Form 1098-C.',
+        kind: 'Third-party form: Form 1098-C, Lone Star Kids Auto Donation', conf: '0.99 (ev-1054)',
+        doc: 'D66 · page 1', docTitle: '2025 Form 1098-C, Lone Star Kids Auto Donation', field: 'Box 4c gross proceeds 2,900.00 (ev-1054), not used by any line', irsField: 'Box 4c gross proceeds 2,900.00 (ev-1054)',
+        pre: 'Form 1098-C. Date of contribution 08/20/2025. Vehicle 2012 Subaru Outback VIN 4S4BRBCC2C3209921. Box 4a vehicle sold in arm\'s length transaction to unrelated party checked; 4b date of sale 09/09/2025; ', hl: '4c gross proceeds from sale 2,900.00', post: '. Box 6a goods or services provided: no.',
+        others: ['Third-party statement: Austin Community Foundation acknowledgment (D65): 200 shares at 72.50 = 14,500.00.', 'Typed by the client: questionnaire qa-39, car value 6,000.'],
+        built: 'Stock 14,500 plus car 6,000 = 20,500 (Form 8283 lines A1).',
+        fails: [['Fails', 'wrn', 'Unused evidence: box 4c 2,900 is cited by no line; the car uses the client’s figure.']],
+        checked: [], needed: 'None yet. Needed: agreed to source document (D66).',
+        history: 'Engine v1, v2 and v3: 20,500.', effect: 'About +806 federal, +149 California (estimate at v3 rates, Example).', effectNote: 'Under 1,000, so reviewer sign-off is enough.', partner: false, adjust: 'Adjust to $17,400',
+        c: { title: 'Your car donation', value: '$2,900 sale price', why: 'The charity sold the car for 2,900. For a car the charity sells, the deduction is the sale price.', docTitle: 'Your Form 1098-C', need: 'Nothing needed from you.', act: 'Ask your tax team' },
+        f: { word: 'Adjusted', value: '$17,400', title: 'Noncash charitable gifts, Schedule A line 12',
+          why: 'Two noncash gifts on Form 8283: 200 shares of Northlake Total Market Index Fund to the Austin Community Foundation, and a 2012 Subaru Outback that the charity sold.',
+          built: 'Stock 14,500 (D65, high/low average 72.50 per share) plus the car at the charity’s sale price of 2,900 (D66 box 4c) = 17,400.',
+          history: 'Engine v3: 20,500; adjusted by the firm to 17,400, reason: a donated car the charity sold is limited to its gross proceeds (Form 1098-C box 4c).' },
+        irs: true },
+
+      'sehi': { pos: 'ev-0484: x0, y0 0.5882, 0.1056 to 0.7079, 0.1347', st: 'wrn', word: 'Check failed', title: 'Health insurance deducted though Erik could join Ngozi’s plan', line: 'Sch1.17 · Self-employed health insurance deduction', value: '$14,400',
+        why: 'The client says both of Ngozi’s employers offered family coverage and Erik chose his own plan. The deduction is not allowed for a month he could join a spouse’s employer plan; rule R-SEHI checks only the income limit.',
+        kind: 'Third-party statement: Golden Poppy Health Plan premium statement', conf: '0.99 (ev-0484)',
+        doc: 'D25 · page 1', docTitle: 'Health insurance premium statement 2025, Erik Lindqvist (individual plan)', field: 'Total premiums paid 2025, 14,400.00 (ev-0484)',
+        pre: 'Premium statement 2025. Subscriber Erik Lindqvist, individual PPO plan (not marketplace). Premiums paid January-December 2025: 1,200.00 per month, ', hl: 'total 14,400.00', post: '. Paid from the Lindqvist Studio account.',
+        others: ['Typed by the client: questionnaire qa-25, 20 Jan 2026: “Yes - both of Ngozi’s employers offer family coverage, but Erik kept his own individual plan because he likes his doctors.”', 'Prior year: the 2024 return deducted 0 (Sch1.17); the prior preparer’s note: “No self-employed health insurance deduction: Erik was covered on Ngozi’s employer plan in 2024.”'],
+        built: 'Premiums 14,400 (D25), limited only by Schedule C profit (rule R-SEHI, inputs SchC.31, SchSE.13, Sch1.16). No eligibility test. It also feeds the QBI amount F8995.2.1.',
+        fails: [['Fails', 'wrn', 'Client answer gates the line: qa-25 says Erik was eligible for an employer plan; the deduction is 14,400.'], ['Fails', 'wrn', 'Prior-year treatment differs: 2024 allowed 0 for the same reason.']],
+        checked: [], needed: 'None yet. Needed: confirmed with client (eligibility by month), agreed to prior year.',
+        history: 'Engine v1, v2 and v3: 14,400. No change by the firm yet.', effect: 'Federal +4,464, California +605 (estimate at v3 rates, Example); the QBI effect is not captured by the rate.', effectNote: 'Over 1,000: partner sign-off applies if adjusted.', partner: true, adjust: 'Adjust to $0',
+        c: { title: 'Erik’s health insurance', value: '$14,400', why: 'You told us Erik could have joined Ngozi’s employer plan. That affects whether these premiums can be deducted.', docTitle: 'Erik’s premium statement', need: 'Tell us which months, if any, Erik could not join Ngozi’s plan.', act: 'Answer' },
+        f: { word: 'Resolved before filing', value: '$0', history: 'Engine v3: 14,400. Resolved before filing to 0 (Example).' },
+        links: [['Schedule C gross receipts', 'atlas']] },
+
+      'bright-oak': { pos: 'ev-1043: x0, y0 0.1992, 0.2954 to 0.4373, 0.314 (the tax ID; the name was not extracted)', st: 'wrn', word: 'Check failed', title: 'Bright Oak named wrongly on Form 2441', line: 'F2441.1a · Care provider, Bright Oak', value: 'Bright Oak Preschool',
+        why: 'The return names the provider “Bright Oak Preschool”, a name no document prints. The statement and the 2024 return say “Bright Oak Kids Club”. The tax ID is right.',
+        kind: 'Third-party statement: Bright Oak Kids Club 2025 statement', conf: '0.99 for the tax ID (ev-1043) and the amount (ev-1044); the name was not extracted',
+        doc: 'D61 · page 1', docTitle: 'Bright Oak Kids Club, 2025 statement (Theo)', field: 'Provider name as printed; tax ID 68-0412257 (ev-1043)',
+        pre: '', hl: 'Bright Oak Kids Club', post: ', 3101 Freeport Blvd, Sacramento CA. Tax ID 68-0412257. Before/after-school care for Theo Lindqvist-Okafor January 2 - July 11, 2025: total paid 5,400.00.',
+        others: ['Prior year: the 2024 return’s Form 2441 provider, “Bright Oak Kids Club, 68-0412257” (D06 page 10, ev-2994).'],
+        built: 'Provider name, tax ID 68-0412257 and amount 5,400 (rule R-DEP-CARE-PROVIDER, sources ev-1043, ev-1044). The name on the line label is not taken from the document.',
+        fails: [['Fails', 'wrn', 'Name on the return against the document: “Bright Oak Preschool” against “Bright Oak Kids Club”.']],
+        checked: [], needed: 'None yet. Needed: agreed to source document (D61), agreed to prior year.',
+        history: 'Engine v1, v2 and v3: “Bright Oak Preschool”, 5,400. No change by the firm yet.', effect: 'None. The tax ID is right.', partner: false, adjust: 'Correct the name to Bright Oak Kids Club',
+        c: { title: 'Theo’s care at Bright Oak', value: '$5,400', why: 'We are making sure the provider’s name matches its statement.', docTitle: 'Bright Oak statement', need: 'Nothing needed from you.', act: 'Ask your tax team' },
+        f: { word: 'Resolved before filing', value: 'Bright Oak Kids Club', history: 'Engine v3: “Bright Oak Preschool”. Resolved before filing to the printed name (Example).' },
+        links: [['Little Sprouts tax ID', 'care-ein']] },
+
+      'sek-fx': { pos: 'ev-0960: x0, y0 0.3038, 0.8441 to 0.4878, 0.8586', st: 'wrn', word: 'Check failed', title: 'Swedish interest converted at the 2024 rate', line: 'SchB.1.6 · Interest, Sparbanken Norrland', value: '$1,747',
+        why: 'SEK 18,450 of 2025 interest was converted at the 2024 average rate, 10.56. The packet’s 2025 average is 9.86, which gives 1,871.',
+        kind: 'Third-party form: foreign bank year-end statement (Sparbanken Norrland AB)', conf: '0.99 (ev-0960)',
+        doc: 'D36 · page 1', docTitle: 'Sparbanken Norrland, 2025 year-end statement (SEK)', field: 'Interest credited (SEK) 18,450.00 (ev-0960)',
+        pre: 'Arsbesked 2025. Account holder Erik Lindqvist. … ', hl: 'Interest credited 12/31/2025: SEK 18,450.00', post: '. No Swedish tax withheld (non-resident). …',
+        others: ['Packet reference: fx_rates SEK per USD, 2024 average 10.56, 2025 average 9.86, 2025 year end 9.71.', 'Prior year: the 2024 return converted 2024 interest at 10.56 (“SEK 3,700 at 10.56”).'],
+        built: 'SEK 18,450 ÷ 10.56 = 1,747 (rule R-INTEREST-PAYER, sources ev-0960 and ref:fx.SEK.2024_average).',
+        fails: [['Fails', 'wrn', 'Exchange-rate year differs from the tax year: 2025 interest at the 2024 average rate.']],
+        checked: [], needed: 'None yet. Needed: recalculated.',
+        history: 'Engine v1, v2 and v3: 1,747. No change by the firm yet.', effect: 'Federal +43, California +9 (estimate at v3 rates, Example).', partner: false, adjust: 'Adjust to $1,871',
+        c: { title: 'Interest on Erik’s Swedish account', value: 'SEK 18,450', why: 'We convert Swedish kronor to dollars at the 2025 average rate.', docTitle: 'Sparbanken year-end statement', need: 'Nothing needed from you.', act: 'Ask your tax team' },
+        f: { word: 'Resolved before filing', value: '$1,871', history: 'Engine v3: 1,747. Resolved before filing to 1,871 at the 2025 average rate (Example).' },
+        links: [['2023 Form 3520 open item', 'form-3520']] },
+
+      'form-3520': { st: 'wrn', word: 'Open item', title: '2023 Form 3520 left open by the prior preparer', line: 'Prior preparer open item 4 of 4 · py:/prior_preparer_workpaper/open_items_left_by_prior_preparer/3', value: 'Open',
+        why: 'Erik inherited the Swedish account from his mother in 2023. The prior preparer listed a 2023 Form 3520 as discussed with no note of resolution. The other three open items are closed in this file; this one is not, and no engine version raises it.',
+        kind: 'Prior preparer’s record: 2024 workpaper export, Delta River Tax Services', conf: 'No read: the packet holds the open items as prior_years data, not as extracted values',
+        doc: 'D07 · page 3', docTitle: '2024 workpaper file from prior preparer (export)', field: 'Open items, item 4',
+        pre: 'Open items: Obtain 2023 Woodworks K-1 to roll basis forward. | Confirm 2024 Form 5498 for IRA basis. | Client to confirm home office square footage. | ', hl: '2023 Form 3520 (foreign inheritance over 100,000) - discussed? (no note of resolution)', post: '',
+        others: ['Client’s own record: D36 page 1, “Account opened 09/2023 (inheritance from Birgitta Lindqvist).”', 'Typed by the client: qa-07, “Yes - Erik’s savings account in Sweden (inherited from his mother in 2023).”', 'Typed by the client: qa-08 asks only about 2025 gifts: “No”.'],
+        built: 'Not a return line. Carried in from prior_years.prior_preparer_workpaper; closed items: 2023 K-1 (D40), 2024 Form 5498 (D42), home office size (D24).',
+        fails: [['Fails', 'wrn', 'Prior preparer’s open items: 1 of 4 has no resolution.']],
+        checked: [], needed: 'None yet. Needed: confirmed with client (his mother’s residency and the value at receipt).',
+        history: 'Not in any engine version (v1 to v3 diagnostics have no Form 3520 item).', effect: 'None on 2025. A 2023 penalty exposure the packet does not let us size.', partner: false, adjust: 'Record a resolution',
+        c: { title: 'Erik’s 2023 inheritance', value: 'Swedish account', why: 'Your previous preparer noted a 2023 form for large gifts or inheritances from abroad and did not record whether it was filed.', docTitle: 'Your previous preparer’s notes', need: 'Tell us whether a 2023 Form 3520 was filed, and where Erik’s mother lived.', act: 'Answer' },
+        f: { word: 'Resolved before filing', value: 'Raised with the client; tracked into 2026', history: 'Raised with the client before filing and tracked into 2026 (Example).' },
+        links: [['Swedish interest', 'sek-fx']] },
+
+      'mileage': { pos: 'ev-0404: x0, y0 0.5927, 0.5404 to 0.7502, 0.5575', st: 'wrn', word: 'Check failed', title: 'Mileage log page counted twice', line: 'SchC.44a · Business miles (feeds SchC.9 car expense 8,260)', value: '11,800 miles',
+        why: 'Page 3 is a second scan of page 2: the same 22 trips and the same 3,700 total. The rule adds every page total, so May to August counts twice. Business miles are 8,100.',
+        kind: 'Client’s own record: handwritten mileage log, scanned', conf: '0.96 (ev-0404, page 3 total); 0.96 (ev-0315, page 2 total)',
+        doc: 'D23 · page 3', docTitle: 'Vehicle mileage log 2025 (scanned, 4 pages)', field: 'Page total miles 3,700 (ev-0404)',
+        pre: '(Second scan of the May-Aug sheet - same handwriting and coffee stain as page 2.) Mileage log May-Aug. Vehicle 2021 Toyota RAV4 Hybrid. … ', hl: 'Page total 3,700 miles.', post: '',
+        others: ['Client’s own record: D23 page 2, the same 22 trips, page total 3,700 (ev-0315).', 'Client’s own record: D23 page 4 odometer 41,220 on 1 Jan and 58,960 on 31 Dec 2025 (ev-0478, ev-0479): 17,740 miles in the year.'],
+        built: 'Page totals 2,600 + 3,700 + 3,700 + 1,800 = 11,800 (rule R-MILEAGE-PAGE-TOTALS). Car expense 11,800 × 0.70 = 8,260 (SchC.9).',
+        fails: [['Fails', 'wrn', 'Duplicate page: pages 2 and 3 carry the same trips.'], ['Fails', 'wrn', 'Business share 66% of odometer miles as filed; 46% without the second scan.']],
+        checked: [], needed: 'None yet. Needed: agreed to source document (D23), recalculated.',
+        history: 'Engine v1, v2 and v3: 11,800 miles, car expense 8,260. No change by the firm yet.', effect: 'Federal +919, California +80 (estimate at v3 rates, Example).', partner: false, adjust: 'Adjust to 8,100 miles',
+        c: { title: 'Erik’s mileage log', value: '8,100 business miles', why: 'Your scan has the May to August sheet twice. We count it once.', docTitle: 'Your mileage log', pre: '… Mileage log May-Aug. Vehicle 2021 Toyota RAV4 Hybrid. … ', hl: 'Page total 3,700 miles.', post: '', need: 'Nothing needed from you.', act: 'Ask your tax team' },
+        f: { word: 'Resolved before filing', value: '8,100 miles', history: 'Engine v3: 11,800 miles. Resolved before filing to 8,100 miles (Example).' } },
+
+      'phone-pct': { pos: 'ev-0101: x0, y0 0.479, 0.4127 to 0.8108, 0.4364 (Telephone, on the same line as Internet)', st: 'wrn', word: 'Check failed', title: 'Phone, internet and Spotify taken at 100% business', line: 'SchC.25 · Utilities (telephone and internet); also SchC.27a.1 software 6,850', value: '$3,480',
+        why: 'On the 26 Mar 2026 call Erik put the business share of the family phone plan at 70% and of home internet at 50%, and said Spotify Family is personal. The return still deducts all three in full.',
+        kind: 'Client’s own record: QuickBooks profit and loss, Lindqvist Studio', conf: '0.99 (ev-0101 telephone, ev-0095 internet)',
+        doc: 'D14 · page 1', docTitle: 'Lindqvist Studio, Profit and Loss, January-December 2025', field: 'Telephone 2,160.00 (ev-0101); Internet 1,320.00 (ev-0095)',
+        pre: '… Insurance - health (Erik) 14,400.00; ', hl: 'Internet 1,320.00', post: '; Legal and professional 1,800.00; Meals 3,960.00; Office expenses 1,180.00; Software and subscriptions 6,850.00; Supplies 3,240.00; Telephone 2,160.00; Travel 4,520.00. …',
+        others: ['Client’s own record: D15 page 2, “Telephone 2,160.00: family mobile plan (4 lines) 180.00 per month. Internet 1,320.00: home internet 110.00 per month.”', 'Client’s own record: D15 page 1, software detail ending “Spotify Family 216.00” (ev-0106).', 'Call note, 26 Mar 2026 (call-01, Erik Lindqvist and Priya Raman): “Mobile plan covers 4 family lines; Erik estimates his business share is 70%.” “Home internet is shared with the family; business use about 50%.” “Spotify Family in software is personal - booked by mistake.”'],
+        built: 'Books lines copied at 100% (rule R-BOOKS-LINE): telephone 2,160 + internet 1,320 = 3,480; software 6,850 including Spotify 216.',
+        fails: [['Fails', 'wrn', 'Mixed-use expense at 100% while a client note gives a business share.'], ['Fails', 'wrn', 'Personal item in business software: Spotify Family 216.']],
+        checked: [], needed: 'None yet. Needed: confirmed with client (the call note), recalculated.',
+        history: 'Engine v1, v2 and v3: 3,480 and 6,850. No change by the firm yet.', effect: 'Federal +541, California +47 (estimate at v3 rates, Example).', partner: false, adjust: 'Adjust to $2,172 and software to $6,634',
+        c: { title: 'Phone, internet and Spotify', value: '$3,480', why: 'You told us part of the phone and internet is family use, and Spotify is personal. We deduct only the business part.', docTitle: 'Studio books', need: 'Nothing needed from you.', act: 'Ask your tax team' },
+        f: { word: 'Resolved before filing', value: '$2,172', history: 'Engine v3: 3,480. Resolved before filing to 2,172, software to 6,634 (Example).' } },
+
+      'sec179': { pos: 'ev-0141: x0, y0 0.3789, 0.216 to 0.567, 0.2367', st: 'wrn', word: 'Judgment', title: 'Section 179 not elected for the studio equipment', line: 'F4562-C.14 · Special depreciation allowance (100%); F4562-C.12 Section 179 = 0', value: '$38,000',
+        why: 'The engine’s default took 100% bonus depreciation. California allows no bonus, so it depreciates only 7,600. Electing Section 179 gives the same 38,000 federally and lets California expense up to 25,000.',
+        kind: 'Third-party form: vendor invoice, Vantage Imaging Supply', conf: '0.99 (ev-0141 to ev-0145)',
+        doc: 'D22 · page 1', docTitle: 'Invoice, Vantage Imaging Supply (equipment)', field: 'Equipment lines: printer 14,200.00 (ev-0141), camera 16,300.00 (ev-0142), workstation 7,500.00 (ev-0143)',
+        pre: 'Invoice 22-8841 dated 03/14/2025 to Lindqvist Studio. ', hl: 'Large-format printer 14,200.00; camera system (body, 3 lenses) 16,300.00; workstation computer 7,500.00.', post: ' Total 38,000.00, paid in full 03/14/2025. Delivered and installed 03/21/2025. All items new.',
+        others: ['Engine what-if equipment_section179: federal total tax change 0; California total tax change −1,050.', 'Call note, 26 Mar 2026 (call-01): “Bought the equipment in March for the large-format print work; it is used only for the business.”', 'California: FTB3885A 2,840 + 3,260 + 1,500 = 7,600; addition SchCA540NR.12.C 30,400 (“California does not allow federal bonus depreciation; section 179 limited to 25,000.”).'],
+        built: '100% special depreciation on 38,000 (rule R-EQUIPMENT-METHOD default). With Section 179: California 25,000 + 20% × 13,000 = 27,600 instead of 7,600.',
+        fails: [['Fails', 'wrn', 'Election with a strictly better alternative: same federal tax, California −1,050.']],
+        checked: [], needed: 'None yet. Needed: a recorded decision (election) and recalculated.',
+        history: 'Engine v1, v2 and v3: 38,000 special depreciation, Section 179 0. No change by the firm yet.', effect: 'Federal 0, California −1,050 (the engine’s own what-if, equipment_section179).', effectNote: 'Over 1,000 (California): partner sign-off applies if elected.', partner: true, adjust: 'Elect Section 179',
+        c: { title: 'Studio equipment bought in March', value: '$38,000', why: 'There are two ways to write off the equipment. One saves California tax at no federal cost.', docTitle: 'Vantage Imaging invoice', need: 'Nothing needed from you.', act: 'Ask your tax team' },
+        f: { word: 'Resolved before filing', value: 'Section 179, $38,000', history: 'Engine v3: 38,000 special depreciation. Resolved before filing by electing Section 179 (Example).' } },
+
+      'payoff-int': { pos: 'ev-1032: x0, y0 0.5995, 0.3437 to 0.8447, 0.3686', st: 'wrn', word: 'Check failed', title: 'Payoff interest counted twice', line: 'SchA.8a · Home mortgage interest and points on Form 1098', value: '$21,847',
+        why: 'The Lonestar Form 1098 box 1 already includes the interest paid at payoff, and the payoff statement says so. The rule added the payoff interest 2,150 a second time.',
+        kind: 'Third-party statement: lender payoff statement, Lonestar Mortgage LLC', conf: '0.99 (ev-1032)',
+        doc: 'D56 · page 1', docTitle: 'Lonestar Mortgage payoff statement (11/20/2025)', field: 'Interest to payoff 2,150.00 (ev-1032)',
+        pre: 'Payoff as of 11/20/2025: principal 546,311.08; ', hl: 'interest 11/01/2025-11/20/2025 2,150.00', post: '; recording fee 45.00; total 548,506.08. (Interest is reported on the 2025 Form 1098.)',
+        others: ['Third-party form: Form 1098, Lonestar Mortgage (D55): “Box 1 mortgage interest received 13,900.00 (includes prepaid interest at closing and interest paid at payoff 11/20/2025).” (ev-1029)', 'Third-party form: Form 1098, Pecan Federal Savings (D57) box 1 997.00 (ev-1034).'],
+        built: 'Lonestar 1098 13,900 + Pecan 1098 997 + payoff statement interest 2,150 + purchase points 4,800 = 21,847 (rule R-MORTGAGE-INTEREST, “every Form 1098 and lender statement”).',
+        fails: [['Fails', 'wrn', 'Same money on two documents: the payoff interest is inside the Form 1098 box 1.']],
+        checked: [], needed: 'None yet. Needed: agreed to source document (D55, D56).',
+        history: 'Engine v1, v2 and v3: 21,847. No change by the firm yet.', effect: 'Federal +559, California +103 (estimate at v3 rates, Example).', partner: false, adjust: 'Adjust to $19,697',
+        c: { title: 'Mortgage interest on your Austin home', value: '$19,697', why: 'Your lender’s Form 1098 already includes the interest you paid at payoff, so we count it once.', docTitle: 'Lonestar payoff statement', need: 'Nothing needed from you.', act: 'Ask your tax team' },
+        f: { word: 'Resolved before filing', value: '$19,697', history: 'Engine v3: 21,847. Resolved before filing to 19,697 (Example).' } },
+
+      'or-credit': { pos: 'ev-0982: x0, y0 0.3857, 0.3299 to 0.5697, 0.35', st: 'wrn', word: 'Judgment', title: 'Oregon credit not limited', line: 'ScheduleS.credit · Credit for tax paid to Oregon (feeds F540NR.64)', value: '$844',
+        why: 'The credit is the Oregon composite tax 1,580 × 195/365. Schedule S limits it to California’s own tax on the same income, about 635. That the credit is allowed at all for a composite return comes from the FTB instructions, not the packet.',
+        kind: 'Third-party form: Schedule K-1 (Form 1120-S), Lindqvist Family Woodworks, Inc.', conf: '0.99 (ev-0982)',
+        doc: 'D39 · page 2', docTitle: '2025 Schedule K-1 (Form 1120-S), Lindqvist Family Woodworks, Inc.', field: 'Oregon composite tax paid for shareholder 1,580 (ev-0982)',
+        pre: '… Statement: Oregon composite return filed for nonresident shareholders; ', hl: 'Oregon tax paid on your behalf 1,580', post: ' (paid with the composite return in April 2026; included in box 16D distributions). Shareholder does not work in the business.',
+        others: ['Third-party form: same page, box 17V “qualified business income 18,400”.', 'Return lines: California AGI 305,349 (F540NR.32); California regular tax 19,718 (F540NR.40).'],
+        built: '1,580 × 195/365 = 844 (rule R-CA-OSTC). Limit: 18,400 × 195/365 = 9,830 of Oregon income; 9,830 ÷ 305,349 × 19,718 ≈ 635.',
+        fails: [['Fails', 'wrn', 'Credit limit not applied: the credit equals the tax paid times a day ratio.']],
+        checked: [], needed: 'None yet. Needed: recalculated; authority to confirm: FTB Schedule S instructions (Example).',
+        history: 'Engine v1, v2 and v3: 844. No change by the firm yet.', effect: 'California +209 if limited to about 635 (arithmetic from the packet). Allowed for a composite return per the FTB Schedule S instructions: authority to confirm (Example).', partner: false, adjust: 'Adjust to $635',
+        c: { title: 'Credit for Oregon tax', value: '$1,580 paid', why: 'Woodworks paid Oregon tax for Erik. California gives a credit for part of it.', docTitle: 'Woodworks K-1', need: 'Nothing needed from you.', act: 'Ask your tax team' },
+        f: { word: 'Resolved before filing', value: '$635', history: 'Engine v3: 844. Resolved before filing to 635 (Example).' } },
+
+      'excess-ss': { pos: 'ev-0038: x0, y0 0.1787, 0.6163 to 0.479, 0.6345', st: 'wrn', word: 'Check failed', title: 'Penalty ignores excess social security', line: 'F1040.38 · Estimated tax penalty (F2210.19 regular method)', value: '$164',
+        why: 'Form 2210 counts excess social security withheld as income tax withheld. The engine used W-2 box 2 only (25,400). Ngozi’s two employers withheld 3,342 too much social security.',
+        kind: 'Third-party form: Form W-2, Halvorsen Data LLC', conf: '0.99 (ev-0019, ev-0038)',
+        doc: 'D09 · page 1', docTitle: '2025 Form W-2, Halvorsen Data LLC (Ngozi Okafor)', field: 'Box 4 social security tax withheld 7,316.00 (ev-0038)',
+        pre: '… Box 1 107,800.00; Box 2 9,600.00; Box 3 118,000.00; ', hl: 'Box 4 7,316.00', post: '; Box 5 118,000.00; …',
+        others: ['Third-party form: Form W-2, Corvane Systems (D08) box 4 6,944.00 (ev-0019).', 'Return line: Sch3.11 excess social security 3,342 (14,260 − 176,100 × 6.2%).'],
+        built: 'Required payment 41,313 (F2210.8) in four installments; withholding 25,400 spread evenly; estimated payments by date; 7% to 15 Apr 2026 = 164. With withholding 28,742 (25,400 + 3,342) the same method gives about 17.',
+        fails: [['Fails', 'wrn', 'Penalty inputs: excess social security not counted as withholding.']],
+        checked: [], needed: 'None yet. Needed: recalculated.',
+        history: 'Engine v1, v2 and v3: 164. No change by the firm yet.', effect: 'Federal penalty about −147 (164 to about 17; recompute, Example).', partner: false, adjust: 'Adjust to about $17',
+        c: { title: 'Underpayment penalty', value: '$164', why: 'Extra social security withheld by two employers counts as tax paid during the year, which lowers the penalty.', docTitle: 'Ngozi’s W-2s', need: 'Nothing needed from you.', act: 'Ask your tax team' },
+        f: { word: 'Resolved before filing', value: 'About $27', history: 'Engine v3: 164. Resolved before filing to about 27, with the January estimate corrected to 3,000 (Example).' },
+        links: [['Federal estimated payments', 'fed-est']] },
+
+      'ca-trace': { st: 'wrn', word: 'Check failed', title: 'Schedule CA trace leaves out the California adjustment', line: 'SchCA540NR.1.D · Wages, total using California law (also lines 2, 12, 17 column D)', value: '$218,400',
+        why: 'The value is right: 212,400 + 6,000 HSA add-back. But the line lists only column A as its input, so following the trace shows a sum of one number that does not equal the line.',
+        kind: 'Engine computation: rule R-SUM', conf: 'No read: computed by the engine',
+        doc: 'Return line · v3', docTitle: 'Schedule CA (540NR), line 1 column D (engine line record, not a printed page)', field: 'inputs: ["SchCA540NR.1.A"]',
+        pre: 'Wages - total using CA law = 218,400. Inputs listed: ', hl: 'SchCA540NR.1.A (212,400)', post: '. Not listed: SchCA540NR.1.C (6,000, “California does not exclude employer HSA contributions.”).',
+        others: ['Same gap on line 2 (6,450 − 410 = 6,040; B missing), line 12 (81,854 + 30,400 = 112,254; C missing), line 17 (−11,830 − 484 = −12,314; B missing).', 'Third-party forms: W-2 box 12 code W 2,500 (D08, ev-0024) and 3,500 (D09, ev-0043) are the 1.C sources.'],
+        built: 'Column D = A − B + C on every line; the inputs list names only A.',
+        fails: [['Fails', 'wrn', 'Trace: the listed inputs do not produce the value (lines 1, 2, 12, 17).']],
+        checked: [], needed: 'None yet. Needed: recalculated.',
+        history: 'Engine v1, v2 and v3: the same four lines, the same gap.', effect: 'None: the values are right, the trace is incomplete.', partner: false, adjust: 'Flag the trace for the engine team',
+        c: { title: 'California wages', value: '$218,400', why: 'An internal check on how the California figures are traced.', docTitle: 'Your California return', ref: '', pre: 'California wages ', hl: '218,400', post: '.', need: 'Nothing needed from you.', act: 'Ask your tax team' },
+        f: { word: 'Resolved before filing', value: '$218,400, trace completed', history: 'Engine v3: 218,400 (value right; trace gap). Trace completed before filing (Example).' } },
+
+      // Round H3 (U15): GT-A02 and GT-D02, the two largest findings that had no drawer entry. Facts: probes/h3-s2-probe2.out, h3-s2-probe4.out.
+      'ca-wages': { pos: 'ev-0047: x0, y0 0.2584, 0.109 to 0.4893, 0.1371', st: 'wrn', word: 'Check failed', title: 'California wages include Halvorsen pay earned in Texas', line: 'SchCA540NR.1.E · Wages, California amount', value: '$218,400', to: 'ngozi',
+        why: 'The family lived in California until 14 Jul 2025 and in Texas from 15 Jul. Halvorsen’s payroll kept California as the work state, so box 16 reports the whole year’s pay to California, and the engine copied box 16 as California wages.',
+        kind: 'Third-party form: Form W-2, Halvorsen Data LLC', conf: '0.99 (ev-0047)',
+        doc: 'D09 · page 1', docTitle: '2025 Form W-2, Halvorsen Data LLC (Ngozi Okafor)', field: 'Box 16 state wages (CA) 111,300.00 (ev-0047)',
+        pre: '… Box 13 retirement plan checked; Box 15 CA; ', hl: 'Box 16 111,300.00', post: '; Box 17 4,180.00. (Employment began 06/02/2025. Employer payroll kept California as the work state through 09/30/2025.)',
+        others: ['Third-party record: Halvorsen paystub, pay date 07/18/2025 (D73, received 27 Mar 2026): “Work location changed to Austin, TX effective 07/15/2025. … CA taxable wages 22,469.00” (ev-1081, read 0.99). No line cites it.', 'Household record: California resident 1 Jan to 14 Jul 2025; Texas resident from 15 Jul 2025.', 'Typed by the client: questionnaire qa-45, “Ngozi’s new employer kept withholding California tax until September by mistake.”', 'Third-party form: Form W-2, Corvane Systems (D08) box 16 107,100.00 (ev-0030), all earned while a California resident.'],
+        built: 'Rule R-CA-WAGES-SOURCE takes column D, 218,400, as the California amount; its sources are box 16 of both W-2s: 107,100 + 111,300 = 218,400. The rule does not split box 16 by the residency dates.',
+        fails: [['Fails', 'wrn', 'State wages against residency dates: Halvorsen box 16 is the full year (111,300); the paystub gives 22,469 through the move.'], ['Fails', 'wrn', 'Unused evidence: the paystub (D73, ev-1081) is in the file and feeds no line.']],
+        checked: [], needed: 'None yet. Needed: agreed to source document (D73), recalculated.',
+        history: 'Engine v1, v2 and v3: 218,400. No change by the firm yet.', effect: 'California −5,685 (88,831 too much California-source income at the v3 rate 0.064; estimate, Example). Federal none. The 4,180 California withholding stays a payment.', effectNote: 'Over 1,000: partner sign-off applies if adjusted.', partner: true, adjust: 'Adjust to $129,569',
+        c: { title: 'Ngozi’s California wages', value: '$129,569 earned while you lived in California', why: 'Halvorsen reported all of Ngozi’s 2025 pay to California, including pay after you moved to Texas on 15 Jul 2025. We count only the California part.', docTitle: 'Ngozi’s Halvorsen W-2', need: 'Nothing needed from you.', act: 'Ask your tax team' },
+        f: { word: 'Resolved before filing', value: '$129,569', history: 'Engine v3: 218,400. Resolved before filing to 129,569 (Example).' },
+        links: [['Schedule CA trace', 'ca-trace']] },
+
+      'salt-d02': { pos: 'ev-1027: x0, y0 0.4631, 0.7233 to 0.6868, 0.7452', st: 'wrn', word: 'Check failed', title: 'Home property tax includes the seller’s share', line: 'SchA.5b · Real estate taxes, 7709 Barton Ridge Dr', value: '$13,420', to: 'both',
+        why: 'The home was bought on 8 Jul 2025. At closing the seller credited 6,912 for the 2025 tax from 1 Jan to 7 Jul, which is the seller’s to deduct. The engine deducted the whole 13,420 bill paid from escrow.',
+        kind: 'Third-party statement: buyer closing statement, 7709 Barton Ridge Dr', conf: '0.99 (ev-1027)',
+        doc: 'D54 · page 1', docTitle: 'Buyer closing statement, 7709 Barton Ridge Dr (purchase 07/08/2025)', field: 'Seller credit for 2025 taxes 6,912.00 (ev-1027), used by no line',
+        pre: 'Settlement date 07/08/2025. Purchase price 685,000.00. New loan Lonestar Mortgage 548,000.00. Origination points paid by buyer 4,800.00. ', hl: 'Seller credit for 2025 county taxes 01/01/2025-07/07/2025: 6,912.00', post: '. Prepaid interest 07/08-07/31: 2,374.30.',
+        others: ['Third-party form: Form 1098, Pecan Federal Savings (D57) box 10, real estate taxes paid from escrow 13,420.00 (ev-1036).', 'Agency record: Travis County 2025 tax receipt (D58), “Total levy 13,420.00 paid 12/18/2025 … Owner of record 01/01/2025: prior owner” (ev-1038).'],
+        built: 'Escrow-paid tax 13,420 (rule R-SALT-PROPERTY, sources ev-1036 and ev-1038). With state income taxes 27,870 the total is 41,290, over the 40,000 cap, so 40,000 is deducted (SchA.5e).',
+        fails: [['Fails', 'wrn', 'Property-tax proration: a closing-statement tax credit of 6,912 feeds no return line.'], ['Fails', 'wrn', 'Proration arithmetic: 13,420 × 188/365 = 6,912, exactly the seller’s 188 days.']],
+        checked: [], needed: 'None yet. Needed: agreed to source document (D54), recalculated.',
+        history: 'Engine v1, v2 and v3: 13,420. No change by the firm yet.', effect: 'Federal +1,462: the total falls to 34,378, under the 40,000 cap, so the deduction drops 5,622 (at the itemized rate 0.26). California +332 (6,912 at 0.048). Estimate, Example.', effectNote: 'Over 1,000: partner sign-off applies if adjusted. The engine’s SALT rate (0) stops applying once the cap no longer binds.', partner: true, adjust: 'Adjust to $6,508',
+        c: { title: 'Property tax on your Austin home', value: '$6,508 is your share', why: 'You bought the home on 8 Jul 2025. The seller paid you 6,912 at closing for the months before, so that part of the bill is the seller’s to deduct.', docTitle: 'Your closing statement', need: 'Nothing needed from you.', act: 'Ask your tax team' },
+        f: { word: 'Resolved before filing', value: '$6,508', history: 'Engine v3: 13,420. Resolved before filing to 6,508 (Example).' },
+        links: [['Payoff interest counted twice', 'payoff-int']] },
+
+      // Round H3 (U16): the two claims a client answer touched after v3 (msg-07, msg-08). The late-answer state is added below from asOf.
+      'crypto-c6': { pos: 'ev-0919: x0, y0 0.3766, 0.1608 to 0.6463, 0.1847 (the blank basis)', st: 'wrn', word: 'Engine warning', title: 'Crypto lot C6 at zero basis and the transfer-in date', line: 'F8949.H.C6 · BTC 0.05, sold 18 Jun 2025', value: '$0 basis', to: 'erik',
+        why: 'Coinhaven shows lot C6 as a transfer in on 1 Jun 2025 with no cost. The engine used zero basis and the transfer-in date, so the whole 5,325 is a short-term gain.',
+        kind: 'Third-party record: Coinhaven transaction history export', conf: '0.6 for the blank basis (ev-0919); 0.99 for the proceeds (ev-0882)',
+        doc: 'D35 · page 1', docTitle: 'Coinhaven transaction history export (CSV)', field: 'C6 cost basis: nothing printed (ev-0919, read 0.6)',
+        pre: '… C5 SOL 22.0 acquired 2025-01-05 cost 4,290.00 sold 2025-05-30 proceeds 3,520.00; ', hl: 'C6 BTC 0.05 acquired TRANSFER-IN 2025-06-01 (cost basis unknown) cost', post: '  sold 2025-06-18 proceeds 5,325.00; …',
+        others: ['Third-party form: Form 1099-DA, Coinhaven (D34): lot C6 proceeds 5,325.00 (ev-0882, read 0.99), sold 06/18/2025.', 'Engine diagnostic DIGITAL_ASSET_BASIS_MISSING (warning): “Coinhaven lot C6 has no cost basis (transfer in from external wallet). Engine used zero basis and the transfer-in date.”'],
+        built: 'Proceeds 5,325 minus basis 0 = short-term gain 5,325 in box H (rule R-8949-LOT).',
+        fails: [['Engine', 'wrn', 'DIGITAL_ASSET_BASIS_MISSING: an unknown basis was used as zero.']],
+        checked: [], needed: 'None yet. Needed: confirmed with client (where and when the coins were bought, and the cost).',
+        history: 'Engine v1, v2 and v3: basis 0, acquired 1 Jun 2025, short-term.', effect: 'If the client’s cost and date hold: federal −1,312 and California −195 (short-term −5,325, long-term +2,275; estimate, Example).', effectNote: 'Over 1,000: partner sign-off applies if adjusted.', partner: true, adjust: 'Use basis about $3,050, bought 15 Mar 2021',
+        c: { title: 'Your Bitcoin sale on 18 Jun 2025', value: '$5,325 sale', why: 'Coinhaven does not know what you paid for this Bitcoin, because it was moved in from another exchange.', docTitle: 'Your Coinhaven export', need: 'Tell us when you bought it and what you paid, with any record you have.', act: 'Answer' },
+        f: { word: 'Answered after the last computation', value: '$0 basis', valueEx: false, valueNote: 'The value in v3, the last computation in the packet', history: 'msg-07 (30 Jun 2026) gave a cost of about 3,050 and a March 2021 purchase, after v3 (23 Jun 2026). The packet holds no later computation before the 10 Jul 2026 signature, so v3 never included it. In this workpaper the late answer blocks approval until applied (Example).' } },
+
+      'gift-brigid': { pos: 'ev-1049: x0, y0 0.4653, 0.1642 to 0.7401, 0.1861', st: 'wrn', word: 'Low-confidence read', title: 'St. Brigid gift read at low confidence', line: 'SchA.11 · Gifts by cash or check (St. Brigid Parish)', value: '$1,500', to: 'ngozi',
+        why: 'The first digit on the handwritten receipt could be a 1 or a 7. The pipeline read 1,500 at 0.41, and the engine raised LOW_CONFIDENCE_READ.',
+        kind: 'Third-party statement: handwritten receipt, St. Brigid Parish', conf: '0.41 (ev-1049)',
+        doc: 'D64 · page 1', docTitle: 'Handwritten donation receipt, St. Brigid Parish', field: 'Cash gift amount, read 1,500.00 at 0.41 (ev-1049)',
+        pre: 'Handwritten receipt on parish letterhead dated 12/21/2025: ', hl: '\'Received from the Okafor-Lindqvist family, $?,500.00 - thank you.\'', post: ' The first digit is ambiguous (could be read as 1 or 7). No goods or services line. Signed by parish office manager.',
+        others: ['Third-party statements: typed receipts (D63), Sacramento Food Bank 600.00 (ev-1047) and Hill Country Animal Rescue 1,250.00 (ev-1048).', 'Engine diagnostic LOW_CONFIDENCE_READ (warning): “Handwritten receipt amount read with low confidence (0.41).”'],
+        built: 'Cash gifts 600 + 1,250 + 1,500 = 3,350 (rule R-CHARITY-CASH, sources ev-1047 to ev-1049).',
+        fails: [['Engine', 'wrn', 'LOW_CONFIDENCE_READ: the amount rests on a 0.41 read.']],
+        checked: [], needed: 'None yet. Needed: confirmed with client.',
+        history: 'Engine v1, v2 and v3: cash gifts 3,350, with 1,500 from this receipt.', effect: 'None while 1,500 is right: the warning is about the read, not the amount.', partner: false, adjust: 'Confirm 1,500 as read',
+        c: { title: 'Your gift to St. Brigid Parish', value: '$1,500', why: 'The handwritten receipt is hard to read: the first digit could be a 1 or a 7.', docTitle: 'Your St. Brigid receipt', need: 'Please confirm the amount you gave.', act: 'Answer' },
+        f: { word: 'Answered after the last computation', value: '$1,500', valueEx: false, valueNote: 'The value in v3; the answer confirmed it', history: 'msg-08 (1 Jul 2026, after v3) confirmed 1,500, matching the bank statement (check #2207, 12/21/2025). The value did not change; the message is the evidence that clears the warning.' } }
+    };
+
+    const roleNames = { priya: 'Priya Raman, preparer', marcus: 'Marcus Bell, preparer', daniel: 'Daniel Ortiz, reviewer', helen: 'Helen Strand, partner', sam: 'Sam Adeyemi, quality reviewer', jo: 'Jo Kimura, administrator', ngozi: 'Ngozi Okafor, client', erik: 'Erik Lindqvist, client', next: 'Next year’s preparer', irs: 'IRS examiner' };
+    const people = { priya: 'Priya Raman', marcus: 'Marcus Bell', daniel: 'Daniel Ortiz', helen: 'Helen Strand', sam: 'Sam Adeyemi', jo: 'Jo Kimura', ngozi: 'Ngozi Okafor', erik: 'Erik Lindqvist', next: 'Next year’s preparer', irs: 'IRS examiner' };
+    const first = (k) => (people[k] || String(k || 'Someone')).split(' ')[0];
+    const pron = { priya: 'her', helen: 'her', ngozi: 'her', marcus: 'his', daniel: 'his', erik: 'his' };
+    const STAFF = ['priya', 'marcus', 'daniel', 'helen', 'sam', 'jo', 'next'];
+    const isClient = role === 'ngozi' || role === 'erik', isIrs = role === 'irs';
+    const spouse = role === 'erik' ? 'ngozi' : 'erik';
+    // One story clock (round H3): the shell passes asOf = storyAt. Fallback when shown alone.
+    const roleAfter = role === 'sam' || role === 'next' || role === 'irs';
+    const asOf = P.asOf ?? P.storyAt ?? (isIrs ? '2028-01-26T15:00' : roleAfter ? '2027-01-15T15:00' : '2026-06-23T06:05');
+    const ACCEPTED = '2026-07-14T16:22';   // tl-23, federal e-file accepted: the record is locked from here
+    const lockedByClock = !roleAfter && !isClient && asOf >= ACCEPTED;
+    const isAfter = isIrs || (!isClient && asOf >= ACCEPTED);
+    const clientFiled = isClient && asOf >= ACCEPTED;
+    // Roles that exist from a time (contract A): before it, the drawer says when they join and shows nothing else.
+    const JOINS = { sam: ['2027-01-04T15:00', 'Sam Adeyemi joins on 4 Jan 2027 (quality review). This record opens for Sam then.'], next: ['2027-01-15T15:00', 'Next year’s preparer starts on 15 Jan 2027. This record opens then.'], irs: ['2028-01-26T15:00', 'The examination starts with Letter 566, received 26 Jan 2028.'] };
+    const notYet = JOINS[role] && asOf < JOINS[role][0] ? JOINS[role][1] : '';
+    if (asOf < '2026-07-13T19:02') {
+      // Before the card (D71, received 13 Jul 2026 19:02) arrives; full timestamps, never the date alone (review 7, M1): the evidence is the 2024 return only.
+      const t = C['theo-ssn'];
+      Object.assign(t, { title: 'Theo’s SSN differs from his 2024 return',
+        why: 'The number typed in the organizer has two digits swapped. Last year’s return shows the other number.',
+        others: [], fails: [['Fails', 'blk', 'Identity tie-out against the 2024 return.']],
+        identity: 'Organizer against the 2024 return: last four differ. Compared on the server; no full number is shown.',
+        needed: 'None yet. Needed: agreed to prior year (2024 return).' });
+      t.c = { title: 'Theo’s Social Security number', value: 'Ends 3390 on last year’s return', why: 'Your organizer shows a number ending 3309. Last year’s return shows a number ending 3390. Two digits may have been swapped.', docTitle: 'Your 2024 return as filed', need: 'Please confirm Theo’s Social Security number ends in 3390, as on last year’s return.', act: 'Answer', ids: ['ssn-theo', 'ssn-ada'] };
+    }
+    // Which spouse a client question is addressed to (U6): the spouse the item belongs to or who answered it in the packet.
+    // Fallback only: the shell passes spouseOf, the one canonical table (FIX-ROUND-H3b decision 4).
+    const TO = { 'ca-est': 'both', 'salt-d02': 'both', 'atlas': 'erik', 'sehi': 'erik', 'form-3520': 'erik', 'crypto-c6': 'erik', 'noncash': 'erik', 'theo-ssn': 'ngozi', 'heat-pump': 'ngozi', 'fed-est': 'ngozi', 'ca-wages': 'ngozi', 'gift-brigid': 'ngozi' };
+
+    // Packet messages and call notes that can be attached as evidence (U10). Quotes are the packet text, trimmed with an ellipsis.
+    const PK = {
+      'msg-07': { at: '2026-06-30T18:02', label: 'msg-07, message from Erik Lindqvist, 30 Jun 2026', clientLabel: 'Erik’s message of 30 Jun 2026', claims: { 'crypto-c6': '“About the crypto lot with no cost: that BTC was bought on another exchange in March 2021 for about 3,050 and moved to Coinhaven in June. That exchange shut down so I only have a bank statement line showing 3,050 to \'CryptoNorth\' on 03/15/2021.”' } },
+      'msg-08': { at: '2026-07-01T16:40', label: 'msg-08, message from Ngozi Okafor, 1 Jul 2026', clientLabel: 'Ngozi’s message of 1 Jul 2026', claims: { 'gift-brigid': '“St. Brigid confirmed by phone the gift was 1,500 - matches our bank statement (check #2207, 12/21/2025).”' } },
+      'call-01': { at: '2026-03-26T17:00', label: 'call-01, call note, Erik Lindqvist and Priya Raman, 26 Mar 2026', clientLabel: 'Notes from Erik’s call with your tax team, 26 Mar 2026', claims: {
+        'heat-pump': '“HVAC at Fremont Way: the old furnace died in a heat wave; replaced the whole system with a heat pump (new air handler, line set).”',
+        'phone-pct': '“Mobile plan covers 4 family lines; Erik estimates his business share is 70%.” …',
+        'sec179': '“Bought the equipment in March for the large-format print work; it is used only for the business.”',
+        'noncash': '“The 2012 Subaru: Erik thinks it was worth about 6,000; the charity sold it at auction.”' } }
+    };
+    // Answers that arrived after the last computation (U16). v3 is the last computation in the packet (23 Jun 2026, 06:05).
+    const LATE = { 'crypto-c6': { id: 'msg-07', at: '2026-06-30T18:02', from: 'Erik Lindqvist' }, 'gift-brigid': { id: 'msg-08', at: '2026-07-01T16:40', from: 'Ngozi Okafor' } };
+    if (asOf >= LATE['crypto-c6'].at) {
+      const t = C['crypto-c6'];
+      t.others = [...t.others, 'Client message msg-07, Erik Lindqvist, 30 Jun 2026: ' + PK['msg-07'].claims['crypto-c6']];
+      t.needed = 'Needed: a preparer’s judgment on the evidence (a bank line only, “about 3,050”), recorded with the evidence attached.';
+      t.c = { title: 'Your Bitcoin sale on 18 Jun 2025', value: '$5,325 sale', why: 'You told us on 30 Jun 2026 that you bought this Bitcoin in March 2021 for about 3,050. We have your message; your return has not been recalculated with it yet, and we will do that before you sign.', docTitle: 'Your Coinhaven export', need: 'If you can, attach the bank statement line showing the 3,050 payment.', act: 'Upload' };
+    }
+    if (asOf >= LATE['gift-brigid'].at) {
+      const t = C['gift-brigid'];
+      t.others = [...t.others, 'Client message msg-08, Ngozi Okafor, 1 Jul 2026: ' + PK['msg-08'].claims['gift-brigid']];
+      t.needed = 'Needed: confirmed with client (msg-08), recorded as the evidence that clears the warning.';
+      t.adjust = 'Record msg-08 as the evidence';
+      t.c = { title: 'Your gift to St. Brigid Parish', value: '$1,500', why: 'You confirmed on 1 Jul 2026 that the gift was 1,500, matching your check of 21 Dec 2025. Thank you.', docTitle: 'Your St. Brigid receipt', need: 'Nothing more needed from you.', act: 'Ask your tax team' };
+    }
+
+    const key = role + '|' + claimId;
+    const msg = this.state.msgKey === key ? this.state.msg : '';
+    const say = (t) => this.setState({ msg: t, msgKey: key });
+
+    // ---- The shared event list (round H3, contract B). Safe defaults when shown alone.
+    // The shell passes each viewer's own view of the events (who is a short name; wording already per recipient; no "by").
+    // Events made here when shown alone carry "by". Both shapes are normalized to { by, to: [], itemIds: [] }.
+    const SHORT = { priya: 'Priya', marcus: 'Marcus', daniel: 'Daniel', helen: 'Helen', sam: 'Sam', jo: 'Jo', ngozi: 'Ngozi', erik: 'Erik', next: 'Next year’s preparer', irs: 'IRS examiner' };
+    const BYNAME = {}; Object.keys(SHORT).forEach(k => { BYNAME[SHORT[k]] = k; });
+    const shellEmit = typeof P.emit === 'function';
+    const rawEvents = (Array.isArray(P.events) ? P.events : this.state.localEvents).filter(e => e && typeof e === 'object');
+    const events = rawEvents.map(e => ({ ...e, view: !e.by, by: e.by || (SHORT[e.who] ? e.who : e.who === 'You' ? role : BYNAME[e.who] || ''),
+      to: Array.isArray(e.to) ? e.to : e.to ? [e.to] : [], itemIds: Array.isArray(e.itemIds) ? e.itemIds : e.item ? [e.item] : [] }));
+    const emit = shellEmit ? P.emit : (ev) => {
+      const seq = this.state.localEvents.reduce((m, e) => Math.max(m, e.seq || 0), 0) + 1;
+      this.setState({ localEvents: [...this.state.localEvents, { groupId: '', retracts: null, ...ev, by: role, who: SHORT[role], seq, at: asOf }] });
+      return seq;
+    };
+    const lastSeenN = (P.lastSeen && typeof P.lastSeen[role] === 'number') ? P.lastSeen[role] : 0;
+    const MON = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+    const fmt = (s) => { const m = /^(\d{4})-(\d{2})-(\d{2})T(\d{2}):(\d{2})/.exec(String(s || '')); return m ? (+m[3]) + ' ' + MON[+m[2] - 1] + ' ' + m[1] + ', ' + m[4] + ':' + m[5] : String(s || ''); };
+    const hhmm = (s) => { const m = /T(\d{2}):(\d{2})/.exec(String(s || '')); return m ? m[1] + ':' + m[2] : ''; };
+    const money = (v) => { const m = /^\$?([\d,]+)$/.exec(String(v || '').trim()); return m ? '$' + m[1] : String(v || ''); };
+    const retracted = new Set(events.filter(e => e.retracts).map(e => e.retracts));
+    const evs = events.filter(e => e.claimId === claimId);
+    const live = (e) => !retracted.has(e.seq) && !e.withdrawn && !e.retracts && !e.refused;
+    const isAdj = (e) => /adjust|proposal|value_changed/i.test(e.type || '');
+    const isSign = (e) => /^sign-?off$/i.test(e.type || '');
+    const isAttach = (e) => /attach|evidence/i.test(e.type || '');
+    const changeSeqs = evs.filter(e => (isAdj(e) && !e.refused) || (e.retracts && evs.some(x => x.seq === e.retracts && isAdj(x)))).map(e => e.seq);
+    const curAdj = evs.filter(e => isAdj(e) && live(e)).sort((a, b) => b.seq - a.seq)[0] || null;
+    // Per-recipient wording at read time: Marcus never sees identifier digits, even the last 4.
+    const scrub = (t) => role === 'marcus' ? String(t || '').replace(/X{3}-X{2}-\d{4}|\b\d{3}-?\d{2}-?\d{4}\b|\b(ending|ends in|ends) \d{4}\b/g, 'an identifier') : String(t || '');
+    const IDLIKE = /\b\d{3}[- ]?\d{2}[- ]?\d{4}\b|\b\d{9,17}\b/;
+
+    const blankUi = {
+      late: { word: '', cls: '', text: '', quote: '' },
+      signoffs: [], liveRows: [], evidence: [], thread: [],
+      refuse: { show: false, text: '', before: '', after: '', ack: () => {} },
+      att: { open: false, sub: '', kinds: [], isMsg: false, isFile: false, isNote: false, items: [], noItems: false, noItemsText: '', fileText: '', pickFile: () => {}, note: '', setNote: () => {}, saveNote: () => {}, warn: false, warnText: '', hasErr: false, err: '', close: () => {} },
+      ask: { open: false, title: '', to: '', colleagues: [], setTo: () => {}, text: '', setText: () => {}, warn: false, warnText: '', hasErr: false, err: '', send: () => {}, sendLabel: '', close: () => {} },
+      undo: { show: false, label: '', go: () => {} }
+    };
+
+    const blank = { pos: '', effectEx: false, statusWord: '', statusCls: '', line: '', title: '', value: '', valueEx: false, valueNote: '', why: '', kind: '', conf: '', docLbl: '', docRef: '', docTitle: '', field: '', pre: '', hl: '', post: '', ids: [], identity: '', others: [], built: '', fails: [], checked: [], needed: '', history: '', historyEx: false, effect: '', effectNote: '', need: '', askedOf: '', links: [] };
+    const noS = { pos: false, line: false, valueNote: false, kind: false, conf: false, page: false, field: false, pageNote: false, ids: false, identity: false, others: false, built: false, fails: false, checked: false, needed: false, history: false, effect: false, need: false, askedOf: false, links: false, noAct: false, ruleNote: false, late: false, signoffs: false, live: false, evidence: false, thread: false };
+    const base = { wpClass: 'wp' + ((P.dark ?? false) ? ' dark' : ''), headLbl: isClient ? 'Where this comes from' : 'Where this number came from',
+      showClose: claimId !== '', close: () => openClaim(''),
+      empty: false, emptyText: 'Select any number to see where it came from', emptySub: isClient ? 'Your documents and what we need from you appear here.' : 'Its source document and field, how it was built, who checked it and what is still open appear here.',
+      notFound: false, notFoundText: '', has: false, D: blank, S: noS, acts: [], noAct: '', ruleNote: '', msg: '', ...blankUi,
+      idsLbl: isClient ? 'Private numbers on this page' : 'Sensitive numbers on this page', maskNote: '', othersLbl: 'Other sources', builtLbl: 'How it was built', failsLbl: 'Checks it fails', checkedLbl: 'Who checked', historyLbl: 'History',
+      lateLbl: 'Answer arrived after the last computation', liveLbl: isClient ? 'What happened this session' : 'Changes this session', evidenceLbl: 'Evidence attached', threadLbl: 'Questions to colleagues', signoffsLbl: 'Sign-offs this session' };
+
+    if (claimId === '') return { ...base, empty: true };
+    if (notYet) return { ...base, notFound: true, notFoundText: notYet };
+    const c0 = C[claimId];
+    if (!c0) return { ...base, notFound: true, notFoundText: 'No record for this item in the workpaper.' };
+    if (isIrs && !c0.irs) return { ...base, notFound: true, notFoundText: 'Only the items under examination in Letter 566 are shown here.' };
+
+    const tcls = { blk: 'drw-t-blk', wrn: 'drw-t-wrn', pas: 'drw-t-pas', acc: 'drw-t-acc', mut: 'drw-t-mut' };
+    const fromShell = typeof P.spouseOf === 'function' ? P.spouseOf(claimId) : '';
+    const to = ['ngozi', 'erik', 'both'].includes(fromShell) ? fromShell : (TO[claimId] || c0.to || 'both');
+
+    // Masking: last 4 always; a reveal lasts the session and is logged by the shell. Marcus can never reveal.
+    const idKeys = isClient ? (c0.c.ids || []) : isIrs ? [] : (c0.ids || []);
+    const ids = idKeys.map(k => {
+      const on = revealed.includes(k);
+      const blocked = role === 'marcus';
+      return { label: isClient ? IDS[k].clientLabel : IDS[k].label, shown: c0.idShown[k],
+        stateWord: on ? (isClient ? 'Shown this session' : 'Revealed this session') : 'Masked', stateCls: on ? 'drw-t-acc' : 'drw-t-mut',
+        showBtn: !on, btnCls: blocked ? 'off' : '', ad: blocked ? 'true' : 'false', btnLabel: isClient ? 'Show full number (recorded)' : 'Reveal (logged)',
+        go: () => { reveal(k); say(blocked ? 'Not available: no sensitive-data clearance.' : 'Reveal logged for this session: who, which number and when, never the number. This mock holds the last 4 only.'); } };
+    });
+    const maskNote = role === 'marcus' ? 'No sensitive-data clearance (background check pending). Firm rule: ' + RULE_MASK
+      : isClient ? 'We hide most of each number and show the last 4. Showing the full number is recorded.'
+      : 'Masked for every role, last 4 shown: the firm tightened its starter rule ' + RULE_MASK + ' A reveal lasts this session and is logged once.';
+
+    // ---- Late answer state (U16): blocks approval for working roles until applied or recorded.
+    const late = LATE[claimId] && asOf >= LATE[claimId].at ? LATE[claimId] : null;
+    const lateApplied = !!late && evs.some(e => live(e) && (isAdj(e) || (isAttach(e) && e.itemIds.includes(late.id))));
+    const lateBlocks = !!late && !lateApplied && !isAfter;
+
+    // ---- Sign-offs from events, stale when the value changed after the signature (contract B; P4).
+    const signRows = evs.filter(e => isSign(e) && live(e)).map(s => {
+      const stale = changeSeqs.some(q => q > s.seq) || evs.some(x => /signoff_stale/.test(x.type || '') && x.seq > s.seq && (x.to.length === 0 || x.to.includes(s.by)));
+      const name = people[s.by] || String(s.who || 'someone');
+      return { stale, by: s.by, word: stale ? 'Stale' : 'Current', cls: stale ? 'drw-t-wrn' : 'drw-t-pas',
+        text: stale ? 'Stale: the value changed after ' + (s.by === role ? 'you' : name) + ' signed (' + name + ', signed ' + fmt(s.at) + ').' : name + ' signed at ' + fmt(s.at) + '; nothing has changed since.' };
+    });
+    const reviewerCurrent = signRows.some(r => !r.stale && r.by === 'daniel');
+
+    // ---- Edit refused when someone else changed this number and the current role has not seen it (U2).
+    // With the shell, its emit decides and returns { ok: false, reason }; shown alone, the same rule runs here on lastSeen.
+    const ack = (this.state.ack || {})[claimId] || 0;
+    const lastOther = evs.filter(e => isAdj(e) && live(e) && e.by && e.by !== role).sort((a, b) => b.seq - a.seq)[0] || null;
+    const unseenOther = lastOther && lastOther.seq > lastSeenN && lastOther.seq > ack ? lastOther : null;
+    const localRefuse = unseenOther ? first(unseenOther.by) + ' changed this at ' + hhmm(unseenOther.at) + '; review ' + (pron[unseenOther.by] || 'the') + ' change first' : '';
+    const refuseOn = this.state.refuseKey === key && (!!this.state.refuseReason || !!unseenOther);
+    const refuse = { show: refuseOn, text: this.state.refuseReason || localRefuse, before: lastOther ? money(lastOther.before || c0.value) : '', after: lastOther ? money(lastOther.after || lastOther.text || '') : '',
+      ack: () => this.setState({ ack: { ...(this.state.ack || {}), [claimId]: lastOther ? lastOther.seq : 0 }, refuseKey: '', refuseReason: '', msg: 'Marked as reviewed. You can change the number now.', msgKey: key }) };
+
+    // ---- Every recorded action goes through emit (no "Recorded for this session"). Types are the shell's.
+    const TYPE = { adjust: 'adjustment', 'client-question': 'question_to_client', clear: 'cleared', prepared: 'prepared', 'review-note': 'review_note', 'send-back': 'sent_back', 'sign-off': 'signoff', 'partner-sign-off': 'signoff', 'quality-finding': 'qr_finding', 'client-answer': 'client_answer', carryover: 'carryover', evidence: 'attach', 'colleague-question': 'colleague_question', 'colleague-reply': 'colleague_question', undo: 'undo' };
+    const rec = (type, text, extra) => emit({ type: TYPE[type] || type, claimId, text, groupId: '', retracts: null, ident: claimId === 'theo-ssn', ...(extra || {}) });
+    const short = first(role);
+    const nowVal = curAdj && /^\$?[\d,]+$/.test(String(curAdj.after || '')) ? money(curAdj.after) : c0.value;
+    const lineKey = (c0.line || '').split(' · ')[0];
+
+    // Actions per role (ROLE-BRIEF table and FIX-ROUND-2/3 rules).
+    const A = (label, o) => ({ label, primary: false, off: false, reason: '', type: '', ...(o || {}) });
+    let acts = [], noAct = '', ruleNote = '';
+    const filedNote = 'As filed, locked: the return no longer changes. Evidence and questions attach to the filed record.';
+    if (lockedByClock) {
+      noAct = filedNote;
+    } else if (role === 'priya' || role === 'marcus') {
+      const lock = role === 'marcus' && c0.needsClearance;
+      acts = [A(c0.adjust, { primary: true, off: lock, reason: lock ? 'Needs sensitive-data clearance: typing the corrected number needs a reveal' : '', type: 'adjust' }), A('Ask the client', { type: 'client-question' }), A('Clear with a reason', { type: 'clear' }), A('Mark prepared', { type: 'prepared' })];
+      if (c0.partner) ruleNote = 'Firm rule: ' + RULE_PARTNER;
+    } else if (role === 'daniel') {
+      const own = c0.preparedBy === 'daniel';
+      const resolved = c0.signable || !!curAdj;
+      const ok = !own && resolved && !lateBlocks;
+      acts = [A('Leave a review note', { primary: true, type: 'review-note' }), A('Send back', { type: 'send-back' }), A('Sign off', { type: 'sign-off', off: !ok, reason: own ? 'A person may not review or sign off on work they prepared' : lateBlocks ? 'An answer arrived after the last computation; apply it or record why it changes nothing' : ok ? '' : 'Resolve this item first' })];
+      if (own) ruleNote = 'You prepared this (Form 4868, 14 Apr 2026). Firm rule: ' + RULE_SELF;
+    } else if (role === 'helen') {
+      acts = [A('Leave a review note', { primary: true, type: 'review-note' }), A('Send back', { type: 'send-back' })];
+      if (c0.partner) { const ok = reviewerCurrent && !lateBlocks; acts.push(A('Partner sign-off', { type: 'partner-sign-off', off: !ok, reason: lateBlocks ? 'An answer arrived after the last computation' : 'Waiting for reviewer sign-off' })); ruleNote = 'Tax effect over 1,000. Firm rule: ' + RULE_PARTNER; }
+      else ruleNote = 'Partner sign-off not required for this item: tax effect not over 1,000.';
+    } else if (role === 'sam') {
+      acts = [A('Leave a quality-review finding', { primary: true, type: 'quality-finding' })];
+    } else if (role === 'jo') {
+      acts = [A('Open the view log', { go: () => go('firm') })]; noAct = 'Return values are read only for you.';
+    } else if (isClient) {
+      const mine = to === 'both' || to === role;
+      const needsAns = !clientFiled && (c0.c.act === 'Answer' || c0.c.act === 'Upload');
+      // Signing the return (Form 8879 and FTB 8879, one step per spouse) is a whole-return action on Filing and after, not on one number.
+      acts = [A(clientFiled ? 'Ask your tax team' : c0.c.act, { primary: true, type: 'client-answer', off: needsAns && !mine, reason: needsAns && !mine ? 'This question is addressed to ' + first(spouse) : '' })];
+    } else if (role === 'next') {
+      acts = [A('Add to 2026 plan', { primary: true, type: 'carryover' })];
+    } else if (isIrs) {
+      acts = [A('Examination response', { primary: true })];
+    }
+    if (lateBlocks && (role === 'daniel' || role === 'helen')) ruleNote = (ruleNote ? ruleNote + ' ' : '') + 'Approval is blocked: an answer arrived after the last computation.';
+    // Event text is a predicate; the shell and this drawer put the actor's name in front at read time.
+    const VERB = { clear: 'cleared with a reason', prepared: 'marked as prepared', 'review-note': 'left a review note on', 'send-back': 'sent back', 'sign-off': 'signed off', 'partner-sign-off': 'gave partner sign-off on', 'quality-finding': 'left a quality-review finding on', carryover: 'added to the 2026 plan' };
+    const evText = (a) => {
+      if (a.type === 'adjust') {
+        if (claimId === 'theo-ssn') return 'corrected an identifier: Theo’s SSN now follows the 2024 return (' + lineKey + ')';
+        const m = /\$[\d,]+/.exec(a.label);
+        return m ? 'adjusted ' + lineKey + ' from ' + nowVal + ' to ' + m[0] + ' (' + c0.title + ')' : a.label.charAt(0).toLowerCase() + a.label.slice(1) + ' (' + lineKey + ', ' + c0.title + ')';
+      }
+      if (a.type === 'client-question') return 'asked ' + (to === 'both' ? 'Ngozi and Erik' : people[to]) + ' about ' + c0.c.title;
+      if (a.type === 'client-answer') return 'answered about ' + c0.c.title;
+      return (VERB[a.type] || a.label) + ' ' + lineKey + ' (' + c0.title + ')';
+    };
+    const PLAIN = { 'client-question': 'sent you a question about ' + c0.c.title.charAt(0).toLowerCase() + c0.c.title.slice(1), 'client-answer': 'sent an answer about ' + c0.c.title.charAt(0).toLowerCase() + c0.c.title.slice(1) };
+    // The shell's emit returns the new seq, or 0 when it refuses (an object { ok: false, reason } is accepted too).
+    const refused = (r) => {
+      if (!(r === 0 || r === false || (r && typeof r === 'object' && r.ok === false))) return false;
+      const why = (r && r.reason) || (isAfter ? 'As filed, locked: the filed record does not change' : lastOther ? first(lastOther.by) + ' changed this at ' + hhmm(lastOther.at) + '; review ' + (pron[lastOther.by] || 'the') + ' change first' : 'The workpaper refused this change');
+      this.setState({ refuseKey: key, refuseReason: why, msg: 'Not recorded: ' + why + '.', msgKey: key }); return true;
+    };
+    acts = acts.map(a => ({ label: a.label, reason: a.reason, ad: a.off ? 'true' : 'false', cls: a.off ? 'off' : (a.primary ? 'primary' : ''),
+      go: a.go || (() => {
+        if (a.off) { say('Not available: ' + a.reason + '.'); return; }
+        if (!a.type) { say('Mock: “' + a.label + '” would open here.'); return; }
+        if (a.type === 'adjust' && !shellEmit && unseenOther) { this.setState({ refuseKey: key, refuseReason: '', msg: 'Edit refused: ' + localRefuse + '.', msgKey: key }); return; }
+        const m = /\$([\d,]+)/.exec(a.label);
+        const extra = a.type === 'adjust' ? { before: nowVal.replace('$', ''), after: m ? m[1] : a.label, over1000: !!c0.partner }
+          : a.type === 'client-question' ? { to: to === 'both' ? ['ngozi', 'erik'] : [to], plain: PLAIN[a.type] }
+          : a.type === 'client-answer' ? { plain: PLAIN[a.type] } : a.type === 'partner-sign-off' ? { partner: true } : {};
+        if (refused(rec(a.type, evText(a), extra))) return;
+        say(isClient ? 'Sent to your tax team.' : 'Recorded as ' + roleNames[role] + '. Everyone it concerns is notified.');
+      }) }));
+
+    // ---- Attach evidence (U10): file, message or note, on every claim; staff and both clients. Not the examiner or Jo.
+    const canAttach = !isIrs && role !== 'jo';
+    const canAsk = STAFF.includes(role);
+    const attS = this.state.att && this.state.att.key === key ? this.state.att : { key, open: false, kind: 'msg', note: '', err: '' };
+    const setAtt = (o) => this.setState({ att: { ...attS, ...o, key } });
+    const attachedItems = new Set([].concat(...evs.filter(e => live(e) && isAttach(e)).map(e => e.itemIds)));
+    const offer = Object.entries(PK).filter(([id, x]) => x.claims[claimId] && x.at <= asOf).map(([id, x]) => {
+      const done = attachedItems.has(id);
+      return { label: isClient ? x.clientLabel : x.label, quote: x.claims[claimId], btn: done ? 'Attached' : 'Attach this', cls: done ? 'off' : '', ad: done ? 'true' : 'false',
+        go: () => { if (done) return; if (refused(rec('evidence', 'attached ' + x.label + ' as evidence for ' + lineKey + ' (' + c0.title + ')', { itemIds: [id], plain: 'added ' + x.clientLabel.charAt(0).toLowerCase() + x.clientLabel.slice(1) })) ) return; this.setState({ att: { ...attS, open: false, key }, msg: isClient ? 'Attached. Your tax team can see it now.' : 'Attached as evidence; it is now a cited source for this number.' + (isAfter ? ' It attaches to the filed record; the return does not change.' : ''), msgKey: key }); } };
+    });
+    const marcusWarn = 'Do not type SSNs, bank or account numbers or IP PINs here: notes are not masked, and you have no sensitive-data clearance.';
+    const kinds = [['msg', isClient ? 'A message' : 'Message or call note'], ['file', 'File'], ['note', 'Note']].map(([k, label]) => ({ label, on: attS.kind === k ? 'true' : 'false', cls: attS.kind === k ? 'primary' : '', go: () => setAtt({ kind: k, err: '' }) }));
+    const att = { open: !!attS.open && canAttach, sub: isAfter && !isClient ? 'Attaches to the filed record; the return does not change.' : isClient ? 'Your tax team sees what you attach.' : 'It becomes a cited source for this number; the packet is never edited.',
+      kinds, isMsg: attS.kind === 'msg', isFile: attS.kind === 'file', isNote: attS.kind === 'note', items: offer, noItems: offer.length === 0,
+      noItemsText: isClient ? 'None of your messages so far is about this number.' : 'No client message or call note in the packet relates to this number' + (LATE[claimId] && !late ? ' yet.' : '.'),
+      fileText: 'Simulated in this mock-up: the build stores the upload with who, when and a fingerprint of the file.',
+      pickFile: () => { if (refused(rec('evidence', 'attached a file as evidence for ' + lineKey + ' (' + c0.title + ')', { itemIds: [], plain: 'added a file' }))) return; this.setState({ att: { ...attS, open: false, key }, msg: isClient ? 'File sent to your tax team.' : 'File attached as evidence.', msgKey: key }); },
+      note: attS.note || '', setNote: (e) => setAtt({ note: e && e.target ? e.target.value : String(e || ''), err: '' }),
+      saveNote: () => {
+        const t = (attS.note || '').trim();
+        if (!t) { setAtt({ err: 'Write the note first.' }); return; }
+        if (IDLIKE.test(t)) { setAtt({ err: 'This looks like an identifier (an SSN, bank or account number). Notes are not masked; remove it before attaching.' }); return; }
+        if (refused(rec('evidence', 'attached a note to ' + lineKey + ': “' + t + '”', { itemIds: [], plain: 'added a note' }))) return;
+        this.setState({ att: { key, open: false, kind: 'msg', note: '', err: '' }, msg: isClient ? 'Note sent to your tax team.' : 'Note attached as evidence.', msgKey: key });
+      },
+      warn: role === 'marcus', warnText: marcusWarn, hasErr: !!attS.err, err: attS.err || '', close: () => setAtt({ open: false, err: '' }) };
+
+    // ---- Ask a colleague (U12): a thread on the claim, distinct from review notes; it does not block or sign anything.
+    const EX_THREAD = claimId === 'heat-pump' ? [
+      { by: 'priya', to: ['helen'], at: '2026-06-24T10:12', text: 'Before I record the heat pump as an improvement: do you read the invoice wording and the permit the same way?', ex: true },
+      { by: 'helen', to: ['priya'], at: '2026-06-24T11:40', text: 'Yes. Record it as an improvement and cite the authority you relied on.', ex: true }] : [];
+    const threadEv = evs.filter(e => live(e) && /colleague/i.test(e.type || ''));
+    const threadAll = [...EX_THREAD, ...threadEv];
+    const lastToMe = [...threadAll].reverse().find(t => t.to.includes(role) && t.by !== role);
+    const askS = this.state.ask && this.state.ask.key === key ? this.state.ask : { key, open: false, to: '', text: '', err: '' };
+    const setAsk = (o) => this.setState({ ask: { ...askS, ...o, key } });
+    const colleagues = STAFF.filter(k => k !== role).map(k => ({ key: k, name: roleNames[k] }));
+    const askTo = askS.to || (lastToMe ? lastToMe.by : (role === 'helen' ? 'daniel' : 'helen'));
+    const replying = !!lastToMe && askTo === lastToMe.by;
+    const ask = { open: !!askS.open && canAsk, title: replying ? 'Reply to ' + first(askTo) : 'Ask a colleague', to: askTo, colleagues, setTo: (e) => setAsk({ to: e && e.target ? e.target.value : String(e || ''), err: '' }),
+      text: askS.text || '', setText: (e) => setAsk({ text: e && e.target ? e.target.value : String(e || ''), err: '' }),
+      warn: role === 'marcus', warnText: marcusWarn, hasErr: !!askS.err, err: askS.err || '', sendLabel: replying ? 'Send reply' : 'Send question',
+      send: () => {
+        const t = (askS.text || '').trim();
+        if (!t) { setAsk({ err: 'Write the question first.' }); return; }
+        if (IDLIKE.test(t)) { setAsk({ err: 'This looks like an identifier. Questions are not masked; remove it before sending.' }); return; }
+        if (refused(rec(replying ? 'colleague-reply' : 'colleague-question', (replying ? 'replied to ' : 'asked ') + first(askTo) + ' about ' + lineKey + ': “' + t + '”', { to: [askTo] }))) return;
+        this.setState({ ask: { key, open: false, to: '', text: '', err: '' }, msg: 'Sent to ' + people[askTo] + '. It is not a review note: it does not block or sign anything.', msgKey: key });
+      },
+      close: () => setAsk({ open: false, err: '' }) };
+    if (canAttach) acts.push({ label: 'Attach evidence', reason: '', ad: 'false', cls: '', go: () => { setAtt({ open: !attS.open, err: '' }); } });
+    if (canAsk) acts.push({ label: 'Ask a colleague', reason: '', ad: 'false', cls: '', go: () => { setAsk({ open: !askS.open, err: '' }); } });
+
+    // ---- Undo the role's own last action on this claim (compensating event); refused once the record is locked.
+    const mineLast = evs.filter(e => e.by === role && live(e) && !/undo|clock|edit|signoff_stale/.test(e.type || '')).sort((a, b) => b.seq - a.seq)[0] || null;
+    const undo = { show: !!mineLast && !isIrs, label: mineLast ? (isAfter ? 'Undo is not available: as filed, locked' : 'Undo your last action') : '',
+      go: () => { if (!mineLast) return; if (isAfter && !isClient) { say('Undo refused: the filed record is locked. Attach a correction instead.'); return; } if (refused(rec('undo', 'undid: ' + mineLast.text, { retracts: mineLast.seq, plain: 'took back an earlier step' }))) return; say('Undone. The original stays in the history; a compensating event was recorded.'); } };
+
+    // ---- Rows for the live sections, worded per recipient at read time.
+    const exTag = (e) => !!(e.ex || e.example || e.tag === 'Example');
+    const nameOf = (e) => {
+      if (e.by === role) return isClient ? 'You' : people[role];
+      if (isClient && !['ngozi', 'erik'].includes(e.by)) return e.view && !SHORT[e.who] && e.who ? String(e.who) : 'Your tax team';
+      return e.whoName || people[e.by] || String(e.who || '');
+    };
+    const GEN = { question_to_client: 'sent you a question', client_answer: 'sent an answer', attach: 'added a document', undo: 'took back an earlier step' };
+    const clientSees = (e) => e.view || ['ngozi', 'erik'].includes(e.by) || e.to.includes(role);
+    const say1 = (e) => isClient ? (e.plain || e.clientText || (e.view && !SHORT[e.who] ? e.text : GEN[e.type] || 'updated this item')) : scrub(e.text);
+    const liveRows = evs.filter(e => !/colleague/i.test(e.type || '')).filter(e => isClient ? clientSees(e) : true).sort((a, b) => (a.seq || 0) - (b.seq || 0)).map(e => {
+      const undone = retracted.has(e.seq) || !!e.withdrawn;
+      const t0 = say1(e);
+      const t = /signoff_stale/.test(e.type || '') && e.to.length && !e.to.includes(role) ? t0.replace(/\byou\b/, SHORT[e.to[0]] || 'the signer') : t0;
+      const nm = /signoff_stale/.test(e.type || '') || e.who === 'Workpaper' ? '' : nameOf(e);
+      return { when: fmt(e.at), text: (!nm || t.startsWith(nm) ? t : nm + ' ' + t).replace(/\.?$/, '.'), word: undone ? 'Undone' : e.refused ? 'Refused' : '', cls: 'drw-t-mut', hasWord: undone || !!e.refused, ex: exTag(e) };
+    });
+    const evidence = evs.filter(e => live(e) && isAttach(e)).filter(e => isClient ? clientSees(e) : true).map(e => ({ when: fmt(e.at),
+      text: isClient ? ((e.itemIds[0] && PK[e.itemIds[0]]) ? PK[e.itemIds[0]].clientLabel : /a note/.test(e.text || e.plain || '') ? 'A note' : 'A file') + ', added by ' + (e.by === role ? 'you' : nameOf(e)) : nameOf(e) + ' ' + scrub(e.text), ex: exTag(e) }));
+    const thread = threadAll.map(t => ({ head: (people[t.by] || String(t.who || '')) + ' to ' + t.to.map(k => people[k] || k).join(', ') + ', ' + fmt(t.at), text: scrub(t.text), ex: exTag(t) }));
+    const lateBox = late ? { word: lateApplied ? 'Answer recorded' : 'Blocks approval', cls: lateApplied ? 'drw-t-acc' : 'drw-t-blk',
+      text: isClient ? 'We received ' + (late.from.split(' ')[0] === first(role) ? 'your' : late.from.split(' ')[0] + '’s') + ' message on ' + fmt(late.at).split(',')[0] + '. Your return has not been recalculated with it yet.'
+        : late.id + ' from ' + late.from + ' arrived ' + fmt(late.at) + '. The last computation is v3, 23 Jun 2026, 06:05; nothing has been recomputed since.' + (lateApplied ? ' Applied or recorded this session; recompute before approval.' : ' Approval is blocked until the answer is applied, or recorded as changing nothing.'),
+      quote: isClient ? '' : PK[late.id].claims[claimId] } : blankUi.late;
+    const uiVals = { refuse, att, ask, undo, signoffs: signRows.map(r => ({ word: r.word, cls: r.cls, text: r.text })), liveRows, evidence, thread, late: lateBox };
+    const liveS = { late: !!late && !isIrs && !clientFiled, signoffs: signRows.length > 0 && !isClient && !isIrs, live: liveRows.length > 0 && !isIrs, evidence: evidence.length > 0 && !isIrs, thread: thread.length > 0 && canAsk };
+
+    const links = (isClient || isIrs) ? [] : (c0.links || []).map(([label, id]) => ({ label, go: () => openClaim(id) }));
+    const fails = c0.fails.map(([word, t, text, ex]) => ({ word, cls: tcls[t], text, ex: !!ex }));
+    if (lateBlocks) fails.push({ word: 'Blocks approval', cls: 'drw-t-blk', text: 'Answer arrived after the last computation: ' + late.id + ' (' + fmt(late.at).split(',')[0] + ') came after v3 (23 Jun 2026, 06:05).', ex: false });
+    const checked = c0.checked.map(([type, who, ex]) => ({ type, who, ex }));
+    const S0 = { ...noS, acts: true, noAct: noAct !== '', ruleNote: ruleNote !== '', ...liveS };
+
+    if (isClient) {
+      // After acceptance the return is filed: no open question, no answer button (review 7, item 4).
+      const k = clientFiled ? { ...c0.c, act: 'Ask your tax team', need: 'Nothing needed from you: your return was filed on 14 Jul 2026.' } : c0.c;
+      const askedOf = (k.act === 'Answer' || k.act === 'Upload') ? (to === 'both' ? 'Asked of both of you.' : to === role ? 'Asked of you.' : 'Asked of ' + first(spouse) + '; ' + first(spouse) + ' answers from ' + (spouse === 'erik' ? 'his' : 'her') + ' own view.') : '';
+      const D = { ...blank, statusWord: late && !lateApplied && k.act !== 'Ask your tax team' ? 'Answer received, not yet applied' : k.act === 'Upload' ? 'Needs an upload' : k.act === 'Answer' ? 'Needs your answer' : 'For your information', statusCls: k.act === 'Ask your tax team' ? 'drw-t-mut' : 'drw-t-wrn',
+        title: k.title, value: k.value, why: k.why, docLbl: 'Your document', docRef: k.ref ?? ((c0.doc.match(/page \d+/) || ['page 1'])[0]), docTitle: k.docTitle, pre: k.pre || c0.pre, hl: k.hl || c0.hl, post: k.post || c0.post, need: k.need, askedOf, ids };
+      return { ...base, ...uiVals, has: true, D, S: { ...S0, page: true, ids: ids.length > 0, need: true, askedOf: askedOf !== '', signoffs: false, thread: false }, acts, noAct, ruleNote, msg, maskNote };
+    }
+
+    if (isAfter) {
+      const f = c0.f;
+      const D = { ...blank, statusWord: isIrs ? 'Under examination' : f.word, statusCls: 'drw-t-acc', line: c0.line, title: (isIrs && f.title) || c0.title,
+        value: f.value, valueEx: f.valueEx !== false, valueNote: f.valueNote || FILED, why: (isIrs && f.why) || c0.why, kind: c0.kind, conf: c0.conf,
+        docLbl: 'Source document', docRef: c0.doc, docTitle: c0.docTitle, field: (isIrs && c0.irsField) || c0.field, pos: c0.pos || '', pre: c0.pre, hl: c0.hl, post: c0.post, ids,
+        others: c0.others.map(text => ({ text })), built: (isIrs && f.built) || c0.built,
+        checked: [{ type: SIGNED, who: '', ex: true }],
+        history: f.history, historyEx: f.valueEx !== false, fails, links };
+      return { ...base, ...uiVals, has: true, D,
+        S: { ...S0, line: !isIrs, valueNote: true, kind: true, conf: !isIrs, page: true, field: true, pageNote: true, ids: ids.length > 0, others: !isIrs, built: true, fails: (role === 'sam' || lockedByClock) && fails.length > 0, checked: true, history: !isIrs, pos: !!c0.pos, links: links.length > 0, late: false },
+        acts, noAct, ruleNote: '', msg, maskNote, failsLbl: 'Checks raised at review', checkedLbl: 'Sign-offs', historyLbl: 'History' };
+    }
+
+    // Staff, before filing. A live adjustment from the event list shows as the current value.
+    const liveVal = curAdj && /^\$?[\d,]+$/.test(String(curAdj.after || '')) ? money(curAdj.after) : '';
+    const D = { ...blank, statusWord: lateBlocks ? 'Answer arrived after the last computation' : late && lateApplied ? 'Answer recorded, recompute pending' : c0.word, statusCls: lateBlocks ? 'drw-t-blk' : tcls[c0.st], line: c0.line, title: c0.title,
+      value: liveVal || c0.value, valueNote: liveVal ? 'Adjusted by ' + (people[curAdj.by] || curAdj.who) + ' at ' + fmt(curAdj.at) + '; engine v3: ' + c0.value : '', why: c0.why, kind: c0.kind, conf: c0.conf,
+      docLbl: 'Source document', docRef: c0.doc, docTitle: c0.docTitle, field: c0.field, pos: c0.pos || '', pre: c0.pre, hl: c0.hl, post: c0.post, ids,
+      identity: c0.identity || '', others: c0.others.map(text => ({ text })), built: c0.built, fails, checked, needed: c0.needed,
+      history: c0.history, historyEx: false, effect: c0.effect, effectEx: !!c0.effectEx, effectNote: c0.effectNote || (c0.partner ? 'Over 1,000: partner sign-off required.' : ''), links };
+    return { ...base, ...uiVals, has: true, D,
+      S: { ...S0, line: true, valueNote: !!liveVal, kind: true, conf: true, page: true, field: true, pos: !!c0.pos, pageNote: true, ids: ids.length > 0, identity: !!c0.identity, others: c0.others.length > 0, built: true, fails: fails.length > 0, checked: true, needed: true, history: true, effect: true, links: links.length > 0 },
+      acts, noAct, ruleNote, msg, maskNote, failsLbl: c0.failsEx ? 'Checks and the recorded decision' : 'Checks it fails' };
+  }
+}
+</script>
+</body>
+</html>

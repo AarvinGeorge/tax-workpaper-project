@@ -1,0 +1,543 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Checks inbox</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Instrument+Sans:wght@400;500;600;700&amp;family=Source+Serif+4:opsz,wght@8..60,400;8..60,600&amp;family=IBM+Plex+Mono:wght@400;500&amp;display=swap" rel="stylesheet">
+<style>
+.wp{--bg:oklch(0.975 0.005 250);--surface:oklch(0.995 0.003 250);--sunk:oklch(0.955 0.006 250);--line:oklch(0.89 0.008 250);--ink:oklch(0.24 0.02 255);--ink2:oklch(0.44 0.02 255);--acc:oklch(0.46 0.15 262);--accsoft:oklch(0.94 0.035 262);--blk:oklch(0.50 0.17 32);--blksoft:oklch(0.955 0.03 32);--wrn:oklch(0.48 0.10 70);--wrnsoft:oklch(0.96 0.045 85);--pas:oklch(0.47 0.09 165);--passoft:oklch(0.955 0.03 165);--hl:oklch(0.91 0.13 100);--paper:oklch(0.99 0.006 90)}
+.wp.dark{--bg:oklch(0.19 0.012 255);--surface:oklch(0.23 0.014 255);--sunk:oklch(0.17 0.012 255);--line:oklch(0.33 0.015 255);--ink:oklch(0.93 0.008 255);--ink2:oklch(0.74 0.012 255);--acc:oklch(0.76 0.11 262);--accsoft:oklch(0.30 0.05 262);--blk:oklch(0.74 0.13 35);--blksoft:oklch(0.28 0.05 32);--wrn:oklch(0.80 0.11 80);--wrnsoft:oklch(0.29 0.04 85);--pas:oklch(0.76 0.09 165);--passoft:oklch(0.27 0.04 165);--hl:oklch(0.55 0.10 100);--paper:oklch(0.26 0.01 90)}
+.wp{font-family:'Instrument Sans',system-ui,sans-serif;color:var(--ink);background:var(--bg);font-size:14px;line-height:1.45;min-height:100vh;display:flex;flex-direction:column}
+.chk-num{font-variant-numeric:tabular-nums;font-feature-settings:"tnum"}
+.chk-mono{font-family:'IBM Plex Mono',monospace;font-size:12px}
+.chk-btn{font:inherit;font-size:13px;border:1px solid var(--line);background:var(--surface);color:var(--ink);border-radius:8px;padding:7px 12px;cursor:pointer;min-height:36px}
+.chk-btn:hover{border-color:var(--ink2)}
+.chk-btn.primary{background:var(--acc);border-color:var(--acc);color:var(--surface)}
+.chk-btn:disabled,.chk-btn:disabled:hover{background:var(--sunk);border-color:var(--line);color:var(--ink2);cursor:not-allowed}
+.chk-btn:focus-visible,.chk-open:focus-visible,.chk-amt:focus-visible,.chk-wrap input:focus-visible{outline:2px solid var(--acc);outline-offset:2px}
+.chk-tag{display:inline-flex;align-items:center;font-size:11.5px;font-weight:600;padding:2px 8px;border-radius:999px;white-space:nowrap;justify-self:start}
+.chk-t-blk{color:var(--blk);background:var(--blksoft)}.chk-t-wrn{color:var(--wrn);background:var(--wrnsoft)}.chk-t-pas{color:var(--pas);background:var(--passoft)}.chk-t-acc{color:var(--acc);background:var(--accsoft)}.chk-t-neu{color:var(--ink2);background:var(--sunk)}
+.chk-ex{font-size:10.5px;font-weight:600;letter-spacing:.03em;padding:1px 6px;border-radius:999px;border:1px dashed var(--ink2);color:var(--ink2);white-space:nowrap;vertical-align:1px}
+.chk-lbl{font-size:11.5px;font-weight:600;letter-spacing:.04em;text-transform:uppercase;color:var(--ink2)}
+.chk-doc{font-family:'Source Serif 4',Georgia,serif;font-size:15px;line-height:1.65;background:var(--paper);border:1px solid var(--line);border-radius:6px;padding:14px 18px;color:var(--ink)}
+.chk-doc mark{background:var(--hl);color:inherit;padding:1px 2px;border-radius:2px;box-shadow:0 0 0 2px var(--hl)}
+.chk-row{box-sizing:border-box;display:grid;grid-template-columns:24px 104px minmax(0,1fr) 128px 150px 72px;gap:12px;align-items:center;width:100%;padding:10px 16px;border-bottom:1px solid var(--line)}
+.chk-row.on{background:var(--accsoft)}
+.chk-head{font-size:11.5px;font-weight:600;color:var(--ink2);text-transform:uppercase;letter-spacing:.04em;background:var(--bg)}
+.chk-grp{padding:10px 16px 6px;border-bottom:1px solid var(--line);background:var(--bg);display:flex;gap:8px;align-items:center}
+.chk-open{all:unset;box-sizing:border-box;display:flex;flex-direction:column;min-width:0;cursor:pointer;border-radius:6px}
+.chk-open:hover .chk-title{text-decoration:underline;text-underline-offset:2px}
+.chk-amt{all:unset;cursor:pointer;color:var(--acc);text-decoration:underline;text-underline-offset:2px;text-align:right;font-variant-numeric:tabular-nums;border-radius:4px}
+.chk-peek{padding:14px 16px 16px 52px;border-bottom:1px solid var(--line);background:var(--surface);display:flex;flex-direction:column;gap:12px}
+.chk-tbl{display:grid;grid-template-columns:minmax(120px,1.1fr) minmax(90px,.8fr) minmax(0,2fr) 96px;border:1px solid var(--line);border-radius:8px;overflow:hidden;font-size:13px}
+.chk-tbl > span{padding:8px 10px;border-bottom:1px solid var(--line)}
+.chk-th{font-size:11.5px;font-weight:600;letter-spacing:.04em;text-transform:uppercase;color:var(--ink2);background:var(--sunk)}
+.chk-box{display:flex;flex-wrap:wrap;align-items:center;gap:10px;padding:10px 12px;border:1px solid var(--line);border-radius:8px}
+.chk-toast{margin:16px;align-self:flex-start;display:flex;align-items:center;gap:12px;padding:10px 14px;border-radius:10px;background:var(--ink);color:var(--bg);font-size:13px}
+.chk-wrap input[type=checkbox]{width:16px;height:16px;accent-color:var(--acc)}
+.chk-since{font-size:12.5px;color:var(--acc);margin-top:2px}
+.chk-refuse{border-color:var(--wrn);background:var(--wrnsoft)}
+@media (max-width:760px){.chk-row{grid-template-columns:24px minmax(0,1fr) auto}.chk-row .chk-c-eff,.chk-row .chk-c-own{display:none}.chk-row .chk-c-st{grid-column:2}.chk-peek{padding-left:16px}.chk-tbl{grid-template-columns:minmax(0,1fr) minmax(0,1fr)}}
+</style>
+</helmet>
+<div class="{{wpClass}}">
+<section class="chk-wrap" aria-label="Checks" style="display:flex;flex-direction:column;min-width:0;flex:1">
+
+<div style="display:flex;flex-wrap:wrap;align-items:center;gap:10px 12px;padding:14px 16px;border-bottom:1px solid var(--line);background:var(--surface)">
+<h1 style="margin:0;font-size:18px;font-weight:600">{{heading}}</h1>
+<span class="chk-tag chk-t-neu">{{asOfLabel}}</span>
+<sc-for list="{{chips}}" as="c" hint-placeholder-count="3"><span class="chk-tag {{c.cls}}">{{c.text}}</span></sc-for>
+<sc-if value="{{showKeys}}" hint-placeholder-val="{{ true }}">
+<span style="margin-left:auto;font-size:12px;color:var(--ink2)">Select rows to act on many at once; every bulk action can be undone.</span>
+</sc-if>
+</div>
+
+<sc-if value="{{showTopBar}}" hint-placeholder-val="{{ true }}">
+<div style="display:flex;flex-wrap:wrap;align-items:center;gap:10px;padding:10px 16px;border-bottom:1px solid var(--line);background:var(--sunk);font-size:13px">
+<span style="flex:1 1 320px;color:var(--ink2)">{{topNote}}</span>
+<sc-for list="{{topBtns}}" as="b" hint-placeholder-count="1"><button class="chk-btn {{b.cls}}" type="button" disabled="{{b.dis}}" onClick="{{b.run}}">{{b.label}}</button></sc-for>
+</div>
+</sc-if>
+
+<sc-if value="{{showBulk}}" hint-placeholder-val="{{ false }}">
+<div role="toolbar" aria-label="Bulk actions" style="display:flex;flex-wrap:wrap;align-items:center;gap:8px;padding:8px 16px;border-bottom:1px solid var(--line);background:var(--accsoft)">
+<strong class="chk-num" style="font-size:13px">{{checkedCount}} selected</strong>
+<sc-for list="{{bulk}}" as="b" hint-placeholder-count="2"><button class="chk-btn {{b.cls}}" type="button" style="min-height:30px;padding:4px 10px" onClick="{{b.run}}">{{b.label}}</button></sc-for>
+<button class="chk-btn" type="button" style="min-height:30px;padding:4px 10px;margin-left:auto" onClick="{{clearSel}}">Clear</button>
+</div>
+</sc-if>
+
+<sc-if value="{{showQueue}}" hint-placeholder-val="{{ true }}">
+<div class="chk-row chk-head"><span></span><span class="chk-c-st">Status</span><span>{{colWhat}}</span><span style="text-align:right">Amount</span><span class="chk-c-eff">{{colEff}}</span><span class="chk-c-own">{{colOwn}}</span></div>
+<sc-for list="{{items}}" as="it" hint-placeholder-count="8">
+<sc-if value="{{it.grpShow}}" hint-placeholder-val="{{ false }}">
+<div class="chk-grp"><span class="chk-lbl">{{it.grp}}</span><sc-if value="{{it.grpEx}}" hint-placeholder-val="{{ false }}"><span class="chk-ex">Example</span></sc-if></div>
+</sc-if>
+<div class="chk-row {{it.on}}">
+<span><sc-if value="{{it.canCheck}}" hint-placeholder-val="{{ false }}"><input type="checkbox" checked="{{it.checked}}" onChange="{{it.toggle}}" aria-label="Select {{it.title}}"></sc-if></span>
+<span class="chk-tag chk-c-st {{it.tcls}}" title="{{it.tdef}}">{{it.tword}}</span>
+<button class="chk-open" type="button" aria-expanded="{{it.expanded}}" onClick="{{it.pick}}"><span class="chk-title" style="font-weight:500">{{it.title}} <sc-if value="{{it.ex}}" hint-placeholder-val="{{ false }}"><span class="chk-ex">Example</span></sc-if></span><span class="chk-mono" style="color:var(--ink2)">{{it.line}}</span><sc-if value="{{it.hasSince}}" hint-placeholder-val="{{ false }}"><span class="chk-since">{{it.since}}</span></sc-if></button>
+<sc-if value="{{it.hasClaim}}" hint-placeholder-val="{{ true }}"><button class="chk-amt" type="button" aria-label="Where {{it.value}} came from" onClick="{{it.openIt}}">{{it.value}}</button></sc-if>
+<sc-if value="{{it.noClaim}}" hint-placeholder-val="{{ false }}"><span class="chk-num" style="text-align:right">{{it.value}}</span></sc-if>
+<span class="chk-num chk-c-eff" style="color:var(--ink2);font-size:12.5px">{{it.effect}}</span>
+<span class="chk-c-own" style="color:var(--ink2);font-size:12.5px">{{it.owner}}</span>
+</div>
+<sc-if value="{{it.open}}" hint-placeholder-val="{{ false }}">
+<div class="chk-peek" role="region" aria-label="{{it.title}}">
+<p style="margin:0;max-width:78ch">{{it.why}}</p>
+<sc-if value="{{it.refused}}" hint-placeholder-val="{{ false }}">
+<div class="chk-box chk-refuse" role="alert"><strong style="flex:1 1 100%">{{it.refuseText}}</strong><span class="chk-num">{{it.refuseDiff}}</span><button class="chk-btn" type="button" style="min-height:30px;padding:4px 10px;margin-left:auto" onClick="{{it.openIt}}">Review the change</button></div>
+</sc-if>
+<sc-if value="{{it.hasLatest}}" hint-placeholder-val="{{ false }}">
+<p style="margin:0;font-size:13px"><span class="chk-lbl">Latest</span> {{it.latest}}</p>
+</sc-if>
+<sc-if value="{{it.hasDoc}}" hint-placeholder-val="{{ true }}">
+<div class="chk-doc"><span class="chk-mono" style="display:block;color:var(--ink2);margin-bottom:6px">{{it.doc}}</span>{{it.pre}}<mark>{{it.hl}}</mark>{{it.post}}</div>
+</sc-if>
+<sc-if value="{{it.hasTie}}" hint-placeholder-val="{{ false }}">
+<div class="chk-tbl" role="table" aria-label="{{it.title}}">
+<span class="chk-th" role="columnheader">{{it.tieH1}}</span><span class="chk-th" role="columnheader">On the return</span><span class="chk-th" role="columnheader">Compared to</span><span class="chk-th" role="columnheader">Result</span>
+<sc-for list="{{it.tie}}" as="r" hint-placeholder-count="4">
+<span role="cell">{{r.a}}</span>
+<span role="cell" class="chk-num"><sc-if value="{{r.hasClaim}}" hint-placeholder-val="{{ false }}"><button class="chk-amt" type="button" onClick="{{r.openIt}}">{{r.b}}</button></sc-if><sc-if value="{{r.noClaim}}" hint-placeholder-val="{{ true }}"><span class="chk-mono">{{r.b}}</span></sc-if></span>
+<span role="cell" style="color:var(--ink2)">{{r.c}}</span>
+<span role="cell"><span class="chk-tag {{r.cls}}">{{r.word}}</span></span>
+</sc-for>
+</div>
+<span style="font-size:12.5px;color:var(--ink2)">{{it.tieNote}}</span>
+</sc-if>
+<sc-if value="{{it.hasChk}}" hint-placeholder-val="{{ false }}">
+<p style="margin:0;font-size:13px"><span class="chk-lbl">Who checked</span> {{it.chk}} <span class="chk-ex">Example</span></p>
+</sc-if>
+<sc-if value="{{it.hasHist}}" hint-placeholder-val="{{ false }}">
+<div style="display:flex;flex-direction:column;gap:4px;padding:10px 12px;border:1px solid var(--line);border-radius:8px;font-size:13px"><span class="chk-lbl">How it was built</span><span>{{it.built}}</span><span class="chk-lbl" style="margin-top:6px">Sign-offs and history <span class="chk-ex">Example</span></span><span>{{it.hist}}</span></div>
+</sc-if>
+<sc-if value="{{it.mask}}" hint-placeholder-val="{{ false }}">
+<div class="chk-box">
+<span>Theo’s SSN on the return <span class="chk-mono chk-num">XXX-XX-3309</span></span>
+<span>{{theoCmp}} <span class="chk-mono chk-num">XXX-XX-3390</span></span>
+<span class="chk-tag chk-t-neu">{{maskWord}}</span>
+<button class="chk-btn" type="button" style="min-height:30px;padding:4px 10px" disabled="{{revealDis}}" onClick="{{doReveal}}">{{revealLabel}}</button>
+<span style="font-size:12.5px;color:var(--ink2);flex:1 1 260px">{{revealNote}}</span>
+</div>
+</sc-if>
+<div style="display:flex;flex-wrap:wrap;gap:8px;align-items:center">
+<sc-for list="{{it.acts}}" as="a" hint-placeholder-count="3"><button class="chk-btn {{a.cls}}" type="button" disabled="{{a.dis}}" onClick="{{a.run}}">{{a.label}}</button></sc-for>
+<sc-if value="{{it.hasClaim}}" hint-placeholder-val="{{ true }}"><button class="chk-btn" type="button" style="margin-left:auto" onClick="{{it.openIt}}">Show where it came from</button></sc-if>
+</div>
+<sc-if value="{{it.hasReason}}" hint-placeholder-val="{{ false }}"><p style="margin:0;font-size:12.5px;color:var(--ink2)">{{it.reason}}</p></sc-if>
+</div>
+</sc-if>
+</sc-for>
+</sc-if>
+
+<sc-if value="{{showAway}}" hint-placeholder-val="{{ false }}">
+<div style="padding:28px 16px;display:flex;flex-direction:column;gap:12px;align-items:flex-start;max-width:60ch">
+<p style="margin:0">{{awayText}}</p>
+<button class="chk-btn primary" type="button" onClick="{{awayGo}}">{{awayBtn}}</button>
+</div>
+</sc-if>
+
+<sc-if value="{{showToast}}" hint-placeholder-val="{{ false }}">
+<div class="chk-toast" role="status">{{toastMsg}} <button class="chk-btn" type="button" style="min-height:30px;padding:4px 10px" onClick="{{undo}}">Undo</button></div>
+</sc-if>
+</section>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"role":{"editor":"enum","options":["priya","marcus","daniel","helen","sam","jo","ngozi","erik","next","irs"],"default":"daniel"},"dark":{"editor":"boolean","default":false},"openClaim":{"editor":null},"go":{"editor":null},"claimId":{"editor":null,"default":""},"revealed":{"editor":null},"reveal":{"editor":null},"revealLog":{"editor":null},"asOf":{"editor":null,"default":""},"asOfLabel":{"editor":null,"default":""},"storyAt":{"editor":null,"default":""},"events":{"editor":null},"emit":{"editor":null},"lastSeen":{"editor":null},"blockers":{"editor":null},"stage":{"editor":null,"default":""},"spouseOf":{"editor":null},"$preview":{"width":1100,"height":900}}'>
+class Component extends DCLogic {
+  constructor(p){ super(p); this.state = { sel: null, checked: [], toast: null, lastGroup: null, refused: {}, localEv: [] }; }
+  renderVals() {
+    const P = this.props || {};
+    const S = this.state || {};
+    const noop = () => {};
+    const ROLES = ['priya','marcus','daniel','helen','sam','jo','ngozi','erik','next','irs'];
+    const role = ROLES.indexOf(P.role) >= 0 ? P.role : 'daniel';
+    const openClaim = typeof P.openClaim === 'function' ? P.openClaim : noop;
+    const go = typeof P.go === 'function' ? P.go : noop;
+    const reveal = typeof P.reveal === 'function' ? P.reveal : noop;
+    const revealed = Array.isArray(P.revealed) ? P.revealed : [];
+    const claimId = typeof P.claimId === 'string' ? P.claimId : '';
+    const NAME = { priya:'Priya Raman', marcus:'Marcus Bell', daniel:'Daniel Ortiz', helen:'Helen Strand', sam:'Sam Adeyemi', jo:'Jo Kimura', ngozi:'Ngozi Okafor', erik:'Erik Lindqvist', next:'Next year’s preparer', irs:'IRS examiner' };
+    // One story clock per workspace (H3 A). The shell passes asOf = storyAt; these defaults let the file render alone.
+    const AS_OF = { sam:'2027-01-15T15:00', next:'2027-01-15T15:00', irs:'2028-01-26T15:00' };
+    const asOf = (typeof P.asOf === 'string' && P.asOf) ? P.asOf : (typeof P.storyAt === 'string' && P.storyAt) ? P.storyAt : (AS_OF[role] || '2026-06-23T06:05');
+    const at16 = asOf.slice(0, 16);
+    // Timeline: tl-23 federal acceptance 2026-07-14T16:22; Sam active_from 2027-01-04; tl-28 2027-01-15T15:00; tl-29 2028-01-26.
+    // Stage comes from the shell (H3b decision 4); alone, it derives from the full story timestamp.
+    const filed = typeof P.stage === 'string' && P.stage ? P.stage === 'Filed' : at16 >= '2026-07-14T16:22';
+    const asOfLabel = typeof P.asOfLabel === 'string' && P.asOfLabel ? P.asOfLabel : (filed ? 'Filed' : 'As of 23 Jun 2026, v3');
+    const RULE_SELF = 'A person may not review or sign off on work they prepared.';
+    const RULE_PARTNER = 'Any adjustment with a tax effect over 1,000 (federal or state) requires partner sign-off.';
+    const RULE_NOTES = 'Open review notes block filing.';
+    const RULE_MASK = 'Staff without sensitive-data clearance see SSNs, bank and account numbers and IP PINs masked; every unmasked view is logged.';
+    const MON = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+    const fmt = (t) => { const m = /^(\d{4})-(\d{2})-(\d{2})T(\d{2}:\d{2})/.exec(String(t || '')); return m ? (+m[3]) + ' ' + MON[+m[2] - 1] + ' ' + m[1] + ', ' + m[4] : String(t || ''); };
+    const hhmm = (t) => { const m = /T(\d{2}:\d{2})/.exec(String(t || '')); return m ? m[1] : ''; };
+
+    // ---- The event list (H3 B). The shell owns it; alone, this file keeps a local list so every action still shows.
+    const shell = typeof P.emit === 'function';
+    // The actor is a role key (H3b decision 2): `by` when a view renamed `who`, else `who`; a display name maps back to its key.
+    const KEYOF = {}; Object.keys(NAME).forEach(k => { KEYOF[NAME[k]] = k; KEYOF[NAME[k].split(' ')[0]] = k; });
+    const actorKey = (e) => ROLES.indexOf(e.by) >= 0 ? e.by : ROLES.indexOf(e.who) >= 0 ? e.who : (KEYOF[e.who] || KEYOF[e.whoName] || e.by || e.who || '');
+    const EV = (Array.isArray(P.events) ? P.events : []).concat(shell ? [] : (S.localEv || [])).filter(e => e && typeof e === 'object')
+      .map(e => Object.assign({}, e, { who: actorKey(e), whoName: e.whoName || NAME[actorKey(e)] || String(e.who || 'The workpaper') }));
+    const retracted = new Set(EV.filter(e => e.retracts != null).map(e => e.retracts));
+    const live = EV.filter(e => e.retracts == null && !retracted.has(e.seq));
+    const LS = P.lastSeen && typeof P.lastSeen === 'object' ? P.lastSeen : {};
+    const replayMax = EV.filter(e => e.replayed).reduce((m, e) => Math.max(m, +e.seq || 0), 0);
+    const seen = typeof LS[role] === 'number' ? LS[role] : replayMax;
+    const emit = (e) => {
+      const ev = Object.assign({ who: role, at: asOf, type: 'note', claimId: '', itemId: '', itemIds: [], groupId: '', retracts: null, text: '', screen: 'checks' }, e);
+      if (shell) P.emit(ev);
+      else this.setState(s => { const L = s.localEv || []; const seq = EV.concat(L).reduce((m, x) => Math.max(m, +x.seq || 0), 0) + 1; return { localEv: L.concat([Object.assign({}, ev, { seq })]) }; });
+    };
+    let gseq = 0;
+    const newGroup = () => 'chk-' + role + '-' + asOf + '-' + EV.length + '-' + (++gseq);
+    const touches = (e, d) => (e.itemId && e.itemId === d.id) || (Array.isArray(e.itemIds) && e.itemIds.indexOf(d.id) >= 0) || (!!e.claimId && !!d.claim && e.claimId === d.claim);
+    // Per-recipient wording at read time: Marcus never sees identifier digits; the two signature PINs are never shown.
+    const IDCLAIMS = ['theo-ssn', 'id-tie'];
+    // Marcus: no digits of any identifier, including "ends 3390" (H3b decision 5).
+    const IDTXT = /SSN|Social Security|XXX-XX|\d{3}-\d{2}-\d{4}|\b(identifier|card|ends|ending|last four|last 4|account|PIN)\b[^.;]{0,30}\b\d{3,4}\b/i;
+    const scrubbed = (e) => role === 'marcus' && (IDCLAIMS.indexOf(e.claimId) >= 0 || IDCLAIMS.indexOf(e.itemId) >= 0 || IDTXT.test(String(e.text || '')));
+    const say = (e) => scrubbed(e) ? 'an identifier was corrected' : String(e.text || '').replace(/\bPINs?\b[^.;]*/gi, 'signature PINs (not shown)');
+    // The actor's name is shown once, here, never inside the event text.
+    const shown = (e) => (e.whoName || NAME[e.who] || 'The workpaper') + (scrubbed(e) ? ': ' : ' ') + say(e);
+    const CHANGE = ['adjustment', 'value_changed', 'edit'];
+
+    // ---- Item definitions. Facts verified against the packet (probes r_probe1..6.py, h3_r_1..3.py) and the ledger.
+    // Document quotes are printed_content verbatim; a cut is marked with an ellipsis.
+    const afterCard = at16 >= '2026-07-13T19:02';
+    const D = {
+      'ca-est': { t:'blk', title:'California estimates include a 2024 payment', line:'F540NR.72', value:'$14,000', claim:'ca-est', effect:'CA refund −$3,500', owner:'priya', partner:true,
+        why:'Four payments of 3,500 were added to 2025. The confirmation marks the 15 Sep 2025 payment as tax year 2024, and the FTB holds it as a 2024 credit.',
+        doc:'D68 · FTB Web Pay confirmations · page 1', pre:'FTB Web Pay confirmations: 2025-01-15 3,000.00 tax year 2024 (estimated payment); 2025-03-28 1,240.00 tax year 2024 (balance due); 2025-04-15 3,500.00 tax year 2025 (estimated payment); 2025-06-16 3,500.00 tax year 2025 (estimated payment); ', hl:'2025-09-15 3,500.00 tax year 2024 (estimated payment)', post:'; 2026-01-15 3,500.00 tax year 2025 (estimated payment).', fix:'Adjust to $10,500', from:'14,000', to:'10,500' },
+      'atlas': { t:'blk', title:'Card sales counted twice in business income', line:'SchC.1', value:'$163,700', claim:'atlas', effect:'Fed −$4,402 (est., Example)', owner:'priya', partner:true,
+        why:'The books already include the 12,400 Atlas paid by card through Paywell; the Form 1099-K was added again.',
+        doc:'D15 · Lindqvist Studio (QuickBooks Online) transaction detail · page 3', pre:'Deposits detail: Atlas Outdoor Gear paid 41,200.00 in 2025, ', hl:'of which 12,400.00 arrived through Paywell Payments card processing', post:' (deposited gross; processing fees booked to Bank and merchant fees) and 28,800.00 by ACH. …', fix:'Adjust to $151,300', from:'163,700', to:'151,300' },
+      'rsu': { t:'blk', title:'RSU shares sold with a zero cost basis', line:'F8949.B.N1 and 2 more lots', value:'$0 basis', claim:'rsu', effect:'Fed −$15,536 (est., Example)', owner:'priya', partner:true,
+        why:'A blank basis on the broker form was read as zero. The stock plan statement gives the real basis, so the same income is taxed twice.',
+        doc:'D11 · Corvane stock plan supplemental tax statement · page 2', pre:'Lot RSU-2502: 400 sh acquired 02/15/2025 (vest FMV 47.75) ', hl:'adjusted basis 19,100.00', post:', sold 02/18/2025. …', fix:'Use the statement basis', from:'0 basis', to:'19,100 basis' },
+      'theo-ssn': { t:'blk', title:'Theo’s SSN differs from his 2024 return', line:'Dependent 2 SSN', value:'Mismatch', claim:'theo-ssn', effect:'E-file rejects', owner:'priya', mask:true,
+        why:'The number typed in the organizer ends 3309; the 2024 return ends 3390. Compared without revealing the full number.' + (afterCard ? ' The IRS rejected the e-file on 13 Jul 2026 (tl-21); his card arrived the same day and ends 3390.' : ''),
+        doc:'D06 · 2024 Form 1040 as filed · page 1', pre:'… Dependents: Ada Lindqvist-Okafor SSN XXX-XX-1106; Theo Lindqvist-Okafor SSN ', hl:'XXX-XX-3390', post:'. …', fix:'Use the number on the 2024 return', from:'ending 3309', to:'ending 3390' },
+      'heat-pump': { t:'wrn', title:'Heat pump replacement deducted as a repair', line:'SchE.14A', value:'$13,300', claim:'heat-pump', effect:'Fed +$3,633', owner:'priya', partner:true,
+        why:'A new system replacing the furnace is an improvement to depreciate, not a repair. A judgment call: firm rule “Every judgment call records the authority relied on.”',
+        doc:'D47 · Delta Breeze Heating & Air invoice · page 1', pre:'Invoice 5521 dated 08/12/2025. Removed failed 2004 gas furnace and 3-ton AC condenser. ', hl:'Installed new 3-ton heat pump system', post:' with air handler, new line set and thermostat. Total 11,000.00. 10-year parts warranty. Permit #B25-31877.', fix:'Record as improvement', from:'13,300 repairs', to:'2,300 repairs' },
+      'ca-wages': { t:'fnd', title:'California wages include Halvorsen pay earned after the move to Texas', line:'SchCA540NR.1.E', value:'$218,400', claim:'ca-wages', effect:'CA −$5,685 (estimate, Example)', owner:'priya', partnerIf:true,
+        why:'California taxes wages earned while a resident, to 14 Jul 2025. Halvorsen’s box 16 is the whole year’s pay because its payroll kept California as the work state; the 15 Jul paystub (D73) prints “CA taxable wages 22,469.00” at the move. Corvane 107,100 plus Halvorsen 22,469 is 129,569, not 218,400. The client told us too: “Ngozi’s new employer kept withholding California tax until September by mistake.” (qa-45). If adjusted, the tax effect is over 1,000, so partner sign-off applies.',
+        doc:'D09 · Halvorsen Data LLC Form W-2 · page 1', pre:'Form W-2 2025. Employer Halvorsen Data LLC, EIN 74-2290518, 300 Colorado St, Austin TX. … Box 15 CA; ', hl:'Box 16 111,300.00', post:'; Box 17 4,180.00. (Employment began 06/02/2025. Employer payroll kept California as the work state through 09/30/2025.)', fix:'Adjust to $129,569', from:'218,400', to:'129,569' },
+      'salt-d02': { t:'fnd', title:'Home property tax includes the seller’s share credited at closing', line:'SchA.5b', value:'$13,420', claim:'salt-d02', effect:'Fed +$1,462, CA +$332 (estimate, Example)', owner:'priya', partnerIf:true,
+        why:'The house was bought on 8 Jul 2025. At closing the seller credited 6,912 for the county tax from 1 Jan to 7 Jul; the escrow then paid the whole 13,420 bill (D58). Only the buyers’ share, 6,508, is their deduction. State and local taxes fall from 41,290 to 34,378, under the 40,000 cap, so the deduction falls by 5,622. If adjusted, the tax effect is over 1,000, so partner sign-off applies.',
+        doc:'D54 · Hill Country Title Co. closing statement · page 1', pre:'Settlement date 07/08/2025. Purchase price 685,000.00. … ', hl:'Seller credit for 2025 county taxes 01/01/2025-07/07/2025: 6,912.00', post:'. Prepaid interest 07/08-07/31: 2,374.30.', fix:'Adjust to $6,508', from:'13,420', to:'6,508' },
+      'crypto-c6': { t:'blk', late:'msg-07', at:'2026-06-30T18:02', title:'Answer arrived after the last computation: crypto lot C6 basis', line:'F8949.H.C6', value:'$0 basis', claim:'crypto-c6', effect:'Not recomputed', owner:'priya',
+        why:'Erik’s message msg-07 arrived on 30 Jun 2026, 18:02, after v3 (23 Jun 2026, 06:05). v3 still sells BTC 0.05 with basis 0.00. Approval is blocked until the answer is applied, or recorded as changing nothing.',
+        doc:'msg-07 · Erik Lindqvist · 30 Jun 2026', pre:'', hl:'About the crypto lot with no cost: that BTC was bought on another exchange in March 2021 for about 3,050 and moved to Coinhaven in June.', post:' That exchange shut down so I only have a bank statement line showing 3,050 to \'CryptoNorth\' on 03/15/2021.', fix:'Apply the answer' },
+      'gift-brigid': { t:'blk', late:'msg-08', at:'2026-07-01T16:40', title:'Answer arrived after the last computation: St. Brigid gift', line:'SchA.11', value:'$1,500', claim:'gift-brigid', effect:'Not recomputed', owner:'priya',
+        why:'Ngozi’s message msg-08 arrived on 1 Jul 2026, 16:40, after v3 (23 Jun 2026, 06:05). It confirms the gift the pipeline read at low confidence. Approval is blocked until the answer is applied, or recorded as changing nothing.',
+        doc:'msg-08 · Ngozi Okafor · 1 Jul 2026', pre:'', hl:'St. Brigid confirmed by phone the gift was 1,500 - matches our bank statement (check #2207, 12/21/2025).', post:'', fix:'Record: changes nothing' },
+      'noncash': { t:'nb', title:'Donated car deducted at the client’s estimate', line:'SchA.12', value:'$20,500', claim:'noncash', effect:'Tax effect: about +806 federal, +149 California (estimate at v3 rates, Example)', owner:'priya',
+        why:'Gifts other than cash are 20,500: the stock 14,500 (D65) plus the car at the client’s “Kelley Blue Book said about 6,000” (qa-39). The charity sold the car for 2,900, so the car is limited to its gross proceeds: 17,400 in total. Tax effect: about +806 federal, +149 California (estimate at v3 rates, Example). Under 1,000, so reviewer sign-off is enough.',
+        doc:'D66 · Lone Star Kids Auto Donation Form 1098-C · page 1', pre:'Form 1098-C. Date of contribution 08/20/2025. … Box 4a vehicle sold in arm\'s length transaction to unrelated party checked; 4b date of sale 09/09/2025; ', hl:'4c gross proceeds from sale 2,900.00', post:'. Box 6a goods or services provided: no.', fix:'Adjust to $17,400', from:'20,500', to:'17,400' },
+      'id-tie': { t:'tie', title:'Identity: SSNs agree to the 2024 return and documents', line:'Firm step: Identity verified', value:'1 of 4 differ', claim:'', effect:'Blocks e-file', owner:'priya',
+        why:'Each SSN on the return is compared with the 2024 return and with the documents that print it. The comparison runs on the full numbers and shows only match or mismatch; last 4 shown.',
+        tieH1:'Person', tieNote:'Verification types: agreed to source document (the 2025 forms) and agreed to prior year (the 2024 return). Checks we run, not trusting the engine. SSNs typed by the client in the organizer, 20 Jan 2026.',
+        tie:[ { a:'Ngozi Okafor', b:'XXX-XX-2287', claim:'', c:'Agreed to source document: W-2s D08, D09 and D10 print XXX-XX-2287', word:'Match', cls:'chk-t-pas' },
+              { a:'Erik Lindqvist', b:'XXX-XX-9134', claim:'', c:'Agreed to source document: Forms 1099-NEC D16 to D20 print XXX-XX-9134', word:'Match', cls:'chk-t-pas' },
+              { a:'Ada Lindqvist-Okafor', b:'XXX-XX-1106', claim:'', c:'Agreed to prior year: 2024 return dependents print XXX-XX-1106; Form 1098-T D59 agrees', word:'Match', cls:'chk-t-pas' },
+              { a:'Theo Lindqvist-Okafor', b:'XXX-XX-3309', claim:'theo-ssn', c:'Agreed to prior year: 2024 return dependents print XXX-XX-3390', word:'Mismatch', cls:'chk-t-blk' } ] },
+      'pay-tie': { t:'tie', title:'Payments: estimates agree to IRS and FTB records', line:'Firm step: Estimated payments agreed to IRS and FTB records', value:'2 of 2 differ', claim:'', effect:'Fed +$1,000 due; CA refund −$3,500', owner:'priya',
+        why:'Estimated payments on the return are compared with what the tax agencies actually received.',
+        tieH1:'Line', tieNote:'Verification type: agreed to third-party record. Federal: the return used the client’s answer for the fourth payment (qa-41, “4,000 I think”); the IRS shows 3,000 on 15 Jan 2026. California: see the blocking item above.',
+        tie:[ { a:'Federal estimated payments, F1040.26', b:'13,000', claim:'fed-est', c:'Agreed to third-party record: IRS account transcript, code 670 as of 12 Mar 2026, four payments of 3,000, total 12,000. Difference 1,000.', word:'Mismatch', cls:'chk-t-blk' },
+              { a:'California estimated payments, F540NR.72', b:'14,000', claim:'ca-est', c:'Agreed to third-party record: FTB account, tax year 2025 payments 15 Apr 2025, 16 Jun 2025, 15 Jan 2026, 3,500 each, total 10,500. Difference 3,500.', word:'Mismatch', cls:'chk-t-blk' } ] },
+      'repairs': { t:'var', title:'Rental repairs: 3,900 in 2024, 13,300 in 2025', line:'SchE.14A vs 2024 return', value:'$13,300', claim:'repairs', effect:'+9,400 vs 2024', owner:'priya',
+        why:'Flagged: changed over 10% and over 1,000 vs prior year (firm variance rule). Not blocking; explain the change. The engine notes the 11,000 HVAC invoice is inside repairs.',
+        doc:'D46 · Capitol Keys Property Management owner statement · page 1', pre:'… ', hl:'Repairs and maintenance 13,300.00', post:': plumbing 640.00; gutter cleaning 410.00; interior paint touch-up 1,250.00; HVAC 11,000.00 (Delta Breeze Heating & Air, 08/12/2025). …', fix:'Explain the change' },
+      'care-ein': { t:'nb', title:'Childcare provider tax ID differs from the provider’s statement', line:'F2441.1b', value:'74-3829516', claim:'care-ein', effect:'No tax effect', owner:'priya',
+        why:'The statement prints 74-3829156; the pipeline read 74-3829516 at 0.97 confidence and the return label carries it. EINs are business identifiers and are never masked.',
+        doc:'D62 · Little Sprouts Learning Center 2025 statement · page 1', pre:'Little Sprouts Learning Center, 4410 Bee Cave Rd, Austin TX. ', hl:'Tax ID 74-3829156', post:'. After-school care for Theo Lindqvist-Okafor August 18 - December 19, 2025: total paid 4,200.00.', fix:'Use the printed tax ID', from:'74-3829516', to:'74-3829156' },
+      'int': { t:'nb', title:'Northlake interest on two forms', line:'SchB.1.1 and 1.2', value:'$3,680', claim:'', effect:'Fed −$640', owner:'priya',
+        why:'The bank sweep interest appears on the brokerage 1099 and on the bank’s own 1099-INT: same money.',
+        doc:'D29 · Northlake Bank, N.A. Form 1099-INT · page 1', pre:'Form 1099-INT 2025. Payer Northlake Bank, N.A. (bank sweep program for Northlake Securities account ending 7731). Recipient Ngozi Okafor. ', hl:'Box 1 interest income 1,840.00', post:'.', fix:'Count once' },
+      'w2': { t:'pas', title:'W-2 wages agree to both W-2s', line:'F1040.1a', value:'$212,400', claim:'', effect:'None', owner:'priya', ex:true,
+        why:'Sum of box 1 on D08 and D09: 104,600 + 107,800. D10 is a second image of D09 and is counted once. Unchanged from v2 to v3.', chk:'Priya Raman: recalculated; agreed to source document.',
+        doc:'D08 · Corvane Systems, Inc. Form W-2 · page 1', pre:'Form W-2 2025. Employer Corvane Systems, Inc., EIN 82-4471903, 500 Harbor Blvd, San Francisco CA. Employee Ngozi Okafor, SSN XXX-XX-2287. ', hl:'Box 1 104,600.00', post:'; Box 2 15,800.00; Box 3 112,000.00; …' },
+      'ext': { t:'pas', title:'Federal extension payment agrees to the record', line:'Sch3.10', value:'$36,000', claim:'ext-pay', effect:'None', owner:'daniel', prepBy:'daniel',
+        why:'Paid with Form 4868 on 14 Apr 2026, sized from v2. The timeline names you as the person who filed it, so another reviewer must sign off.',
+        doc:'Timeline · extension-2026-04-14 · extension_filed_with_payment · actor Daniel Ortiz', pre:'', hl:'Form 4868 with 36,000', post:' and FTB 3519 with 0 (estimated from v2; see what_if.extension).' },
+      'dg-dd': { t:'eng', title:'Form 8867 must be completed by the preparer for the child tax credit and credit for other dependents.', line:'From the engine: DUE_DILIGENCE_REQUIRED, warning', value:'', claim:'', effect:'Step: Due diligence completed', owner:'priya',
+        why:'Engine diagnostic from v3, shown next to our own checks. Firm rule: “Due diligence must be documented for the child tax credit, credit for other dependents, American opportunity credit, earned income credit and head of household status.”' },
+      'dg-1099': { t:'eng', title:'Schedule C: client paid two contractors 600 or more and has not filed Forms 1099-NEC.', line:'From the engine: FORM_1099_FILING, warning', value:'', claim:'', effect:'Step: Diagnostics resolved', owner:'priya',
+        why:'Engine diagnostic from v3. Ask the client; it is their filing, outside this return.' },
+      'dg-caamt': { t:'eng', title:'California AMT (Schedule P 540NR) not computed: review incentive stock option exercise for California-source allocation.', line:'From the engine: CA_AMT_NOT_COMPUTED, warning', value:'', claim:'', effect:'Step: Diagnostics resolved', owner:'priya',
+        why:'Engine diagnostic from v3. The packet README also says California AMT is not computed. Stays open under the firm step “Diagnostics resolved”.' },
+      'dg-mer': { t:'eng', title:'Meridian 1099-B summary proceeds 71,965.00 differ from the sum of extracted lots 71,715.00.', line:'From the engine: BROKER_SUMMARY_DETAIL_MISMATCH, warning', value:'', claim:'', effect:'Step: Diagnostics resolved', owner:'priya',
+        why:'Engine diagnostic from v3. The 250 gap points to a lot on a page that was never read.' },
+      'iso-lot': { t:'cf', title:'ISO share lot to track: 1,000 Corvane shares still held', line:'Carryover · linked to the minimum tax credit 3,871', value:'1,000 sh', claim:'iso-lot', effect:'AMT basis $52,000', owner:'2026', ex:true,
+        why:'Exercised 30 Jul 2025 at 12.00 a share, worth 52.00 that day. Regular basis 12,000; AMT basis 52,000. The 2025 AMT from this exercise creates the minimum tax credit of 3,871 for Form 8801. Still held, per the client’s answer qa-06. The carryover record itself is ours, not the packet’s.',
+        doc:'D12 · Corvane Systems, Inc. Form 3921 · page 1', pre:'Form 3921 2025. Transferor Corvane Systems, Inc. Employee Ngozi Okafor. Date option granted 03/01/2022. Date exercised 07/30/2025. ', hl:'Exercise price per share 12.00. FMV per share on exercise date 52.00. Shares transferred 1,000.', post:'' },
+      'sep': { t:'cf', title:'SEP contribution not deductible for 2025', line:'Erik, Schedule 1', value:'$2,786', claim:'', effect:'Limit depends on 2026 profit', owner:'2026',
+        why:'Excess over the 2025 limit, from v3 carryovers out. Erik’s 2026 SEP limit depends on 2026 net profit.' }
+    };
+    // Spouse for a client question: the shell's spouseOf (H3b decision 4); alone, the same canonical table, else both.
+    const SPOUSE = { 'atlas':'erik', 'sehi':'erik', 'form-3520':'erik', 'crypto-c6':'erik', 'noncash':'erik', 'theo-ssn':'ngozi', 'fed-est':'ngozi', 'heat-pump':'ngozi', 'ca-wages':'ngozi', 'gift-brigid':'ngozi', 'ca-est':'both', 'salt-d02':'both' };
+    const spouse = (d) => { const k = d.claim || d.id; const v = typeof P.spouseOf === 'function' ? P.spouseOf(k) : SPOUSE[k]; return v === 'ngozi' || v === 'erik' ? v : 'both'; };
+    const mk = (id, extra) => Object.assign({ id }, D[id], extra || {});
+    // The shared blocker list (FIX-ROUND-H1 item 3). The count is computed from it and from the events, never a literal.
+    // Answers that arrived after v3 become blockers once the story clock passes their arrival (msg-07, msg-08).
+    const LATE = ['crypto-c6','gift-brigid'].filter(id => !filed && at16 >= D[id].at);
+    const BLOCKERS = ['ca-est','atlas','rsu','theo-ssn'].concat(LATE);
+    const FINDINGS = ['ca-wages','salt-d02'];
+    const engine = ['dg-dd','dg-1099','dg-caamt','dg-mer'].map(id => mk(id, { grp:'From the engine' }));
+    const findGrp = 'Found by our checks, not yet adjusted';
+    const prepQ = () => [].concat(BLOCKERS.map(id => mk(id, { grp:'Blocking filing' })), [mk('heat-pump', { grp:'Judgment calls' })], FINDINGS.map(id => mk(id, { grp: findGrp })), [mk('id-tie', { grp:'Tie-outs' }), mk('pay-tie', { grp:'Tie-outs' }), mk('noncash', { grp:'Not blocking' }), mk('repairs', { grp:'Not blocking' }), mk('care-ein', { grp:'Not blocking' }), mk('int', { grp:'Not blocking' })], engine);
+    const SIGNED = (partner) => ' Reviewer: Signed (Daniel Ortiz).' + (partner ? ' Partner: Signed (Helen Strand), tax effect over 1,000.' : '');
+    const adj = (id, v3, value, why, built, how, partner, extra) => mk(id, Object.assign({ t:'adj', value, ex:true, effect:'v3 ' + v3, grp:'Firm adjustments in the filed return', why, built, hist:'Engine v3: ' + v3 + '; adjusted by the firm. ' + how + SIGNED(partner) }, extra || {}));
+    const filedQ = () => [
+        adj('atlas', '$163,700', '$151,300', 'Selected for quality review on 4 Jan 2027 (timeline tl-27).', 'Books revenue 151,300 (D14); the 1099-K 12,400 (D21) is inside the books.', 'Priya Raman: agreed to source document.', true, { grpEx:true }),
+        adj('ca-est', '$14,000', '$10,500', 'California estimated payments for 2025.', 'Three payments marked tax year 2025 on D68, agreed to the FTB account.', 'Priya Raman: agreed to third-party record (FTB account).', true),
+        adj('rsu', '$0 basis', '$19,100 basis', 'Lot RSU-2502 basis from the stock plan statement.', 'Adjusted basis 19,100 from D11 page 2.', 'Priya Raman: agreed to source document.', true),
+        adj('theo-ssn', 'organizer', 'Card number', 'Dependent SSN taken from the 2024 return and the card.', 'Last 4 digits 3390 from D06 and D71.', 'Priya Raman: confirmed with client. E-file rejected 13 Jul 2026 (tl-21), accepted 14 Jul 2026 (tl-23).', false,
+          { title:'Theo’s SSN differed from his 2024 return and his card', mask:false }),
+        adj('heat-pump', '$13,300 repairs', '$2,300 repairs', 'The heat pump recorded as an improvement and depreciated over 27.5 years.', 'Repairs 13,300 less the 11,000 heat pump (D47); engine what-if hvac_improvement.', 'Judgment recorded by Helen Strand. Authority to confirm: Treas. Reg. 1.263(a)-3 (Example).', true),
+        adj('fed-est', '$13,000', '$12,000', 'Federal estimated payments for 2025.', 'Four payments of 3,000 on the IRS account transcript.', 'Priya Raman: agreed to third-party record (IRS transcript).', false,
+          { title:'Federal estimates used the client’s guess', line:'F1040.26', claim:'fed-est' }),
+        adj('care-ein', '74-3829516', '74-3829156', 'Childcare provider tax ID as printed on the statement.', 'Tax ID from D62.', 'Priya Raman: agreed to source document.', false),
+        adj('noncash', '$20,500', '$17,400', 'The donated car limited to the charity’s gross proceeds. Tax effect: about +806 federal, +149 California (estimate at v3 rates, Example). Under 1,000, so reviewer sign-off is enough.', 'Stock 14,500 (D65) plus the car at 2,900, Form 1098-C box 4c (D66).', 'Priya Raman: agreed to third-party record (Form 1098-C).', false) ]
+      .concat(FINDINGS.map(id => mk(id, { t:'qr', ex:true, grp:'Not among the filed adjustments', grpEx:true })));
+    const Q = {
+      priya: prepQ, marcus: prepQ, jo: prepQ,
+      daniel: () => [].concat([mk('w2', { grp:'Passed, awaiting your sign-off' }), mk('ext', { grp:'Your own work' })], BLOCKERS.map(id => mk(id, { grp:'Needs review' })), [mk('heat-pump', { grp:'Needs review' })], FINDINGS.map(id => mk(id, { grp:'Needs review' })), [mk('id-tie', { grp:'Needs review' }), mk('pay-tie', { grp:'Needs review' }), mk('noncash', { grp:'Needs review' }), mk('repairs', { grp:'Needs review' }), mk('care-ein', { grp:'Needs review' }), mk('int', { grp:'Needs review' })], engine),
+      helen: () => [].concat(BLOCKERS.map(id => mk(id, { grp:'Blocking filing' })), [mk('heat-pump', { grp:'Waiting for partner' })], FINDINGS.map(id => mk(id, { grp:'Over 1,000 if adjusted' })), [mk('id-tie', { grp:'Tie-outs' }), mk('pay-tie', { grp:'Tie-outs' })], engine),
+      sam: filedQ,
+      next: () => [ mk('iso-lot', { grp:'Carryovers to 2026' }), mk('sep', { grp:'Carryovers to 2026' }), mk('dg-caamt', { t:'open', grp:'Open items from 2025' }), mk('dg-1099', { t:'open', grp:'Open items from 2025' }) ],
+      ngozi: () => [], erik: () => [], irs: () => []
+    };
+    const WORKING = ['priya','marcus','daniel','helen','jo'];
+    const locked = filed && WORKING.indexOf(role) >= 0;      // working roles at a later clock: the filed record, read only
+    const START = { sam: ['2027-01-04T15:00', 'Sam joins on 4 Jan 2027.'], next: ['2027-01-15T15:00', 'Next year’s preparer starts on 15 Jan 2027 (tl-28).'] };
+    const notYet = START[role] && at16 < START[role][0];
+    const client = role === 'ngozi' || role === 'erik';
+    const away = client || role === 'irs' || !!notYet;
+    const prep = !locked && (role === 'priya' || role === 'marcus');
+    const review = !locked && role === 'daniel';
+    const cleared = role !== 'marcus';
+    const WORDS = { blk:'Blocking', wrn:'Judgment', fnd:'Finding', tie:'Tie-out', var:'Variance', nb:'Not blocking', pas:'Passed', eng:'Engine warning', adj:'Adjusted', cf:'Carryover', open:'Open', qr:'Finding' };
+    const DEFS = { blk:'Must be fixed before the return can be filed.', wrn:'Needs a professional judgment with the authority relied on.', fnd:'Our check says the value is wrong; nobody has adjusted it yet.',
+      tie:'Agreeing a number on the return to an outside record.', var:'Changed from last year by more than the firm’s threshold; needs an explanation.', nb:'Worth fixing; does not stop filing.', pas:'Our check agrees with the source; waiting for sign-off.',
+      eng:'A warning from the tax engine, shown beside our own checks.', adj:'The firm changed the engine’s value.', cf:'Carries into next year’s return.', open:'Left open at filing.', qr:'Found by our checks; not changed in the filed return.' };
+    const CLS = { blk:'chk-t-blk', wrn:'chk-t-wrn', fnd:'chk-t-wrn', tie:'chk-t-blk', var:'chk-t-neu', nb:'chk-t-neu', pas:'chk-t-pas', eng:'chk-t-wrn', adj:'chk-t-acc', cf:'chk-t-acc', open:'chk-t-wrn', qr:'chk-t-wrn' };
+    const TWORD = { prepared:'Prepared', adjustment:'Adjusted', cleared:'Cleared', resolved:'Resolved', question_to_client:'Asked the client', review_note:'Note left', sent_back:'Sent back',
+      signoff:'Signed off', judgment:'Judgment recorded', note:'Note left', qr_finding:'Finding left', plan_item:'In 2026 plan', explained:'Explained' };
+
+    let q = (locked ? filedQ : Q[role])();
+    // Events on each item: newest last.
+    const evFor = (d) => live.filter(e => touches(e, d));
+    const staleSign = (d) => { const mine = evFor(d).filter(e => e.type === 'signoff' && e.who === role); if (!mine.length) return null; const s = mine[mine.length - 1];
+      return live.find(e => touches(e, d) && +e.seq > +s.seq && (CHANGE.indexOf(e.type) >= 0 || e.type === 'signoff_stale')) || null; };
+    const doneFor = (d) => { if (staleSign(d)) return false; return evFor(d).some(e => e.who === role && TWORD[e.type]); };
+    const newFor = (d) => evFor(d).filter(e => +e.seq > seen && e.who !== role);
+    // "Since you last looked": computed from the events after this person's last look, never hard-coded.
+    if (!away && !locked) {
+      const fresh = q.filter(d => newFor(d).length);
+      if (fresh.length) q = fresh.map(d => Object.assign({}, d, { grp:'Since you last looked' })).concat(q.filter(d => !newFor(d).length));
+    }
+    // Blockers: the shell's `blockers` prop is the one source of truth (H3b decision 1); alone, computed here the same way.
+    const blockOpen = (id) => !live.some(e => (e.claimId === id && (e.type === 'adjustment' || e.type === 'cleared')) || (D[id].late && Array.isArray(e.itemIds) && e.itemIds.indexOf(D[id].late) >= 0));
+    const propBlk = Array.isArray(P.blockers) ? P.blockers.filter(b => b && b.claimId) : null;
+    const openBlockers = propBlk ? propBlk.map(b => b.claimId) : filed ? [] : BLOCKERS.filter(blockOpen);
+    const nBlock = openBlockers.length;
+    const firstBlock = nBlock ? (propBlk ? { title: propBlk[0].title || (D[propBlk[0].claimId] || {}).title || propBlk[0].claimId } : D[openBlockers[0]]) : null;
+    const checkedRaw = S.checked || [];
+    const canCheck = (d) => prep ? (!doneFor(d) && d.t !== 'eng') : review ? (d.t === 'pas' && d.prepBy !== role && !doneFor(d)) : false;
+    const checked = checkedRaw.filter(id => q.some(d => d.id === id && canCheck(d)));
+    const sel = S.sel === '__none' ? null : q.some(d => d.id === S.sel) ? S.sel : (q.some(d => d.claim && d.claim === claimId) ? (q.find(d => d.claim === claimId) || {}).id : null);
+    const theoKey = 'ssn-theo';
+    const theoRevealed = revealed.indexOf(theoKey) >= 0;
+    const ownerOf = (d) => { const a = evFor(d).filter(e => e.type === 'assignment' && e.assignee); return a.length ? a[a.length - 1].assignee : d.owner; };
+    const ownerName = (o) => NAME[o] || o || '';
+
+    // Every action emits one event (H3 B) and shows a toast with Undo; undo emits a compensating event.
+    const PAST = { 'Record: changes nothing':'cleared', 'Clear with a reason':'cleared', 'Mark prepared':'prepared', 'Mark resolved with a reason':'resolved', 'Leave a review note':'review_note', 'Send back':'sent_back', 'Sign off':'signoff',
+      'Record judgment and authority':'judgment', 'Leave a note':'review_note', 'Leave a quality-review finding':'qr_finding', 'Add to 2026 plan':'plan_item', 'Explain the change':'explained' };
+    const fire = (d, type, text, extra) => { const g = newGroup(); emit(Object.assign({ type, claimId: d.claim || '', itemId: d.id, title: d.title, groupId: g, text }, extra || {})); return g; };
+    const mark = (d, label) => () => {
+      const type = PAST[label] || 'adjustment';
+      const fix = type === 'adjustment';
+      // Edit refused: someone else changed this number since you last looked; review their change first.
+      const other = fix ? live.filter(e => touches(e, d) && CHANGE.indexOf(e.type) >= 0 && e.who !== role && +e.seq > seen).pop() : null;
+      if (other) { this.setState({ refused: Object.assign({}, S.refused || {}, { [d.id]: other.seq }), sel: d.id }); return; }
+      const text = fix ? 'adjusted “' + d.title + '”' + (d.mask ? ' to the number on the 2024 return' : d.to ? ' to ' + d.to : '')
+        : type === 'prepared' ? 'marked “' + d.title + '” prepared'
+        : type === 'signoff' ? 'signed off “' + d.title + '”'
+        : label.toLowerCase() + ' on “' + d.title + '”';
+      const g = fire(d, type, text, fix && d.from ? { from: d.mask ? 'ending 3309' : d.from, to: d.mask ? 'ending 3390' : d.to } : {});
+      this.setState({ toast: label + ': ' + d.title + '.', lastGroup: g, refused: Object.assign({}, S.refused || {}, { [d.id]: null }) });
+    };
+    const ask = (d) => () => {
+      const who = spouse(d);
+      const whoName = who === 'both' ? 'Ngozi Okafor and Erik Lindqvist' : NAME[who];
+      const g = fire(d, 'question_to_client', 'asked ' + whoName + ' about “' + d.title + '”', { to: who, clientText: 'Your tax team has a question for you. Open your home page to answer it.' });
+      this.setState({ toast: 'Question sent to ' + whoName + ': ' + d.title + '.', lastGroup: g });
+    };
+    const assign = (d, to) => () => {
+      const g = fire(d, 'assignment', 'assigned “' + d.title + '” to ' + NAME[to], { assignee: to });
+      this.setState({ toast: 'Assigned to ' + NAME[to] + ': ' + d.title + '.', lastGroup: g });
+    };
+    const act = (d, label, primary, dis) => { const off = !!dis || doneFor(d); return { label, cls: primary && !off ? 'primary' : '', dis: off, run: off ? noop : mark(d, label) }; };
+    const askAct = (d) => { const off = doneFor(d); const sp = spouse(d); return { label: sp === 'both' ? 'Ask Ngozi and Erik (clients)' : 'Ask ' + (sp === 'erik' ? 'Erik' : 'Ngozi') + ' (client)', cls: '', dis: off, run: off ? noop : ask(d) }; };
+    const ASSIGNERS = ['priya','daniel','helen','jo'];
+    const assignAct = (d) => {
+      if (locked || filed) return [];
+      const o = ownerOf(d);
+      if (o !== 'priya' && o !== 'marcus') return [];
+      if (role === 'marcus') return o === 'marcus' ? [{ label:'Hand back to Priya Raman', cls:'', dis:false, run: assign(d, 'priya') }] : [];
+      if (ASSIGNERS.indexOf(role) < 0) return [];
+      const to = o === 'priya' ? 'marcus' : 'priya';
+      const noClear = to === 'marcus' && (d.mask || d.id === 'id-tie');
+      return [{ label: noClear ? 'Reassign to Marcus Bell: no sensitive-data clearance' : 'Reassign to ' + NAME[to], cls:'', dis: noClear, run: noClear ? noop : assign(d, to) }];
+    };
+    const actsFor = (d) => {
+      if (locked) return { acts: [], reason: 'As filed, locked. The return was accepted on 14 Jul 2026; later work attaches as new events.' };
+      if (prep) {
+        if (d.t === 'eng') return { acts: [act(d, 'Mark resolved with a reason', true), askAct(d)], reason: '' };
+        if (d.mask && role === 'marcus') return { acts: [act(d, d.fix, true, true), askAct(d), act(d, 'Mark prepared')], reason: 'Needs sensitive-data clearance to type the corrected number. Ask a cleared preparer to take it.' };
+        if (d.fix) return { acts: [act(d, d.fix, true), askAct(d), act(d, 'Clear with a reason'), act(d, 'Mark prepared')], reason: d.partnerIf ? 'Firm rule: “' + RULE_PARTNER + '”' : '' };
+        return { acts: [act(d, 'Mark prepared', true), askAct(d)], reason: '' };
+      }
+      if (review) {
+        const own = d.prepBy === role;
+        const passed = d.t === 'pas' && !own;
+        const st = staleSign(d);
+        return { acts: [act(d, 'Leave a review note', !passed), act(d, 'Send back'), Object.assign(act(d, 'Sign off', passed, !passed), own ? { label:'Sign off: you prepared this' } : {})],
+          reason: own ? 'Firm rule: “' + RULE_SELF + '”' : st ? 'Stale: the value changed after you signed. ' + shown(st) + '.' : passed ? 'Prepared by Priya (Example), not by you. You cannot edit values.' : 'Sign off waits until this item passes. You cannot edit values.' };
+      }
+      if (role === 'helen') {
+        const over = d.partner ? 'Tax effect over 1,000. Firm rule: “' + RULE_PARTNER + '”' : d.partnerIf ? 'Over 1,000 if adjusted. Firm rule: “' + RULE_PARTNER + '”' : '';
+        return { acts: [act(d, d.t === 'wrn' ? 'Record judgment and authority' : 'Leave a note', d.t === 'wrn')], reason: over };
+      }
+      if (role === 'jo') return { acts: [], reason: 'Return values are read only for you. You can assign work; check thresholds are set in the firm standards.' };
+      if (role === 'sam') return { acts: [act(d, 'Leave a quality-review finding', true)], reason: 'Filed record, read only.' };
+      if (role === 'next') return { acts: [act(d, 'Add to 2026 plan', true)], reason: 'The 2025 return is read only.' };
+      return { acts: [], reason: '' };
+    };
+    const items = q.map((d, i) => {
+      const evs = evFor(d);
+      const last = evs.filter(e => TWORD[e.type] || e.type === 'signoff_stale').pop();
+      const stale = review ? staleSign(d) : null;
+      const isOpen = d.id === sel;
+      const ar = actsFor(d);
+      const fresh = newFor(d);
+      const refSeq = (S.refused || {})[d.id];
+      const refEv = refSeq != null ? live.find(e => e.seq === refSeq) : null;
+      const tie = (d.tie || []).map(r => ({ a: r.a, b: r.b, c: r.c, word: r.word, cls: r.cls, hasClaim: !!r.claim, noClaim: !r.claim, openIt: () => openClaim(r.claim) }));
+      const word = stale ? 'Stale: changed after you signed' : last ? (last.type === 'signoff_stale' ? 'Sign-off stale' : TWORD[last.type] + (last.who !== role ? ' by ' + (NAME[last.who] || last.who).split(' ')[0] : '')) : WORDS[d.t];
+      const lastAny = evs[evs.length - 1];
+      return {
+        id: d.id, title: d.title, line: d.line, value: d.value || '', effect: d.effect || '', owner: /^\d/.test(ownerOf(d)) ? ownerOf(d) : ownerName(ownerOf(d)).split(' ')[0],
+        grp: d.grp || '', grpShow: i === 0 || q[i - 1].grp !== d.grp, grpEx: !!d.grpEx, ex: !!d.ex,
+        tword: word, tcls: stale || (last && last.type === 'signoff_stale') ? 'chk-t-wrn' : last ? 'chk-t-pas' : CLS[d.t], tdef: stale ? 'Your sign-off covered an earlier value; review it again.' : DEFS[d.t] || '',
+        hasSince: fresh.length > 0 && !locked, since: fresh.length ? shown(fresh[fresh.length - 1]) + ' · ' + hhmm(fresh[fresh.length - 1].at) : '',
+        hasLatest: !!lastAny, latest: lastAny ? shown(lastAny) + ' · story time ' + fmt(lastAny.at) : '',
+        refused: !!refEv, refuseText: refEv ? (NAME[refEv.who] || refEv.who).split(' ')[0] + ' changed this at ' + hhmm(refEv.at) + '; review ' + (refEv.who === 'priya' || refEv.who === 'helen' || refEv.who === 'jo' || refEv.who === 'ngozi' ? 'her' : 'his') + ' change first.' : '',
+        refuseDiff: refEv ? (refEv.from || refEv.to ? 'Before ' + (refEv.from || 'not shown') + ', now ' + (refEv.to || 'not shown') + '. ' : '') + shown(refEv) + '.' : '',
+        on: isOpen ? 'on' : '', open: isOpen, expanded: isOpen ? 'true' : 'false',
+        canCheck: canCheck(d), checked: checked.indexOf(d.id) >= 0,
+        hasClaim: !!d.claim, noClaim: !d.claim,
+        why: d.why || '', hasDoc: !!d.hl, doc: d.doc || '', pre: d.pre || '', hl: d.hl || '', post: d.post || '',
+        hasTie: tie.length > 0, tie, tieH1: d.tieH1 || '', tieNote: d.tieNote || '',
+        hasChk: !!d.chk, chk: d.chk || '',
+        hasHist: !!d.hist, built: d.built || '', hist: d.hist || '',
+        mask: !!d.mask && !away,
+        acts: ar.acts.concat(assignAct(d)), reason: ar.reason, hasReason: !!ar.reason,
+        pick: () => this.setState({ sel: isOpen ? '__none' : d.id }),
+        openIt: () => openClaim(d.claim || (refEv && refEv.claimId) || ''),
+        toggle: () => { const c = checked.indexOf(d.id) >= 0 ? checked.filter(x => x !== d.id) : checked.concat([d.id]); this.setState({ checked: c }); }
+      };
+    });
+    // Bulk actions emit ONE grouped event ("11 items marked prepared"), and one undo retracts the group.
+    const applyBulk = (type, msg) => () => {
+      const ids = checked.slice();
+      const g = newGroup();
+      const text = msg.replace('#', String(ids.length));
+      emit({ type, itemIds: ids, claimId: '', itemId: '', groupId: g, title: text, text: text });
+      this.setState({ checked: [], toast: text + '.', lastGroup: g });
+    };
+    const bulk = prep ? [ { label:'Mark prepared', cls:'primary', run: applyBulk('prepared', '# items marked prepared') }, { label:'Clear with a reason', cls:'', run: applyBulk('cleared', '# items cleared, reason needed') } ]
+      : review ? [ { label:'Sign off', cls:'primary', run: applyBulk('signoff', '# passed items signed off') } ] : [];
+    const nPass = q.filter(d => d.t === 'pas' && !doneFor(d)).length;
+    const nAdj = q.filter(d => d.t === 'adj').length;
+    const nJudg = q.filter(d => d.t === 'wrn').length;
+    const nTie = q.filter(d => d.t === 'tie').length;
+    const nFind = q.filter(d => (d.t === 'fnd' || d.t === 'qr') && !live.some(e => touches(e, d) && e.type === 'adjustment')).length;
+    const nNew = q.filter(d => newFor(d).length).length;
+    const sinceChip = nNew && !locked ? [ { cls:'chk-t-acc', text: nNew + ' changed since you last looked' } ] : [];
+    const chips = locked ? [ { cls:'chk-t-neu', text:'As filed, locked' }, { cls:'chk-t-acc', text: nAdj + ' firm adjustments, Signed (Example)' } ]
+      : prep || role === 'jo' || review || role === 'helen'
+      ? sinceChip.concat([ { cls:'chk-t-blk', text: nBlock + ' blocking filing' }, { cls:'chk-t-wrn', text: nJudg + ' judgment call' + (nJudg === 1 ? '' : 's') }, { cls:'chk-t-wrn', text: nFind + ' findings not yet adjusted' }, { cls:'chk-t-blk', text: nTie + ' tie-outs differ' }, { cls:'chk-t-wrn', text:'11 engine diagnostics on v3' } ]).concat(review && nPass ? [ { cls:'chk-t-pas', text: nPass + ' passed, awaiting sign-off' } ] : [])
+      : role === 'sam' ? [ { cls:'chk-t-acc', text: nAdj + ' firm adjustments, Signed (Example)' }, { cls:'chk-t-wrn', text: nFind + ' findings not among them (Example)' } ]
+      : role === 'next' ? [ { cls:'chk-t-acc', text:'2 carryovers' }, { cls:'chk-t-wrn', text:'2 open items' } ] : [];
+    let topNote = '', topBtns = [];
+    if (locked) {
+      topNote = 'As filed, locked. The return was accepted on 14 Jul 2026 (tl-23); values cannot change here.';
+      topBtns = [ { label:'Open Filing and after', cls:'', dis:false, run: () => go('filing') } ];
+    } else if (role === 'helen') {
+      const blocked = nBlock > 0;
+      topNote = blocked ? 'Firm rule: “' + RULE_NOTES + '” ' + nBlock + ' blocker' + (nBlock === 1 ? ' is' : 's are') + ' still open.' : 'Nothing blocks filing.';
+      const approved = live.some(e => e.type === 'client_approval_requested' && e.who === role);
+      topBtns = [ { label: blocked ? 'Approve and send to client: blocked by “' + firstBlock.title + '”' + (nBlock > 1 ? ', and ' + (nBlock - 1) + ' more' : '') : approved ? 'Sent to the client' : 'Approve and send to client', cls: blocked || approved ? '' : 'primary', dis: blocked || approved,
+        run: blocked || approved ? noop : () => { const g = newGroup(); emit({ type:'client_approval_requested', groupId: g, text: 'approved the return and sent it to Ngozi and Erik to sign', clientText:'Your return is ready for you to review and sign.' }); this.setState({ toast:'Sent to Ngozi and Erik for approval.', lastGroup: g }); } } ];
+    } else if (role === 'jo') {
+      topNote = 'Read only for you. You can assign work. The variance threshold, the steps and the masking rule are firm standards you can change.';
+      topBtns = [ { label:'Open firm standards', cls:'', dis:false, run: () => go('firm') } ];
+    } else if (role === 'sam') {
+      const started = live.some(e => e.type === 'qr_finding' && e.who === role && !e.itemId);
+      topNote = 'Filed record with its full internal history. As filed, locked: the return as this workpaper finalized it.';
+      topBtns = [ { label: started ? 'Finding left' : 'Leave a quality-review finding', cls: started ? '' : 'primary', dis: started, run: started ? noop : () => { const g = newGroup(); emit({ type:'qr_finding', groupId: g, text: 'started a quality-review finding on this return' }); this.setState({ toast:'Quality-review finding started for this return.', lastGroup: g }); } } ];
+    } else if (role === 'marcus') {
+      topNote = 'SSNs and bank numbers stay masked for you. Firm rule: “' + RULE_MASK + '”';
+    } else if (review) {
+      topNote = 'Firm rule: “' + RULE_SELF + '” Your sign-off is disabled on the extension payment you filed (Sch3.10).';
+      topBtns = [ { label:'Open the review', cls:'', dis:false, run: () => go('review') } ];
+    }
+    const revealDis = !cleared || theoRevealed;
+    const revealNote = !cleared ? 'No sensitive-data clearance. Firm rule: “' + RULE_MASK + '”'
+      : theoRevealed ? 'Revealed for this session and logged once. This mock-up keeps last 4 only.'
+      : 'The comparison does not need the full number. Reveal only to type a correction; it lasts this session and is logged.';
+    const undo = () => {
+      const g = S.lastGroup;
+      const target = g ? EV.filter(e => e.groupId === g && e.retracts == null).pop() : null;
+      if (target) emit({ type:'undo', retracts: target.seq, groupId: g, claimId: target.claimId || '', itemId: target.itemId || '', itemIds: target.itemIds || [], text: 'undid: ' + say(target) });
+      this.setState({ toast: null, lastGroup: null });
+    };
+    return {
+      wpClass: 'wp' + ((P.dark ?? false) ? ' dark' : ''),
+      heading: role === 'sam' || locked ? 'Checks on the filed record' : role === 'next' ? 'Carryovers to 2026' : 'Checks',
+      asOfLabel,
+      chips, showKeys: prep || review,
+      showTopBar: !!topNote && !away, topNote, topBtns,
+      showBulk: !!bulk.length && checked.length > 0, checkedCount: checked.length, bulk, clearSel: () => this.setState({ checked: [] }),
+      showQueue: !away, items,
+      colWhat: role === 'sam' || locked ? 'Adjustment' : role === 'next' ? 'Item' : 'What looks wrong',
+      colEff: role === 'sam' || locked ? 'Engine v3' : role === 'next' ? 'Detail' : 'Effect', colOwn: role === 'next' ? 'Year' : 'Owner',
+      theoCmp: '2024 return', maskWord: theoRevealed ? 'Revealed' : 'Masked', revealDis, revealLabel: !cleared ? 'Reveal (no clearance)' : theoRevealed ? 'Revealed (logged)' : 'Reveal (logged)', revealNote,
+      doReveal: () => { if (cleared && !theoRevealed) reveal(theoKey); },
+      showAway: away,
+      awayText: notYet ? START[role][1] + ' Move the story clock in the header to see this screen.' : client ? 'This part is where your tax team checks the numbers. Nothing here needs you.' : 'This view is not part of the filed record. The items under examination are in Filing and after.',
+      awayBtn: notYet ? 'Go to Home' : client ? 'Go to your home page' : 'Go to Filing and after',
+      awayGo: () => go(notYet || client ? 'home' : 'filing'),
+      showToast: !!S.toast, toastMsg: S.toast || '',
+      undo
+    };
+  }
+}
+</script>
+</body>
+</html>
