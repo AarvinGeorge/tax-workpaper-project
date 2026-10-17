@@ -44,3 +44,4 @@ From here on, entries are written at the time again.
 - 2026-10-17 16:57 EDT · Fable 5.1: code review of the AI layer before shipping (running)
 - 2026-10-17 17:07 EDT · Fable 5.1: AI-layer code review done, 0 must-fix, 6 should-fix · Opus 5.5 subagents (lanes U and R): fixing them, test first
 - 2026-10-17 17:18 EDT · Opus 5.5 subagent: automated acceptance walk of the checklist against the live app (26 of 36 pass; gaps listed in decisions.md) · Opus 5.5 subagent (lane U): fixing the five app gaps
+- 2026-10-17 17:37 EDT · Opus 5.5 (main): reran the acceptance walk on live 2adbf81, aligned its assertions with the corrected checklist, wrote 35 automated marks into the checklist page's store (labelled Automated); drafted docs/handin/video-script.md and docs/handin/design-many-returns.md

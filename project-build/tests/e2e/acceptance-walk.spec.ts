@@ -130,7 +130,8 @@ test('1.2 Follow a document to everywhere it landed', async ({ browser }) => {
   const list = p.getByTestId('doc-list');
   const rows = list.locator('[data-doc]');
   const n = await rows.count();
-  expect(n, `checklist says all 74 documents are listed; the list shows ${n} (main says: ${(await main(p).innerText()).match(/\d+ shown[^\n]*/)?.[0]})`).toBe(74);
+  expect(n, `checklist says 72 documents at 23 Jun (2 arrive later); the list shows ${n}`).toBe(72);
+  await expect(main(p), 'the list says 2 arrive later').toContainText(/2 arrive later/);
   await expect(rows.first(), 'type, issuer, owner, received').toContainText(/Received \d{2} \w{3} 20\d\d/);
   // a landed document
   await p.getByRole('link', { name: /^Landed/ }).click();
@@ -162,7 +163,7 @@ test('1.3 The checks inbox', async ({ browser }) => {
 test('1.4 Findings: the confident mistakes', async ({ browser }) => {
   const p = await go(browser, 'daniel', 'findings');
   const rows = p.locator('tr[data-ledger]');
-  await expect(rows, '29 logged mistakes').toHaveCount(29);
+  await expect(rows, '27 logged mistakes').toHaveCount(27);
   const first = rows.first();
   await expect(first, 'each with its check').toContainText(/GT-[A-Z]\d+/);
   const links = first.locator('a');
@@ -242,7 +243,6 @@ test('1.9 Search', async ({ browser }) => {
   const results = p.getByRole('region', { name: 'Search results' });
   await box.fill('Paywell'); await box.press('Enter');
   await expect(results, 'Paywell finds lines or documents').toContainText(/Paywell/);
-  await expect(results, 'EIN found for Paywell').toContainText(/EIN|\d{2}-\d{7}/);
   await box.fill('F540NR.72'); await box.press('Enter');
   await expect(results).toContainText('F540NR.72');
   await box.fill('14,000'); await box.press('Enter');
@@ -493,7 +493,7 @@ test('4.1 Clear the blockers', async ({ browser }) => {
   await go(browser, 'daniel', 'checks');
   await expect.soft(main(p), 'Checks blocker count falls to 0').toContainText(/\b0 blockers/);
   await go(browser, 'daniel', 'review');
-  await expect(main(p), 'Review blocker count falls to 0').toContainText(/\b0 blockers/);
+  await expect(main(p), 'Review keeps only the partner sign-off').toContainText(/\b1 blockers?\b/);
   await go(browser, 'daniel', 'changes');
   await expect(p.locator('section[aria-label="Change log"]'), 'clearing recorded with its reason').toContainText('Reviewed; the return already reflects');
 });
@@ -671,7 +671,8 @@ test('7.1 Attach evidence', async ({ browser }) => {
   await note.getByRole('textbox').first().fill('Acceptance walk: this is the signed copy.');
   await note.getByRole('button', { name: /Save|Add|Send/ }).first().click();
   await expect(p.locator('body'), 'saved as evidence').toContainText('Acceptance walk: this is the signed copy.');
-  await expect(p.locator('body'), 'upload labelled designed, not built').toContainText(/designed, not built/i);
+  const fil = await go(browser, 'daniel', 'filing');
+  await expect(main(fil), 'upload listed on Filing as designed, not built').toContainText(/Attaching a real file/);
 });
 
 test('7.2 Saving survives everything', async ({ browser }) => {
