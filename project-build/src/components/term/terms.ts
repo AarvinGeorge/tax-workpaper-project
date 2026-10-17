@@ -76,6 +76,7 @@ export const TERMS: Record<string, TermEntry> = {
   'as-filed-locked': { label: 'As filed, locked', text: 'The return the agency accepted. Nothing in it changes; later work, such as a letter or an amendment, attaches on top.' },
   'amend-on-top': { label: 'amend on top', text: 'A change after filing becomes an amended return that refers to the filed one. The filed record stays exactly as it was.' },
   'example-tag': { label: 'Example', text: 'Marks anything not in the packet, shown to illustrate how the app works. It is never a fact about this household.' },
+  'ai-suggestion': { label: 'AI suggestion', text: 'An issue an AI reader proposed from the packet’s text, shown only after each quote was found on its page. Staff accept or dismiss it; it never blocks filing.' },
   'what-if': { label: 'what-if', text: 'An alternative the engine computed, such as a different election. Reading it changes nothing; acting on it means recording a decision.' },
 };
 

@@ -5,6 +5,7 @@ export const EVENT_TYPES: readonly EventType[] = [
   'adjustment', 'review_note', 'note_resolved', 'signoff', 'question_to_client', 'answer_recorded', 'reason_set',
   'reveal', 'clock_moved', 'undo', 'assignment', 'attach_note', 'time_logged', 'verification', 'decision',
   'question_to_colleague', 'finding_cleared', 'workspace_reset', 'client_signature',
+  'suggestion_accepted', 'suggestion_dismissed',
 ];
 
 /** Events after the latest workspace_reset: a reset takes the workspace back to the pipeline output (README: no

@@ -77,3 +77,15 @@ simply** — the engine never flags any of the 27.
 | **Trace gaps** | D06 | Every line's inputs must sum to it, or the gap is shown |
 
 Each finding gets a test in `project-build/tests/` asserting the app surfaces it.
+
+## Found after the build by the AI reader (17 Oct 2026)
+
+- **GT-D07 · St. Brigid donation lacks a contemporaneous written acknowledgment.** D64 (handwritten receipt, received
+  2026-02-10) prints 500.00 and "No goods or services line"; the return's SchA.11 (3,350) includes a 1,500 gift to
+  St. Brigid supported only by a phone confirmation (msg-08). IRC 170(f)(8) requires a written acknowledgment that
+  states whether goods or services were provided for any gift of 250 or more, obtained before filing. The other
+  receipts (D63, D65) carry the statement. Effect if disallowed: SchA.11 −1,500, about +390 federal, +72 California
+  (packet rates). Found blind by the AI reader (reader-v2, Claude Sonnet 5.5), verified by Fable 5.1 against the packet
+  (docs/reviews/2026-10-17-ai-v2-adjudication.md) and by Opus 5.5 (python3 -I read of D63, D64, D65, SchA.11, msg-08).
+  Our own hunt had marked D64 resolved by msg-08, which settled the amount but not the acknowledgment. No
+  deterministic check covers it yet.

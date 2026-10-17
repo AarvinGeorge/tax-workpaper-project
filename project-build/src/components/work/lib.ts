@@ -4,6 +4,7 @@ import type { Finding, RoleInfo, RoleKey, Severity, WorkEvent, WorkspaceState } 
 import type { PacketIndex } from '@/domain/packet/load';
 import { maskText, roleInfo } from '@/domain/policy';
 import { retractedSeqs } from '@/domain/events';
+import type { AiReview } from '@/domain/ai/merge';
 
 export interface WorkProps {
   ws: string;
@@ -12,6 +13,7 @@ export interface WorkProps {
   findings: Finding[];
   state: WorkspaceState;
   sp: Record<string, string | string[] | undefined>;
+  ai?: AiReview;               // staff: verified AI suggestions and the held-back count
 }
 
 export const MOCKUP_URL = 'https://claude.ai/artifact/RW8BgnvPMRwFzFjZyVVHoy';

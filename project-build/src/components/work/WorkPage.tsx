@@ -15,7 +15,7 @@ export async function renderWork(screen: ScreenKey, Screen: ComponentType<WorkPr
   const one = (v: string | string[] | undefined) => (Array.isArray(v) ? v[0] : v);
   return (
     <Shell ws={ws} role={w.role.key} screen={screen} state={w.state} roleInfo={w.role} claim={one(sp.claim)} q={one(sp.q)}>
-      <Screen ws={ws} role={w.role} ix={w.ix} findings={w.findings} state={w.state} sp={sp} />
+      <Screen ws={ws} role={w.role} ix={w.ix} findings={w.findings} state={w.state} sp={sp} ai={w.ai} />
     </Shell>
   );
 }

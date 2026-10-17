@@ -1,0 +1,935 @@
+{
+  "schemaVersion": 1,
+  "packetSha": "ee01f8508bd2fd9854754b82fd9c4a055bdc55e2778a132002a25381c412ad19",
+  "model": "claude-sonnet-5-5",
+  "promptVersion": "reader-v1",
+  "runAt": "2026-10-17T20:23:17.635Z",
+  "suggestions": [
+    {
+      "id": "ai-answer_conflicts_with_return-1",
+      "kind": "answer_conflicts_with_return",
+      "otherKind": null,
+      "claims": [
+        "F8606.2",
+        "F8606.1"
+      ],
+      "evidence": [
+        {
+          "doc": "D07",
+          "page": 2,
+          "quote": "8606: basis 7,000 per client (2024 contribution made 02/12/2025). 5498 not obtained."
+        }
+      ],
+      "rationale": "Prior IRA basis of 7,000 is unverified, with no Form 5498. The client says there was no prior basis. Opening basis on the 2025 Form 8606 line 2 is questionable.",
+      "authority": null,
+      "confidence": 0.4
+    },
+    {
+      "id": "ai-other-1",
+      "kind": "other",
+      "otherKind": "foreign inheritance reporting (Form 3520)",
+      "claims": [
+        "SchB.8"
+      ],
+      "evidence": [
+        {
+          "doc": "D07",
+          "page": 3,
+          "quote": "2023 Form 3520 (foreign inheritance over 100,000) - discussed? (no note of resolution)"
+        }
+      ],
+      "rationale": "A possible unresolved Form 3520 filing for the foreign inheritance remains open. The return does not address it, and the foreign account and trust answers should be reconsidered.",
+      "authority": null,
+      "confidence": 0.3
+    },
+    {
+      "id": "ai-document_not_reflected-1",
+      "kind": "document_not_reflected",
+      "otherKind": null,
+      "claims": [
+        "F8949.B.N1",
+        "F8949.B.N3",
+        "F8949.E.N4"
+      ],
+      "evidence": [
+        {
+          "doc": "D08",
+          "page": 1,
+          "quote": "Box 14 RSU 38,200.00"
+        }
+      ],
+      "rationale": "RSU income appears in W-2 wages, yet the RSU sales on Form 8949 show zero basis. Basis should include income already taxed at vesting, otherwise the gain is double-counted.",
+      "authority": null,
+      "confidence": 0.6
+    },
+    {
+      "id": "ai-document_not_reflected-2",
+      "kind": "document_not_reflected",
+      "otherKind": null,
+      "claims": [
+        "F8949.B.N1",
+        "F8949.B.N3",
+        "F8949.E.N4"
+      ],
+      "evidence": [
+        {
+          "doc": "D11",
+          "page": 2,
+          "quote": "adjusted basis 19,100.00, sold 02/18/2025"
+        },
+        {
+          "doc": "D11",
+          "page": 2,
+          "quote": "adjusted basis 19,100.00, sold 05/20/2025"
+        },
+        {
+          "doc": "D11",
+          "page": 2,
+          "quote": "adjusted basis 9,420.00, sold 08/12/2025"
+        }
+      ],
+      "rationale": "The statement gives adjusted basis for the three RSU sales, but the return shows zero basis for each. Gain appears overstated because vest-date income was already taxed on the W-2.",
+      "authority": null,
+      "confidence": 0.9
+    },
+    {
+      "id": "ai-limit_or_eligibility-1",
+      "kind": "limit_or_eligibility",
+      "otherKind": null,
+      "claims": [
+        "Sch1.17"
+      ],
+      "evidence": [
+        {
+          "doc": "D14",
+          "page": 1,
+          "quote": "Insurance - health (Erik) 14,400.00"
+        }
+      ],
+      "rationale": "Full self-employed health insurance deduction taken, but spouse's employers offered family coverage in 2025. Months of eligibility for subsidized employer coverage may bar the deduction for those months.",
+      "authority": "IRS Form 7206 instructions (2025): Self-Employed Health Insurance Deduction",
+      "confidence": 0.6
+    },
+    {
+      "id": "ai-business_use_share-1",
+      "kind": "business_use_share",
+      "otherKind": null,
+      "claims": [
+        "SchC.25"
+      ],
+      "evidence": [
+        {
+          "doc": "D14",
+          "page": 1,
+          "quote": "Telephone 2,160.00"
+        },
+        {
+          "doc": "D14",
+          "page": 1,
+          "quote": "Internet 1,320.00"
+        }
+      ],
+      "rationale": "Phone and internet are deducted in full on Schedule C, but the family shares both. Only the business-use share is deductible, so the amount looks overstated.",
+      "authority": "IRS Pub 334 (2025): Tax Guide for Small Business",
+      "confidence": 0.7
+    },
+    {
+      "id": "ai-business_use_share-2",
+      "kind": "business_use_share",
+      "otherKind": null,
+      "claims": [
+        "SchC.27a.1"
+      ],
+      "evidence": [
+        {
+          "doc": "D14",
+          "page": 1,
+          "quote": "Software and subscriptions 6,850.00"
+        }
+      ],
+      "rationale": "Software line is deducted in full, but it includes a personal family streaming subscription booked by mistake. The personal portion should be removed from business expenses.",
+      "authority": "IRS Pub 334 (2025): Tax Guide for Small Business",
+      "confidence": 0.6
+    },
+    {
+      "id": "ai-business_use_share-3",
+      "kind": "business_use_share",
+      "otherKind": null,
+      "claims": [
+        "SchC.25"
+      ],
+      "evidence": [
+        {
+          "doc": "D15",
+          "page": 2,
+          "quote": "family mobile plan (4 lines) 180.00 per month"
+        },
+        {
+          "doc": "D15",
+          "page": 2,
+          "quote": "home internet 110.00 per month"
+        }
+      ],
+      "rationale": "Family mobile plan and shared home internet appear deducted in full as business utilities. Only the business-use share should be deductible, so the deduction looks overstated.",
+      "authority": "IRS Pub 334 (2025): Tax Guide for Small Business",
+      "confidence": 0.8
+    },
+    {
+      "id": "ai-business_use_share-4",
+      "kind": "business_use_share",
+      "otherKind": null,
+      "claims": [
+        "SchC.27a.1"
+      ],
+      "evidence": [
+        {
+          "doc": "D15",
+          "page": 1,
+          "quote": "Spotify Family 216.00"
+        }
+      ],
+      "rationale": "A personal family music subscription is included in business software and subscriptions. It is a personal expense and should be removed from Schedule C.",
+      "authority": "IRS Pub 334 (2025): Tax Guide for Small Business",
+      "confidence": 0.85
+    },
+    {
+      "id": "ai-document_not_reflected-3",
+      "kind": "document_not_reflected",
+      "otherKind": null,
+      "claims": [],
+      "evidence": [
+        {
+          "doc": "D30",
+          "page": 32,
+          "quote": "M18 Ironwood REIT (fractional share cash in lieu) 6.8 sh acquired 2025-01-14 sold 2025-12-15 proceeds 250.00 basis 310.00 short-term noncovered."
+        },
+        {
+          "doc": "D30",
+          "page": 1,
+          "quote": "1099-B summary: total proceeds 71,965.00."
+        },
+        {
+          "doc": "D30",
+          "page": 10,
+          "quote": "Detail total proceeds 71,715.00."
+        }
+      ],
+      "rationale": "An unread supplemental page lists a short-term sale that is missing from Form 8949. The summary proceeds exceed the detail total by the same amount as this sale.",
+      "authority": null,
+      "confidence": 0.8
+    },
+    {
+      "id": "ai-document_not_reflected-4",
+      "kind": "document_not_reflected",
+      "otherKind": null,
+      "claims": [
+        "F8949.D.M9"
+      ],
+      "evidence": [
+        {
+          "doc": "D30",
+          "page": 6,
+          "quote": "M9 Northgate Rail Corp 120 sh acquired 2020-01-10 sold 2025-06-24 proceeds 5,520.00 basis 6,900.00"
+        }
+      ],
+      "rationale": "The 1099-B shows a higher cost basis than the return uses for this lot, so a loss may have been reported as a gain.",
+      "authority": null,
+      "confidence": 0.85
+    },
+    {
+      "id": "ai-document_not_reflected-5",
+      "kind": "document_not_reflected",
+      "otherKind": null,
+      "claims": [
+        "F8949.A.M6"
+      ],
+      "evidence": [
+        {
+          "doc": "D30",
+          "page": 4,
+          "quote": "wash sale loss disallowed 735.00 short-term covered"
+        }
+      ],
+      "rationale": "The broker reports a larger disallowed wash sale loss than the adjustment entered on the return for this lot.",
+      "authority": null,
+      "confidence": 0.8
+    },
+    {
+      "id": "ai-date_or_year_mismatch-1",
+      "kind": "date_or_year_mismatch",
+      "otherKind": null,
+      "claims": [
+        "F8949.D.M14"
+      ],
+      "evidence": [
+        {
+          "doc": "D30",
+          "page": 8,
+          "quote": "M14 Harbor Lane Growth ETF 45 sh acquired 2024-10-15 sold 2025-09-22 proceeds 6,165.00"
+        }
+      ],
+      "rationale": "The broker's acquisition date differs from the return's date. It makes the holding period short-term, but the return reports it as long-term.",
+      "authority": null,
+      "confidence": 0.8
+    },
+    {
+      "id": "ai-date_or_year_mismatch-2",
+      "kind": "date_or_year_mismatch",
+      "otherKind": null,
+      "claims": [
+        "ScheduleS.credit"
+      ],
+      "evidence": [
+        {
+          "doc": "D39",
+          "page": 2,
+          "quote": "paid with the composite return in April 2026"
+        }
+      ],
+      "rationale": "The Oregon composite tax was paid in 2026, after the tax year. The credit and its resident-period share should be checked against the composite return and the credit timing rules.",
+      "authority": null,
+      "confidence": 0.3
+    },
+    {
+      "id": "ai-other-2",
+      "kind": "other",
+      "otherKind": "possible double-counted mortgage interest",
+      "claims": [
+        "SchA.8a"
+      ],
+      "evidence": [
+        {
+          "doc": "D55",
+          "page": 1,
+          "quote": "includes prepaid interest at closing and interest paid at payoff 11/20/2025"
+        }
+      ],
+      "rationale": "Box 1 already includes interest paid at payoff. The return also adds a separate payoff-statement interest amount for the same lender, so that interest may be counted twice.",
+      "authority": null,
+      "confidence": 0.62
+    },
+    {
+      "id": "ai-other-3",
+      "kind": "other",
+      "otherKind": "possible double count of mortgage interest",
+      "claims": [
+        "SchA.8a"
+      ],
+      "evidence": [
+        {
+          "doc": "D56",
+          "page": 1,
+          "quote": "(Interest is reported on the 2025 Form 1098.)"
+        }
+      ],
+      "rationale": "The payoff statement says its interest is already on the lender's 2025 Form 1098. The return adds it separately to the 1098 amount, so the interest is probably counted twice.",
+      "authority": null,
+      "confidence": 0.8
+    },
+    {
+      "id": "ai-date_or_year_mismatch-3",
+      "kind": "date_or_year_mismatch",
+      "otherKind": null,
+      "claims": [
+        "F1040.26",
+        "F2210.19"
+      ],
+      "evidence": [
+        {
+          "doc": "D67",
+          "page": 1,
+          "quote": "04/15/2025 3,000.00; 06/16/2025 3,000.00; 09/15/2025 3,000.00."
+        }
+      ],
+      "rationale": "Confirmations show only three 2025 payments. The return also counts a January 2026 payment as 2025 estimated tax, which overstates payments and affects the underpayment penalty.",
+      "authority": "IRS Form 2210 instructions (2025)",
+      "confidence": 0.8
+    }
+  ],
+  "rejected": [
+    {
+      "raw": {
+        "kind": "limit_or_eligibility",
+        "claims": [
+          "Sch1.17"
+        ],
+        "evidence": [
+          {
+            "doc": "D06",
+            "page": 3
+          }
+        ],
+        "grounded": true,
+        "rationaleWords": 34,
+        "authority": "IRS Form 7206 instructions (2025): Self-Employed Health Insurance Deduction",
+        "confidence": 0.5
+      },
+      "reason": "rationale over 30 words"
+    },
+    {
+      "raw": {
+        "kind": "document_not_reflected",
+        "claims": [
+          "F7203.1",
+          "F7203.excess",
+          "F8949.F.SCORP"
+        ],
+        "evidence": [
+          {
+            "doc": "D07",
+            "page": 5
+          },
+          {
+            "doc": "D07",
+            "page": 5
+          }
+        ],
+        "grounded": true,
+        "rationaleWords": 33,
+        "authority": null,
+        "confidence": 0.5
+      },
+      "reason": "rationale over 30 words"
+    },
+    {
+      "raw": {
+        "kind": "business_use_share",
+        "claims": [
+          "SchC.30"
+        ],
+        "evidence": [
+          {
+            "doc": "D07",
+            "page": 2
+          }
+        ],
+        "grounded": true,
+        "rationaleWords": 32,
+        "authority": "IRS Pub 587 (2025): Business Use of Your Home",
+        "confidence": 0.4
+      },
+      "reason": "rationale over 30 words"
+    },
+    {
+      "raw": {
+        "kind": "limit_or_eligibility",
+        "claims": [
+          "Sch1.17"
+        ],
+        "evidence": [
+          {
+            "doc": "D09",
+            "page": 1
+          }
+        ],
+        "grounded": true,
+        "rationaleWords": 36,
+        "authority": "IRS Form 7206 instructions (2025): Self-Employed Health Insurance Deduction",
+        "confidence": 0.55
+      },
+      "reason": "rationale over 30 words"
+    },
+    {
+      "raw": {
+        "kind": "residency_or_source",
+        "claims": [
+          "SchCA540NR.1.E"
+        ],
+        "evidence": [
+          {
+            "doc": "D09",
+            "page": 1
+          },
+          {
+            "doc": "D09",
+            "page": 1
+          }
+        ],
+        "grounded": true,
+        "rationaleWords": 37,
+        "authority": "FTB Schedule CA (540NR) instructions (2025)",
+        "confidence": 0.55
+      },
+      "reason": "rationale over 30 words"
+    },
+    {
+      "raw": {
+        "kind": "residency_or_source",
+        "claims": [
+          "SchCA540NR.1.E",
+          "SchCA540NR.1.D"
+        ],
+        "evidence": [
+          {
+            "doc": "D10",
+            "page": 1
+          }
+        ],
+        "grounded": true,
+        "rationaleWords": 34,
+        "authority": "FTB Schedule CA (540NR) instructions (2025)",
+        "confidence": 0.45
+      },
+      "reason": "rationale over 30 words"
+    },
+    {
+      "raw": {
+        "kind": "business_use_share",
+        "claims": [
+          "SchC.44a",
+          "SchC.44c",
+          "SchC.9"
+        ],
+        "evidence": [
+          {
+            "doc": "D23",
+            "page": 3
+          },
+          {
+            "doc": "D23",
+            "page": 2
+          },
+          {
+            "doc": "D23",
+            "page": 3
+          }
+        ],
+        "grounded": true,
+        "rationaleWords": 32,
+        "authority": "IRS Pub 334 (2025): Tax Guide for Small Business",
+        "confidence": 0.9
+      },
+      "reason": "rationale over 30 words"
+    },
+    {
+      "raw": {
+        "kind": "limit_or_eligibility",
+        "claims": [
+          "Sch1.17"
+        ],
+        "evidence": [
+          {
+            "doc": "D25",
+            "page": 1
+          }
+        ],
+        "grounded": true,
+        "rationaleWords": 33,
+        "authority": "IRS Form 7206 instructions (2025): Self-Employed Health Insurance Deduction",
+        "confidence": 0.8
+      },
+      "reason": "rationale over 30 words"
+    },
+    {
+      "raw": {
+        "kind": "document_not_reflected",
+        "claims": [
+          "F8949.B.N1",
+          "F8949.B.N3",
+          "F8949.E.N4"
+        ],
+        "evidence": [
+          {
+            "doc": "D28",
+            "page": 3
+          },
+          {
+            "doc": "D28",
+            "page": 3
+          }
+        ],
+        "grounded": true,
+        "rationaleWords": 35,
+        "authority": null,
+        "confidence": 0.72
+      },
+      "reason": "rationale over 30 words"
+    },
+    {
+      "raw": {
+        "kind": "other",
+        "otherKind": "possible duplicate interest",
+        "claims": [
+          "SchB.1.2",
+          "SchB.1.1"
+        ],
+        "evidence": [
+          {
+            "doc": "D29",
+            "page": 1
+          }
+        ],
+        "grounded": true,
+        "rationaleWords": 31,
+        "authority": null,
+        "confidence": 0.72
+      },
+      "reason": "rationale over 30 words"
+    },
+    {
+      "raw": {
+        "kind": "document_not_reflected",
+        "claims": [],
+        "evidence": [
+          {
+            "doc": "D31",
+            "page": 32
+          },
+          {
+            "doc": "D31",
+            "page": 10
+          }
+        ],
+        "grounded": true,
+        "rationaleWords": 31,
+        "authority": null,
+        "confidence": 0.8
+      },
+      "reason": "rationale over 30 words"
+    },
+    {
+      "raw": {
+        "kind": "date_or_year_mismatch",
+        "claims": [
+          "F8949.H.C6",
+          "SchD.3"
+        ],
+        "evidence": [
+          {
+            "doc": "D34",
+            "page": 1
+          },
+          {
+            "doc": "D34",
+            "page": 1
+          }
+        ],
+        "grounded": true,
+        "rationaleWords": 37,
+        "authority": null,
+        "confidence": 0.6
+      },
+      "reason": "rationale over 30 words"
+    },
+    {
+      "raw": {
+        "kind": "document_not_reflected",
+        "claims": [
+          "F8949.H.C6",
+          "SchD.3"
+        ],
+        "evidence": [
+          {
+            "doc": "D35",
+            "page": 1
+          }
+        ],
+        "grounded": true,
+        "rationaleWords": 35,
+        "authority": null,
+        "confidence": 0.8
+      },
+      "reason": "rationale over 30 words"
+    },
+    {
+      "raw": {
+        "kind": "answer_conflicts_with_return",
+        "claims": [
+          "F8606.2",
+          "F8606.8"
+        ],
+        "evidence": [
+          {
+            "doc": "D43",
+            "page": 1
+          },
+          {
+            "doc": "D43",
+            "page": 1
+          }
+        ],
+        "grounded": true,
+        "rationaleWords": 34,
+        "authority": null,
+        "confidence": 0.4
+      },
+      "reason": "rationale over 30 words"
+    },
+    {
+      "raw": {
+        "kind": "repair_vs_improvement",
+        "claims": [
+          "SchE.14A"
+        ],
+        "evidence": [
+          {
+            "doc": "D46",
+            "page": 1
+          },
+          {
+            "doc": "D46",
+            "page": 1
+          }
+        ],
+        "grounded": true,
+        "rationaleWords": 31,
+        "authority": "Treas. Reg. 1.263(a)-3: Amounts paid to improve tangible property",
+        "confidence": 0.88
+      },
+      "reason": "rationale over 30 words"
+    },
+    {
+      "raw": {
+        "kind": "repair_vs_improvement",
+        "claims": [
+          "SchE.14A",
+          "SchE.18A"
+        ],
+        "evidence": [
+          {
+            "doc": "D47",
+            "page": 1
+          },
+          {
+            "doc": "D47",
+            "page": 1
+          }
+        ],
+        "grounded": true,
+        "rationaleWords": 32,
+        "authority": "Treas. Reg. 1.263(a)-3: Amounts paid to improve tangible property",
+        "confidence": 0.8
+      },
+      "reason": "rationale over 30 words"
+    },
+    {
+      "raw": {
+        "kind": "limit_or_eligibility",
+        "claims": [
+          "SchE.19B",
+          "SchE.14B"
+        ],
+        "evidence": [
+          {
+            "doc": "D50",
+            "page": 1
+          },
+          {
+            "doc": "D50",
+            "page": 1
+          },
+          {
+            "doc": "D50",
+            "page": 1
+          }
+        ],
+        "grounded": true,
+        "rationaleWords": 32,
+        "authority": null,
+        "confidence": 0.35
+      },
+      "reason": "rationale over 30 words"
+    },
+    {
+      "raw": {
+        "kind": "document_not_reflected",
+        "claims": [
+          "SchA.8c",
+          "SchA.8a"
+        ],
+        "evidence": [
+          {
+            "doc": "D54",
+            "page": 1
+          }
+        ],
+        "grounded": true,
+        "rationaleWords": 31,
+        "authority": null,
+        "confidence": 0.6
+      },
+      "reason": "rationale over 30 words"
+    },
+    {
+      "raw": {
+        "kind": "document_not_reflected",
+        "claims": [
+          "SchA.5b"
+        ],
+        "evidence": [
+          {
+            "doc": "D54",
+            "page": 1
+          }
+        ],
+        "grounded": true,
+        "rationaleWords": 32,
+        "authority": null,
+        "confidence": 0.4
+      },
+      "reason": "rationale over 30 words"
+    },
+    {
+      "raw": {
+        "kind": "date_or_year_mismatch",
+        "claims": [
+          "SchA.5b"
+        ],
+        "evidence": [
+          {
+            "doc": "D57",
+            "page": 1
+          }
+        ],
+        "grounded": true,
+        "rationaleWords": 32,
+        "authority": null,
+        "confidence": 0.4
+      },
+      "reason": "rationale over 30 words"
+    },
+    {
+      "raw": {
+        "kind": "date_or_year_mismatch",
+        "claims": [
+          "SchA.5b"
+        ],
+        "evidence": [
+          {
+            "doc": "D58",
+            "page": 1
+          }
+        ],
+        "grounded": true,
+        "rationaleWords": 34,
+        "authority": null,
+        "confidence": 0.6
+      },
+      "reason": "rationale over 30 words"
+    },
+    {
+      "raw": {
+        "kind": "document_not_reflected",
+        "claims": [
+          "F2441.1a"
+        ],
+        "evidence": [
+          {
+            "doc": "D61",
+            "page": 1
+          }
+        ],
+        "grounded": true,
+        "rationaleWords": 31,
+        "authority": null,
+        "confidence": 0.3
+      },
+      "reason": "rationale over 30 words"
+    },
+    {
+      "raw": {
+        "kind": "document_not_reflected",
+        "claims": [
+          "F2441.1b"
+        ],
+        "evidence": [
+          {
+            "doc": "D62",
+            "page": 1
+          }
+        ],
+        "grounded": true,
+        "rationaleWords": 41,
+        "authority": null,
+        "confidence": 0.6
+      },
+      "reason": "rationale over 30 words"
+    },
+    {
+      "raw": {
+        "kind": "other",
+        "otherKind": "charitable substantiation",
+        "claims": [
+          "SchA.11"
+        ],
+        "evidence": [
+          {
+            "doc": "D64",
+            "page": 1
+          },
+          {
+            "doc": "D64",
+            "page": 1
+          }
+        ],
+        "grounded": true,
+        "rationaleWords": 31,
+        "authority": "IRS Pub 526 (2025): Charitable Contributions",
+        "confidence": 0.5
+      },
+      "reason": "rationale over 30 words"
+    },
+    {
+      "raw": {
+        "kind": "document_not_reflected",
+        "claims": [
+          "F8283.A1.vehicle",
+          "SchA.12"
+        ],
+        "evidence": [
+          {
+            "doc": "D66",
+            "page": 1
+          },
+          {
+            "doc": "D66",
+            "page": 1
+          }
+        ],
+        "grounded": true,
+        "rationaleWords": 34,
+        "authority": "IRS Pub 526 (2025): Charitable Contributions",
+        "confidence": 0.9
+      },
+      "reason": "rationale over 30 words"
+    },
+    {
+      "raw": {
+        "kind": "date_or_year_mismatch",
+        "claims": [
+          "F540NR.72"
+        ],
+        "evidence": [
+          {
+            "doc": "D68",
+            "page": 1
+          }
+        ],
+        "grounded": true,
+        "rationaleWords": 32,
+        "authority": null,
+        "confidence": 0.7
+      },
+      "reason": "rationale over 30 words"
+    },
+    {
+      "raw": {
+        "kind": "residency_or_source",
+        "claims": [
+          "SchCA540NR.1.E"
+        ],
+        "evidence": [
+          {
+            "doc": "D73",
+            "page": 1
+          }
+        ],
+        "grounded": true,
+        "rationaleWords": 32,
+        "authority": "FTB Schedule CA (540NR) instructions (2025)",
+        "confidence": 0.6
+      },
+      "reason": "rationale over 30 words"
+    }
+  ]
+}

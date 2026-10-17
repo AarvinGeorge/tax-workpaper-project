@@ -102,6 +102,14 @@ function maskEvent(e: WorkEvent, role: ReturnType<typeof roleInfo>): WorkEvent {
   return { ...e, payload: walk(e.payload) as Record<string, unknown> };
 }
 
+/** An applied change whose tax effect is over the firm's partner threshold needs a live partner sign-off. */
+export function needsPartnerSignoff(ix: PacketIndex, c: ClaimState): boolean {
+  const threshold = partnerThreshold(ix);
+  if (!c.effect || !threshold) return false;
+  if (Math.abs(c.effect.federal) <= threshold && Math.abs(c.effect.california) <= threshold) return false;
+  return !c.signoffs.some((s) => s.level === 'partner' && !s.stale);
+}
+
 export function projectWorkspace(ix: PacketIndex, events: WorkEvent[], role: RoleKey, findings: Finding[]): WorkspaceState {
   const info = roleInfo(ix, role);
   const sorted = sinceLastReset([...events].sort((a, b) => a.seq - b.seq));
@@ -138,9 +146,7 @@ export function projectWorkspace(ix: PacketIndex, events: WorkEvent[], role: Rol
   }
   const threshold = partnerThreshold(ix);
   for (const c of Object.values(claims)) {
-    if (!c.effect || !threshold) continue;
-    if (Math.abs(c.effect.federal) <= threshold && Math.abs(c.effect.california) <= threshold) continue;
-    if (c.signoffs.some((s) => s.level === 'partner' && !s.stale)) continue;
+    if (!needsPartnerSignoff(ix, c)) continue;
     const label = c.claimId.startsWith('line:') ? ix.line(ix.latest.version, c.claimId.slice(5))?.label ?? c.claimId : c.claimId;
     blockers.push({ claimId: c.claimId, title: `Partner sign-off needed: ${label} (tax effect over ${threshold.toLocaleString('en-US')})` });
   }

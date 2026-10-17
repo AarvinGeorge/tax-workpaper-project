@@ -26,7 +26,7 @@ export default async function Home({ params, searchParams }: P) {
   const { ix, state, role: me } = w;
   const mask = (t: string) => maskText(t, me, false);
   const isClient = me.kind === 'client';
-  const visible = w.findings.filter((f) => !f.firstVisibleAt || f.firstVisibleAt <= state.storyAt).sort((a, b) => ORDER[a.severity] - ORDER[b.severity]);
+  const visible = w.findings.filter((f) => f.source !== 'ai').filter((f) => !f.firstVisibleAt || f.firstVisibleAt <= state.storyAt).sort((a, b) => ORDER[a.severity] - ORDER[b.severity]);
   const myQuestions = state.events.filter((e) => e.type === 'question_to_client' && e.payload.to === me.key);
   const openQuestions = myQuestions.filter((q) => !state.events.some((x) => x.type === 'answer_recorded' && Number(x.payload.questionSeq) === q.seq));
   const plain = visible.filter((f) => f.plain);

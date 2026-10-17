@@ -31,7 +31,7 @@ export default async function ReturnScreen({ params, searchParams }: P) {
 
   const sw = new Map(swings(ix).map((s) => [s.key, s]));
   const swingCount = [...sw.values()].filter((s) => s.flag === 'swing').length;
-  const visible = w.findings.filter((f) => !f.firstVisibleAt || f.firstVisibleAt <= state.storyAt);
+  const visible = w.findings.filter((f) => f.source !== 'ai').filter((f) => !f.firstVisibleAt || f.firstVisibleAt <= state.storyAt);
   const findingOn = new Map<string, Finding>();
   for (const f of visible) for (const c of f.claims) { const prev = findingOn.get(c); if (!prev || SEV[f.severity][2] < SEV[prev.severity][2]) findingOn.set(c, f); }
   const diagOn = new Set<string>();

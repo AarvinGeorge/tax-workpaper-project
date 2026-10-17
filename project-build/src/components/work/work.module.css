@@ -101,3 +101,6 @@
 @container (max-width:1000px){.cols{grid-template-columns:minmax(0,1fr)}}
 @container (max-width:620px){.chkRow{grid-template-columns:auto minmax(0,1fr) auto}.chkRow .hideSm{display:none}}
 @media (prefers-reduced-motion:reduce){.chev{transition:none}}
+
+/* AI suggestions: a small mark, accent colour (status still in words beside it) */
+.aiMark{color:var(--acc);font-size:12px;line-height:1;margin-right:4px;display:inline-block;vertical-align:1px}

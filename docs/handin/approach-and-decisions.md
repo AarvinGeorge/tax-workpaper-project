@@ -48,14 +48,20 @@ interface; the trace links already point to a document, page and position.
 
 ## Where AI fits
 
-AI built this, and AI is the next layer, but nothing in the running app calls a model. Every sentence on screen comes
-from a check and the packet's data, so it is reproducible and cannot invent a figure.
+AI built this, and AI now reads the packet too, but never from the screen and never as the authority. An AI reader
+(Claude Sonnet 5.5) runs at ingest, before the backend: it reads each document's free text with identifiers masked and
+writes a fixed-schema payload of suggestions, each with a verbatim quote, its document and page, a 25-word reason and
+an optional legal source from a vetted list. The backend treats that payload like any untrusted input: code checks
+every quote is on its page, that it carries content, and that it does not rest only on a replaced document. What
+passes appears on Checks with a small ✦ and "needs review"; it never blocks filing until a reviewer accepts it.
 
-The next layer reads what code cannot: free text in receipts, client messages and notes, and document types the
-schema has never seen. It proposes a finding with the exact quoted phrase and its document; code then confirms every
-number it cites exists in the packet; it stays "Suggested, needs review" until a reviewer accepts it. Before it is
-trusted it is measured: the 27 logged mistakes are a ready test set for recall, and the altered packets measure false
-alarms.
+A harness scores the reader before it is trusted, blind (no known answer in any prompt, checked by searching every
+request). Judged match by match by a second model, the reader found **13 of our 27 known mistakes (48%)**, half of the
+wording-dependent ones, with every quote shown verified, at about $1.50 a run. It also made three confident mistakes
+of its own, perfect quotes from a superseded 1099 with wrong conclusions, which a deterministic verifier rule now
+holds back; and it found **one real mistake our own review had missed** (a 1,500 gift without the written
+acknowledgment IRC 170(f)(8) requires). The automatic score said 17 of 27; the judged figure is the one we report.
+Details and limits: `docs/handin/ai-scorecard.md`.
 
 ## How it was built
 
@@ -67,4 +73,5 @@ trade-off in `docs/decisions.md`, and every use of AI in `docs/ai-usage.md`.
 ## Designed, not built
 
 Uploading a real file as evidence (notes are built), the examination response pack (the examiner already sees the
-items under examination and the return as filed), the penalty and interest estimate, and the AI layer above.
+items under examination and the return as filed), the penalty and interest estimate, and sources on every tooltip
+definition (the tax-law text in the app is reviewed, not yet cited line by line).

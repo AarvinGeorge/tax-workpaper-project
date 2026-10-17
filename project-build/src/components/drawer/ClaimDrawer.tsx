@@ -2,7 +2,7 @@ import Link from 'next/link';
 import type { Finding, ResolvedRef, RoleInfo, RoleKey, WorkspaceState } from '@/domain/contracts';
 import type { PacketIndex } from '@/domain/packet/load';
 import { getWorkspace } from '../shell/load';
-import { can, maskText, maskValue, sensitiveTypeOf, signoffLevel, visibleDocIds } from '@/domain/policy';
+import { can, maskText, maskValue, partnerThreshold, sensitiveTypeOf, signoffLevel, visibleDocIds } from '@/domain/policy';
 import { documentLanding, simulatedPage } from '@/domain/docs';
 import { refText, resolveRef } from '@/domain/refs';
 import { claimHref, examinedLines, fmtDay, fmtStory, fmtValue, isRevealed, parseClaim } from '../shell/lib';
@@ -10,6 +10,11 @@ import { highlightSegments, revealReason } from './lib';
 import { DrawerActions, type ActionSpec } from './DrawerActions';
 import { retractedSeqs } from '@/domain/events';
 import { Term } from '../term/Term';
+import { AiMark } from '../work/ui';
+import { AiDecision } from './AiDecision';
+import { DocNote } from './DocNote';
+import { needsPartnerSignoff } from '@/domain/project';
+import { confidenceWord, suggestionStatus } from '@/domain/ai/merge';
 
 type Ctx = { ix: PacketIndex; me: RoleInfo; state: WorkspaceState; revealed: Set<string>; findings: Finding[]; ws: string; role: RoleKey; allRoles: RoleInfo[] };
 
@@ -184,7 +189,7 @@ function ClientAnswers({ c, claimId }: { c: Ctx; claimId: string }) {
 }
 
 function FindingsOn({ c, claimId }: { c: Ctx; claimId: string }) {
-  const list = c.findings.filter((f) => f.claims.includes(claimId) && (!f.firstVisibleAt || f.firstVisibleAt <= c.state.storyAt));
+  const list = c.findings.filter((f) => f.source !== 'ai' && f.claims.includes(claimId) && (!f.firstVisibleAt || f.firstVisibleAt <= c.state.storyAt));
   if (c.me.kind === 'client') {
     const plain = list.filter((f) => f.plain);
     if (!plain.length) return null;
@@ -235,6 +240,7 @@ function LineClaim({ c, key_, claimId }: { c: Ctx; key_: string; claimId: string
           {adjusted && <span className="small muted num">was <span className="del">{fmtValue(cs!.original)}</span> in {ix.latest.version}</span>}</div>
       </div>
       <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
+        {cs && needsPartnerSignoff(ix, cs) && <span className="row small"><span className="tag t-wrn">Needs partner sign-off (tax effect over {partnerThreshold(ix).toLocaleString('en-US')})</span><Term k="partner-threshold" /></span>}
         {cs?.effect && <span className="small num">Tax effect estimate: federal {fmtValue(cs.effect.federal)}, California {fmtValue(cs.effect.california)} ({cs.effect.basis}, {cs.effect.version}). Not recomputed by the engine.</span>}
         {l.note && !isClient && <p className="small muted" style={{ maxWidth: '60ch' }}>Engine note: {maskText(String(l.note), c.me, false)}</p>}
       </div>
@@ -321,10 +327,37 @@ function DocClaim({ c, docId, page, claimId }: { c: Ctx; docId: string; page?: n
       </div>
       {pages.map((p) => <SourcePage key={p.page} c={c} docId={docId} page={p.page} selected={(c.ix.valuesByDoc.get(docId) ?? []).filter((v) => v.page === p.page).map((v) => v.id)} />)}
       {page && d.pages.length > 1 && <Link className="link" href={claimHref('doc:' + docId)}>Show all {d.pages.length} pages</Link>}
+      <DocNotes c={c} docId={docId} />
       {!isClient && <FindingsOn c={c} claimId={claimId} />}
       {!isClient && <Trail c={c} claimId={'doc:' + docId} />}
       <Actions c={c} claimId={'doc:' + docId} current={null} identifiers={idents} />
     </>
+  );
+}
+
+/** Notes attached to a document: evidence kept with it, with who and when; and a way to add one (staff on any document,
+ *  clients on their own, as policy allows). */
+function DocNotes({ c, docId }: { c: Ctx; docId: string }) {
+  const claimId = 'doc:' + docId;
+  const retracted = retractedSeqs(c.state.events);
+  const notes = (c.state.claims[claimId]?.history ?? []).filter((e) => e.type === 'attach_note' && !retracted.has(e.seq));
+  const verdict = can(c.ix, c.me, 'attach_note', { claimId, payload: { text: 'x' } }, c.state);
+  const name = (k: RoleKey) => c.allRoles.find((r) => r.key === k)?.name ?? k;
+  if (!notes.length && !verdict.ok) return null;
+  return (
+    <div className="drw-sec">
+      <span className="lbl">Notes on this document · {notes.length}</span>
+      <div data-testid="doc-notes" style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
+        {notes.length === 0 && <span className="small muted">No notes yet.</span>}
+        {notes.map((n) => (
+          <div key={n.seq} className="srcitem">
+            <span className="small"><span className="tag t-pas">Note, evidence</span> {name(n.role)}, {fmtDay(n.storyAt)}</span>
+            <span>{maskText(String(n.payload.text ?? ''), c.me, false)}</span>
+          </div>
+        ))}
+      </div>
+      {verdict.ok && <DocNote ws={c.ws} role={c.role} claimId={claimId} />}
+    </div>
   );
 }
 
@@ -333,6 +366,7 @@ function FindingClaim({ c, id }: { c: Ctx; id: string }) {
   if (!f) return <p className="muted">No finding {id} at this story time.</p>;
   if (c.me.kind !== 'staff' && !(c.me.kind === 'client' && f.plain)) return <Empty text="Not shared with this role" sub="Internal checks are visible to the firm's staff." />;
   if (f.firstVisibleAt && f.firstVisibleAt > c.state.storyAt) return <Empty text="Not yet in the story" sub={`This check fires once its evidence arrives, on ${fmtDay(f.firstVisibleAt)}.`} />;
+  if (f.source === 'ai') return <AiFindingClaim c={c} f={f} />;
   const evidence = f.evidence.map((r) => resolveRef(c.ix, r, c.ix.latest.version));
   return (
     <>
@@ -346,6 +380,48 @@ function FindingClaim({ c, id }: { c: Ctx; id: string }) {
       <div className="drw-sec"><span className="lbl">Evidence · {evidence.length}</span>{evidence.map((r) => <SourceItem key={r.ref} c={c} r={r} />)}</div>
       {c.me.kind === 'staff' && <Trail c={c} claimId={'finding:' + id} />}
       <Actions c={c} claimId={'finding:' + id} current={null} />
+    </>
+  );
+}
+
+/** An AI suggestion: the rationale, each quote under a link to its page, the authority, who suggested it, and
+ *  Accept / Dismiss for staff with write access. */
+function AiFindingClaim({ c, f }: { c: Ctx; f: Finding }) {
+  const ai = f.ai!;
+  const st = suggestionStatus(c.state.events, f.id);
+  const first = (k?: RoleKey) => (k ? (c.allRoles.find((r) => r.key === k)?.name ?? k).split(' ')[0] : '');
+  const claimId = 'finding:' + f.id;
+  const verdict = can(c.ix, c.me, 'suggestion_accepted', { claimId, payload: {} }, c.state);
+  const tag = st.status === 'accepted' ? ['t-pas', 'Accepted'] : st.status === 'dismissed' ? ['t-mut', 'Dismissed'] : ['t-wrn', 'Needs review'];
+  const m = (t: string) => maskText(t, c.me, false);
+  return (
+    <>
+      <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
+        <div className="row"><span className={`tag ${tag[0]}`}>{tag[1]}</span><span className="small"><AiMark />AI suggestion</span><Term k="ai-suggestion" /></div>
+        <h2 style={{ fontSize: 19, lineHeight: 1.3 }}>{m(f.title)}</h2>
+        <p style={{ maxWidth: '60ch' }}>{m(ai.rationale)}</p>
+        {st.status === 'accepted' && <span className="small" data-testid="ai-accepted">Suggested by AI, accepted by {first(st.by)}</span>}
+        {st.status === 'dismissed' && <span className="small">Dismissed by {first(st.by)}{st.reason ? `: ${m(st.reason)}` : ''}</span>}
+      </div>
+      <div className="drw-sec">
+        <span className="lbl">What it read · {ai.quotes.length}</span>
+        {ai.quotes.map((q, i) => (
+          <div key={i} className="srcitem" style={{ gap: 6 }}>
+            <Link className="srcref" href={claimHref(`doc:${q.doc}#page${q.page}`)}>{m(c.ix.docById.get(q.doc)?.title ?? q.doc)}, page {q.page}</Link>
+            <blockquote style={{ margin: 0, paddingLeft: 10, borderLeft: '2px solid var(--acc)' }}>{m(q.quote)}</blockquote>
+          </div>
+        ))}
+        <span className="small muted">Each quote was found word for word on its page before this suggestion was shown.</span>
+      </div>
+      {ai.authority && <div className="drw-sec"><span className="lbl">Authority</span><span>{ai.authority}</span></div>}
+      {f.claims.length > 0 && <div className="drw-sec"><span className="lbl">Sits on</span><div className="row small" style={{ gap: 6 }}>{f.claims.map((k) => <Link key={k} className="srcref" href={claimHref(k)}>{k.replace(/^line:/, '')}</Link>)}</div></div>}
+      <div className="drw-sec">
+        <span className="lbl">Who suggested it</span>
+        <span className="small">Suggested by {ai.model}, prompt {ai.promptVersion}, {fmtDay(ai.runAt)}</span>
+        <span className="small">Confidence: {confidenceWord(ai.confidence)} <span className="muted">(the reader&apos;s own estimate; it never skips the quote check)</span></span>
+      </div>
+      <Trail c={c} claimId={claimId} />
+      <AiDecision ws={c.ws} role={c.role} claimId={claimId} status={st.status} ok={verdict.ok} reason={verdict.reason} />
     </>
   );
 }

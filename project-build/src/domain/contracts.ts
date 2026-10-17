@@ -23,7 +23,10 @@ export type ScreenKey = 'home' | 'return' | 'areas' | 'documents' | 'checks' | '
 export type EventType =
   | 'adjustment' | 'review_note' | 'note_resolved' | 'signoff' | 'question_to_client' | 'answer_recorded'
   | 'reason_set' | 'reveal' | 'clock_moved' | 'undo' | 'assignment' | 'attach_note' | 'time_logged'
-  | 'verification' | 'decision' | 'question_to_colleague' | 'finding_cleared' | 'workspace_reset' | 'client_signature';
+  | 'verification' | 'decision' | 'question_to_colleague' | 'finding_cleared' | 'workspace_reset' | 'client_signature'
+  | 'suggestion_accepted' | 'suggestion_dismissed';
+// suggestion_accepted / suggestion_dismissed: staff with write access review an AI suggestion, claimId 'finding:<id>',
+// payload { reason } (required to dismiss). The latest one not undone sets the suggestion's status.
 // client_signature: one spouse e-signs Form 8879 and FTB 8879 on claimId 'return', payload { forms, value } where value is
 // the fingerprint of the finalized return signed. No PIN is ever sent or stored.
 // workspace_reset is a demo control: the projection ignores every event before the latest one (back to the pipeline
@@ -69,6 +72,11 @@ export interface Finding {
   effect?: { federal?: number; california?: number; basis: 'tax_effect_rates' | 'what_if' | 'computed' };
   ledgerIds: string[];         // e.g. ['GT-A03']; empty for findings beyond the ledger
   firstVisibleAt?: string;     // ISO; a finding that depends on a later document or message appears only after it
+  source?: 'check' | 'ai';     // absent = check; 'ai' = a verified AI suggestion (src/domain/ai), never a blocker
+  ai?: {                       // set when source is 'ai'
+    kind: string; quotes: { doc: string; page: number; quote: string }[]; rationale: string; authority: string | null;
+    confidence: number; model: string; promptVersion: string; runAt: string;
+  };
 }
 // runChecks(ix, asOf?): Finding[]
 // LEDGER: { id: string; title: string; severity: string; checkIds: string[]; surfaced: string }[]   catalogue of all ledger findings

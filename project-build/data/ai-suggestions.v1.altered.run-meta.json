@@ -1,0 +1,23 @@
+{
+  "payload": "ai-suggestions.altered.json",
+  "model": "claude-sonnet-5-5",
+  "promptVersion": "reader-v1",
+  "runAt": "2026-10-17T20:25:21.049Z",
+  "documents": 74,
+  "docIds": null,
+  "thinking": {
+    "type": "adaptive",
+    "display": "omitted"
+  },
+  "maxTokens": 8000,
+  "calls": 74,
+  "failedCalls": 0,
+  "usage": {
+    "input_tokens": 226007,
+    "output_tokens": 49676,
+    "cache_creation_input_tokens": 33891,
+    "cache_read_input_tokens": 2474043
+  },
+  "costUsd": 1.5283101000000001,
+  "seconds": 119
+}

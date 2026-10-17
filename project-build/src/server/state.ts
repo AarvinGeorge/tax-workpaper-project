@@ -7,6 +7,8 @@ import { isWorkspaceId } from '@/domain/store/ids';
 import { validateNewEvent, type EventInput } from '@/domain/events';
 import { projectWorkspace } from '@/domain/project';
 import { can, isRoleKey, maskText, roleInfo, roles, signoffLevel } from '@/domain/policy';
+import { aiReview, NO_AI, type AiReview } from '@/domain/ai/merge';
+import { visibleAt } from '@/domain/clock';
 
 export { isWorkspaceId };
 
@@ -42,7 +44,18 @@ function assertArgs(ws: string, role: RoleKey) {
   if (!isRoleKey(role)) throw new Error('unknown role');
 }
 
-export interface Workspace { ix: PacketIndex; findings: Finding[]; state: WorkspaceState; role: RoleInfo }
+/** ai: the AI review for staff (verified suggestions and the held-back count); empty for clients and the examiner. */
+export interface Workspace { ix: PacketIndex; findings: Finding[]; state: WorkspaceState; role: RoleInfo; ai: AiReview }
+
+/** AI suggestions never reach the projection (so never a blocker); a broken payload never breaks the workspace. */
+function aiFor(ix: PacketIndex): AiReview {
+  try {
+    return aiReview(ix);
+  } catch (err) {
+    console.error('AI payload skipped', err);
+    return NO_AI;
+  }
+}
 
 export async function loadWorkspace(ws: string, role: RoleKey): Promise<Workspace> {
   assertArgs(ws, role);
@@ -51,9 +64,11 @@ export async function loadWorkspace(ws: string, role: RoleKey): Promise<Workspac
   if (!info) throw new Error('role not present in this packet');
   const [events, allFindings] = await Promise.all([getStore().list(ws), findingsFor(ix)]);
   const state = projectWorkspace(ix, events, role, allFindings);
-  // Findings per role: staff see all (inboxes filter by firstVisibleAt); clients only those written for them; examiner none.
-  const findings = info.kind === 'staff' ? allFindings : info.kind === 'client' ? allFindings.filter((f) => f.plain) : [];
-  return { ix, findings, state, role: info };
+  // Findings per role: staff see all (inboxes filter by firstVisibleAt) plus verified AI suggestions after our checks;
+  // clients only those written for them; examiner none. AI suggestions are for staff only.
+  const ai = info.kind === 'staff' ? aiFor(ix) : NO_AI;
+  const findings = info.kind === 'staff' ? [...allFindings, ...ai.findings] : info.kind === 'client' ? allFindings.filter((f) => f.plain) : [];
+  return { ix, findings, state, role: info, ai };
 }
 
 export type PostResult =
@@ -67,9 +82,18 @@ export async function postEvent(ws: string, role: RoleKey, e: EventInput | NewEv
   if (!v.ok) return { ok: false, status: 400, reason: v.reason };
   const input = v.event;
   const ix = packet();
+  if (input.type === 'suggestion_accepted' || input.type === 'suggestion_dismissed') {
+    const id = input.claimId?.startsWith('finding:') ? input.claimId.slice(8) : '';
+    if (!aiFor(ix).findings.some((f) => f.id === id)) return { ok: false, status: 400, reason: 'No AI suggestion with that id is shown.' };
+  }
   const store = getStore();
   const [events, findings] = await Promise.all([store.list(ws), findingsFor(ix)]);
   const staffView = projectWorkspace(ix, events, policyViewer(ix, role), findings);
+  if (input.type === 'suggestion_accepted' || input.type === 'suggestion_dismissed') {
+    // Same rule as the inbox: a suggestion shows once every document it quotes has arrived at the story clock.
+    const f = aiFor(ix).findings.find((x) => 'finding:' + x.id === input.claimId);
+    if (f && !visibleAt(f.firstVisibleAt, staffView.storyAt)) return { ok: false, status: 403, reason: 'This suggestion is not in the story yet: a document it quotes arrives later.' };
+  }
   // A client's own view decides what a client may touch.
   const view = roleInfo(ix, role)?.kind === 'staff' ? staffView : projectWorkspace(ix, events, role, findings);
   const payload = { ...input.payload };
@@ -103,12 +127,18 @@ function originalValue(ix: PacketIndex, claimId: string): unknown {
   return claimId.startsWith('line:') ? ix.line(ix.latest.version, claimId.slice(5))?.value ?? null : null;
 }
 
+/** A finding's free text masked for the role: explanation, plain wording and, for an AI suggestion, its rationale and quotes. */
+export function maskFinding(f: Finding, role: RoleInfo): Finding {
+  const m = (t: string) => maskText(t, role, false);
+  const out: Finding = { ...f, explanation: m(f.explanation), plain: f.plain ? m(f.plain) : f.plain };
+  if (f.ai) out.ai = { ...f.ai, rationale: m(f.ai.rationale), quotes: f.ai.quotes.map((q) => ({ ...q, quote: m(q.quote) })) };
+  return out;
+}
+
 /** GET /api/w/:ws/state body: the role's masked projection (never the packet; the page already has it). */
 export async function stateResponse(ws: string, role: RoleKey, after = 0) {
   const w = await loadWorkspace(ws, role);
-  const findings = w.findings.map((f) => ({
-    ...f, explanation: maskText(f.explanation, w.role, false), plain: f.plain ? maskText(f.plain, w.role, false) : f.plain,
-  }));
+  const findings = w.findings.map((f) => maskFinding(f, w.role));
   const lastSeq = w.state.events.reduce((m, e) => Math.max(m, e.seq), 0);
   return { ws, role: w.role, state: w.state, findings, lastSeq, newEvents: w.state.events.filter((e) => e.seq > after) };
 }

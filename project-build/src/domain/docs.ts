@@ -29,9 +29,15 @@ function returnTaxYear(ix: PacketIndex): number | null {
   return typeof y === 'number' ? y : null;
 }
 
+/** A document the latest version lists as superseded (return_versions[].documents_superseded). Shared with the AI
+ *  verifier (src/domain/ai/verify.ts supersession). */
+export function isSupersededDoc(ix: PacketIndex, docId: string): boolean {
+  return ix.latest.documents_superseded.includes(docId);
+}
+
 function reasonFor(ix: PacketIndex, d: PacketDocument, landed: Set<string>, referenced: Set<string>, frozen: string | null): Reason {
   const latest = ix.latest;
-  if (latest.documents_superseded.includes(d.id)) {
+  if (isSupersededDoc(ix, d.id)) {
     const first = ix.versions.find((rv) => rv.documents_superseded.includes(d.id)) ?? latest;
     return { code: 'superseded', text: `Superseded from ${first.version} on: ${first.trigger}` };
   }

@@ -1,0 +1,243 @@
+{
+  "promptVersion": "reader-v2",
+  "reviewer": "Claude Fable 5.1 (a different model from the reader)",
+  "file": "docs/reviews/2026-10-17-ai-v2-adjudication.md",
+  "matches": [
+    {
+      "suggestionId": "ai-repair_vs_improvement-1",
+      "ledgerId": "GT-C05",
+      "verdict": "SAME",
+      "reason": "Infers from unchanged 2024 depreciation that the August HVAC job was expensed, not capitalized; weaker evidence than the invoice rows."
+    },
+    {
+      "suggestionId": "ai-business_use_share-1",
+      "ledgerId": "GT-C08",
+      "verdict": "DIFFERENT",
+      "reason": "States the unconfirmed 2024 footage versus this year's, a restatement of GT-C10 and the engine's own warning, not the one-home limit on the simplified method."
+    },
+    {
+      "suggestionId": "ai-document_not_reflected-3",
+      "ledgerId": "GT-A01",
+      "verdict": "SAME",
+      "reason": "W-2 box 14 RSU 38,200 already taxed as wages; zero-basis lots overstate gain."
+    },
+    {
+      "suggestionId": "ai-residency_or_source-1",
+      "ledgerId": "GT-A02",
+      "verdict": "SAME",
+      "reason": "Payroll kept California as work state to 09/30; wages after the mid-July move are not California-source."
+    },
+    {
+      "suggestionId": "ai-residency_or_source-2",
+      "ledgerId": "GT-A02",
+      "verdict": "SAME",
+      "reason": "Same point from the W-2 photo; the added note that withholding may be excess is right and harmless."
+    },
+    {
+      "suggestionId": "ai-document_not_reflected-4",
+      "ledgerId": "GT-A01",
+      "verdict": "SAME",
+      "reason": "Quotes the three supplement adjusted-basis figures against the return's zero; the strongest row in the run."
+    },
+    {
+      "suggestionId": "ai-other-1",
+      "ledgerId": "GT-C04",
+      "verdict": "SAME",
+      "reason": "Software line deducted in full though the call notes say it holds a personal family streaming subscription."
+    },
+    {
+      "suggestionId": "ai-limit_or_eligibility-2",
+      "ledgerId": "GT-A06",
+      "verdict": "SAME",
+      "reason": "Self-employed health insurance is barred for months the spouse was eligible for an employer plan, which the client says was offered."
+    },
+    {
+      "suggestionId": "ai-business_use_share-2",
+      "ledgerId": "GT-C04",
+      "verdict": "SAME",
+      "reason": "The family streaming subscription (216) is personal and sits in the business software total."
+    },
+    {
+      "suggestionId": "ai-business_use_share-3",
+      "ledgerId": "GT-C04",
+      "verdict": "SAME",
+      "reason": "Four-line family mobile plan and shared home internet deducted at 100%; only the business share is deductible."
+    },
+    {
+      "suggestionId": "ai-other-2",
+      "ledgerId": "GT-C02",
+      "verdict": "SAME",
+      "reason": "Mileage page 3 is a second scan of page 2 and both 3,700 totals were summed."
+    },
+    {
+      "suggestionId": "ai-limit_or_eligibility-3",
+      "ledgerId": "GT-A06",
+      "verdict": "SAME",
+      "reason": "Same eligibility bar, cited from the premium statement."
+    },
+    {
+      "suggestionId": "ai-document_not_reflected-5",
+      "ledgerId": "GT-A01",
+      "verdict": "SAME",
+      "reason": "Basis not reported is not zero basis; vest-date value already taxed as wages belongs in basis."
+    },
+    {
+      "suggestionId": "ai-other-3",
+      "ledgerId": "GT-B01",
+      "verdict": "SAME",
+      "reason": "The same sweep interest 1,840 on two Schedule B lines."
+    },
+    {
+      "suggestionId": "ai-other-4",
+      "ledgerId": "GT-B01",
+      "verdict": "SAME",
+      "reason": "This is the sweep 1099-INT the composite already includes."
+    },
+    {
+      "suggestionId": "ai-date_or_year_mismatch-1",
+      "ledgerId": "GT-D04",
+      "verdict": "DIFFERENT",
+      "reason": "Questions the April 2026 payment date; GT-D04 is the missing Schedule S limitation. Payment timing does not change the credit."
+    },
+    {
+      "suggestionId": "ai-repair_vs_improvement-2",
+      "ledgerId": "GT-C05",
+      "verdict": "SAME",
+      "reason": "HVAC 11,000 inside repairs 13,300; a whole-system replacement is a capital improvement."
+    },
+    {
+      "suggestionId": "ai-repair_vs_improvement-3",
+      "ledgerId": "GT-C05",
+      "verdict": "SAME",
+      "reason": "Invoice: furnace and condenser removed, new heat pump installed; an improvement to depreciate."
+    },
+    {
+      "suggestionId": "ai-document_not_reflected-9",
+      "ledgerId": "GT-D02",
+      "verdict": "SAME",
+      "reason": "Seller credit 6,912 for 01/01-07/07 taxes reduces the buyers' deductible tax; the line carries the full levy."
+    },
+    {
+      "suggestionId": "ai-other-5",
+      "ledgerId": "GT-D01",
+      "verdict": "SAME",
+      "reason": "The 1098 box 1 already includes payoff interest, yet the payoff statement's amount is added again."
+    },
+    {
+      "suggestionId": "ai-other-6",
+      "ledgerId": "GT-D01",
+      "verdict": "SAME",
+      "reason": "The payoff statement itself says the interest is on the 1098; counted twice."
+    },
+    {
+      "suggestionId": "ai-date_or_year_mismatch-3",
+      "ledgerId": "GT-D02",
+      "verdict": "SAME",
+      "reason": "Prior owner on record 01/01 plus a July purchase means the full levy includes the seller's share."
+    },
+    {
+      "suggestionId": "ai-document_not_reflected-10",
+      "ledgerId": "GT-A08",
+      "verdict": "SAME",
+      "reason": "The statement names a kids club; the return line names a preschool."
+    },
+    {
+      "suggestionId": "ai-other-7",
+      "ledgerId": "GT-A07",
+      "verdict": "SAME",
+      "reason": "Provider tax ID transposed against the return line; the quote is thin but the rationale names the defect exactly."
+    },
+    {
+      "suggestionId": "ai-document_not_reflected-11",
+      "ledgerId": "GT-D03",
+      "verdict": "SAME",
+      "reason": "Charity sold the car at arm's length for 2,900, so the deduction is capped there, not at the client's estimate."
+    },
+    {
+      "suggestionId": "ai-document_not_reflected-12",
+      "ledgerId": "GT-A04",
+      "verdict": "PARTIAL",
+      "reason": "Right line and direction: the fourth payment is unsupported by the confirmations; never reaches the IRS transcript showing 3,000."
+    },
+    {
+      "suggestionId": "ai-document_not_reflected-12",
+      "ledgerId": "GT-D05",
+      "verdict": "DIFFERENT",
+      "reason": "Claims the penalty line only because the payment feeds it; GT-D05 is excess social security left out of withholding."
+    },
+    {
+      "suggestionId": "ai-date_or_year_mismatch-4",
+      "ledgerId": "GT-A03",
+      "verdict": "SAME",
+      "reason": "A payment labelled tax year 2024 is counted in 2025 California estimates."
+    },
+    {
+      "suggestionId": "ai-residency_or_source-3",
+      "ledgerId": "GT-A02",
+      "verdict": "SAME",
+      "reason": "Paystub shows California taxable wages to 07/15, yet the California column carries all wages; the most precise A02 row."
+    }
+  ],
+  "beyond": [
+    {
+      "suggestionId": "ai-document_not_reflected-1",
+      "verdict": "NOT-REAL",
+      "reason": "Quotes the prior preparer's 2024 note; in 2025 the 2023 K-1 is used and S corporation basis recomputes, and the engine's basis warning is gone in v3."
+    },
+    {
+      "suggestionId": "ai-answer_conflicts_with_return-1",
+      "verdict": "NOT-REAL",
+      "reason": "Two distinct 7,000 IRA contributions (2024 and 2025 Forms 5498) fund two conversions; the client's 'no prior basis' answer is the error."
+    },
+    {
+      "suggestionId": "ai-document_not_reflected-2",
+      "verdict": "REAL-DUPLICATE",
+      "reason": "GT-B05: the prior preparer's 2023 Form 3520 open item; unmatchable strictly because the ledger claims the document, not a line."
+    },
+    {
+      "suggestionId": "ai-limit_or_eligibility-1",
+      "verdict": "NOT-REAL",
+      "reason": "California tax withheld after the move was remitted, so it is a valid credit and a cash-basis state tax payment; the excess comes back through GT-A02's fix."
+    },
+    {
+      "suggestionId": "ai-answer_conflicts_with_return-2",
+      "verdict": "NOT-REAL",
+      "reason": "Schedule D line 13 is the 1099-DIV amount plus the corrected 1099's 640; the digit resemblance is coincidence."
+    },
+    {
+      "suggestionId": "ai-document_not_reflected-6",
+      "verdict": "REAL-DUPLICATE",
+      "reason": "GT-B04: the unread lot on page 32, cited from the superseded original."
+    },
+    {
+      "suggestionId": "ai-document_not_reflected-7",
+      "verdict": "REAL-DUPLICATE",
+      "reason": "GT-B04: the same unread lot from the corrected 1099; claimed on the box B total, so strict matching missed it."
+    },
+    {
+      "suggestionId": "ai-answer_conflicts_with_return-3",
+      "verdict": "NOT-REAL",
+      "reason": "No return error: the twelve crypto sales are reported as the 1099-DA shows, and the engine already flags the answer conflict."
+    },
+    {
+      "suggestionId": "ai-date_or_year_mismatch-2",
+      "verdict": "NOT-REAL",
+      "reason": "Expenses of rental property held for sale stay deductible until the sale (Pub 527); October dues are a carrying cost."
+    },
+    {
+      "suggestionId": "ai-business_use_share-4",
+      "verdict": "NOT-REAL",
+      "reason": "Same rule: loan interest to payoff on the sale date is a carrying cost of property held for rental until sold."
+    },
+    {
+      "suggestionId": "ai-document_not_reflected-8",
+      "verdict": "NOT-REAL",
+      "reason": "The 4,800 purchase points are already deducted on line 8a from the Form 1098; the reader looked at 8c and missed 8a."
+    },
+    {
+      "suggestionId": "ai-limit_or_eligibility-4",
+      "verdict": "REAL-NEW",
+      "reason": "St. Brigid receipt (D64) lacks the goods-or-services statement required for gifts of 250 or more (IRC 170(f)(8)); SchA.11, about +390 federal and +72 California if disallowed. Verified against the packet by the reviewing model and the coordinator."
+    }
+  ]
+}

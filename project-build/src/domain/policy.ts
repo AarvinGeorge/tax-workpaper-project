@@ -4,6 +4,7 @@ import type { PacketIndex } from './packet/load';
 import type { NewEvent, RoleInfo, RoleKey, ScreenKey, WorkEvent, WorkspaceState } from './contracts';
 import { visibleAt, frozenAt } from './clock';
 import { isApplied, retractedSeqs } from './events';
+import { suggestionStatus } from './ai/merge';
 
 type Level = 'preparer' | 'reviewer' | 'partner';
 interface RoleMeta { info: RoleInfo; level: Level | null; writes: boolean; householdRole?: string; householdId?: string }
@@ -218,6 +219,19 @@ export function can(ix: PacketIndex, roleArg: RoleKey | RoleInfo, action: Action
       if (!target.claimId?.startsWith('finding:')) return no('Clear a finding by its id.');
       if (!meta.level) return no(`${info.title} does not clear findings.`);
       return str(payload.reason) ? yes : no('Clearing a finding needs a reason.');
+    case 'suggestion_accepted':
+    case 'suggestion_dismissed':
+    {
+      // Reached only by staff with write access (clients, the examiner and read-only seats are refused above); like
+      // clearing a finding, reviewing one needs a sign-off level.
+      if (!target.claimId?.startsWith('finding:')) return no('Review an AI suggestion by its id.');
+      if (!meta.level) return no(`${info.title} does not review AI suggestions.`);
+      if (action === 'suggestion_dismissed' && !str(payload.reason)) return no('Dismissing a suggestion needs a reason.');
+      const now = suggestionStatus(state.events, target.claimId.slice(8)).status;
+      if (action === 'suggestion_accepted' && now === 'accepted') return no('This suggestion is already accepted.');
+      if (action === 'suggestion_dismissed' && now === 'dismissed') return no('This suggestion is already dismissed.');
+      return yes;
+    }
     case 'undo': {
       const ev = state.events.find((e) => e.seq === target.retracts) ?? state.events.find((e) => target.groupId && e.groupId === target.groupId);
       if (!ev) return no('Nothing to undo.');

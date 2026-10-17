@@ -1,0 +1,879 @@
+{
+  "schemaVersion": 1,
+  "packetSha": "c6d6c9099db6bfaf14babf3cbaf32a1c133addcb03f1086387032ec472912b15",
+  "model": "claude-sonnet-5-5",
+  "promptVersion": "reader-v2",
+  "runAt": "2026-10-17T20:37:20.087Z",
+  "suggestions": [
+    {
+      "id": "ai-limit_or_eligibility-1",
+      "kind": "limit_or_eligibility",
+      "otherKind": null,
+      "claims": [
+        "Sch1.17"
+      ],
+      "evidence": [
+        {
+          "doc": "D06",
+          "page": 3,
+          "quote": "Sch1.17 Self-employed health insurance deduction 0"
+        }
+      ],
+      "rationale": "Last year no self-employed health insurance deduction was taken because of spouse's employer coverage; this year both employers offered family coverage, so the 2025 deduction may be limited.",
+      "authority": "IRS Form 7206 instructions (2025): Self-Employed Health Insurance Deduction",
+      "confidence": 0.4
+    },
+    {
+      "id": "ai-repair_vs_improvement-1",
+      "kind": "repair_vs_improvement",
+      "otherKind": null,
+      "claims": [
+        "SchE.14A",
+        "SchE.18A"
+      ],
+      "evidence": [
+        {
+          "doc": "D07",
+          "page": 4,
+          "quote": "SAC-ROOF 1450 Fremont Way - roof replacement cost 18,000.00"
+        }
+      ],
+      "rationale": "The prior preparer capitalized a roof replacement at this property, so the HVAC system replacement likely also belongs in depreciation rather than in repairs.",
+      "authority": "Treas. Reg. 1.263(a)-3: Amounts paid to improve tangible property",
+      "confidence": 0.5
+    },
+    {
+      "id": "ai-document_not_reflected-1",
+      "kind": "document_not_reflected",
+      "otherKind": null,
+      "claims": [
+        "F7203.1",
+        "F7203.excess"
+      ],
+      "evidence": [
+        {
+          "doc": "D07",
+          "page": 2,
+          "quote": "2023 K-1 not provided - basis not rolled forward"
+        },
+        {
+          "doc": "D07",
+          "page": 5,
+          "quote": "2024: income 16,900, distributions 30,000 - assumed basis sufficient."
+        }
+      ],
+      "rationale": "S corporation stock basis was never rolled forward through 2023 and 2024, so the 2025 beginning basis and the excess-distribution gain are unreliable.",
+      "authority": null,
+      "confidence": 0.55
+    },
+    {
+      "id": "ai-date_or_year_mismatch-1",
+      "kind": "date_or_year_mismatch",
+      "otherKind": null,
+      "claims": [
+        "F8606.2",
+        "F8606.1"
+      ],
+      "evidence": [
+        {
+          "doc": "D07",
+          "page": 2,
+          "quote": "8606: basis 7,000 per client (2024 contribution made 02/12/2025). 5498 not obtained."
+        },
+        {
+          "doc": "D07",
+          "page": 6,
+          "quote": "IRA basis 7,000"
+        }
+      ],
+      "rationale": "The 7,000 carried-in basis rests on a contribution made in February 2025 with no Form 5498, and may duplicate the 2025 contribution.",
+      "authority": null,
+      "confidence": 0.45
+    },
+    {
+      "id": "ai-document_not_reflected-2",
+      "kind": "document_not_reflected",
+      "otherKind": null,
+      "claims": [
+        "F8949.B.N1",
+        "F8949.B.N3"
+      ],
+      "evidence": [
+        {
+          "doc": "D08",
+          "page": 1,
+          "quote": "Box 14 RSU 38,200.00"
+        }
+      ],
+      "rationale": "RSU income is already in W-2 wages, yet the RSU sales are reported with zero basis, which may tax the same income twice.",
+      "authority": null,
+      "confidence": 0.5
+    },
+    {
+      "id": "ai-residency_or_source-1",
+      "kind": "residency_or_source",
+      "otherKind": null,
+      "claims": [
+        "SchCA540NR.1.E",
+        "F540NR.71"
+      ],
+      "evidence": [
+        {
+          "doc": "D09",
+          "page": 1,
+          "quote": "Employer payroll kept California as the work state through 09/30/2025."
+        }
+      ],
+      "rationale": "Employer kept California as work state after the July move to Texas; wages earned after the move are likely not California-source, yet the full wage amount is reported as California.",
+      "authority": "FTB Schedule CA (540NR) instructions (2025)",
+      "confidence": 0.55
+    },
+    {
+      "id": "ai-document_not_reflected-3",
+      "kind": "document_not_reflected",
+      "otherKind": null,
+      "claims": [],
+      "evidence": [
+        {
+          "doc": "D09",
+          "page": 1,
+          "quote": "Box 10 5,000.00"
+        }
+      ],
+      "rationale": "Employer-provided dependent care benefits appear in box 10, but the return shows no Form 2441 or reconciliation of the benefits against child care costs.",
+      "authority": null,
+      "confidence": 0.5
+    },
+    {
+      "id": "ai-residency_or_source-2",
+      "kind": "residency_or_source",
+      "otherKind": null,
+      "claims": [
+        "SchCA540NR.1.E"
+      ],
+      "evidence": [
+        {
+          "doc": "D10",
+          "page": 1,
+          "quote": "Box 15 CA; Box 16 111,300.00"
+        }
+      ],
+      "rationale": "The W-2 reports all wages as California, but the taxpayer moved to Texas mid-year, so wages earned after the move may not be California-source.",
+      "authority": "FTB Schedule CA (540NR) instructions (2025)",
+      "confidence": 0.5
+    },
+    {
+      "id": "ai-document_not_reflected-4",
+      "kind": "document_not_reflected",
+      "otherKind": null,
+      "claims": [],
+      "evidence": [
+        {
+          "doc": "D10",
+          "page": 1,
+          "quote": "Box 10 5,000.00"
+        }
+      ],
+      "rationale": "Dependent care benefits appear in Box 10, but the return has no Form 2441 lines to reconcile the exclusion or any credit.",
+      "authority": null,
+      "confidence": 0.5
+    },
+    {
+      "id": "ai-document_not_reflected-5",
+      "kind": "document_not_reflected",
+      "otherKind": null,
+      "claims": [
+        "F8949.B.N1",
+        "F8949.B.N3",
+        "F8949.E.N4"
+      ],
+      "evidence": [
+        {
+          "doc": "D11",
+          "page": 1,
+          "quote": "The cost basis reported on Form 1099-B for RSU shares is blank/$0 because these shares are noncovered."
+        },
+        {
+          "doc": "D11",
+          "page": 2,
+          "quote": "adjusted basis 19,100.00, sold 02/18/2025"
+        },
+        {
+          "doc": "D11",
+          "page": 2,
+          "quote": "adjusted basis 19,100.00, sold 05/20/2025"
+        },
+        {
+          "doc": "D11",
+          "page": 2,
+          "quote": "adjusted basis 9,420.00, sold 08/12/2025"
+        }
+      ],
+      "rationale": "The return reports zero basis on all three RSU sales, but the plan statement gives adjusted basis for each lot, so gains are overstated.",
+      "authority": null,
+      "confidence": 0.9
+    },
+    {
+      "id": "ai-limit_or_eligibility-2",
+      "kind": "limit_or_eligibility",
+      "otherKind": null,
+      "claims": [
+        "Sch1.17"
+      ],
+      "evidence": [
+        {
+          "doc": "D14",
+          "page": 1,
+          "quote": "Insurance - health (Erik) 14,400.00"
+        }
+      ],
+      "rationale": "Self-employed health insurance is not deductible for months the taxpayer could join a spouse's employer plan; the client says that coverage was offered, yet the full premium is deducted.",
+      "authority": "IRS Form 7206 instructions (2025): Self-Employed Health Insurance Deduction",
+      "confidence": 0.8
+    },
+    {
+      "id": "ai-business_use_share-1",
+      "kind": "business_use_share",
+      "otherKind": null,
+      "claims": [
+        "SchC.25"
+      ],
+      "evidence": [
+        {
+          "doc": "D14",
+          "page": 1,
+          "quote": "Telephone 2,160.00"
+        },
+        {
+          "doc": "D14",
+          "page": 1,
+          "quote": "Internet 1,320.00"
+        }
+      ],
+      "rationale": "Full phone and internet costs are deducted, but the phone plan covers family lines and the internet is shared, so only the business share should be deductible.",
+      "authority": "IRS Pub 334 (2025): Tax Guide for Small Business",
+      "confidence": 0.72
+    },
+    {
+      "id": "ai-other-1",
+      "kind": "other",
+      "otherKind": "personal expense in business books",
+      "claims": [
+        "SchC.27a.1"
+      ],
+      "evidence": [
+        {
+          "doc": "D14",
+          "page": 1,
+          "quote": "Software and subscriptions 6,850.00"
+        }
+      ],
+      "rationale": "The software line is deducted in full but includes a personal family streaming subscription booked by mistake, which should be removed.",
+      "authority": "IRS Pub 334 (2025): Tax Guide for Small Business",
+      "confidence": 0.6
+    },
+    {
+      "id": "ai-business_use_share-2",
+      "kind": "business_use_share",
+      "otherKind": null,
+      "claims": [
+        "SchC.27a.1"
+      ],
+      "evidence": [
+        {
+          "doc": "D15",
+          "page": 1,
+          "quote": "Spotify Family 216.00"
+        }
+      ],
+      "rationale": "A personal family music subscription sits inside the business software expense and appears to be fully deducted; it should be removed.",
+      "authority": "IRS Pub 334 (2025): Tax Guide for Small Business",
+      "confidence": 0.8
+    },
+    {
+      "id": "ai-business_use_share-3",
+      "kind": "business_use_share",
+      "otherKind": null,
+      "claims": [
+        "SchC.25"
+      ],
+      "evidence": [
+        {
+          "doc": "D15",
+          "page": 2,
+          "quote": "family mobile plan (4 lines) 180.00 per month"
+        },
+        {
+          "doc": "D15",
+          "page": 2,
+          "quote": "home internet 110.00 per month"
+        }
+      ],
+      "rationale": "Family mobile and shared home internet appear deducted in full, though only a business share of each is deductible.",
+      "authority": "IRS Pub 334 (2025): Tax Guide for Small Business",
+      "confidence": 0.75
+    },
+    {
+      "id": "ai-other-2",
+      "kind": "other",
+      "otherKind": "duplicate scan counted twice",
+      "claims": [
+        "SchC.44a",
+        "SchC.44c",
+        "SchC.9"
+      ],
+      "evidence": [
+        {
+          "doc": "D23",
+          "page": 3,
+          "quote": "Second scan of the May-Aug sheet - same handwriting and coffee stain as page 2."
+        },
+        {
+          "doc": "D23",
+          "page": 2,
+          "quote": "Page total 3,700 miles."
+        }
+      ],
+      "rationale": "Page 3 is a second scan of page 2, yet both page totals feed business miles, so the May-August miles are counted twice, overstating the deduction.",
+      "authority": "IRS Pub 334 (2025): Tax Guide for Small Business",
+      "confidence": 0.9
+    },
+    {
+      "id": "ai-limit_or_eligibility-3",
+      "kind": "limit_or_eligibility",
+      "otherKind": null,
+      "claims": [
+        "Sch1.17"
+      ],
+      "evidence": [
+        {
+          "doc": "D25",
+          "page": 1,
+          "quote": "Premiums paid January-December 2025: 1,200.00 per month, total 14,400.00."
+        }
+      ],
+      "rationale": "Premiums were deducted for all twelve months, but the client says the spouse's employers offered family coverage, which may bar the self-employed health deduction for those months.",
+      "authority": "IRS Form 7206 instructions (2025): Self-Employed Health Insurance Deduction",
+      "confidence": 0.72
+    },
+    {
+      "id": "ai-document_not_reflected-6",
+      "kind": "document_not_reflected",
+      "otherKind": null,
+      "claims": [
+        "F8949.B.N1",
+        "F8949.B.N3",
+        "F8949.E.N4"
+      ],
+      "evidence": [
+        {
+          "doc": "D28",
+          "page": 3,
+          "quote": "N1 Corvane Systems Inc (RSU) 400 sh acquired 2025-02-15 sold 2025-02-18 proceeds 19,240.00 basis (not reported) short-term noncovered"
+        },
+        {
+          "doc": "D28",
+          "page": 2,
+          "quote": "long-term noncovered proceeds 15,300.00 basis not reported"
+        }
+      ],
+      "rationale": "The broker did not report basis for the RSU sales. The return uses zero basis, though vest income was likely already taxed as wages, overstating gain.",
+      "authority": null,
+      "confidence": 0.8
+    },
+    {
+      "id": "ai-other-3",
+      "kind": "other",
+      "otherKind": "possible duplicate interest",
+      "claims": [
+        "SchB.1.1",
+        "SchB.1.2"
+      ],
+      "evidence": [
+        {
+          "doc": "D28",
+          "page": 1,
+          "quote": "1099-INT (bank sweep program, Northlake Bank): box 1 interest 1,840.00"
+        }
+      ],
+      "rationale": "The sweep interest from this composite 1099 is shown on two separate Schedule B lines with the same amount, which suggests it was counted twice.",
+      "authority": null,
+      "confidence": 0.6
+    },
+    {
+      "id": "ai-answer_conflicts_with_return-1",
+      "kind": "answer_conflicts_with_return",
+      "otherKind": null,
+      "claims": [
+        "SchD.13"
+      ],
+      "evidence": [
+        {
+          "doc": "D28",
+          "page": 1,
+          "quote": "2a total capital gain distributions 1,180.00"
+        }
+      ],
+      "rationale": "The return's capital gain distributions line differs from the 1099-DIV box 2a amount, possibly a digit transposition; confirm whether other sources explain the difference.",
+      "authority": null,
+      "confidence": 0.5
+    },
+    {
+      "id": "ai-other-4",
+      "kind": "other",
+      "otherKind": "duplicate income",
+      "claims": [
+        "SchB.1.2",
+        "SchB.1.1"
+      ],
+      "evidence": [
+        {
+          "doc": "D29",
+          "page": 1,
+          "quote": "bank sweep program for Northlake Securities account"
+        },
+        {
+          "doc": "D29",
+          "page": 1,
+          "quote": "Box 1 interest income 1,840.00"
+        }
+      ],
+      "rationale": "This 1099-INT is the sweep interest for the Northlake Securities account, which the return already lists from the composite 1099, so the same 1,840 may be counted twice.",
+      "authority": null,
+      "confidence": 0.6
+    },
+    {
+      "id": "ai-document_not_reflected-7",
+      "kind": "document_not_reflected",
+      "otherKind": null,
+      "claims": [],
+      "evidence": [
+        {
+          "doc": "D31",
+          "page": 32,
+          "quote": "M18 Ironwood REIT (fractional share cash in lieu) 6.8 sh acquired 2025-01-14 sold 2025-12-15 proceeds 250.00 basis 310.00 short-term noncovered."
+        },
+        {
+          "doc": "D31",
+          "page": 10,
+          "quote": "Detail total proceeds 71,715.00."
+        },
+        {
+          "doc": "D31",
+          "page": 1,
+          "quote": "total proceeds 71,965.00"
+        }
+      ],
+      "rationale": "A supplemental page lists a short-term noncovered sale that no Form 8949 line carries; the summary proceeds exceed the detail total, so the sale appears omitted.",
+      "authority": null,
+      "confidence": 0.8
+    },
+    {
+      "id": "ai-date_or_year_mismatch-2",
+      "kind": "date_or_year_mismatch",
+      "otherKind": null,
+      "claims": [
+        "F8949.H.C6"
+      ],
+      "evidence": [
+        {
+          "doc": "D34",
+          "page": 1,
+          "quote": "C6 BTC 0.05 sold 2025-06-18 gross proceeds 5,325.00"
+        },
+        {
+          "doc": "D34",
+          "page": 1,
+          "quote": "cost basis not reported (not required for 2025)"
+        }
+      ],
+      "rationale": "The broker reports no basis, so the zero basis and June 2025 acquisition date look like defaults; the client says the coin was bought earlier with a documented cost.",
+      "authority": null,
+      "confidence": 0.6
+    },
+    {
+      "id": "ai-date_or_year_mismatch-3",
+      "kind": "date_or_year_mismatch",
+      "otherKind": null,
+      "claims": [
+        "F8949.H.C6"
+      ],
+      "evidence": [
+        {
+          "doc": "D35",
+          "page": 1,
+          "quote": "C6 BTC 0.05 acquired TRANSFER-IN 2025-06-01 (cost basis unknown)"
+        }
+      ],
+      "rationale": "The export shows the transfer-in date, not the purchase date. The return treats this lot as short-term with zero basis, which likely overstates gain and gets the holding period wrong.",
+      "authority": null,
+      "confidence": 0.8
+    },
+    {
+      "id": "ai-date_or_year_mismatch-4",
+      "kind": "date_or_year_mismatch",
+      "otherKind": null,
+      "claims": [
+        "ScheduleS.credit"
+      ],
+      "evidence": [
+        {
+          "doc": "D39",
+          "page": 2,
+          "quote": "paid with the composite return in April 2026"
+        }
+      ],
+      "rationale": "Oregon composite tax was paid in April 2026, yet a credit for it is claimed on the 2025 return; the timing and eligibility of that credit need confirming.",
+      "authority": "FTB Schedule CA (540NR) instructions (2025)",
+      "confidence": 0.4
+    },
+    {
+      "id": "ai-repair_vs_improvement-2",
+      "kind": "repair_vs_improvement",
+      "otherKind": null,
+      "claims": [
+        "SchE.14A"
+      ],
+      "evidence": [
+        {
+          "doc": "D46",
+          "page": 1,
+          "quote": "HVAC 11,000.00 (Delta Breeze Heating & Air, 08/12/2025)"
+        },
+        {
+          "doc": "D46",
+          "page": 1,
+          "quote": "Repairs and maintenance 13,300.00"
+        }
+      ],
+      "rationale": "A full HVAC system replacement is likely a capital improvement to be depreciated, not deducted as a repair, so the repairs line looks overstated.",
+      "authority": "Treas. Reg. 1.263(a)-3: Amounts paid to improve tangible property",
+      "confidence": 0.88
+    },
+    {
+      "id": "ai-repair_vs_improvement-3",
+      "kind": "repair_vs_improvement",
+      "otherKind": null,
+      "claims": [
+        "SchE.14A",
+        "SchE.18A"
+      ],
+      "evidence": [
+        {
+          "doc": "D47",
+          "page": 1,
+          "quote": "Installed new 3-ton heat pump system with air handler, new line set and thermostat."
+        },
+        {
+          "doc": "D47",
+          "page": 1,
+          "quote": "Removed failed 2004 gas furnace and 3-ton AC condenser."
+        },
+        {
+          "doc": "D47",
+          "page": 1,
+          "quote": "Total 11,000.00."
+        }
+      ],
+      "rationale": "Full replacement of the heating and cooling system with a new heat pump is likely a capital improvement to be depreciated, not deducted as a repair.",
+      "authority": "Treas. Reg. 1.263(a)-3: Amounts paid to improve tangible property",
+      "confidence": 0.8
+    },
+    {
+      "id": "ai-date_or_year_mismatch-5",
+      "kind": "date_or_year_mismatch",
+      "otherKind": null,
+      "claims": [
+        "SchE.19B",
+        "SchE.14B"
+      ],
+      "evidence": [
+        {
+          "doc": "D50",
+          "page": 1,
+          "quote": "HOA dues 410.00 x 10 = 4,100.00 (through October)"
+        },
+        {
+          "doc": "D50",
+          "page": 1,
+          "quote": "lease ended 09/30/2025; unit listed for sale 10/01/2025"
+        },
+        {
+          "doc": "D50",
+          "page": 1,
+          "quote": "Make-ready repairs before listing 1,800.00 (paint, carpet cleaning)"
+        }
+      ],
+      "rationale": "The lease ended in September, yet October HOA dues and pre-listing make-ready costs were deducted as rental expenses; they may be sale-related costs instead.",
+      "authority": null,
+      "confidence": 0.35
+    },
+    {
+      "id": "ai-date_or_year_mismatch-6",
+      "kind": "date_or_year_mismatch",
+      "otherKind": null,
+      "claims": [
+        "SchE.12B"
+      ],
+      "evidence": [
+        {
+          "doc": "D53",
+          "page": 1,
+          "quote": "includes interest to payoff 10/15/2025"
+        }
+      ],
+      "rationale": "Full-year loan interest is deducted on Schedule E, but the condo was rented only through September 30 and then listed, so the October portion may not be rental expense.",
+      "authority": "IRS Pub 334 (2025): Tax Guide for Small Business",
+      "confidence": 0.3
+    },
+    {
+      "id": "ai-document_not_reflected-8",
+      "kind": "document_not_reflected",
+      "otherKind": null,
+      "claims": [
+        "SchA.8c",
+        "SchA.8e"
+      ],
+      "evidence": [
+        {
+          "doc": "D54",
+          "page": 1,
+          "quote": "Origination points paid by buyer 4,800.00"
+        }
+      ],
+      "rationale": "Points paid on the home purchase may be deductible in full this year, but the return shows only a tiny amortized refinance-points amount and no line cites this statement.",
+      "authority": null,
+      "confidence": 0.5
+    },
+    {
+      "id": "ai-other-5",
+      "kind": "other",
+      "otherKind": "seller tax credit reduces real estate tax deduction",
+      "claims": [
+        "SchA.5b"
+      ],
+      "evidence": [
+        {
+          "doc": "D54",
+          "page": 1,
+          "quote": "Seller credit for 2025 county taxes 01/01/2025-07/07/2025: 6,912.00"
+        }
+      ],
+      "rationale": "The seller covered taxes before the purchase date, so the buyer's deductible real estate taxes may be overstated if the home tax line includes that period.",
+      "authority": null,
+      "confidence": 0.4
+    },
+    {
+      "id": "ai-other-6",
+      "kind": "other",
+      "otherKind": "possible double count of payoff interest",
+      "claims": [
+        "SchA.8a"
+      ],
+      "evidence": [
+        {
+          "doc": "D55",
+          "page": 1,
+          "quote": "includes prepaid interest at closing and interest paid at payoff 11/20/2025"
+        }
+      ],
+      "rationale": "Box 1 already includes interest paid at payoff, yet the return also adds a separate payoff-statement interest amount, so mortgage interest may be overstated.",
+      "authority": null,
+      "confidence": 0.72
+    },
+    {
+      "id": "ai-other-7",
+      "kind": "other",
+      "otherKind": "possible double-counted mortgage interest",
+      "claims": [
+        "SchA.8a"
+      ],
+      "evidence": [
+        {
+          "doc": "D56",
+          "page": 1,
+          "quote": "Interest is reported on the 2025 Form 1098."
+        }
+      ],
+      "rationale": "The payoff interest is already included in the lender's Form 1098, so adding it again to the 1098 amount likely double-counts mortgage interest.",
+      "authority": null,
+      "confidence": 0.72
+    },
+    {
+      "id": "ai-limit_or_eligibility-4",
+      "kind": "limit_or_eligibility",
+      "otherKind": null,
+      "claims": [
+        "SchA.5b"
+      ],
+      "evidence": [
+        {
+          "doc": "D57",
+          "page": 1,
+          "quote": "Box 10 real estate taxes paid from escrow 13,420.00 (Travis County 2025 bill, disbursed 12/18/2025)"
+        }
+      ],
+      "rationale": "The full-year 2025 county bill was deducted, but the home was bought in July, so the seller's share of the taxes may not be deductible.",
+      "authority": null,
+      "confidence": 0.35
+    },
+    {
+      "id": "ai-limit_or_eligibility-5",
+      "kind": "limit_or_eligibility",
+      "otherKind": null,
+      "claims": [
+        "SchA.5b"
+      ],
+      "evidence": [
+        {
+          "doc": "D58",
+          "page": 1,
+          "quote": "Owner of record 01/01/2025: prior owner"
+        },
+        {
+          "doc": "D58",
+          "page": 1,
+          "quote": "Total levy 13,420.00 paid 12/18/2025"
+        }
+      ],
+      "rationale": "The full-year levy was billed to the prior owner of record, so only the part for the buyers' ownership period is deductible on Schedule A.",
+      "authority": null,
+      "confidence": 0.6
+    },
+    {
+      "id": "ai-document_not_reflected-9",
+      "kind": "document_not_reflected",
+      "otherKind": null,
+      "claims": [],
+      "evidence": [
+        {
+          "doc": "D61",
+          "page": 1,
+          "quote": "total paid 5,400.00"
+        }
+      ],
+      "rationale": "Child care paid for Theo is documented, but no return line cites it and no dependent care credit appears on the return.",
+      "authority": null,
+      "confidence": 0.72
+    },
+    {
+      "id": "ai-document_not_reflected-10",
+      "kind": "document_not_reflected",
+      "otherKind": null,
+      "claims": [],
+      "evidence": [
+        {
+          "doc": "D62",
+          "page": 1,
+          "quote": "total paid 4,200.00"
+        }
+      ],
+      "rationale": "Dependent care paid in 2025 is documented, but no return line claims a child and dependent care credit or Form 2441 amounts.",
+      "authority": null,
+      "confidence": 0.6
+    },
+    {
+      "id": "ai-other-8",
+      "kind": "other",
+      "otherKind": "charitable receipt substantiation",
+      "claims": [
+        "SchA.11"
+      ],
+      "evidence": [
+        {
+          "doc": "D64",
+          "page": 1,
+          "quote": "The first digit is ambiguous (could be read as 1 or 7)."
+        },
+        {
+          "doc": "D64",
+          "page": 1,
+          "quote": "No goods or services line."
+        }
+      ],
+      "rationale": "The receipt amount is illegible in its first digit and lacks a no-goods-or-services statement, so a gift of $250 or more may not be properly substantiated.",
+      "authority": "IRS Pub 526 (2025): Charitable Contributions",
+      "confidence": 0.4
+    },
+    {
+      "id": "ai-document_not_reflected-11",
+      "kind": "document_not_reflected",
+      "otherKind": null,
+      "claims": [
+        "F8283.A1.vehicle",
+        "SchA.12"
+      ],
+      "evidence": [
+        {
+          "doc": "D66",
+          "page": 1,
+          "quote": "Box 4a vehicle sold in arm's length transaction to unrelated party checked; 4b date of sale 09/09/2025; 4c gross proceeds from sale 2,900.00."
+        },
+        {
+          "doc": "D66",
+          "page": 1,
+          "quote": "Box 6a goods or services provided: no."
+        }
+      ],
+      "rationale": "The charity sold the vehicle at arm's length for the printed gross proceeds, so the deduction is limited to those proceeds rather than the claimed estimated fair market value.",
+      "authority": "IRS Pub 526 (2025): Charitable Contributions",
+      "confidence": 0.9
+    },
+    {
+      "id": "ai-document_not_reflected-12",
+      "kind": "document_not_reflected",
+      "otherKind": null,
+      "claims": [
+        "F1040.26",
+        "F2210.19"
+      ],
+      "evidence": [
+        {
+          "doc": "D67",
+          "page": 1,
+          "quote": "04/15/2025 3,000.00; 06/16/2025 3,000.00; 09/15/2025 3,000.00."
+        }
+      ],
+      "rationale": "The confirmations show only three payments; the fourth payment counted in the return is unsupported by this document and rests on the client's recollection, so it needs proof.",
+      "authority": "IRS Form 2210 instructions (2025)",
+      "confidence": 0.6
+    },
+    {
+      "id": "ai-date_or_year_mismatch-7",
+      "kind": "date_or_year_mismatch",
+      "otherKind": null,
+      "claims": [
+        "F540NR.72"
+      ],
+      "evidence": [
+        {
+          "doc": "D68",
+          "page": 1,
+          "quote": "2025-09-15 3,500.00 tax year 2024 (estimated payment)"
+        }
+      ],
+      "rationale": "The September 2025 payment is confirmed for tax year 2024, yet it is counted among 2025 California estimated payments, which may overstate the payments credited.",
+      "authority": null,
+      "confidence": 0.62
+    },
+    {
+      "id": "ai-residency_or_source-3",
+      "kind": "residency_or_source",
+      "otherKind": null,
+      "claims": [
+        "SchCA540NR.1.E"
+      ],
+      "evidence": [
+        {
+          "doc": "D73",
+          "page": 1,
+          "quote": "Work location changed to Austin, TX effective 07/15/2025."
+        }
+      ],
+      "rationale": "Wages earned in Texas after the move are likely not California-source, yet the California wage amount equals the full-year total with no part-year split.",
+      "authority": "FTB Schedule CA (540NR) instructions (2025)",
+      "confidence": 0.55
+    }
+  ],
+  "rejected": []
+}

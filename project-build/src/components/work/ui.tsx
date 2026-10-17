@@ -7,6 +7,12 @@ import { MOCKUP_URL, type Tone } from './lib';
 export function Tag({ tone, children, title }: { tone: Tone; children: ReactNode; title?: string }) {
   return <span className={`${s.tag} ${s['t-' + tone]}`} title={title}>{children}</span>;
 }
+/** The small mark beside anything an AI reader suggested. Its label is read aloud; the glyph itself is decoration. */
+export function AiMark({ label = 'Suggested by AI' }: { label?: string }) {
+  if (!label) return <span className={s.aiMark} aria-hidden="true">✦</span>; // beside a word that already says AI
+  return <span className={s.aiMark} role="img" aria-label={label} title={label} data-ai-mark="">✦</span>;
+}
+
 export function Ex() {
   return <span className={s.ex} title="Not in the packet: an illustration">Example</span>;
 }

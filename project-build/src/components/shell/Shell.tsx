@@ -70,6 +70,7 @@ const VERB: Partial<Record<WorkEvent['type'], string>> = {
   reveal: 'revealed an identifier on', clock_moved: 'moved the story clock', undo: 'undid an action on', assignment: 'assigned',
   attach_note: 'attached a note to', time_logged: 'logged time', verification: 'verified', decision: 'recorded a decision on',
   question_to_colleague: 'asked a colleague about', finding_cleared: 'cleared a finding on',
+  suggestion_accepted: 'accepted an AI suggestion on', suggestion_dismissed: 'dismissed an AI suggestion on',
 };
 
 const claimTitle = claimLabel;
@@ -179,7 +180,7 @@ export async function Shell({ ws, role, screen, claim, q, children, ...given }: 
             {history.map((e) => (
               <div key={e.seq} className="sh-hist">
                 <span className="num muted">{fmtDay(e.storyAt)}</span>
-                <span><strong>{e.role === role ? 'You' : roleName(e.role)}</strong> {VERB[e.type] ?? e.type} {e.claimId ? <Link href={claimHref(e.claimId)}>{mask(claimTitle(ix, e.claimId))}</Link> : null}</span>
+                <span><strong>{e.role === role ? 'You' : roleName(e.role)}</strong> {VERB[e.type] ?? e.type} {e.claimId ? <Link href={claimHref(e.claimId)}>{mask(claimTitle(ix, e.claimId))}</Link> : null}{e.type === 'adjustment' && typeof e.payload.reason === 'string' && e.payload.reason.trim() ? <span className="muted">: {mask(e.payload.reason)}</span> : null}</span>
               </div>
             ))}
           </div>

@@ -3,14 +3,23 @@
 // surfaced it. A row whose check does not fire says so; it is never faked.
 import { LEDGER } from '@/domain/checks/catalogue';
 import s from './work.module.css';
-import { SEVERITY_TONE, claimHref, findingStatus, masker, signed, visibleFinding, when, type WorkProps } from './lib';
+import { SEVERITY_TONE, claimHref, findingStatus, masker, refClaim, signed, visibleFinding, when, type WorkProps } from './lib';
 import { Evidence } from './Checks';
-import { Est, NoAccess, Page, Tag } from './ui';
+import { AiMark, Est, NoAccess, Page, Tag } from './ui';
+import { isAi } from '@/domain/ai/merge';
 import { Term } from '../term/Term';
-import type { Severity } from '@/domain/contracts';
+import type { Finding, Severity } from '@/domain/contracts';
 
 export function FindingsScreen(p: WorkProps) {
-  const { role, state, findings } = p;
+  const { role, state } = p;
+  const findings = p.findings.filter((f) => !isAi(f));
+  // A ledger row the AI reader also flagged: same claim, or a quote from a document the row's evidence cites.
+  const ai = p.findings.filter(isAi);
+  const docsOf = (f: Finding) => new Set(f.evidence.map((r) => refClaim(p.ix, r)).filter((c): c is string => !!c?.startsWith('doc:')));
+  const aiAlso = (hits: Finding[]) => ai.some((a) => hits.some((h) => {
+    const d = docsOf(h);
+    return a.claims.some((c) => h.claims.includes(c)) || (a.ai?.quotes ?? []).some((q) => d.has('doc:' + q.doc));
+  }));
   if (!role.screens.includes('findings')) return <NoAccess role={role} screen="findings" />;
   const m = masker(state, role);
   const ids = (l: (typeof LEDGER)[number]) => [l.id, ...(l.aliases ?? [])];
@@ -21,7 +30,7 @@ export function FindingsScreen(p: WorkProps) {
   return (
     <Page label="Findings" h1="The packet's confident mistakes"
       tags={<><Tag tone="neu">{LEDGER.length} in the ledger</Tag><Tag tone={fired === LEDGER.length ? 'pas' : 'wrn'}>{fired} surfaced by a check</Tag><Tag tone="neu">As of {when(state.storyAt)}</Tag></>}
-      intro="Every mistake we found in the packet, whatever the story time. Each shows the check that catches it from the packet's own data, its evidence, and who it is put in front of. A finding that depends on a later document reaches the inboxes only when the story gets there.">
+      intro="Every mistake we found in the packet, whatever the story time. Each shows the check that catches it from the packet's own data, its evidence, and who it is put in front of. A finding that depends on a later document reaches the inboxes only when the story gets there. These mistakes were found during an AI-assisted review of the packet and are now caught by deterministic checks.">
       <div className={`${s.box} ${s.scroll}`}>
         <table className={s.table} aria-label="Ledger findings">
           <thead><tr><th>Id</th><th>Finding</th><th>Severity</th><th className={s.r}>Effect</th><th>Status</th></tr></thead>
@@ -37,7 +46,7 @@ export function FindingsScreen(p: WorkProps) {
                   <td className={s.mono} style={{ whiteSpace: 'nowrap' }}>{ids(l).join(' / ')}</td>
                   <td style={{ minWidth: 260 }}>
                     <div style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
-                      {f ? <a className={s.link} href={claimHref(p.sp, 'finding:' + f.id)}><strong>{m(l.title)}</strong></a> : <strong>{m(l.title)}</strong>}
+                      <span>{aiAlso(hits) ? <AiMark label="The AI reader also flagged this" /> : null}{f ? <a className={s.link} href={claimHref(p.sp, 'finding:' + f.id)}><strong>{m(l.title)}</strong></a> : <strong>{m(l.title)}</strong>}</span>
                       <span className={s.note}><span className={s.lbl}>Check</span> <span className={s.mono}>{(f ? [...new Set(hits.map((h) => h.checkId))] : l.checkIds).join(', ')}</span></span>
                       <span className={s.note}><span className={s.lbl}>How it was surfaced</span> {m(l.surfaced)}</span>
                       {f ? <Evidence p={p} refs={f.evidence} /> : null}

@@ -74,15 +74,21 @@ export function ChangesScreen(p: WorkProps) {
                   {claim && claim !== 'return' ? <a className={s.link} href={claimHref(p.sp, claim)}>{m(claim.startsWith('line:') ? `${lineLabel(ix, claim.slice(5))} (${claim.slice(5)})` : claim)}</a> : null}
                 </span>
                 <span>{summary(e, m)}</span>
+                {typeof e.payload.authority === 'string' && e.payload.authority.trim() ? <span className={s.note}>Authority: {m(e.payload.authority)}</span> : null}
                 {e.type === 'adjustment' && state.claims[claim ?? '']?.effect ? (
                   <span className={s.note}>Tax effect Fed {signed(state.claims[claim!].effect!.federal)} · CA {signed(state.claims[claim!].effect!.california)} <Est /></span>
                 ) : null}
                 <span className={s.note}>{personName(ix, e.role)}{e.groupId ? ' · saved together with others' : ''}</span>
               </span>
-              {UNDOABLE.includes(e.type) && !undone ? (
-                <EventButton ws={ws} role={role.key} small label="Undo" disabledReason={block}
-                  events={[{ type: 'undo', retracts: e.seq, claimId: e.claimId, payload: { reason: `Undo of entry ${e.seq}` } }]} />
-              ) : null}
+              {UNDOABLE.includes(e.type) && !undone ? (() => {
+                // An entry saved with others (a bulk action) is undone with its whole group, as in the Checks pop-up.
+                const group = e.groupId ? state.events.filter((x) => x.groupId === e.groupId && x.type !== 'undo' && !isRetracted(state.events, x.seq)) : [];
+                return group.length > 1
+                  ? <EventButton ws={ws} role={role.key} small label={`Undo all ${group.length}`} disabledReason={block}
+                      events={[{ type: 'undo', groupId: e.groupId, payload: { reason: `Undo of ${group.length} entries saved together` } }]} />
+                  : <EventButton ws={ws} role={role.key} small label="Undo" disabledReason={block}
+                      events={[{ type: 'undo', retracts: e.seq, claimId: e.claimId, payload: { reason: `Undo of entry ${e.seq}` } }]} />;
+              })() : null}
             </article>
           );
         })}
