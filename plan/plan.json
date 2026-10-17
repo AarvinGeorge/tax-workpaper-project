@@ -4,7 +4,7 @@
     "subtitle": "A web-native workpaper for the invented Okafor-Lindqvist household's 2025 return: every number traced to its source, every packet mistake surfaced. Due Fri 16 Oct 2026, 21:00 EDT.",
     "mode": "light",
     "plan_version": "0.4.0",
-    "updated": "2026-10-17T03:56:32Z",
+    "updated": "2026-10-17T17:50:50Z",
     "changelog": [
       {
         "version": "0.1.0",
@@ -260,7 +260,7 @@
         "name": "Build and deploy the thin, honest workpaper",
         "why": "Hand-in 1: a working web app from a link; items 2-4 depend on it.",
         "unblocks": "The errors write-up, the one-page, the AI-usage note and the video.",
-        "stage": "building",
+        "stage": "verified",
         "capability": 4,
         "plan_file": "docs/superpowers/plans/2026-10-17-workpaper-build.md",
         "tasks": [
@@ -276,38 +276,42 @@
           },
           {
             "name": "Lane A checks library (every ledger finding)",
-            "state": "active"
+            "state": "done"
           },
           {
             "name": "Lane B references, documents, versions",
-            "state": "active"
+            "state": "done"
           },
           {
             "name": "Lane C events, store, policy, clock, API",
-            "state": "active"
+            "state": "done"
           },
           {
             "name": "Lane D1 shell, Start here, Return, Documents, drawer",
-            "state": "active"
+            "state": "done"
           },
           {
             "name": "Lane D2 Checks, Review, Changes, Filing, Firm, Areas, Findings",
-            "state": "active"
+            "state": "done"
           },
           {
             "name": "Integrate, deploy, grader walk",
-            "state": "todo"
+            "state": "done"
           },
           {
             "name": "Fable review of the deployed app; must-fixes only",
-            "state": "todo"
+            "state": "done"
+          },
+          {
+            "name": "Round G: notifications, independent pane scroll, client signing and copy, assignments (Fable reviewed)",
+            "state": "done"
           },
           {
             "name": "Code freeze 14:00 EDT Sat",
             "state": "todo"
           }
         ],
-        "status": "Five lanes building in parallel since 00:05 EDT Sat.",
+        "status": "Live at taxmark-workpaper.vercel.app on Neon Postgres (commit 23ea0f3); grader walk passes on the live link; full browser suite 41/41 against live. Hand-in documents next.",
         "updated": "2026-10-17T03:56:32Z"
       }
     ],

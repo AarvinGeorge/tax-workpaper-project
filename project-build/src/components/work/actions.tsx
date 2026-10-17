@@ -6,6 +6,7 @@ import { useState, useTransition, type ReactNode } from 'react';
 import type { NewEvent, RoleKey } from '@/domain/contracts';
 import { postEvent } from '@/components/shell/actions';
 import s from './work.module.css';
+import { Term } from '../term/Term';
 
 type Ev = Omit<NewEvent, 'ws' | 'role' | 'storyAt'>;
 
@@ -103,7 +104,7 @@ export function BulkSignoff({ ws, role, level, items, disabledReason, children }
       {children}
       {items.length ? (
         <fieldset className={s.boxRow} style={{ border: 0, margin: 0 }} disabled={!!disabledReason}>
-          <legend className={s.lbl} style={{ padding: '0 0 6px' }}>Select for sign-off</legend>
+          <legend className={s.lbl} style={{ padding: '0 0 6px' }}>Select for sign-off<Term k="sign-off" /></legend>
           {items.map((i) => (
             <label key={i.claimId} style={{ display: 'inline-flex', gap: 6, alignItems: 'center', fontSize: 13, flex: '1 1 300px' }}>
               <input type="checkbox" checked={sel.includes(i.claimId)} onChange={() => toggle(i.claimId)} aria-label={`Select ${i.title}`} />

@@ -4,6 +4,7 @@ import { deadlines } from '@/domain/clock';
 import s from './work.module.css';
 import { arr, day, fmt, humanize, liveEvents, masker, obj, personName, ruleList, when, writeBlock, type WorkProps } from './lib';
 import { NoAccess, Page, Tag } from './ui';
+import { Term } from '../term/Term';
 import { ClockControl, TimeForm } from './actions';
 
 // Where each firm rule acts in this app (matched on the rule's own words, so a changed standard still lands somewhere).
@@ -64,7 +65,7 @@ export function FirmScreen(p: WorkProps) {
             const acts = ACTS.find(([re]) => re.test(r))?.[1];
             return (
               <div key={r} className={s.boxRow}>
-                <span className={s.grow}>“{m(r)}”</span>
+                <span className={s.grow}>“{m(r)}”{/due diligence/i.test(r) ? <Term k="due-diligence" /> : /partner sign-off/i.test(r) ? <Term k="partner-threshold" /> : null}</span>
                 {acts ? <span className={s.note}>{acts}</span> : <Tag tone="neu">Not enforced in this build</Tag>}
               </div>
             );
@@ -78,12 +79,12 @@ export function FirmScreen(p: WorkProps) {
             </ol>
           </div>
           <div className={s.box}>
-            <div className={s.boxRow}><span className={s.lbl}>Verification types</span></div>
+            <div className={s.boxRow}><span className={s.lbl}>Verification types<Term k="verification" /></span></div>
             <ul style={{ margin: 0, padding: '10px 16px 6px 34px', display: 'flex', flexDirection: 'column', gap: 4 }}>
               {verifs.map((x) => <li key={x}>{humanize(x)}</li>)}
             </ul>
-            <div className={s.boxRow}><span className={s.lbl}>Review levels</span><span>{levels.map(humanize).join(', ')}</span></div>
-            <div className={s.boxRow}><span className={s.lbl}>Variance review</span>
+            <div className={s.boxRow}><span className={s.lbl}>Review levels<Term k="sign-off" /></span><span>{levels.map(humanize).join(', ')}</span></div>
+            <div className={s.boxRow}><span className={s.lbl}>Variance review<Term k="swing" /></span>
               <span>Compare to {humanize(String(variance.compare_to ?? ''))}; flag when the change is over {fmt(variance.flag_if_change_over_percent)}% and over {fmt(variance.and_over_amount)}.</span>
             </div>
           </div>
@@ -91,7 +92,7 @@ export function FirmScreen(p: WorkProps) {
       </section>
 
       <section className={s.section} aria-labelledby="firm-staff">
-        <h2 className={s.h2} id="firm-staff">People and clearance</h2>
+        <h2 className={s.h2} id="firm-staff">People and clearance<Term k="sensitive-data-clearance" /></h2>
         <div className={`${s.box} ${s.scroll}`}>
           <table className={s.table}>
             <thead><tr><th>Name</th><th>Role</th><th>Credential</th><th>Sensitive data</th><th>Active from</th><th>Note</th></tr></thead>
@@ -114,7 +115,7 @@ export function FirmScreen(p: WorkProps) {
       </section>
 
       <section className={s.section} aria-labelledby="firm-log">
-        <h2 className={s.h2} id="firm-log">View log</h2>
+        <h2 className={s.h2} id="firm-log">View log<Term k="view-log" /></h2>
         <p className={s.note} style={{ margin: 0 }}>Every unmasked view of an identifier: who, which, when. The value itself is never logged.</p>
         <div className={s.box}>
           {state.reveals.length === 0 ? <div className={s.boxRow}><span className={s.note}>No reveals in this workspace at this story time.</span></div> : null}

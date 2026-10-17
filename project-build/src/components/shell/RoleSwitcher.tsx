@@ -1,6 +1,8 @@
 'use client';
 import { useRouter, useSearchParams } from 'next/navigation';
 import type { RoleKey, ScreenKey } from '@/domain/contracts';
+import { Term } from '../term/Term';
+import { TERMS } from '../term/terms';
 
 export interface RoleOption { key: RoleKey; label: string; screens: ScreenKey[] }
 
@@ -10,9 +12,10 @@ export function RoleSwitcher({ ws, role, screen, options }: { ws: string; role: 
   const sp = useSearchParams();
   return (
     <div className="sh-role">
-      <label>
-        Viewing as
-        <select className="select" value={role} aria-describedby="sh-attrib" data-testid="role-switcher"
+      {/* The button sits outside the label so the select's name stays "Viewing as". */}
+      <div style={{ display: 'flex', alignItems: 'center', gap: 6, fontSize: 13, color: 'var(--ink2)' }}>
+        <label htmlFor="sh-role-select">Viewing as</label><Term k="role-switcher" />
+        <select id="sh-role-select" className="select" value={role} aria-describedby="sh-attrib" data-testid="role-switcher"
           onChange={(e) => {
             const next = options.find((o) => o.key === e.target.value);
             if (!next) return;
@@ -23,8 +26,8 @@ export function RoleSwitcher({ ws, role, screen, options }: { ws: string; role: 
           }}>
           {options.map((o) => <option key={o.key} value={o.key}>{o.label}</option>)}
         </select>
-      </label>
-      <span id="sh-attrib" className="small muted">Actions are recorded as the role you choose (no sign-in in this demo)</span>
+      </div>
+      <span id="sh-attrib" className="vh">{TERMS['role-switcher'].text}</span>
     </div>
   );
 }

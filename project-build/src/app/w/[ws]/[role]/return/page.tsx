@@ -4,6 +4,7 @@ import { getWorkspace } from '@/components/shell/load';
 import { cmpCells, compareVersions, differLine, finalized, FINALIZED, formsOf, swings } from '@/domain/versions';
 import { claimHref, fmtValue, parseClaim } from '@/components/shell/lib';
 import type { Finding } from '@/domain/contracts';
+import { FormTerm, Term } from '@/components/term/Term';
 
 type P = { params: Promise<{ ws: string; role: string }>; searchParams: Promise<Record<string, string | undefined>> };
 const SEV: Record<Finding['severity'], [string, string, number]> = { blocker: ['Blocking', 't-blk', 0], check: ['Check failed', 't-wrn', 1], judgment: ['Judgment', 't-wrn', 2], info: ['Note', 't-mut', 3] };
@@ -54,12 +55,12 @@ export default async function ReturnScreen({ params, searchParams }: P) {
         </div>
 
         <div className="keyrow" role="group" aria-label="Status key">
-          <span><span className="tag t-blk">Blocking</span>stops filing</span>
+          <span><span className="tag t-blk">Blocking</span>stops filing<Term k="blocker" /></span>
           <span><span className="tag t-wrn">Check failed</span>our check disagrees</span>
-          <span><span className="tag t-wrn">Judgment</span>needs a recorded decision</span>
-          <span><span className="tag t-wrn">Engine warning</span>from the engine only</span>
-          <span><span className="tag t-acc">Adjusted</span>changed in this workspace</span>
-          <span><span className="tag t-wrn">Swing</span>moved past the firm&apos;s variance rule from last year</span>
+          <span><span className="tag t-wrn">Judgment</span>needs a recorded decision<Term k="judgment" /></span>
+          <span><span className="tag t-wrn">Engine warning</span>from the engine only<Term k="engine-diagnostics" /></span>
+          <span><span className="tag t-acc">Adjusted</span>changed in this workspace<Term k="adjustment" /></span>
+          <span><span className="tag t-wrn">Swing</span>moved past the firm&apos;s variance rule from last year<Term k="swing" /></span>
           <span><span className="tag t-acc">New this year</span>no amount last year</span>
         </div>
 
@@ -68,7 +69,7 @@ export default async function ReturnScreen({ params, searchParams }: P) {
             <span className="lbl">Compare {latest} with</span>
             <Link className={`btn${!cmp ? ' on' : ''}`} aria-pressed={!cmp} href={q({})}>Nothing</Link>
             {others.map((v) => <Link key={v} className={`btn${cmp === v ? ' on' : ''}`} aria-pressed={cmp === v} href={q({ cmp: v, only: onlyChanged ? 'changed' : undefined })}>{v}</Link>)}
-            <Link className={`btn${cmp === 'finalized' ? ' on' : ''}`} aria-pressed={cmp === 'finalized'} href={q({ cmp: 'finalized', only: onlyChanged ? 'changed' : undefined })}>Finalized</Link>
+            <Link className={`btn${cmp === 'finalized' ? ' on' : ''}`} aria-pressed={cmp === 'finalized'} href={q({ cmp: 'finalized', only: onlyChanged ? 'changed' : undefined })}>Finalized</Link><Term k="finalized-version" />
             {cmp && <Link className={`btn${onlyChanged ? ' on' : ''}`} aria-pressed={onlyChanged} href={q({ cmp, only: onlyChanged ? undefined : 'changed' })}>Only changed lines</Link>}
           </div>
           {cmp && <span className="small num">{differLine(changedCount, cmpLabel!, latest)} {cmp === 'finalized' ? `${finalizedNote} The ${latest} column is the engine's value.` : 'From the packet’s computed versions.'}</span>}
@@ -83,7 +84,7 @@ export default async function ReturnScreen({ params, searchParams }: P) {
           if (!open) return (
             <section key={f.form} className="form" aria-label={f.label}>
               <div className="row" style={{ padding: '10px 14px', minHeight: 44 }}>
-                <h2>{f.label}</h2><span className="mono muted">{f.form}</span>
+                <h2>{f.label}</h2><FormTerm code={f.form} /><span className="mono muted">{f.form}</span>
                 <span className="small muted num">{rows.length} lines{flagged ? ` · ${flagged} with open checks` : ''}</span>
                 <Link className="btn" style={{ marginLeft: 'auto' }} scroll={false} href={q({ ...keep, open: f.form })}>Show the {rows.length} lines</Link>
               </div>
@@ -92,7 +93,7 @@ export default async function ReturnScreen({ params, searchParams }: P) {
           return (
             <details key={f.form} className="form" open aria-label={f.label}>
               <summary>
-                <h2>{f.label}</h2><span className="mono muted">{f.form}</span>
+                <h2>{f.label}</h2><FormTerm code={f.form} /><span className="mono muted">{f.form}</span>
                 <span className="small muted num" style={{ marginLeft: 'auto' }}>{rows.length} line{rows.length === 1 ? '' : 's'}{flagged ? ` · ${flagged} with open checks` : ''}</span>
               </summary>
               <div className="scroll">

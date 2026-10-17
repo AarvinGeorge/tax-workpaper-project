@@ -2,6 +2,7 @@
 import { useState } from 'react';
 import type { EventType, RoleKey } from '@/domain/contracts';
 import { postEvent } from '../shell/actions';
+import { Term } from '../term/Term';
 
 export interface ActionSpec {
   kind: Extract<EventType, 'adjustment' | 'verification' | 'signoff' | 'review_note' | 'question_to_client' | 'decision' | 'question_to_colleague'>;
@@ -65,7 +66,7 @@ export function DrawerActions(p: Props) {
   return (
     <div className="drw-sec" data-testid="drawer-actions">
       <span className="lbl">Actions</span>
-      {p.frozen && <span className="small muted">As filed, locked: value changes are refused; amend on top.</span>}
+      {p.frozen && <span className="small muted">As filed, locked: value changes are refused; amend on top.<Term k="amend-on-top" /></span>}
       <div className="drw-acts">
         {p.actions.map((a) => (
           <button key={a.kind} type="button" className={`btn${open === a.kind ? ' on' : ''}`} aria-disabled={!a.ok} aria-expanded={open === a.kind}
@@ -85,7 +86,7 @@ export function DrawerActions(p: Props) {
             <span className="small muted">{spec.level === 'preparer' ? 'Saved as proposed; the reviewer or partner applies it as firm policy says.' : 'Saved as applied.'} The tax effect is estimated from the engine&apos;s rates.</span>
           </>}
           {spec.kind === 'verification' && <>
-            <label className="lbl" htmlFor="ver-m">Method (the firm&apos;s verification types)</label>
+            <span><label className="lbl" htmlFor="ver-m">Method (the firm&apos;s verification types)</label><Term k="verification" /></span>
             <select id="ver-m" className="field" value={f.method ?? p.methods[0] ?? ''} onChange={set('method')}>{p.methods.map((m) => <option key={m} value={m}>{m.replace(/_/g, ' ')}</option>)}</select>
             <label className="lbl" htmlFor="ver-n">Note</label><input id="ver-n" className="field" value={f.note ?? ''} onChange={set('note')} />
           </>}
@@ -104,7 +105,7 @@ export function DrawerActions(p: Props) {
             {spec.kind === 'question_to_colleague' && <span className="small muted">Not a review note: it does not block, send back or sign anything.</span>}
           </>}
           {spec.kind === 'decision' && <>
-            <label className="lbl" htmlFor="d-k">Kind</label>
+            <span><label className="lbl" htmlFor="d-k">Kind</label><Term k="election" /></span>
             <select id="d-k" className="field" value={f.kind ?? 'judgment'} onChange={set('kind')}>{DECISIONS.map(([k, l]) => <option key={k} value={k}>{l}</option>)}</select>
             <label className="lbl" htmlFor="d-t">Decision</label><textarea id="d-t" className="field" rows={2} value={f.text ?? ''} onChange={set('text')} />
             <label className="lbl" htmlFor="d-a">Authority relied on</label><input id="d-a" className="field" value={f.authority ?? ''} onChange={set('authority')} />

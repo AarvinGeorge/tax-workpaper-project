@@ -5,6 +5,8 @@ import { documentLanding } from '@/domain/docs';
 import { maskText, visibleDocIds } from '@/domain/policy';
 import { claimHref, fmtDay, parseClaim } from '@/components/shell/lib';
 import type { DocLanding } from '@/domain/contracts';
+import type { ReactNode } from 'react';
+import { Term } from '@/components/term/Term';
 
 type P = { params: Promise<{ ws: string; role: string }>; searchParams: Promise<Record<string, string | undefined>> };
 
@@ -25,7 +27,7 @@ export default async function Documents({ params, searchParams }: P) {
   // Who may see which documents: clients their own (belongs_to), the examiner only what the examined items cite.
   let scope = all;
   let head = 'Documents';
-  let sub = 'Every document with where it landed on the return, or the typed reason it did not.';
+  let sub: ReactNode = <>Every document with where it landed<Term k="landed" /> on the return, or the typed reason it did not.</>;
   const allowed = visibleDocIds(ix, me.key);
   if (allowed) scope = all.filter((d) => allowed.has(d.docId));
   if (me.kind === 'client') {
@@ -84,7 +86,7 @@ export default async function Documents({ params, searchParams }: P) {
             </Link>
           ))}
         </section>
-        {staff && <p className="small muted" style={{ maxWidth: '90ch' }}>Kind of document is a plain label for where it comes from, never a ranking of trust; how surely each value was read (its confidence) is shown on the value in the panel.</p>}
+        {staff && <p className="small muted" style={{ maxWidth: '90ch' }}>Kind of document is a plain label for where it comes from, never a ranking of trust; how surely each value was read (its confidence<Term k="read-confidence" />) is shown on the value in the panel.</p>}
       </div>
     </Shell>
   );

@@ -99,7 +99,7 @@ function fromEvents(ix: PacketIndex, events: WorkEvent[], role: RoleKey, me: Rol
           const proposer = proposers.get(claim);
           if (proposer) to.push({ k: proposer, rule: 'applied_yours', text: `${who} applied your proposed change to ${what}` });
           proposers.delete(claim);
-          for (const s of signers.get(e.claimId ?? '') ?? []) to.push({ k: s, rule: 'stale', text: `Your sign-off on ${what} is stale: the value changed after you signed` });
+          for (const s of signers.get(e.claimId ?? '') ?? []) to.push({ k: s, rule: 'stale', text: `Your sign-off on ${what} is stale because the value changed after you signed` });
           signers.delete(e.claimId ?? '');
         } else {
           proposers.set(claim, e.role);

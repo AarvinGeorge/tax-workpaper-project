@@ -12,6 +12,7 @@ import { findingStatus } from '@/components/work/lib';
 import { notificationsFor } from '@/domain/notify';
 import { SinceLastLooked } from '@/components/shell/Bell';
 import { TextAction } from '@/components/work/actions';
+import { Term } from '@/components/term/Term';
 
 type P = { params: Promise<{ ws: string; role: string }>; searchParams: Promise<Record<string, string | undefined>> };
 
@@ -72,7 +73,7 @@ export default async function Home({ params, searchParams }: P) {
                 ))}
               </div>
             </div>
-            <p className="small muted">Every action is saved as an event in this workspace (/w/{ws}); open the root link again for a clean copy. Anything not in the packet is tagged <span className="ex">Example</span>.</p>
+            <p className="small muted">Every action is saved as an event in this workspace<Term k="workspace" /> (/w/{ws}); open the root link again for a clean copy. Anything not in the packet is tagged <span className="ex">Example</span><Term k="example-tag" />.</p>
           </StartHere>
         )}
 
@@ -83,7 +84,7 @@ export default async function Home({ params, searchParams }: P) {
             {(((ix.packet.tax_agency_records as { notices?: { type: string; dated: string; response_due?: string; items_under_examination?: string[] }[] }).notices) ?? [])
               .filter((n) => (n.items_under_examination ?? []).length > 0).map((n) => (
                 <div key={n.type} className="panel">
-                  <span className="lbl">{n.type} · dated {fmtDay(n.dated)}{n.response_due ? ` · response due ${fmtDay(n.response_due)}` : ''}</span>
+                  <span className="lbl">{n.type}{/566/.test(n.type) ? <Term k="letter-566" /> : null} · dated {fmtDay(n.dated)}{n.response_due ? ` · response due ${fmtDay(n.response_due)}` : ''}</span>
                   <ol style={{ margin: 0, paddingLeft: 20 }}>{(n.items_under_examination ?? []).map((t) => <li key={t}>{t}</li>)}</ol>
                 </div>
               ))}
@@ -120,7 +121,7 @@ export default async function Home({ params, searchParams }: P) {
           <>
             {state.blockers.length > 0 && (
               <section aria-label="Blocking approval" style={{ display: 'flex', flexDirection: 'column' }}>
-                <h2 className="lbl" style={{ paddingBottom: 8 }}>Blocking approval · <span className="num">{state.blockers.length}</span></h2>
+                <h2 className="lbl" style={{ paddingBottom: 8 }}>Blocking approval<Term k="blocker" /> · <span className="num">{state.blockers.length}</span></h2>
                 {state.blockers.map((b) => <Link key={b.claimId + b.title} className="qrow" href={claimHref(b.claimId)}><span className="tag t-blk">Blocking</span><span className="grow"><span>{mask(b.title)}</span></span></Link>)}
               </section>
             )}
@@ -171,7 +172,7 @@ function AfterFiling({ ws, ix, state, me, findings, mask }: { ws: string; ix: Pa
       <section aria-label="As filed" className="panel" style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
         <h2 className="lbl">The return as filed</h2>
         {efile.map((e) => <span key={e.jurisdiction + e.date}><span className="tag t-pas">Accepted</span> {humanize(e.jurisdiction)} return, {fmtStory(e.date)}</span>)}
-        <span className="small muted">{ix.latest.version}{adjusted ? ` plus ${adjusted} adjustment${adjusted === 1 ? '' : 's'} (finalized, not recomputed by the engine)` : ', as computed'}. Read only; a later change is an amendment on top.</span>
+        <span className="small muted">{ix.latest.version}{adjusted ? ` plus ${adjusted} adjustment${adjusted === 1 ? '' : 's'} (finalized, not recomputed by the engine)` : ', as computed'}. Read only; a later change is an amendment on top.<Term k="amend-on-top" /></span>
         {lines.map((l) => (
           <Link key={l.key} className="qrow" href={claimHref('line:' + l.key)}>
             <span className="grow"><span>{l.label}</span><span className="small muted">{humanize(l.jurisdiction)} · {l.key}</span></span>
@@ -190,7 +191,7 @@ function AfterFiling({ ws, ix, state, me, findings, mask }: { ws: string; ix: Pa
         )}
         {me.key === 'next' && (
           <>
-            <h3 className="lbl">Carryovers into next year · <span className="num">{carryRows.length}</span></h3>
+            <h3 className="lbl">Carryovers into next year<Term k="carryover" /> · <span className="num">{carryRows.length}</span></h3>
             {carryRows.length === 0 && <p className="small muted">No carryovers in the packet.</p>}
             {carryRows.map((r) => <div key={r.key} className="qrow"><span className="grow"><span>{mask(r.label)}</span><span className="small muted">{humanize(r.j)}</span></span><span className="val num">{mask(r.value)}</span></div>)}
             <h3 className="lbl">Open items at filing · <span className="num">{open.length}</span></h3>

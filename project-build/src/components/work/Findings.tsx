@@ -6,6 +6,7 @@ import s from './work.module.css';
 import { SEVERITY_TONE, claimHref, findingStatus, masker, signed, visibleFinding, when, type WorkProps } from './lib';
 import { Evidence } from './Checks';
 import { Est, NoAccess, Page, Tag } from './ui';
+import { Term } from '../term/Term';
 import type { Severity } from '@/domain/contracts';
 
 export function FindingsScreen(p: WorkProps) {
@@ -20,7 +21,7 @@ export function FindingsScreen(p: WorkProps) {
   return (
     <Page label="Findings" h1="The packet's confident mistakes"
       tags={<><Tag tone="neu">{LEDGER.length} in the ledger</Tag><Tag tone={fired === LEDGER.length ? 'pas' : 'wrn'}>{fired} surfaced by a check</Tag><Tag tone="neu">As of {when(state.storyAt)}</Tag></>}
-      intro="Every mistake we found in the packet, listed whatever the story time, with the check that catches it from the data (not from the engine), its evidence and how the design puts it in front of the right person. A finding that depends on a later document appears in the inboxes only once the story reaches it.">
+      intro="Every mistake we found in the packet, whatever the story time. Each shows the check that catches it from the packet's own data, its evidence, and who it is put in front of. A finding that depends on a later document reaches the inboxes only when the story gets there.">
       <div className={`${s.box} ${s.scroll}`}>
         <table className={s.table} aria-label="Ledger findings">
           <thead><tr><th>Id</th><th>Finding</th><th>Severity</th><th className={s.r}>Effect</th><th>Status</th></tr></thead>
@@ -61,7 +62,7 @@ export function FindingsScreen(p: WorkProps) {
       {beyond.length ? (
         <section className={s.section} aria-labelledby="fnd-beyond">
           <h2 className={s.h2} id="fnd-beyond">Also raised by the checks ({beyond.length})</h2>
-          <p className={s.note} style={{ margin: 0 }}>Findings our checks raise beyond the ledger: judgment items and smaller tie-outs.</p>
+          <p className={s.note} style={{ margin: 0 }}>Findings our checks raise beyond the ledger: judgment<Term k="judgment" /> items and smaller tie-outs<Term k="tie-out" />.</p>
           <div className={s.box}>
             {beyond.map((f) => (
               <div key={f.id} className={s.boxRow}>

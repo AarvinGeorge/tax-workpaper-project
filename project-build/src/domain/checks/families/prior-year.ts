@@ -33,7 +33,7 @@ export const priorYearFigure: Check = {
         evidence: [`py:/return_2024/lines/${key}`, ...(src && ix.valueById.has(src) ? [src] : []), measured.id],
         trigger: [measured.id],
         explanation: `The ${prior} ${key} used ${claimed} sq ft (${text.trim()}). The same room measures ${measured.value} sq ft (${ix.docById.get(measured.document_id)?.title}). `
-          + `The prior year looks wrong, not this year${over !== null && over > 0 ? `: about ${fmt(over)} of ${prior} deduction overstated` : ''}. Record it and tell the client; too small to amend alone.`,
+          + `The prior year looks wrong, not this year${over !== null && over > 0 ? `; about ${fmt(over)} of ${prior} deduction was overstated` : ''}. Record it and tell the client; too small to amend alone.`,
       });
     }
     return out;

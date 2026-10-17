@@ -5,6 +5,7 @@ import { swings } from '@/domain/versions';
 import s from './work.module.css';
 import { arr, claimHref, fmt, humanize, masker, obj, when, type WorkProps } from './lib';
 import { NoAccess, NotInPacket, Page, Tag } from './ui';
+import { Term } from '../term/Term';
 
 type M = (t: unknown) => string;
 
@@ -89,7 +90,7 @@ function LineTable({ p, m, forms, keyFilter, label }: { p: WorkProps; m: M; form
   );
 }
 
-function Area({ name, headline, children, open }: { name: string; headline?: string; children: ReactNode; open?: boolean }) {
+function Area({ name, headline, children, open }: { name: ReactNode; headline?: ReactNode; children: ReactNode; open?: boolean }) {
   return (
     <details className={s.area} open={open}>
       <summary>
@@ -101,7 +102,7 @@ function Area({ name, headline, children, open }: { name: string; headline?: str
     </details>
   );
 }
-function Sub({ title, children }: { title: string; children: ReactNode }) {
+function Sub({ title, children }: { title: ReactNode; children: ReactNode }) {
   return <div className={s.section}><h3 className={s.h3}>{title}</h3>{children}</div>;
 }
 
@@ -161,7 +162,7 @@ export function AreasScreen(p: WorkProps) {
       tags={<><Tag tone="neu">{v.version} computed {when(v.computed_at)}</Tag><Tag tone="neu">As of {when(state.storyAt)}</Tag>{state.frozen ? <Tag tone="acc">As filed, locked</Tag> : null}</>}
       intro="The record tables behind the return, each read from its place in the packet. Amounts on return lines open where they came from. Where the packet has no record, the table says so.">
 
-      <Area name="Return summary against last year" headline={`${swingRows.length} swings over the firm's variance rule; ${newRows.length} lines new this year`} open>
+      <Area name="Return summary against last year" headline={<>{swingRows.length} swings<Term k="swing" /> over the firm&apos;s variance rule; {newRows.length} lines new this year</>} open>
         <Sub title={`${v.version} summary`}><KV data={obj(v.summary)} m={m} label="Summary" /></Sub>
         <Sub title={`Against the 2024 return: ${swingRows.length} lines over the firm's variance rule`}>
           {sw.length ? <SwingTable p={p} m={m} rows={swingRows} /> : <NotInPacket what="2024 comparison" />}
@@ -171,17 +172,17 @@ export function AreasScreen(p: WorkProps) {
         </Sub>
       </Area>
 
-      <Area name="Tax computation" headline="Form 1040 and the tax schedules">
+      <Area name="Tax computation" headline={<>Form 1040<Term k="form-1040" /> and the tax schedules, including AMT<Term k="amt" /></>}>
         <LineTable p={p} m={m} forms={TAX_FORMS} label="Tax computation" />
       </Area>
 
-      <Area name="Depreciation by asset" headline={`${arr(v.assets).length} assets in ${v.version}; federal, California and AMT`}>
+      <Area name={<>Depreciation<Term k="depreciation" /> by asset</>} headline={`${arr(v.assets).length} assets in ${v.version}; federal, California and AMT`}>
         <RecordTable rows={arr(v.assets).map(obj)} m={m} skip={['sources']} label="Depreciation by asset" />
         <Sub title="Prior-year asset records"><RecordTable rows={arr(py.asset_records).map(obj)} m={m} skip={['sources', 'federal', 'california', 'amt_difference']} label="Prior-year asset records" /></Sub>
         <Sub title="Depreciation lines"><LineTable p={p} m={m} forms={['F4562-C', 'F4562-E', 'FTB3885A']} label="Depreciation lines" /></Sub>
       </Area>
 
-      <Area name="Sales detail" headline={`${sales.length} Form 8949 lines in ${boxes.length} boxes`}>
+      <Area name="Sales detail" headline={<>{sales.length} Form 8949<Term k="form-8949" /> lines in {boxes.length} boxes</>}>
         {boxes.length ? boxes.map((b) => {
           const all = sales.filter((l) => l.key.split('.')[1] === b);
           const total = all.find((l) => /\.total$/.test(l.key));
@@ -207,18 +208,18 @@ export function AreasScreen(p: WorkProps) {
             </div>
           );
         }) : <NotInPacket what="Form 8949" />}
-        <Sub title="Schedule D"><LineTable p={p} m={m} forms={['SchD']} label="Schedule D" /></Sub>
+        <Sub title={<>Schedule D<Term k="sch-d" /></>}><LineTable p={p} m={m} forms={['SchD']} label="Schedule D" /></Sub>
       </Area>
 
-      <Area name="Books to tax" headline="Schedule C, self-employment and QBI">
+      <Area name="Books to tax" headline={<>Schedule C<Term k="sch-c" />, self-employment<Term k="sch-se" /> and QBI<Term k="qbi" /></>}>
         <LineTable p={p} m={m} forms={BOOKS_FORMS} label="Books to tax" />
       </Area>
 
-      <Area name="Rentals and passive losses" headline="Schedule E, Form 8582, Form 4797">
+      <Area name={<>Rentals and passive losses<Term k="passive-loss" /></>} headline={<>Schedule E<Term k="sch-e" />, Form 8582<Term k="form-8582" />, Form 4797<Term k="form-4797" /></>}>
         <LineTable p={p} m={m} forms={RENTAL_FORMS} label="Rentals and passive losses" />
       </Area>
 
-      <Area name="K-1 lines" headline={`${k1Docs.length} K-1 documents`}>
+      <Area name={<>K-1<Term k="k-1" /> lines</>} headline={`${k1Docs.length} K-1 documents`}>
         {k1Docs.length ? k1Docs.map((d) => {
           const vals = ix.valuesByDoc.get(d.id) ?? [];
           return (
@@ -226,7 +227,7 @@ export function AreasScreen(p: WorkProps) {
               {vals.length ? (
                 <div className={s.scroll}>
                   <table className={s.table} aria-label={d.title}>
-                    <thead><tr><th>Field</th><th>Label</th><th className={s.r}>Value</th><th className={s.r}>Read confidence</th></tr></thead>
+                    <thead><tr><th>Field</th><th>Label</th><th className={s.r}>Value</th><th className={s.r}>Read confidence<Term k="read-confidence" /></th></tr></thead>
                     <tbody>{vals.map((x) => (
                       <tr key={x.id}><td className={s.mono}>{x.field}</td><td>{m(x.label)}</td><td className={s.r}><a className={s.amt} href={claimHref(p.sp, 'doc:' + d.id)}>{m(x.value)}</a></td><td className={s.r}>{fmt(x.confidence)}</td></tr>
                     ))}</tbody>
@@ -236,15 +237,15 @@ export function AreasScreen(p: WorkProps) {
             </Sub>
           );
         }) : <NotInPacket what="K-1 documents" />}
-        <Sub title="Shareholder basis (Form 7203)"><LineTable p={p} m={m} forms={K1_FORMS} label="Form 7203" /></Sub>
+        <Sub title={<>Shareholder basis<Term k="basis" /> (Form 7203<Term k="form-7203" />)</>}><LineTable p={p} m={m} forms={K1_FORMS} label="Form 7203" /></Sub>
       </Area>
 
-      <Area name="Retirement and foreign items" headline="IRA basis, HSA, foreign accounts">
+      <Area name="Retirement and foreign items" headline={<>IRA basis<Term k="form-8606" />, HSA, foreign accounts<Term k="fbar" /></>}>
         <LineTable p={p} m={m} forms={RETIRE_FOREIGN_FORMS} keyFilter={(k) => !k.startsWith('SchB.') || /7|8/.test(k.split('.')[1] ?? '')} label="Retirement and foreign items" />
         <Sub title="Exchange rates in the packet"><KV data={obj(pk.fx_rates)} m={m} label="Exchange rates" /></Sub>
       </Area>
 
-      <Area name="Deductions and credits with limits" headline="Itemized, charitable, child and education credits, dependent care">
+      <Area name="Deductions and credits with limits" headline={<>Itemized<Term k="sch-a" />, charitable, child<Term k="form-8812" /> and education<Term k="form-8863" /> credits, dependent care</>}>
         <LineTable p={p} m={m} forms={DEDUCTION_FORMS} label="Deductions and credits" />
         <Sub title="Limits the engine applies (engine_reference.parameters)">
           {params.length ? (
@@ -255,7 +256,7 @@ export function AreasScreen(p: WorkProps) {
         </Sub>
       </Area>
 
-      <Area name="Payments" headline="On the return and in the IRS and FTB records">
+      <Area name="Payments" headline={<>Withholding, estimated payments<Term k="estimated-tax" /> and extension<Term k="extension" /> payments, on the return and in the IRS and FTB records</>}>
         <Sub title="Payment lines on the return"><LineTable p={p} m={m} forms={[...new Set(payLines.map((l) => l.form))]} keyFilter={(k) => payLines.some((l) => l.key === k)} label="Payment lines" /></Sub>
         {transcripts.length ? transcripts.map((t, i) => (
           <Sub key={i} title={`IRS account transcript as of ${m(t.as_of)}`}><RecordTable rows={arr(t.transactions).map(obj)} m={m} label="IRS transcript" /></Sub>
@@ -265,12 +266,12 @@ export function AreasScreen(p: WorkProps) {
         )) : <NotInPacket what="FTB account" />}
       </Area>
 
-      <Area name="State split" headline="California part-year: residency and the 540NR">
+      <Area name="State split" headline={<>California part-year<Term k="part-year-resident" />: residency and the 540NR<Term k="form-540nr" /></>}>
         <Sub title="Residency"><RecordTable rows={arr(pk.household.residency).map(obj)} m={m} label="Residency" /></Sub>
         <LineTable p={p} m={m} forms={STATE_FORMS} label="State split" />
       </Area>
 
-      <Area name="Carryovers" headline="Into 2025 from the prior year, and out of 2025">
+      <Area name={<>Carryovers<Term k="carryover" /></>} headline="Into 2025 from the prior year, and out of 2025">
         <div className={s.cols}>
           <Sub title="Into 2025 (prior_years)"><KV data={carryIn} m={m} label="Carryovers into 2025" /></Sub>
           <Sub title={`Out of 2025 (${v.version})`}><KV data={carryOut} m={m} label="Carryovers out" /></Sub>

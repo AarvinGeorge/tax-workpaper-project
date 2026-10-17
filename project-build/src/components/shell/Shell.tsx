@@ -11,6 +11,7 @@ import { LiveRefresh } from './LiveRefresh';
 import { ScrollHint } from './ScrollHint';
 import { claimHref, fmtDay, fmtStory, fmtValue, notYetText, screenHint, screenLabel, screenPath, searchPacket } from './lib';
 import { NoAccess } from '../work/ui';
+import { Term } from '../term/Term';
 import { ClaimDrawer } from '../drawer/ClaimDrawer';
 
 export interface ShellProps {
@@ -33,7 +34,7 @@ function rule(rules: unknown, re: RegExp): string | null {
   return Array.isArray(rules) ? ((rules as string[]).find((t) => re.test(t)) ?? null) : null;
 }
 
-function banner(r: RoleInfo, rules: unknown, frozen: boolean): string {
+function bannerText(r: RoleInfo, rules: unknown, frozen: boolean): string {
   const partner = rule(rules, /partner sign-off/i);
   const locked = 'As filed, locked. You can read the filed record and its full history; anything new attaches as a later event.';
   if (r.kind === 'client') return 'Here is what we need from you. You can answer questions and send documents; you sign Form 8879 (e-file signature authorization) once your tax team has finished.';
@@ -49,6 +50,18 @@ function banner(r: RoleInfo, rules: unknown, frozen: boolean): string {
     case 'jo': return 'You see who viewed what, time against budget and file status, and you move the story clock. Return values are read only for you.';
     default: return '';
   }
+}
+
+/** The banner sentence with a help mark after it for the one term it leans on most. */
+function banner(r: RoleInfo, rules: unknown, frozen: boolean): ReactNode {
+  const text = bannerText(r, rules, frozen);
+  const k = r.kind === 'client' ? 'form-8879'
+    : frozen && r.key !== 'jo' && r.kind === 'staff' && r.key !== 'next' && r.key !== 'sam' ? null
+    : r.key === 'marcus' || r.key === 'priya' ? 'sensitive-data-clearance'
+    : r.key === 'daniel' ? 'review-note'
+    : r.key === 'helen' ? 'partner-threshold'
+    : null;
+  return <>{text}{k ? <Term k={k} /> : null}</>;
 }
 
 const VERB: Partial<Record<WorkEvent['type'], string>> = {
@@ -96,12 +109,13 @@ export async function Shell({ ws, role, screen, claim, q, children, ...given }: 
       <header className="sh-head">
         <div className="sh-brand"><strong>Taxmark</strong><span className="muted">{client}{taxYear ? `, ${taxYear}` : ''}</span></div>
         <div className="sh-meta num">
-          <span><span className="muted">Version</span> {version}</span>
+          <span><span className="muted">Version</span>{!isClient && <Term k="version" />} {version}{!isClient && !state.frozen && adjusted ? <Term k="finalized-version" /> : null}</span>
           <span><span className="muted">Stage</span> {state.stage}</span>
           <span className="tag t-pas" title="Every action is saved as an event in this workspace">
             <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.4" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><path d="M5 12l5 5L20 7" /></svg>Saved
           </span>
           {state.frozen && <span className="tag t-acc" title="Accepted by the agency; later events attach to the record, nothing in it changes">As filed, locked</span>}
+          {state.frozen && !isClient && <Term k="as-filed-locked" />}
         </div>
         {!isClient && me.kind !== 'examiner' && (
           <form role="search" className="sh-search" action={screenPath(ws, role, 'home')} method="get">
@@ -118,7 +132,7 @@ export async function Shell({ ws, role, screen, claim, q, children, ...given }: 
       </header>
 
       <div className="sh-story" role="group" aria-label="Story clock">
-        <span className="num" title="The one story clock for this workspace; times are UTC"><strong>Story time:</strong> {fmtStory(state.storyAt)}</span>
+        <span className="num" title="The one story clock for this workspace; times are UTC"><strong>Story time</strong><Term k="story-clock" /> {fmtStory(state.storyAt)}</span>
         {!isClient && canSee('firm') && me.kind === 'staff' && <span className="small muted">The story clock is moved on <Link href={screenPath(ws, role, 'firm')}>Firm</Link>; moving it is recorded as an event everyone sees.</span>}
         <span style={{ marginLeft: 'auto' }}><ResetButton ws={ws} role={role} /></span>
       </div>

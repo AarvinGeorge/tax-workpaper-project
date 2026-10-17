@@ -8,6 +8,7 @@ import {
   signed, visibleFinding, when, writeBlock, type WorkProps,
 } from './lib';
 import { Est, NoAccess, Page, Tag } from './ui';
+import { Term } from '../term/Term';
 import { BulkSignoff, EventButton, TextAction } from './actions';
 
 export function claimValue(p: WorkProps, claimId: string): unknown {
@@ -77,7 +78,7 @@ export function ChecksScreen(p: WorkProps) {
         <Tag tone="wrn">{open.length} open</Tag>
         {later ? <Tag tone="neu" title="Findings that depend on a document or message later in the story">{later} later in the story</Tag> : null}
       </>}
-      intro="Our checks run over the packet and do not trust the engine. Blockers come first. The engine's own diagnostics sit beside them, labelled, never instead of them. Tax effects are estimates at the latest version's rates or from the engine's what-if.">
+      intro={<>Our checks run over the packet and do not trust the engine. Blockers<Term k="blocker" /> come first. The engine&apos;s own diagnostics<Term k="engine-diagnostics" /> are listed beside them under their own label. Tax effects are estimates at the latest version&apos;s rates or from the engine&apos;s what-if<Term k="what-if" />.</>}>
 
       <div role="group" aria-label="Filter by severity" className={s.row}>
         <a className={`${s.chip} ${!sev ? s.chipOn : ''}`} href={queryHref(p.sp, 'sev', null)} aria-current={!sev ? 'true' : undefined}>All <span className={s.num}>{visible.length}</span></a>
@@ -102,7 +103,7 @@ export function ChecksScreen(p: WorkProps) {
               const c0 = f.claims[0];
               return (
                 <div key={f.id}>
-                  {showGrp ? <div className={s.grp}><span className={s.lbl}>{SEVERITY_WORD[f.severity]}</span></div> : null}
+                  {showGrp ? <div className={s.grp}><span className={s.lbl}>{SEVERITY_WORD[f.severity]}</span>{f.severity === 'judgment' ? <Term k="judgment" /> : null}</div> : null}
                   <div className={s.chkRow} data-finding={f.id}>
                     <span><Tag tone={st.tone}>{st.word}</Tag></span>
                     <details className={s.peek}>

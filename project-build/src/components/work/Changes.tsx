@@ -5,6 +5,7 @@ import { whatIfs } from '@/domain/versions';
 import s from './work.module.css';
 import { claimHref, fmt, humanize, isRetracted, lineLabel, masker, one, personName, queryHref, signed, when, writeBlock, type WorkProps } from './lib';
 import { Est, NoAccess, Page, Tag } from './ui';
+import { Term } from '../term/Term';
 import { EventButton } from './actions';
 
 const KIND: Partial<Record<EventType, string>> = {
@@ -46,7 +47,7 @@ export function ChangesScreen(p: WorkProps) {
   return (
     <Page label="Changes" h1="Our changes over the packet"
       tags={<><Tag tone="neu">{ix.latest.version}</Tag><Tag tone="neu">As of {when(state.storyAt)}</Tag>{block ? <Tag tone="neu">Read only</Tag> : null}</>}
-      intro="The packet stays read only. Each action is a new entry that keeps the original value, the reason, the authority or evidence relied on, the tax effect and who did it. Entries are never edited or deleted; an undo is a new entry on top. Tax effects are each change taken alone, at the latest version's rates or from the engine's what-if (fixes interact; the engine has not recomputed).">
+      intro={<>The packet stays read only. Each action is a new entry with the original value, the reason, the authority or evidence, the tax effect and who did it. Entries are never edited or deleted; an undo is a new entry on top. Tax effects are each change taken alone, at the latest version&apos;s rates or from the engine&apos;s what-if (fixes interact; the engine has not recomputed).</>}>
 
       <div role="group" aria-label="Filter changes" className={s.row}>
         <a className={`${s.chip} ${!kind ? s.chipOn : ''}`} href={queryHref(p.sp, 'kind', null)}>All <span className={s.num}>{all.length}</span></a>
@@ -88,8 +89,8 @@ export function ChangesScreen(p: WorkProps) {
       </section>
 
       <section className={s.section} aria-labelledby="chg-whatif">
-        <div className={s.row}><h2 className={s.h2} id="chg-whatif">What-ifs from the engine</h2><Tag tone="neu">Not a change; nothing is saved to the return</Tag></div>
-        <p className={s.intro}>Alternatives the engine computed on {ix.latest.version}. Reading them changes nothing; to act on one, record an election from the line’s drawer.</p>
+        <div className={s.row}><h2 className={s.h2} id="chg-whatif">What-ifs from the engine</h2><Term k="what-if" /><Tag tone="neu">Not a change; nothing is saved to the return</Tag></div>
+        <p className={s.intro}>Alternatives the engine computed on {ix.latest.version}. Reading them changes nothing; to act on one, record an election<Term k="election" /> from the line’s drawer.</p>
         <div className={s.box}>
           {alts.length === 0 ? <div className={s.boxRow}><span className={s.note}>No what-ifs in the packet.</span></div> : null}
           {alts.map((w) => (

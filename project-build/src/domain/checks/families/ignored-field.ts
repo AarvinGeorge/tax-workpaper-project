@@ -64,7 +64,7 @@ export const fxRateYear: Check = {
           claims: [lineClaim(line.key)],
           evidence: [foreign.id, s, `ref:fx.${m[1]}.${want}`],
           explanation: `${m[1]} ${fmt(num(foreign.value)!)} of ${y} income was converted at ${table[m[2]]} (${m[2]}). `
-            + `Income uses the tax year's average rate, ${table[want]} (${want}), which gives ${fmt(correct)}: a change of ${fmt(delta)}.`,
+            + `Income uses the tax year's average rate, ${table[want]} (${want}), which gives ${fmt(correct)}, a change of ${fmt(delta)}.`,
           effect: rateEffect(ix, cat, delta),
         });
       }

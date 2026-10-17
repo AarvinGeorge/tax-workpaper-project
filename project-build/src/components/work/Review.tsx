@@ -7,6 +7,7 @@ import {
   byline, claimHref, findRule, fmt, levelOf, liveEvents, lineLabel, masker, one, partnerThreshold, personName, queryHref, signed, storyAtOf, when, writeBlock, type WorkProps,
 } from './lib';
 import { Est, NoAccess, Page, Tag } from './ui';
+import { Term } from '../term/Term';
 import { EventButton, TextAction } from './actions';
 
 function lastAdjustment(c: ClaimState): WorkEvent | undefined {
@@ -57,14 +58,14 @@ export function ReviewScreen(p: WorkProps) {
   return (
     <Page label="Review" h1={`Review of ${ix.latest.version} and our adjustments`}
       tags={<><Tag tone="neu">As of {when(state.storyAt)}</Tag><Tag tone="neu">Stage: {state.stage}</Tag>{state.frozen ? <Tag tone="acc">As filed, locked</Tag> : null}</>}
-      intro={`Everything we changed over the engine's ${ix.latest.version}, with who did it, why, and who signed. A sign-off covers the value it signed; when the value changes, the sign-off goes stale.`}>
+      intro={<>Everything we changed over the engine&apos;s {ix.latest.version}, with who did it, why, and who signed. A sign-off<Term k="sign-off" /> covers the value it signed; when the value changes, the sign-off goes stale<Term k="stale-signoff" />.</>}>
 
       <div className={s.box} style={{ padding: '14px 16px', display: 'flex', flexWrap: 'wrap', gap: 12, alignItems: 'center' }}>
         <strong>Approval</strong>
-        <Tag tone={state.blockers.length ? 'blk' : 'pas'}>{state.blockers.length ? `${state.blockers.length} blockers` : 'No blockers'}</Tag>
+        <span><Tag tone={state.blockers.length ? 'blk' : 'pas'}>{state.blockers.length ? `${state.blockers.length} blockers` : 'No blockers'}</Tag><Term k="blocker" /></span>
         <Tag tone={blockingNotes.length ? 'blk' : 'neu'}>{blockingNotes.length} blocking notes</Tag>
         <Tag tone={stale.length ? 'wrn' : 'neu'}>{stale.length} stale sign-offs</Tag>
-        <Tag tone={partnerOpen.length ? 'wrn' : 'neu'}>{partnerOpen.length} need partner sign-off</Tag>
+        <span><Tag tone={partnerOpen.length ? 'wrn' : 'neu'}>{partnerOpen.length} need partner sign-off</Tag><Term k="partner-threshold" /></span>
         {approval ? <Tag tone="pas" title={byline(ix, approval).title}>Approved by {byline(ix, approval).text}</Tag> : null}
         <span style={{ marginLeft: 'auto' }}>
           {level === 'partner' ? (
@@ -97,7 +98,7 @@ export function ReviewScreen(p: WorkProps) {
       {tab === 'changes' ? (
         <section className={s.box} aria-label="Changes">
           <div className={s.boxRow} style={{ justifyContent: 'space-between' }}>
-            <span className={s.lbl}>Our adjustments over {ix.latest.version}</span>
+            <span className={s.lbl}>Our adjustments<Term k="adjustment" /> over {ix.latest.version}</span>
             {thr.rule ? <span className={s.note} style={{ maxWidth: '70ch' }}>Firm rule: “{thr.rule}”</span> : null}
           </div>
           {adjusted.length === 0 ? <div className={s.boxRow}><span className={s.note}>No adjustments yet. Adjust a number from its drawer (open any amount).</span></div> : null}
@@ -143,7 +144,7 @@ export function ReviewScreen(p: WorkProps) {
 
       {tab === 'notes' ? (
         <section className={s.box} aria-label="Review notes">
-          <div className={s.boxRow}><span className={s.lbl}>Open review notes</span>{notesRule ? <span className={s.note}>Firm rule: “{notesRule}”</span> : null}</div>
+          <div className={s.boxRow}><span className={s.lbl}>Open review notes<Term k="review-note" /></span>{notesRule ? <span className={s.note}>Firm rule: “{notesRule}”</span> : null}</div>
           {notes.length === 0 ? <div className={s.boxRow}><span className={s.note}>No open review notes.</span></div> : null}
           {notes.map(({ c, n }) => (
             <div key={n.seq} className={s.boxRow}>

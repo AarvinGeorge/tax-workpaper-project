@@ -28,7 +28,7 @@ export const sepLimit: Check = {
         explanation: `The contribution was ${fmt(num(contrib.value)!)}; ${line.key} deducts ${fmt(deducted)}, the computed limit. `
           + `The excess of ${fmt(excess)} is ${carried ? `carried out as "${carried[0]}"` : 'not deducted'}${flagged ? '' : ' with no diagnostic'}. `
           + `A nondeductible contribution can draw an excise tax unless withdrawn (the rate is not in the packet, so no amount is estimated). `
-          + `Decide: withdraw the excess, or keep it and file for the excise; tell the client. The limit falls if Schedule C profit changes.`,
+          + `Decide whether to withdraw the excess or keep it and file for the excise, and tell the client. The limit falls if Schedule C profit changes.`,
       });
     }
     return out;

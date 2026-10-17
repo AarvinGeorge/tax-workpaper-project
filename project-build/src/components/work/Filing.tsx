@@ -7,6 +7,7 @@ import { refText, resolveRef } from '@/domain/refs';
 import s from './work.module.css';
 import { arr, claimHref, day, humanize, masker, obj, refClaim, when, type WorkProps } from './lib';
 import { Designed, NoAccess, NotInPacket, Page, Tag } from './ui';
+import { Term } from '../term/Term';
 import { ClientSigning, StaffSigning } from '@/components/client/ClientFiling';
 
 function Rows({ data, m, names = [] }: { data: Record<string, unknown>; m: (t: unknown) => string; names?: string[] }) {
@@ -83,7 +84,7 @@ export function FilingScreen(p: WorkProps) {
         </div>
         {exam.map((n) => (
           <section key={String(n.id)} className={s.box}>
-            <div className={s.boxRow}><Tag tone="acc">{m(n.type)}</Tag><strong>Tax year {String(n.tax_year ?? "")}</strong><span className={s.note}>Dated {day(String(n.dated))} · response due {day(String(n.response_due ?? ''))}</span>{n.document ? refLink(String(n.document)) : null}</div>
+            <div className={s.boxRow}><Tag tone="acc">{m(n.type)}</Tag>{/566/.test(String(n.type)) ? <Term k="letter-566" /> : null}<strong>Tax year {String(n.tax_year ?? "")}</strong><span className={s.note}>Dated {day(String(n.dated))} · response due {day(String(n.response_due ?? ''))}</span>{n.document ? refLink(String(n.document)) : null}</div>
             {arr(n.items_under_examination).map((it, i) => <div key={i} className={s.boxRow}><span className={s.grow}>{m(it)}</span></div>)}
           </section>
         ))}
@@ -118,7 +119,7 @@ export function FilingScreen(p: WorkProps) {
                   <span className={s.body}>
                     {!e ? <span><Tag tone="neu">Not sent yet</Tag> Your tax team sends it once you have approved and signed.</span>
                       : e.status === 'accepted' ? <span><Tag tone="pas">Accepted</Tag> Accepted by {agencyName(j)} on {day(String(e.date))}.</span>
-                      : e.status === 'rejected' ? <span><Tag tone="blk">Sent back</Tag> {agencyName(j)} sent it back on {day(String(e.date))}. Your tax team is fixing it. Their reason: {arr(e.errors).map(obj).map((er) => m(er.message)).join(' ')}</span>
+                      : e.status === 'rejected' ? <span><Tag tone="blk">Sent back</Tag><Term k="efile-rejection" /> {agencyName(j)} sent it back on {day(String(e.date))}. Your tax team is fixing it. Their reason: {arr(e.errors).map(obj).map((er) => m(er.message)).join(' ')}</span>
                       : <span><Tag tone="wrn">Waiting</Tag> Held until the federal return is accepted.</span>}
                   </span>
                 </div>
@@ -137,7 +138,7 @@ export function FilingScreen(p: WorkProps) {
         </section>
         {arr(plan.federal_estimate_due_dates).length || arr(plan.california_estimate_due_dates).length ? (
           <section className={s.section} aria-labelledby="fil-c-next">
-            <h2 className={s.h2} id="fil-c-next">Next year&rsquo;s estimated payments</h2>
+            <h2 className={s.h2} id="fil-c-next">Next year&rsquo;s estimated payments<Term k="estimated-tax" /></h2>
             <div className={s.box}>
               {arr(plan.federal_estimate_due_dates).length ? <div className={s.boxRow}><span className={s.when}>To the IRS</span><span className={s.body}>{arr(plan.federal_estimate_due_dates).map((d) => day(String(d))).join(', ')}</span></div> : null}
               {arr(plan.california_estimate_due_dates).length ? <div className={s.boxRow}><span className={s.when}>To California</span><span className={s.body}>{arr(plan.california_estimate_due_dates).map((d) => day(String(d))).join(', ')}</span></div> : null}
@@ -165,7 +166,7 @@ export function FilingScreen(p: WorkProps) {
         <h2 className={s.h2} id="fil-freeze">The filed record</h2>
         <div className={s.box} style={{ padding: '14px 16px' }}>
           {state.frozen
-            ? <span><Tag tone="acc">As filed, locked</Tag> Accepted on {when(freezeAt)}. The as-filed record is read only; any later change is an amendment on top of it.</span>
+            ? <span><Tag tone="acc">As filed, locked</Tag> Accepted on {when(freezeAt)}. The as-filed record is read only; any later change is an amendment on top of it.<Term k="amend-on-top" /></span>
             : freezeAt
               ? <span><Tag tone="neu">Open</Tag> Not yet accepted at story time. The record locks at federal acceptance.</span>
               : <span><Tag tone="neu">Open</Tag> No federal acceptance in the agency records.</span>}
@@ -175,7 +176,7 @@ export function FilingScreen(p: WorkProps) {
       <StaffSigning ix={ix} state={state} />
 
       <section className={s.section} aria-labelledby="fil-ext">
-        <h2 className={s.h2} id="fil-ext">Extension</h2>
+        <h2 className={s.h2} id="fil-ext">Extension<Term k="extension" /></h2>
         {extVisible && Object.keys(ext).length ? (
           <div className={s.box}>
             <div className={s.boxRow}><span className={s.when}>{when(extEvent!.at)}</span><span className={s.body}>{isClient ? 'Your tax team asked for more time to file and sent a payment with the request.' : t(extEvent!.detail)}<span className={s.note}>Based on {m(ext.based_on_version)} · computed {when(String(ext.computed_at))}</span></span></div>
@@ -195,7 +196,7 @@ export function FilingScreen(p: WorkProps) {
               <span className={s.when}>{when(String(e.date))}</span>
               <span className={s.body}>
                 <span className={s.row} style={{ gap: 6 }}>
-                  <Tag tone={e.status === 'accepted' ? 'pas' : e.status === 'rejected' ? 'blk' : 'wrn'}>{humanize(String(e.status))}</Tag>
+                  <Tag tone={e.status === 'accepted' ? 'pas' : e.status === 'rejected' ? 'blk' : 'wrn'}>{humanize(String(e.status))}</Tag>{e.status === 'rejected' ? <Term k="efile-rejection" /> : null}
                   <strong>{humanize(String(e.jurisdiction))}</strong>
                   {!isClient ? <span className={s.mono}>Submission {m(e.submission_id)}</span> : null}
                 </span>
@@ -239,7 +240,7 @@ export function FilingScreen(p: WorkProps) {
               <div key={String(n.id)} className={s.boxRow}>
                 <span className={s.when}>{day(String(n.dated))}</span>
                 <span className={s.body}>
-                  <span className={s.row} style={{ gap: 6 }}><Tag tone="acc">{m(n.agency)} {m(n.type)}</Tag><span>Tax year {String(n.tax_year ?? "")}</span>{n.document ? refLink(String(n.document)) : null}</span>
+                  <span className={s.row} style={{ gap: 6 }}><Tag tone="acc">{m(n.agency)} {m(n.type)}</Tag>{/566/.test(String(n.type)) ? <Term k="letter-566" /> : null}<span>Tax year {String(n.tax_year ?? "")}</span>{n.document ? refLink(String(n.document)) : null}</span>
                   {n.summary ? <span>{m(n.summary)}</span> : null}
                   {n.status ? <span className={s.note}>{m(n.status)}</span> : null}
                   {arr(n.items_under_examination).map((it, i) => <span key={i}>· {m(it)}</span>)}
@@ -252,7 +253,7 @@ export function FilingScreen(p: WorkProps) {
 
       {!isClient ? (
         <section className={s.section} aria-labelledby="fil-carry">
-          <h2 className={s.h2} id="fil-carry">Carryovers out of {ix.latest.version}</h2>
+          <h2 className={s.h2} id="fil-carry">Carryovers<Term k="carryover" /> out of {ix.latest.version}</h2>
           {Object.keys(carry).length ? (
             <div className={s.cols}>
               {Object.entries(carry).map(([j, v]) => (
@@ -268,8 +269,8 @@ export function FilingScreen(p: WorkProps) {
         <h2 className={s.h2} id="fil-next">Next year</h2>
         {Object.keys(plan).length ? (
           <div className={s.box}>
-            {arr(plan.federal_estimate_due_dates).length ? <div className={s.boxRow}><span className={s.when}>Federal estimates due</span><span className={s.body}>{arr(plan.federal_estimate_due_dates).map((d) => day(String(d))).join(', ')}</span></div> : null}
-            {plan.federal_safe_harbor ? <div className={s.boxRow}><span className={s.when}>Federal safe harbor</span><span className={s.body}>{m(plan.federal_safe_harbor)}</span></div> : null}
+            {arr(plan.federal_estimate_due_dates).length ? <div className={s.boxRow}><span className={s.when}>Federal estimates due<Term k="estimated-tax" /></span><span className={s.body}>{arr(plan.federal_estimate_due_dates).map((d) => day(String(d))).join(', ')}</span></div> : null}
+            {plan.federal_safe_harbor ? <div className={s.boxRow}><span className={s.when}>Federal safe harbor<Term k="safe-harbor" /></span><span className={s.body}>{m(plan.federal_safe_harbor)}</span></div> : null}
             {arr(plan.california_estimate_due_dates).length ? <div className={s.boxRow}><span className={s.when}>California estimates due</span><span className={s.body}>{arr(plan.california_estimate_due_dates).map((d, i) => {
               const pct = arr(plan.california_installment_percentages)[i];
               return `${day(String(d))}${typeof pct === 'number' ? ` (${Math.round(pct * 100)}%)` : ''}`;

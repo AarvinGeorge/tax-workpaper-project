@@ -8,6 +8,7 @@ import { getWorkspace } from '@/components/shell/load';
 import { EventButton } from '@/components/work/actions';
 import { day, fmt, when } from '@/components/work/lib';
 import { Tag } from '@/components/work/ui';
+import { Term } from '@/components/term/Term';
 import s from '@/components/work/work.module.css';
 import { clientCopy, keyAmounts, returnFingerprint, signatures, SIGN_FORMS, type KeyAmounts, type SigningState } from './signing';
 
@@ -70,7 +71,7 @@ export function StaffSigning({ ix, state }: { ix: PacketIndex; state: WorkspaceS
           <span className={s.body}>{st.approved ? <span><Tag tone="pas">Approved</Tag> The clients may sign.</span> : <span><Tag tone="neu">Not yet</Tag> The clients can sign once the partner approves the return on Review.</span>}</span>
         </div>
         <SignatureRows st={st} plain={false} />
-        <div className={s.boxRow}><span className={s.note}>Each spouse signs Form 8879 and FTB 8879 for themself, on version {st.fingerprint} of the finalized return. A signature goes stale when any finalized value changes after it. No PIN is asked for or kept.</span></div>
+        <div className={s.boxRow}><span className={s.note}>Each spouse signs Form 8879<Term k="form-8879" /> and FTB 8879<Term k="ftb-8879" /> for themself, on version {st.fingerprint} of the finalized return. A signature goes stale when any finalized value changes after it. No PIN is asked for or kept.</span></div>
       </div>
     </section>
   );
@@ -98,7 +99,7 @@ export async function ClientSigning({ ws, ix, role, state }: { ws: string; ix: P
           ) : (
             <>
               <div className={s.boxRow}><span className={s.body}>
-                <span>Please check these amounts. By signing, you approve the return and allow it to be filed electronically (Form 8879 for the IRS and FTB 8879 for California). Each of you signs for yourself.</span>
+                <span>Please check these amounts. By signing, you approve the return and allow it to be filed electronically (Form 8879 for the IRS and FTB 8879<Term k="ftb-8879" /> for California). Each of you signs for yourself.</span>
                 <span className={s.note}>{ix.packet.firm.name}, your tax firm, sends the return once you have both signed. No PIN is needed here.</span>
               </span></div>
               <div className={s.boxRow} style={{ display: 'block' }}><AmountsTable rows={amounts} caption="The amounts you are signing for" /></div>

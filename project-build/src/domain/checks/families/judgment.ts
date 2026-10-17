@@ -77,7 +77,7 @@ export const homeOfficeOneHome: Check = {
         judgment: true,
         explanation: `The office moved between ${addrs.length} homes this year (${areas.map((a) => `${a.label} ${a.value}`).join('; ')}). `
           + `The simplified method may be used for one home only in a year; the other needs the regular method. Choose per home and record why.`
-          + (effect ? ' Estimate shown: the later home alone by the simplified method.' : ''),
+          + (effect ? ' The estimate shown uses the later home alone, by the simplified method.' : ''),
         effect,
       });
     }

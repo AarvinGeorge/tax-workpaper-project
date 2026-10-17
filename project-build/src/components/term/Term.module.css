@@ -1,0 +1,25 @@
+/* The "?" help mark and its popover. 24px hit area (WCAG 2.2 target size) around a 16px circle; no layout shift in text. */
+.wrap { display: inline; }
+.mark {
+  display: inline-flex; align-items: center; justify-content: center; vertical-align: middle;
+  width: 24px; height: 24px; margin: -4px -2px -4px 0; padding: 0; border: 0; background: none;
+  color: var(--ink2); cursor: help; font: inherit; line-height: 1;
+}
+.dot {
+  display: inline-flex; align-items: center; justify-content: center; width: 16px; height: 16px; border-radius: 50%;
+  border: 1px solid var(--line); background: var(--surface); font-size: 11px; font-weight: 600; font-family: var(--f-sans);
+  letter-spacing: 0; text-transform: none;
+}
+.mark:hover .dot, .mark[aria-expanded="true"] .dot { color: var(--acc); border-color: var(--acc); background: var(--accsoft); }
+.mark:focus-visible { outline: none; }
+.mark:focus-visible .dot { outline: 2px solid var(--acc); outline-offset: 2px; }
+.tip {
+  z-index: calc(var(--z-toast) - 1); width: max-content; max-width: min(300px, calc(100vw - 32px));
+  padding: 9px 12px; border: 1px solid var(--line); border-radius: 8px; background: var(--surface); color: var(--ink);
+  box-shadow: 0 8px 24px oklch(0.2 0.02 255 / 0.14); font-family: var(--f-sans); font-size: 13px; font-weight: 400;
+  line-height: 1.45; letter-spacing: 0; text-transform: none; text-align: left; white-space: normal;
+  animation: term-in 120ms ease-out;
+}
+.label { font-weight: 600; }
+@keyframes term-in { from { opacity: 0; } to { opacity: 1; } }
+@media (prefers-reduced-motion: reduce) { .tip { animation: none; } }

@@ -9,6 +9,7 @@ import { claimHref, examinedLines, fmtDay, fmtStory, fmtValue, isRevealed, parse
 import { highlightSegments, revealReason } from './lib';
 import { DrawerActions, type ActionSpec } from './DrawerActions';
 import { retractedSeqs } from '@/domain/events';
+import { Term } from '../term/Term';
 
 type Ctx = { ix: PacketIndex; me: RoleInfo; state: WorkspaceState; revealed: Set<string>; findings: Finding[]; ws: string; role: RoleKey; allRoles: RoleInfo[] };
 
@@ -86,7 +87,7 @@ function SourceItem({ c, r }: { c: Ctx; r: ResolvedRef }) {
       <span className="row" style={{ gap: 6 }}><span className="mono muted">{r.ref}</span>{r.sourceKind && <span className="tag t-mut" title="What sort of record this rests on. A label, not a trust score.">{r.sourceKind}</span>}</span>
       <span><strong style={{ fontWeight: 600 }}>{maskText(r.kind === 'value' ? r.label : refText(r), c.me, false)}</strong>{shown ? <span className="num"> · {shown}</span> : null}</span>
       {r.text && r.kind !== 'value' && <span className="small muted">{maskText(r.text, c.me, false).slice(0, 220)}</span>}
-      {typeof r.confidence === 'number' && <span className="small muted num">Pipeline read {r.confidence.toFixed(2)}: how surely the text was read, not how far to trust the source.</span>}
+      {typeof r.confidence === 'number' && <span className="small muted num">Pipeline read {r.confidence.toFixed(2)}<Term k="read-confidence" />: how surely the text was read, not how far to trust the source.</span>}
     </>
   );
   if (r.docId) return <Link className="srcitem" href={claimHref(`doc:${r.docId}${r.page ? `#page${r.page}` : ''}`)}>{body}</Link>;
@@ -132,7 +133,7 @@ function Trail({ c, claimId }: { c: Ctx; claimId: string }) {
   return (
     <>
       <div className="drw-sec">
-        <span className="lbl" title="A sign-off covers the value as it was when signed. If the value changes, the sign-off goes stale.">Sign-offs</span>
+        <span className="lbl">Sign-offs<Term k="sign-off" /></span>
         {cs.signoffs.length === 0 && <span className="small muted">None yet.</span>}
         {cs.signoffs.map((s) => (
           <div key={s.seq} className="row small"><span className={`tag ${s.stale ? 't-wrn' : 't-pas'}`}>{s.stale ? 'Stale' : 'Signed'}</span><span>{s.level} sign-off by {name(s.role)} on {fmtValue(s.value)}, {fmtDay(s.at)}{s.stale ? '; the value changed since' : ''}</span></div>
@@ -140,7 +141,7 @@ function Trail({ c, claimId }: { c: Ctx; claimId: string }) {
       </div>
       {!isClient && cs.openNotes.length > 0 && (
         <div className="drw-sec">
-          <span className="lbl">Open review notes · {cs.openNotes.length}</span>
+          <span className="lbl">Open review notes<Term k="review-note" /> · {cs.openNotes.length}</span>
           {cs.openNotes.map((n) => <div key={n.seq} className="row small"><span className={`tag ${n.payload.blocking ? 't-blk' : 't-acc'}`}>{n.payload.blocking ? 'Blocking' : 'Open'}</span><span>{maskText(String(n.payload.text ?? ''), c.me, false)}</span></div>)}
         </div>
       )}
@@ -228,7 +229,7 @@ function LineClaim({ c, key_, claimId }: { c: Ctx; key_: string; claimId: string
     <>
       {/* Pinned while the evidence below scrolls, so the number being read never leaves view. */}
       <div className="drw-head">
-        <div className="row"><span className={`tag ${adjusted ? 't-acc' : 't-mut'}`}>{adjusted ? 'Adjusted' : `As computed, ${ix.latest.version}`}</span><span className="mono muted">{l.key} · {l.jurisdiction}</span></div>
+        <div className="row"><span className={`tag ${adjusted ? 't-acc' : 't-mut'}`}>{adjusted ? 'Adjusted' : `As computed, ${ix.latest.version}`}</span>{adjusted ? <Term k="adjustment" /> : <Term k="version" />}<span className="mono muted">{l.key} · {l.jurisdiction}</span></div>
         <h2 style={{ fontSize: 19, lineHeight: 1.3, letterSpacing: '-.01em' }}>{l.label}</h2>
         <div className="row"><span className="drw-big num" data-testid="claim-value">{fmtValue(current)}</span>
           {adjusted && <span className="small muted num">was <span className="del">{fmtValue(cs!.original)}</span> in {ix.latest.version}</span>}</div>
@@ -255,9 +256,9 @@ function LineClaim({ c, key_, claimId }: { c: Ctx; key_: string; claimId: string
       {refs.length === 0 && l.inputs.length === 0 && <div className="drw-sec"><span className="lbl">Where it came from</span><span className="small muted">The engine cites no source for this line.</span></div>}
       <FindingsOn c={c} claimId={claimId} />
       {!isClient && diags.length > 0 && (
-        <div className="drw-sec"><span className="lbl">From the engine · {diags.length}</span>
+        <div className="drw-sec"><span className="lbl">From the engine<Term k="engine-diagnostics" /> · {diags.length}</span>
           {diags.map((d) => <span key={d.code} className="small"><span className="tag t-wrn">Engine {d.severity}</span> <span className="mono">{d.code}</span> {maskText(d.message, c.me, false)}</span>)}
-          <span className="small muted">Engine diagnostics are shown beside our checks, never instead of them.</span>
+          <span className="small muted">Engine diagnostics are listed beside our checks, under their own label.</span>
         </div>
       )}
       <Trail c={c} claimId={claimId} />
@@ -308,8 +309,8 @@ function DocClaim({ c, docId, page, claimId }: { c: Ctx; docId: string; page?: n
     <>
       <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
         <div className="row">
-          {landing && <span className={`tag ${landing.status === 'landed' ? 't-pas' : 't-mut'}`}>{landing.status === 'landed' ? 'Landed on the return' : 'Did not land'}</span>}
-          <span className="mono muted">{d.id} · {d.document_type.replace(/_/g, ' ')}</span>
+          {landing && <span className={`tag ${landing.status === 'landed' ? 't-pas' : 't-mut'}`}>{landing.status === 'landed' ? 'Landed on the return' : 'Did not land'}</span>}{landing && !isClient && <Term k="landed" />}
+          <span className="mono muted">{d.id} · {d.document_type.replace(/_/g, ' ')}</span>{/^w-?2/i.test(d.document_type) ? <Term k="w-2" /> : /^1099/i.test(d.document_type) ? <Term k="form-1099" /> : /^k-?1/i.test(d.document_type) ? <Term k="k-1" /> : null}
         </div>
         <h2 style={{ fontSize: 19, lineHeight: 1.3 }}>{maskText(d.title, c.me, false)}</h2>
         <span className="small muted">{d.issuer ?? 'No issuer'} · received {fmtStory(d.received_at)} · {d.page_count} page{d.page_count === 1 ? '' : 's'} · extraction {d.extraction.status.replace(/_/g, ' ')}</span>
