@@ -53,3 +53,52 @@ test('T4: after filing the client sees no "Not signed" and no stale asks; before
   await expect(page.getByRole('main')).not.toContainText('Needed');
   void post;
 });
+
+test('T5: the panel names what its actions act on, puts them first, and offers only actions that fit', async ({ page }) => {
+  const w = ws();
+  await page.goto(`/w/${w}/daniel/return?claim=line:SchA.5b`);
+  const drawer = page.getByTestId('drawer');
+  const acts = drawer.getByTestId('drawer-actions');
+  await expect(acts).toContainText('Acting on: Real estate taxes (home)');
+  const actsY = (await acts.boundingBox())!.y;
+  const srcY = (await drawer.getByText(/^Where it came from/).first().boundingBox())!.y;
+  expect(actsY).toBeLessThan(srcY);
+  await expect(acts.getByRole('button', { name: 'Adjust', exact: true })).toBeVisible();
+  await page.goto(`/w/${w}/daniel/documents?claim=doc:D54`);
+  await expect(acts).toContainText('Acting on:');
+  await expect(acts.getByRole('button', { name: 'Adjust', exact: true })).toHaveCount(0);
+});
+
+test('T6: notices live in the bell only; Home has no second copy', async ({ page }) => {
+  await page.goto(`/w/${ws()}/priya`);
+  await expect(page.getByTestId('since-last-looked')).toHaveCount(0);
+  await expect(page.getByTestId('bell')).toBeVisible();
+});
+
+test('T7: a Checks row has one link per destination', async ({ page }) => {
+  await page.goto(`/w/${ws()}/daniel/checks`);
+  await expect(page.getByRole('link', { name: 'Show where it came from' })).toHaveCount(0);
+  const rows = page.locator('section[aria-labelledby="chk-ours"] [data-finding]');
+  for (let i = 0; i < await rows.count(); i++) {
+    const hrefs = await rows.nth(i).locator('a[data-ref]').evaluateAll((as) => as.map((a) => (a as HTMLAnchorElement).getAttribute('href')));
+    expect(new Set(hrefs).size, `row ${i} evidence links: ${hrefs.join(' ')}`).toBe(hrefs.length);
+  }
+});
+
+test('T8: the All count matches our checks', async ({ page }) => {
+  await page.goto(`/w/${ws()}/daniel/checks`);
+  const ours = await page.locator('#chk-ours span').first().innerText(); // "(27)"
+  await expect(page.getByRole('link', { name: /^All / })).toContainText(ours.replace(/[()]/g, ''));
+});
+
+test('T9 and Areas: Home counts the other open checks instead of listing them; Areas links to Review', async ({ page }) => {
+  const w = ws();
+  await page.goto(`/w/${w}/priya`);
+  const open = page.locator('section[aria-label="Open checks"]');
+  await expect(open).toContainText(/\d+ more open checks/);
+  await expect(open.locator('a.qrow')).toHaveCount(0);
+  await expect(open.getByRole('link', { name: 'Open all checks' })).toBeVisible();
+  await page.goto(`/w/${w}/priya/areas`);
+  await page.getByRole('main').locator('summary').filter({ hasText: 'Prior preparer against our changes' }).click();
+  await expect(page.getByRole('main').getByRole('link', { name: /Adjustments on Review/ })).toBeVisible();
+});

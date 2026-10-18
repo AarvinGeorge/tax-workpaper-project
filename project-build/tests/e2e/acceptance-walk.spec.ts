@@ -296,7 +296,6 @@ test("2.3 Watch Priya's tab", async ({ browser }) => {
   await p.getByTestId('bell').click();
   await expect(p.getByTestId('bell-panel')).toContainText(/Daniel changed 2025 California estimated tax payments/);
   await p.keyboard.press('Escape');
-  await expect(p.getByTestId('since-last-looked'), 'same item on Home').toContainText(/Daniel changed 2025 California estimated tax payments/);
 });
 
 test('2.4 Verify a number and record a decision', async ({ browser }) => {

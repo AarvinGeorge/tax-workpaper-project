@@ -83,23 +83,3 @@ export function Bell({ ws, role, storyAt, items }: { ws: string; role: string; s
     </div>
   );
 }
-
-/** Home's "Since you last looked": the same notices and the same read state as the bell, unread only. */
-export function SinceLastLooked({ ws, role, items }: { ws: string; role: string; items: BellItem[] }) {
-  const { read, ready, markRead } = useReadState(ws, role);
-  const unread = ready ? items.filter((x) => !read.has(x.id)) : [];
-  return (
-    <section aria-label="Since you last looked" data-testid="since-last-looked" style={{ display: 'flex', flexDirection: 'column' }}>
-      <div className="row" style={{ paddingBottom: 8 }}>
-        <h2 className="lbl">Since you last looked · <span className="num">{unread.length}</span></h2>
-        {unread.length > 0 && <button type="button" className="link" style={{ marginLeft: 'auto' }} onClick={() => markRead(unread.map((x) => x.id))}>Mark all read</button>}
-      </div>
-      {ready && unread.length === 0 && <p className="small muted">Nothing new since you last looked.</p>}
-      {unread.slice(0, 8).map((x) => (
-        <Link key={x.id} className="qrow" href={x.href} onClick={() => markRead([x.id])}>
-          <span className="grow"><span>{x.text}</span><span className="small muted num">{x.when}</span></span>
-        </Link>
-      ))}
-    </section>
-  );
-}

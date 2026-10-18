@@ -295,13 +295,7 @@ export function AreasScreen(p: WorkProps) {
           </>
         ) : <NotInPacket what="Prior preparer workpaper" />}
         <Sub title="Our changes in this workspace">
-          {Object.values(state.claims).filter((c) => c.adjusted).length ? (
-            <ul style={{ margin: 0, paddingLeft: 20 }}>
-              {Object.values(state.claims).filter((c) => c.adjusted).map((c) => (
-                <li key={c.claimId}><a className={s.link} href={claimHref(p.sp, c.claimId)}>{c.claimId.replace(/^line:/, '')}</a>: {m(c.original)} to {m(c.current)}</li>
-              ))}
-            </ul>
-          ) : <p className={s.note} style={{ margin: 0 }}>No adjustments yet.</p>}
+          <p className={s.note} style={{ margin: 0 }}>Every proposed and applied adjustment, with who, why and who signed: <a className={s.link} href={`/w/${p.ws}/${p.role.key}/review`}>Adjustments on Review</a>.</p>
         </Sub>
       </Area>
     </Page>

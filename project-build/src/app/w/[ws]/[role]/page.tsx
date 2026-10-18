@@ -9,15 +9,12 @@ import type { PacketIndex } from '@/domain/packet/load';
 import { visibleAt } from '@/domain/clock';
 import { humanize } from '@/domain/labels';
 import { findingStatus } from '@/components/work/lib';
-import { notificationsFor } from '@/domain/notify';
-import { SinceLastLooked } from '@/components/shell/Bell';
 import { TextAction } from '@/components/work/actions';
 import { Term } from '@/components/term/Term';
 
 type P = { params: Promise<{ ws: string; role: string }>; searchParams: Promise<Record<string, string | undefined>> };
 
 const ORDER: Record<Finding['severity'], number> = { blocker: 0, check: 1, judgment: 2, info: 3 };
-const SEV: Record<Finding['severity'], [string, string]> = { blocker: ['Blocking', 't-blk'], check: ['Check failed', 't-wrn'], judgment: ['Judgment', 't-wrn'], info: ['Note', 't-mut'] };
 
 export default async function Home({ params, searchParams }: P) {
   const { ws, role } = await params;
@@ -37,11 +34,6 @@ export default async function Home({ params, searchParams }: P) {
   const c = ix.counts;
   const first = me.screens[0];
   const tryLink = `${screenPath(ws, 'daniel', 'checks')}`;
-  // The bell's notices (same ids, same read state), unread ones listed here: Home and the bell never disagree.
-  const since = me.kind === 'examiner' ? [] : notificationsFor(ix, state.events, me.key, state.storyAt).map((x) => ({
-    id: x.id, at: x.at, text: x.text, when: fmtStory(x.at),
-    href: screenPath(ws, me.key, 'home') + (isClient || !x.claimId ? '' : claimHref(x.claimId)),
-  }));
 
   return (
     <Shell ws={ws} role={me.key} screen="home" state={state} roleInfo={me} claim={sp.claim} q={sp.q}>
@@ -78,7 +70,6 @@ export default async function Home({ params, searchParams }: P) {
           </StartHere>
         )}
 
-        {me.kind !== 'examiner' && <SinceLastLooked ws={ws} role={me.key} items={since} />}
 
         {me.kind === 'examiner' ? (
           <section aria-label="Items under examination" style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
@@ -133,12 +124,7 @@ export default async function Home({ params, searchParams }: P) {
               </div>
               {visible.length === 0 && <p className="small muted">No check has fired at this story time{w.findings.length ? '' : ' (the check library is not loaded yet)'}.</p>}
               {visible.length > 0 && others.length === 0 && <p className="small muted">Every open check is a blocker, listed above.</p>}
-              {others.slice(0, 10).map((f) => (
-                <Link key={f.id} className="qrow" href={claimHref(f.claims[0] ?? 'finding:' + f.id)}>
-                  <span className={`tag ${SEV[f.severity][1]}`}>{SEV[f.severity][0]}</span>
-                  <span className="grow"><span style={{ fontWeight: 500 }}>{f.title}</span><span className="small muted">{f.claims.map((k) => k.replace(/^line:|^doc:/, '')).join(', ')}</span></span>
-                </Link>
-              ))}
+              {others.length > 0 && <p className="small">{others.length} more open checks{listed.size ? ' besides the blockers above' : ''}. Each has its source, evidence and actions on Checks.</p>}
             </section>
             <div className="row">
               {first !== 'home' ? null : <Link className="btn primary" href={screenPath(ws, me.key, 'return')}>Open the return</Link>}

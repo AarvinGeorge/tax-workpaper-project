@@ -3,7 +3,7 @@ import { useCallback, useEffect, useState } from 'react';
 
 /**
  * Which notices a person has read, per workspace, kept in this browser (localStorage `wp.read.<ws>.<role>`, a list of
- * notice ids). Shared by the bell and Home's "Since you last looked" so the two never disagree: a change in one tells
+ * notice ids). Read by the bell; kept as its own module so other views can share the read state: a change in one tells
  * the other through a window event (same tab) or the storage event (other tabs). The reset button clears `wp.*`.
  */
 export const readKey = (ws: string, role: string) => `wp.read.${ws}.${role}`;

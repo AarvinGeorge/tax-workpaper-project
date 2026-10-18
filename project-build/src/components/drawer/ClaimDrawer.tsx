@@ -126,7 +126,9 @@ function actionsFor(c: Ctx, claimId: string, current: unknown): ActionSpec[] {
     ['adjustment', 'Adjust'], ['verification', 'Verify'], ['signoff', `Sign off as ${level}`], ['review_note', 'Leave a review note'],
     ['question_to_client', 'Ask the client'], ['decision', 'Record a decision'], ['question_to_colleague', 'Ask a colleague'],
   ];
-  return kinds.map(([kind, label]) => { const r = test(kind); return { kind, label, ok: r.ok, reason: r.reason, level, current }; });
+  // Only a line has a value to change; a document or a finding is adjusted through its line.
+  return kinds.filter(([kind]) => kind !== 'adjustment' || claimId.startsWith('line:'))
+    .map(([kind, label]) => { const r = test(kind); return { kind, label, ok: r.ok, reason: r.reason, level, current }; });
 }
 
 function Trail({ c, claimId }: { c: Ctx; claimId: string }) {
@@ -255,6 +257,7 @@ function LineClaim({ c, key_, claimId }: { c: Ctx; key_: string; claimId: string
         {cs?.effect && <span className="small num">Tax effect estimate: federal {fmtValue(cs.effect.federal)}, California {fmtValue(cs.effect.california)} ({cs.effect.basis}, {cs.effect.version}). Not recomputed by the engine.</span>}
         {l.note && !isClient && <p className="small muted" style={{ maxWidth: '60ch' }}>Engine note: {maskText(String(l.note), c.me, false)}</p>}
       </div>
+      {c.me.kind === 'staff' && <Actions c={c} claimId={claimId} current={current} title={l.label} />}
       {!isClient && (
         <div className="drw-sec">
           <span className="lbl">How it was built</span>
@@ -279,12 +282,12 @@ function LineClaim({ c, key_, claimId }: { c: Ctx; key_: string; claimId: string
         </div>
       )}
       <Trail c={c} claimId={claimId} />
-      <Actions c={c} claimId={claimId} current={current} />
+      {c.me.kind !== 'staff' && <Actions c={c} claimId={claimId} current={current} title={l.label} />}
     </>
   );
 }
 
-function Actions({ c, claimId, current, identifiers = [] }: { c: Ctx; claimId: string; current: unknown; identifiers?: { valueId: string; label: string; revealed: boolean }[] }) {
+function Actions({ c, claimId, current, identifiers = [], title }: { c: Ctx; claimId: string; current: unknown; identifiers?: { valueId: string; label: string; revealed: boolean }[]; title: string }) {
   const acts = actionsFor(c, claimId, current);
   const reveal = c.me.kind === 'staff' ? can(c.ix, c.me, 'reveal', { claimId, payload: { what: identifiers[0]?.valueId ?? 'x' } }, c.state) : null;
   const rules = c.ix.packet.firm.starter_standards.rules;
@@ -307,7 +310,7 @@ function Actions({ c, claimId, current, identifiers = [] }: { c: Ctx; claimId: s
   return (
     <DrawerActions ws={c.ws} role={c.role} claimId={claimId} baseVersion={cs?.version ?? 0} actions={acts}
       reveal={identifiers.length && reveal ? { ok: reveal.ok, reason: reveal.ok ? undefined : revealReason(reveal.reason, maskRule), items: identifiers } : null}
-      clients={clients} colleagues={colleagues} methods={methods} frozen={c.state.frozen} assign={assign} />
+      clients={clients} colleagues={colleagues} methods={methods} frozen={c.state.frozen} assign={assign} title={title} />
   );
 }
 
@@ -336,12 +339,13 @@ function DocClaim({ c, docId, page, claimId }: { c: Ctx; docId: string; page?: n
           <div className="row small" style={{ gap: 6 }}><span className="muted">Lands on:</span>{landing.landedLines.slice(0, 12).map((k) => <Link key={k} className="srcref" href={claimHref('line:' + k)}>{k}</Link>)}{landing.landedLines.length > 12 && <span className="muted">and {landing.landedLines.length - 12} more</span>}</div>
         )}
       </div>
+      {c.me.kind === 'staff' && <Actions c={c} claimId={'doc:' + docId} current={null} identifiers={idents} title={maskText(d.title, c.me, false)} />}
       {pages.map((p) => <SourcePage key={p.page} c={c} docId={docId} page={p.page} selected={(c.ix.valuesByDoc.get(docId) ?? []).filter((v) => v.page === p.page).map((v) => v.id)} />)}
       {page && d.pages.length > 1 && <Link className="link" href={claimHref('doc:' + docId)}>Show all {d.pages.length} pages</Link>}
       <DocNotes c={c} docId={docId} />
       {!isClient && <FindingsOn c={c} claimId={claimId} />}
       {!isClient && <Trail c={c} claimId={'doc:' + docId} />}
-      <Actions c={c} claimId={'doc:' + docId} current={null} identifiers={idents} />
+      {c.me.kind !== 'staff' && <Actions c={c} claimId={'doc:' + docId} current={null} identifiers={idents} title={maskText(d.title, c.me, false)} />}
     </>
   );
 }
@@ -387,10 +391,11 @@ function FindingClaim({ c, id }: { c: Ctx; id: string }) {
         <p style={{ maxWidth: '60ch' }}>{maskText(c.me.kind === 'client' ? f.plain! : f.explanation, c.me, false)}</p>
         {f.effect && <span className="small num">Tax effect estimate: {f.effect.federal !== undefined ? `federal ${fmtValue(f.effect.federal)}` : ''}{f.effect.california !== undefined ? `${f.effect.federal !== undefined ? ', ' : ''}California ${fmtValue(f.effect.california)}` : ''} (estimate, from {f.effect.basis.replace(/_/g, ' ')})</span>}
       </div>
+      {c.me.kind === 'staff' && <Actions c={c} claimId={'finding:' + id} current={null} title={f.title} />}
       {f.claims.length > 0 && <div className="drw-sec"><span className="lbl">Sits on</span><div className="row small" style={{ gap: 6 }}>{f.claims.map((k) => <Link key={k} className="srcref" href={claimHref(k)}>{k.replace(/^line:|^doc:/, '')}</Link>)}</div></div>}
       <div className="drw-sec"><span className="lbl">Evidence · {evidence.length}</span>{evidence.map((r) => <SourceItem key={r.ref} c={c} r={r} />)}</div>
       {c.me.kind === 'staff' && <Trail c={c} claimId={'finding:' + id} />}
-      <Actions c={c} claimId={'finding:' + id} current={null} />
+      {c.me.kind !== 'staff' && <Actions c={c} claimId={'finding:' + id} current={null} title={f.title} />}
     </>
   );
 }

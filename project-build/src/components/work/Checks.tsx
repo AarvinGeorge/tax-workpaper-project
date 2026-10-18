@@ -30,10 +30,10 @@ export function Evidence({ p, refs }: { p: WorkProps; refs: string[] }) {
   return (
     <span className={s.row} style={{ gap: 6 }}>
       <span className={s.lbl}>Evidence</span>
-      {refs.map((r, i) => {
+      {refs.filter((r, i) => { const c = refClaim(p.ix, r); return !c || refs.findIndex((x) => refClaim(p.ix, x) === c) === i; }).map((r, i, kept) => {
         const c = refClaim(p.ix, r);
         const label = m(refText(resolveRef(p.ix, r, p.ix.latest.version)));
-        const sep = i < refs.length - 1 ? <span aria-hidden="true" className={s.note}> ·</span> : null;
+        const sep = i < kept.length - 1 ? <span aria-hidden="true" className={s.note}> ·</span> : null;
         return c
           ? <span key={r}><Link scroll={false} prefetch={false} className={`${s.link} ${s.evLink} ${c === current ? s.evOn : ''}`} href={claimHref(p.sp, c)} title={m(r)} data-ref={r}
               aria-current={c === current ? 'true' : undefined}>{label}{c === current ? <span className={s.evHint} aria-hidden="true"> · open</span> : null}</Link>{sep}</span>
@@ -97,7 +97,7 @@ export function ChecksScreen(p: WorkProps) {
       intro={<>Our checks run over the packet and do not trust the engine. Blockers<Term k="blocker" /> come first. The engine&apos;s own diagnostics<Term k="engine-diagnostics" /> are listed beside them under their own label. Tax effects are estimates at the latest version&apos;s rates or from the engine&apos;s what-if<Term k="what-if" />.</>}>
 
       <div role="group" aria-label="Filter by severity" className={s.row}>
-        <a className={`${s.chip} ${!sev ? s.chipOn : ''}`} href={queryHref(p.sp, 'sev', null)} aria-current={!sev ? 'true' : undefined}>All <span className={s.num}>{visible.length + (aiOn ? ai.length : 0)}</span></a>
+        <a className={`${s.chip} ${!sev ? s.chipOn : ''}`} href={queryHref(p.sp, 'sev', null)} aria-current={!sev ? 'true' : undefined}>All <span className={s.num}>{visible.length}</span></a>
         {SEVERITY_ORDER.map((k) => (
           <a key={k} className={`${s.chip} ${sev === k ? s.chipOn : ''}`} href={queryHref(p.sp, 'sev', k)} aria-current={sev === k ? 'true' : undefined}>
             {SEVERITY_WORD[k]} <span className={s.num}>{counts[k]}</span>
@@ -141,7 +141,6 @@ export function ChecksScreen(p: WorkProps) {
                         <Evidence p={p} refs={f.evidence} />
                         <span className={s.note}>Check {f.checkId} · {f.family}</span>
                         <div className={s.row}>
-                          {c0 ? <Link scroll={false} prefetch={false} className={`${s.btn} ${s.small}`} href={claimHref(p.sp, c0)}>Show where it came from</Link> : null}
                           <Link scroll={false} prefetch={false} className={`${s.btn} ${s.small}`} href={claimHref(p.sp, 'finding:' + f.id)}>Open the finding</Link>
                         </div>
                         <SignoffNote id={'finding:' + f.id} level={level ?? 'preparer'} />

@@ -14,6 +14,7 @@ interface Props {
   reveal: { ok: boolean; reason?: string; items: { valueId: string; label: string; revealed: boolean }[] } | null;
   clients: { key: RoleKey; name: string }[]; colleagues: { key: RoleKey; name: string }[]; methods: string[];
   assign: { ok: boolean; reason?: string; current: string | null; staff: { key: RoleKey; name: string }[] };
+  title: string; // what every action below applies to
 }
 
 const DECISIONS = [['judgment', 'Judgment call'], ['election', 'Election'], ['due_diligence', 'Due diligence'], ['penalty', 'Penalty']] as const;
@@ -67,6 +68,7 @@ export function DrawerActions(p: Props) {
   return (
     <div className="drw-sec" data-testid="drawer-actions">
       <span className="lbl">Actions</span>
+      <span className="small" data-testid="acting-on">Acting on: <strong>{p.title}</strong></span>
       {p.frozen && <span className="small muted">As filed, locked: value changes are refused; amend on top.<Term k="amend-on-top" /></span>}
       <div className="drw-acts">
         {p.actions.map((a) => (
