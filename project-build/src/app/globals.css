@@ -240,10 +240,10 @@ a.srcitem:hover { border-color: var(--ink2); }
 .sh-story { position: relative; }
 .sh-story.past { background: var(--wrnsoft); }
 .sh-past { color: var(--ink); }
-.sh-banner { padding-right: 64px; }
 
-/* The "?" button under Reset to start, and its centred dialog: legends and reference */
-.info-btn { position: absolute; right: 20px; top: calc(100% + 4px); z-index: var(--z-dropdown); width: 32px; height: 32px; border-radius: 999px; border: 1px solid var(--line); background: var(--surface); color: var(--ink); font: inherit; font-size: 15px; font-weight: 700; cursor: pointer; display: inline-flex; align-items: center; justify-content: center; box-shadow: 0 2px 8px oklch(0.2 0.02 255 / 0.10); }
+/* The "?" button, floating on its own on the top edge of the source panel, and its centred dialog */
+.sh-frame { position: relative; }
+.info-btn { position: absolute; right: 96px; top: 0; transform: translateY(-50%); z-index: var(--z-dropdown); width: 32px; height: 32px; border-radius: 999px; border: 1px solid var(--line); background: var(--surface); color: var(--ink); font: inherit; font-size: 15px; font-weight: 700; cursor: pointer; display: inline-flex; align-items: center; justify-content: center; box-shadow: 0 4px 14px oklch(0.2 0.02 255 / 0.16); }
 .info-btn:hover { border-color: var(--ink2); }
 .info-dlg { padding: 0; border: 1px solid var(--line); border-radius: 12px; background: var(--bg); color: var(--ink); width: min(880px, calc(100vw - 32px)); max-height: min(86dvh, 900px); box-shadow: 0 24px 64px oklch(0.2 0.02 255 / 0.22); }
 .info-dlg::backdrop { background: oklch(0.2 0.02 255 / 0.38); }
@@ -260,7 +260,7 @@ a.srcitem:hover { border-color: var(--ink2); }
 .legend { list-style: none; margin: 0; padding: 0; display: grid; grid-template-columns: repeat(auto-fill, minmax(min(300px, 100%), 1fr)); gap: 8px 18px; font-size: 13px; color: var(--ink2); }
 .legend li { display: flex; align-items: center; gap: 8px; }
 .legend li > span:first-child { flex: none; }
-@media (max-width: 899.98px) { .info-btn { right: 16px; } .sh-banner { padding-right: 56px; } }
+@media (max-width: 899.98px) { .info-btn { right: 20px; } }
 
 /* Filing status under the overview figures */
 .filestat { display: flex; flex-direction: column; gap: 4px; font-size: 13px; padding: 10px 14px; background: var(--surface); border: 1px solid var(--line); border-radius: 10px; }

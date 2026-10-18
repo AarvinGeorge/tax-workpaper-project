@@ -173,3 +173,15 @@ test('every role has the clock in the bar; a role not yet in the story is pointe
   await expect(main).toContainText(/bar above/);
   await expect(main).not.toContainText('Open Firm as Jo');
 });
+
+test('the "?" floats on its own on the top edge of the source panel, set in from the right', async ({ page }) => {
+  await page.setViewportSize({ width: 1440, height: 900 });
+  await page.goto(`/w/${ws()}/daniel`);
+  const b = (await infoButton(page).boundingBox())!;
+  const pane = (await page.getByRole('complementary', { name: 'Source of the selected number' }).boundingBox())!;
+  expect(Math.abs(b.y + b.height / 2 - pane.y)).toBeLessThanOrEqual(2); // centred on the panel's top edge
+  expect(pane.x + pane.width - (b.x + b.width)).toBeGreaterThanOrEqual(24); // set in from the right
+  expect(b.x).toBeGreaterThan(pane.x);
+  const banner = (await page.getByRole('note').first().boundingBox())!;
+  expect(b.y).toBeGreaterThan(banner.y); // no longer inside the story bar or banner row
+});

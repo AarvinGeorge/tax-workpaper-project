@@ -83,3 +83,4 @@ From here on, entries are written at the time again.
 - 18 Oct 15:27 EDT · Opus 5.5 subagent: fix round built test-first (A1-A7, B1-B8), 526 unit / 113 e2e / walk 36/36 on a production build, commit 9c6eb41
 - 18 Oct 15:28 EDT · Fable 5.1 subagent: code review of 9c6eb41 with probes on a production server
 - 18 Oct 15:38 EDT · Opus 5.5 subagent: the code review's four should-fixes (open at filing, client status sentence, clock row actor once, two tests that can fail), 526 unit / 115 e2e / walk 36/36 on a production build, commit 04af897
+- 18 Oct 16:10 EDT · Opus 5.5 (me): moved the ? button (test first: centred on the panel's top edge, set in from the right), screenshots at 1440 and 390, 116 e2e green
