@@ -15,6 +15,9 @@ import { ChangeLog } from './ChangeLog';
 import { StaffSigning } from '@/components/client/ClientFiling';
 import { signatures } from '@/components/client/signing';
 import { blockerLine, openAtFiling } from '@/components/overview/blockers';
+import { memoBlock } from '@/domain/memo';
+
+const MEMO_CAPTION = 'Prints the review memo. Planned: the full review record, ready to hand over when an examiner asks for documents.';
 
 /** The claim's last adjustment that has not been undone, proposed or applied. */
 function lastAdjustment(c: ClaimState, retracted: Set<number>): WorkEvent | undefined {
@@ -76,6 +79,7 @@ export function ReviewScreen(p: WorkProps) {
       : state.blockers.length ? `${state.blockers.length} blockers must clear first.` : null);
   const stop = blockerLine(ws, role.key, state.blockers, closed);
   const returnBlockers = state.blockers.filter((b) => b.claimId === 'return').length;
+  const memoReason = memoBlock(ix, state);
 
   return (
     <Page label="Review" h1="Review"
@@ -102,6 +106,13 @@ export function ReviewScreen(p: WorkProps) {
             {returnBlockers ? <a className={s.link} href={queryHref(p.sp, 'tab', 'notes')}>{returnBlockers} on the return itself, in Review notes</a> : null}
           </div>
         ) : null}
+        {/* The review memo: a printable snapshot once the return is approved (src/domain/memo.ts). */}
+        <div style={{ flex: '1 1 100%', display: 'flex', flexWrap: 'wrap', gap: '6px 12px', alignItems: 'center' }} title={MEMO_CAPTION}>
+          {memoReason ? <button type="button" className={s.btn} disabled aria-describedby="memo-why">Review memo</button>
+            : <a className={s.btn} href={`/w/${encodeURIComponent(ws)}/${encodeURIComponent(role.key)}/review/memo`}>Review memo</a>}
+          {memoReason ? <span className={s.note} id="memo-why">{memoReason}</span> : null}
+          <span className={s.note} style={{ flex: '1 1 100%' }}>{MEMO_CAPTION}</span>
+        </div>
         <div style={{ flex: '1 1 100%' }}><StaffSigning ix={ix} state={state} /></div>
       </section>
 

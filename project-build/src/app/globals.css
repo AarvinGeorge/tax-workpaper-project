@@ -270,3 +270,14 @@ a.srcitem:hover { border-color: var(--ink2); }
 .sh-story form, .sh-story label { min-width: 0; max-width: 100%; }
 .sh-story .select { max-width: 100%; min-width: 0; text-overflow: ellipsis; }
 @media (max-width: 899.98px) { .sh-story form, .sh-story label { flex: 1 1 100%; } .sh-story .select { flex: 1 1 0; } }
+
+/* Print (the review memo, and any screen): only the centre pane, on plain paper, never held to one viewport. */
+@media print {
+  @page { margin: 0.6in; }
+  :root, :root[data-theme="dark"], :root:not([data-theme="light"]) { --bg: #fff; --surface: #fff; --sunk: #f4f4f5; --line: #d4d4d8; --ink: #111; --ink2: #52525b; color-scheme: light; }
+  body { background: #fff; color: var(--ink); font-size: 12px; }
+  .wp { height: auto; min-height: 0; overflow: visible; display: block; }
+  .sh-frame { display: block; }
+  .sh-pane-c { overflow: visible; display: block; }
+  .sh-head, .sh-story, .sh-banner, .sh-pane-l, .sh-pane-r, .sh-results, .info-btn, .toast-slot, .toast { display: none !important; }
+}

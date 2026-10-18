@@ -76,7 +76,7 @@ test('clients and the examiner never see internal work screens', async ({ page }
   const w = ws();
   // Every screen outside the roles' own list (home, documents, filing), the Return included: a typed URL must refuse.
   for (const role of ['ngozi', 'erik', 'irs']) {
-    for (const screen of ['return', 'checks', 'review', 'changes', 'whatifs', 'areas', 'findings']) { // findings and changes redirect to refusing screens
+    for (const screen of ['return', 'checks', 'review', 'review/memo', 'changes', 'whatifs', 'areas', 'findings']) { // findings and changes redirect to refusing screens
       await page.goto(`/w/${w}/${role}/${screen}`);
       // The screen refuses ("Not part of this view"), or the shell holds a role that has not joined the story yet.
       await expect(page.getByRole('main').getByRole('heading', { level: 1 })).toHaveText(/Not part of this view|Not yet in the story/);
