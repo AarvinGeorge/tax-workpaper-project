@@ -8,6 +8,7 @@ import { arr, claimHref, day, humanize, masker, obj, refClaim, when, type WorkPr
 import { Designed, NoAccess, Page, Tag } from './ui';
 import { Term } from '../term/Term';
 import { ClientSigning } from '@/components/client/ClientFiling';
+import { signatures } from '@/components/client/signing';
 
 export function FilingScreen(p: WorkProps) {
   const { role, state, ix } = p;
@@ -68,6 +69,8 @@ export function FilingScreen(p: WorkProps) {
     };
     const agencyName = (j: string) => (j === 'federal' ? 'the IRS' : j === 'california' ? 'California (FTB)' : humanize(j));
     const fedPay = obj(ext.federal).paid_with_form_4868;
+    // The same answer as the signing box below: every spouse signed, in this workspace or by the firm's record.
+    const bothSigned = signatures(ix, state).spouses.every((x) => x.signed);
     return (
       <Page label="Filing" h1="Filing your return"
         tags={<>{state.frozen ? <Tag tone="pas">Filed and accepted</Tag> : <Tag tone="neu">Not filed yet</Tag>}</>}>
@@ -80,7 +83,7 @@ export function FilingScreen(p: WorkProps) {
                 <div key={j} className={s.boxRow}>
                   <span className={s.when}>{j === 'federal' ? 'Federal return' : 'California return'}</span>
                   <span className={s.body}>
-                    {!e ? <span><Tag tone="neu">Not sent yet</Tag> Your tax team sends it once you have approved and signed.</span>
+                    {!e ? <span><Tag tone="neu">Not sent yet</Tag> {bothSigned ? 'You have approved and signed it; your tax team sends it next.' : 'Your tax team sends it once you have approved and signed.'}</span>
                       : e.status === 'accepted' ? <span><Tag tone="pas">Accepted</Tag> Accepted by {agencyName(j)} on {day(String(e.date))}.</span>
                       : e.status === 'rejected' ? <span><Tag tone="blk">Sent back</Tag><Term k="efile-rejection" /> {agencyName(j)} sent it back on {day(String(e.date))}. Your tax team is fixing it. Their reason: {arr(e.errors).map(obj).map((er) => m(er.message)).join(' ')}</span>
                       : <span><Tag tone="wrn">Waiting</Tag> Held until the federal return is accepted.</span>}

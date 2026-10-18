@@ -5,7 +5,7 @@
 import Link from 'next/link';
 import type { Workspace } from '@/components/shell/load';
 import { claimHref, fmtValue, screenPath } from '@/components/shell/lib';
-import { keyAmounts } from '@/components/client/signing';
+import { keyAmounts, signatures } from '@/components/client/signing';
 import { maskText } from '@/domain/policy';
 import type { ScreenKey } from '@/domain/contracts';
 import { AfterFiling } from './AfterFiling';
@@ -35,7 +35,8 @@ export function OverviewHead({ ws, w, tab }: { ws: string; w: Workspace; tab: Ov
     { label: 'California tax', a: ca?.totalTax },
   ];
   const visible = (k: ScreenKey) => me.screens.includes(k);
-  const stop = blockerLine(ws, me.key, state.blockers);
+  const closed = state.frozen || signatures(ix, state).byRecord;
+  const stop = blockerLine(ws, me.key, state.blockers, closed);
   const visibleFindings = w.findings.filter((f) => f.source !== 'ai' && (!f.firstVisibleAt || f.firstVisibleAt <= state.storyAt));
 
   return (
@@ -69,7 +70,7 @@ export function OverviewHead({ ws, w, tab }: { ws: string; w: Workspace; tab: Ov
         : stop && (
           <section aria-label="Blocking approval" style={{ display: 'flex', flexDirection: 'column' }}>
             <Link className="qrow" href={stop.href}>
-              <span className="tag t-blk">Blocking</span><span className="grow"><span>{stop.text}</span></span><span className="small muted">Open on {stop.where}</span>
+              <span className={`tag ${closed ? 't-mut' : 't-blk'}`}>{closed ? 'Open' : 'Blocking'}</span><span className="grow"><span>{stop.text}</span></span><span className="small muted">Open on {stop.where}</span>
             </Link>
           </section>
         ))}

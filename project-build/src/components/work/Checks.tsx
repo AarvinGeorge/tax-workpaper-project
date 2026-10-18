@@ -11,6 +11,8 @@ import { AiMark, Est, NoAccess, Page, Tag } from './ui';
 import { confidenceWord, groupAiRows, isAi, suggestionStatus } from '@/domain/ai/merge';
 import { lineLabel, personName } from './lib';
 import { AI_FOUND, AI_READER } from '../info/aiUse';
+import { signatures } from '@/components/client/signing';
+import { openAtFiling } from '@/components/overview/blockers';
 import { Term } from '../term/Term';
 import Link from 'next/link';
 import { EventButton, GroupSelect, RevealDrawerOnPhone, RowSelect, SignoffNote, SignoffScope, TextAction } from './actions';
@@ -82,6 +84,8 @@ export function ChecksScreen(p: WorkProps) {
   const counts = Object.fromEntries(SEVERITY_ORDER.map((k) => [k, visible.filter((f) => f.severity === k).length]));
   const open = visible.filter((f) => !findingStatus(f, state).cleared);
   const openBlockers = open.filter((f) => f.severity === 'blocker').length; // same cleared rule as the rows
+  // Approved by the firm's record or filed: the blockers no longer stop anything; they were open at filing.
+  const closed = state.frozen || signatures(ix, state).byRecord;
   const block = writeBlock(role, state);
   const level = levelOf(ix, role);
   const diags = ix.latest.diagnostics;
@@ -102,7 +106,7 @@ export function ChecksScreen(p: WorkProps) {
     <Page label="Checks" h1="Checks inbox"
       tags={<>
         <Tag tone="neu">As of {when(state.storyAt)}</Tag>{' '}
-        <Tag tone="blk">{openBlockers} blockers</Tag>{' '}
+        {closed ? <Tag tone="neu">{openAtFiling(openBlockers)}</Tag> : <Tag tone="blk">{openBlockers} blockers</Tag>}{' '}
         <Tag tone="wrn">{open.length} open</Tag>{' '}
         {later ? <Tag tone="neu" title="Findings that depend on a document or message later in the story">{later} later in the story</Tag> : null}
       </>}

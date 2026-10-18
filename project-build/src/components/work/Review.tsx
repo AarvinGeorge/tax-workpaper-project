@@ -14,7 +14,7 @@ import { EventButton, TextAction } from './actions';
 import { ChangeLog } from './ChangeLog';
 import { StaffSigning } from '@/components/client/ClientFiling';
 import { signatures } from '@/components/client/signing';
-import { blockerLine } from '@/components/overview/blockers';
+import { blockerLine, openAtFiling } from '@/components/overview/blockers';
 
 /** The claim's last adjustment that has not been undone, proposed or applied. */
 function lastAdjustment(c: ClaimState, retracted: Set<number>): WorkEvent | undefined {
@@ -44,6 +44,7 @@ export function ReviewScreen(p: WorkProps) {
   const notesRule = findRule(ix, /review notes block/i);
   // Approval from the firm's record once story time passes the clients' Form 8879 (the packet has no workspace event).
   const byRecord = signatures(ix, state).byRecord;
+  const closed = byRecord || state.frozen;
 
   const claims = Object.values(state.claims);
   // Proposed and applied adjustments both belong here: a preparer's proposal is applied from this list. (c.adjusted
@@ -69,7 +70,7 @@ export function ReviewScreen(p: WorkProps) {
 
   const approveBlock = byRecord ? `${state.frozen ? 'Approved and filed' : 'Approved'} per the firm’s record.`
     : block ?? (state.blockers.length ? `${state.blockers.length} blockers must clear first.` : null);
-  const stop = blockerLine(ws, role.key, state.blockers);
+  const stop = blockerLine(ws, role.key, state.blockers, closed);
   const returnBlockers = state.blockers.filter((b) => b.claimId === 'return').length;
 
   return (
@@ -78,7 +79,7 @@ export function ReviewScreen(p: WorkProps) {
 
       <section className={s.box} aria-label="Approval" style={{ padding: '14px 16px', display: 'flex', flexWrap: 'wrap', gap: 12, alignItems: 'center' }}>
         <strong>Approval</strong>
-        <span><Tag tone={state.blockers.length ? 'blk' : 'pas'}>{state.blockers.length ? `${state.blockers.length} blockers` : 'No blockers'}</Tag><Term k="blocker" /></span>
+        <span><Tag tone={closed ? 'neu' : state.blockers.length ? 'blk' : 'pas'}>{closed ? openAtFiling(state.blockers.length) : state.blockers.length ? `${state.blockers.length} blockers` : 'No blockers'}</Tag><Term k="blocker" /></span>
         <Tag tone={blockingNotes.length ? 'blk' : 'neu'}>{blockingNotes.length} blocking notes</Tag>
         <Tag tone={stale.length ? 'wrn' : 'neu'}>{stale.length} stale sign-offs</Tag>
         <span><Tag tone={partnerOpen.length ? 'wrn' : 'neu'}>{partnerOpen.length} need partner sign-off</Tag><Term k="partner-threshold" /></span>

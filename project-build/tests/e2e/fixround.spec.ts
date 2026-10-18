@@ -90,6 +90,38 @@ test('A6: a clock move reads as a past action in Changes', async ({ page }) => {
   const log = page.locator('section[aria-label="Change log"]');
   await expect(log).toContainText('moved the clock from 23 Jun 2026');
   await expect(log).toContainText('moved the clock to 20 Jul 2026');
+  // The row's byline names the actor; the sentence does not repeat it (code review 3).
+  for (const row of await log.locator('article', { hasText: 'moved the clock' }).all()) {
+    expect(((await row.innerText()).match(/Jo Kimura/g) ?? []).length).toBe(1);
+  }
+});
+
+test('Review 1: once the firm record says approved, blockers read as open at filing, not as stopping it', async ({ page }) => {
+  const w = ws();
+  for (const at of ['2026-07-12T00:00:00Z', FILED]) {
+    expect((await move(page, w, 'jo', at)).ok()).toBe(true);
+    await page.goto(`/w/${w}/helen/review`);
+    const box = page.getByRole('region', { name: 'Approval', exact: true });
+    await expect(box).toContainText(/\d+ open at filing/);
+    await expect(box).not.toContainText(/stops? filing|\d+ blockers/);
+    await expect(box.getByRole('link', { name: /\d+ open at filing/ })).toHaveAttribute('href', /\/checks\?claim=/);
+    await page.goto(`/w/${w}/daniel`);
+    const sec = page.getByRole('main').locator('section[aria-label="Blocking approval"]');
+    if (at === FILED) await expect(sec).toHaveCount(0); // after filing the Forms tab shows the filed record
+    else { await expect(sec).toContainText(/\d+ open at filing/); await expect(sec).not.toContainText(/stop|Blocking/); }
+    await page.goto(`/w/${w}/daniel/checks`);
+    await expect(page.getByRole('main').locator('header')).toContainText(/\d+ open at filing/);
+    await expect(page.getByRole('main').locator('header')).not.toContainText(/\d+ blockers/);
+  }
+});
+
+test('Review 2: the client page at 12 Jul does not ask for a signature the record already has', async ({ page }) => {
+  const w = ws();
+  expect((await move(page, w, 'jo', '2026-07-12T00:00:00Z')).ok()).toBe(true);
+  await page.goto(`/w/${w}/ngozi/filing`);
+  const main = page.getByRole('main');
+  await expect(main).toContainText('You approved and signed the return.');
+  await expect(main).not.toContainText('once you have approved and signed');
 });
 
 test('B1: Start here is the "?" Demo section for every role; the overview no longer carries it', async ({ page }) => {
@@ -182,6 +214,10 @@ test('B8: the document panel names extraction in plain words; a repeated reason 
   await expect(d).not.toContainText(/extraction extracted/);
   const list = await page.getByTestId('doc-list').innerText();
   expect(list.match(/Read by the engine/g)?.length ?? 0).toBeLessThanOrEqual(1);
+  // The sentence exists (so the count above can be non-zero): the panel of a corroborating document says it.
   await page.getByRole('link', { name: /^Corroborates only/ }).click();
-  await expect(page.getByTestId('doc-list').locator('[data-doc]').first()).toContainText('Corroborates only');
+  const row = page.getByTestId('doc-list').locator('[data-doc]').first();
+  await expect(row).toContainText('Corroborates only');
+  await row.click();
+  await expect(d).toContainText('Read by the engine');
 });

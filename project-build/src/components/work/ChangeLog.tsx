@@ -15,13 +15,14 @@ const KIND: Partial<Record<EventType, string>> = {
 const UNDOABLE: EventType[] = ['adjustment', 'review_note', 'note_resolved', 'signoff', 'question_to_client', 'reason_set', 'assignment',
   'attach_note', 'time_logged', 'verification', 'decision', 'question_to_colleague', 'finding_cleared', 'clock_moved'];
 
-function summary(e: WorkEvent, m: (t: unknown) => string, who: string): string {
+function summary(e: WorkEvent, m: (t: unknown) => string): string {
   const pl = e.payload;
   switch (e.type) {
     case 'adjustment': return `${pl.from !== undefined ? m(pl.from) + ' to ' : ''}${m(pl.value ?? pl.to ?? pl.newValue)}${pl.reason ? ': ' + m(pl.reason) : ''}${pl.status ? ` (${m(pl.status)})` : ''}`;
     case 'signoff': return `${m(pl.level ?? '')} sign-off on ${m(pl.value ?? '')}${pl.scope === 'return' ? ' (return approved)' : ''}${pl.note ? ': ' + m(pl.note) : ''}`;
-    // A move made from the bar carries where the clock was (from); one sent through the API may not.
-    case 'clock_moved': return `${who} moved the clock ${pl.from ? `from ${when(String(pl.from))} ` : ''}to ${when(String(pl.to ?? ''))}`;
+    // A move made from the bar carries where the clock was (from); one sent through the API may not. The row's byline
+    // names who moved it.
+    case 'clock_moved': return `moved the clock ${pl.from ? `from ${when(String(pl.from))} ` : ''}to ${when(String(pl.to ?? ''))}`;
     case 'undo': return e.retracts ? `reverses entry ${e.retracts}` : `reverses every entry in group ${e.groupId ?? ''}`;
     case 'reveal': return `revealed ${m(pl.what ?? pl.identifier ?? '')} (value never logged)`;
     case 'time_logged': return `${fmt(pl.hours)} h on ${humanize(String(pl.area ?? ''))}`;
@@ -69,7 +70,7 @@ export function ChangeLog(p: WorkProps) {
                   {claim === 'return' ? <span>The return</span> : null}
                   {claim && claim !== 'return' ? <a className={s.link} href={claimHref(p.sp, claim)}>{m(claim.startsWith('line:') ? `${lineLabel(ix, claim.slice(5))} (${claim.slice(5)})` : claim)}</a> : null}
                 </span>
-                <span>{summary(e, m, personName(ix, e.role))}</span>
+                <span>{summary(e, m)}</span>
                 {typeof e.payload.authority === 'string' && e.payload.authority.trim() ? <span className={s.note}>Authority: {m(e.payload.authority)}</span> : null}
                 {e.type === 'adjustment' && state.claims[claim ?? '']?.effect ? (
                   <span className={s.note}>Tax effect Fed {signed(state.claims[claim!].effect!.federal)} · CA {signed(state.claims[claim!].effect!.california)} <Est /></span>

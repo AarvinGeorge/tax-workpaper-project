@@ -581,8 +581,8 @@ test('5.1 Move to the rejection', async ({ browser }) => {
   await expect(m, 'the extension').toContainText('Extension');
   await expect(m, 'the e-file rejection').toContainText(/rejected/i);
   await expect(m, 'its reason').toContainText(/name control|did not match|dependent/i);
-  // This matched only the overview subtitle's "As of" story time, cut in the fix round (B3); the time is in the bar.
-  await expect(p.locator('.sh-story'), 'the fix that followed').toContainText(/13 Jul 2026, 19:02 UTC/);
+  // The overview subtitle's "As of" time was cut (B3); the filing status says the rejection the fix followed.
+  await expect(p.getByTestId('filing-status'), 'the fix that followed').toContainText('Rejected 13 Jul 2026');
 });
 
 test('5.2 Move past acceptance: the record locks', async ({ browser }) => {
