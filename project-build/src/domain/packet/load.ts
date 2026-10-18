@@ -3,6 +3,7 @@ import { readFileSync } from 'node:fs';
 import path from 'node:path';
 import { isVaultMode } from '../datamode';
 import type { ExtractedValue, Packet, PacketDocument, ReturnLine, ReturnVersion } from './types';
+import { flowGraph, type FlowGraph } from '../flow';
 
 let cached: Packet | null = null;
 let cachedSha: string | null = null;
@@ -62,6 +63,8 @@ export interface PacketIndex {
   docById: Map<string, PacketDocument>;
   /** line keys (in a version) whose sources cite a value of this document */
   linesCitingDoc(version: string, docId: string): ReturnLine[];
+  /** the version's line graph with the operation each derived line fits (src/domain/flow.ts) */
+  flowGraph(version: string): FlowGraph;
 }
 
 const indexCache = new WeakMap<Packet, PacketIndex>();
@@ -94,6 +97,8 @@ export function indexPacket(p: Packet): PacketIndex {
     }
     citing.set(rv.version, m);
   }
+  const graphs = new Map(p.return_versions.map((rv) => [rv.version, flowGraph(rv)]));
+  const noGraph: FlowGraph = { order: [], inputs: new Map(), ops: new Map() };
   const latest = p.return_versions[p.return_versions.length - 1];
   const ix: PacketIndex = {
     packet: p,
@@ -106,6 +111,7 @@ export function indexPacket(p: Packet): PacketIndex {
     line: (v, k) => lineMaps.get(v)?.get(k),
     valueById, valuesByDoc, docById,
     linesCitingDoc: (v, d) => citing.get(v)?.get(d) ?? [],
+    flowGraph: (v) => graphs.get(v) ?? noGraph,
   };
   indexCache.set(p, ix);
   return ix;

@@ -106,7 +106,9 @@ export async function ClientSigning({ ws, ix, role, state }: { ws: string; ix: P
                 <span>Please check these amounts. By signing, you approve the return and allow it to be filed electronically (Form 8879 for the IRS and FTB 8879<Term k="ftb-8879" /> for California). Each of you signs for yourself.</span>
                 <span className={s.note}>{ix.packet.firm.name}, your tax firm, sends the return once you have both signed. No PIN is needed here.</span>
               </span></div>
-              <div className={s.boxRow} style={{ display: 'block' }}><AmountsTable rows={amounts} caption="The amounts you are signing for" /></div>
+              <div className={s.boxRow} style={{ display: 'block' }}><AmountsTable rows={amounts} caption="The amounts you are signing for" />
+                {amounts.some((k) => [k.income, k.totalTax, k.payments, k.result].some((a) => a?.needsEngine))
+                  ? <p className={s.note} data-testid="needs-engine-note">Some figures will change when your tax team re-runs the return; you will be asked to sign again.</p> : null}</div>
             </>
           )}
           {/* Once filed, the signing is a fact from the firm's record ("What has happened"); rows that only know the

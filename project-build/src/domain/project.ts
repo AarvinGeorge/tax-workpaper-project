@@ -4,6 +4,7 @@ import type { ClaimState, Finding, RoleKey, SignOff, WorkEvent, WorkspaceState }
 import { DEFAULT_STORY_AT, frozenAt, indexAt, stageAt, visibleAt } from './clock';
 import { isApplied, retractedSeqs, sinceLastReset } from './events';
 import { maskText, partnerThreshold, roleInfo, signoffLevel } from './policy';
+import { flowThrough, type FlowLine } from './flow';
 
 type Effect = NonNullable<ClaimState['effect']>;
 /** Values compare as text with null as '' and numbers without thousands separators ('10,500' equals 10500). */
@@ -77,15 +78,35 @@ function buildClaims(ix: PacketIndex, events: WorkEvent[], retracted: Set<number
       : [e.claimId];
     for (const id of ids) if (id) byClaim.set(id, [...(byClaim.get(id) ?? []), e]);
   }
+  // Flow-through: the applied line adjustments (before a sequence number, or all) move the lines that depend on them.
+  const liveApplied = events.filter((e) => isApplied(e) && !retracted.has(e.seq) && e.claimId?.startsWith('line:'));
+  const flowBefore = new Map<number, Map<string, FlowLine>>();
+  const flowAt = (seq: number) => {
+    let f = flowBefore.get(seq);
+    if (!f) {
+      const adjusted: Record<string, unknown> = {};
+      for (const e of liveApplied) if (e.seq < seq) adjusted[e.claimId!.slice(5)] = e.payload.value;
+      f = flowThrough(ix, adjusted);
+      flowBefore.set(seq, f);
+    }
+    return f;
+  };
+  const flow = flowAt(Infinity);
+  for (const k of flow.keys()) if (!byClaim.has(`line:${k}`)) byClaim.set(`line:${k}`, []);
+  const derivedAt = (f: Map<string, FlowLine>, claimId: string) => {
+    const d = claimId.startsWith('line:') ? f.get(claimId.slice(5)) : undefined;
+    return d && 'value' in d ? d.value : undefined;
+  };
   for (const [claimId, history] of byClaim) {
     const original = originalOf(ix, claimId);
     const live = history.filter((e) => e.type !== 'undo' && !retracted.has(e.seq));
     const valueAt = (seq: number) => {
       const before = live.filter((e) => isApplied(e) && e.seq < seq);
-      return before.length ? (before[before.length - 1].payload.value as number | string) : original;
+      return before.length ? (before[before.length - 1].payload.value as number | string) : derivedAt(flowAt(seq), claimId) ?? original;
     };
     const applied = live.filter(isApplied);
-    const current = applied.length ? (applied[applied.length - 1].payload.value as number | string) : original;
+    const fl = applied.length || !claimId.startsWith('line:') ? undefined : flow.get(claimId.slice(5));
+    const current = applied.length ? (applied[applied.length - 1].payload.value as number | string) : fl && 'value' in fl ? fl.value : original;
     const appliedSeqs = new Set(history.filter(isApplied).map((e) => e.seq));
     const version = appliedSeqs.size + history.filter((e) => e.type === 'undo' && (
       (e.retracts && appliedSeqs.has(e.retracts)) || (e.groupId && history.some((x) => x.groupId === e.groupId && appliedSeqs.has(x.seq))))).length;
@@ -101,6 +122,7 @@ function buildClaims(ix: PacketIndex, events: WorkEvent[], retracted: Set<number
     const resolved = new Set(live.filter((e) => e.type === 'note_resolved').map((e) => Number(e.payload.noteSeq)));
     const openNotes = live.filter((e) => e.type === 'review_note' && !resolved.has(e.seq));
     const c: ClaimState = { claimId, original, current, adjusted: applied.length > 0, history, signoffs, openNotes, version };
+    if (fl) Object.assign(c, 'value' in fl ? { derived: true } : { needsEngine: true }, { from: fl.from });
     const o = num(original), cur = num(current);
     if (c.adjusted && o !== null && cur !== null) {
       const eff = effectOf(ix, claimId.slice(5), cur - o, applied[applied.length - 1].payload);
@@ -168,6 +190,16 @@ export function projectWorkspace(ix: PacketIndex, events: WorkEvent[], role: Rol
     if (!needsPartnerSignoff(ix, c)) continue;
     const label = c.claimId.startsWith('line:') ? ix.line(pix.latest.version, c.claimId.slice(5))?.label ?? c.claimId : c.claimId;
     blockers.push({ claimId: c.claimId, title: `Partner sign-off needed: ${label} (tax effect over ${threshold.toLocaleString('en-US')})` });
+  }
+  // The return is not approved on stale figures: each line where the flow stops at a computation only the engine can
+  // redo (the frontier; the lines below it follow from it) blocks until the engine re-runs. Never on the adjusted line.
+  const graph = pix.flowGraph(pix.latest.version);
+  const labelOf = (key: string) => pix.line(pix.latest.version, key)?.label ?? key;
+  for (const c of Object.values(claims)) {
+    if (!c.needsEngine) continue;
+    const key = c.claimId.slice(5);
+    if ((graph.inputs.get(key) ?? []).some((i) => claims[`line:${i}`]?.needsEngine)) continue;
+    blockers.push({ claimId: c.claimId, title: `Needs engine re-run: ${labelOf(key)} depends on ${(c.from ?? []).map((k) => `${k} ${labelOf(k)}`).join(' and ')}` });
   }
   const reveals = live.filter((e) => e.type === 'reveal').map((e) => ({ seq: e.seq, role: e.role, what: String(e.payload.what ?? ''), at: e.at }));
   const reasons: WorkspaceState['reasons'] = {};

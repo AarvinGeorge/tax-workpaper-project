@@ -1,5 +1,6 @@
 // Versions: compare any two (v1, v2, v3, finalized), the finalized overlay, swings against last year, what-ifs, forms.
-// Rules (variance thresholds) and values all come from the packet; nothing is recomputed here.
+// Rules (variance thresholds) and values all come from the packet; the only recomputation is the projection's
+// flow-through (src/domain/flow.ts), read here through each claim's current value.
 import type { CompareRow, FinalizedLine, Swing, WhatIf, WorkspaceState } from './contracts';
 import type { PacketIndex } from './packet/load';
 import type { ReturnLine } from './packet/types';
@@ -53,13 +54,32 @@ export function compareVersions(ix: PacketIndex, a: string, b: string, fin?: Fin
   });
 }
 
-/** The finalized return: the latest version with each adjusted line claim's current value overlaid. Not recomputed. */
+/** The finalized return: the latest version with each adjusted line's value and each line recomputed from it (derived)
+ *  overlaid. A line past a non-linear computation keeps the engine value and says it needs the engine. */
 export function finalized(ix: PacketIndex, state: WorkspaceState): FinalizedLine[] {
   return ix.latest.lines.map((l) => {
     const c = state.claims[`line:${l.key}`];
     const adjusted = !!c && c.adjusted;
-    return { key: l.key, v3: l.value, value: adjusted ? c.current : l.value, adjusted, recomputed: false };
+    const derived = !!c && !adjusted && !!c.derived;
+    return { key: l.key, v3: l.value, value: adjusted || derived ? c.current : l.value, adjusted, derived, needsEngine: !!c?.needsEngine, recomputed: derived };
   });
+}
+
+/** What the figures are: "v3, as computed", "v3 plus 1 adjustment" (every affected figure recomputed), or "v3 plus 1
+ *  adjustment; N figures need the engine". One wording for every screen that shows finalized figures. */
+export function basisText(version: string, state: WorkspaceState): string {
+  const claims = Object.values(state.claims);
+  const n = claims.filter((c) => c.adjusted).length;
+  const e = claims.filter((c) => c.needsEngine).length;
+  if (!n) return `${version}, as computed`;
+  return `${version} plus ${n} adjustment${n === 1 ? '' : 's'}${e ? `; ${e} figure${e === 1 ? ' needs' : 's need'} the engine` : ''}`;
+}
+
+/** The tax effect estimate of every applied adjustment, summed (tax_effect_rates or 1:1), for figures the flow cannot
+ *  recompute; null when no adjustment carries one. An estimate, never a figure on the return. */
+export function effectEstimate(state: WorkspaceState): { federal: number; california: number } | null {
+  const fx = Object.values(state.claims).filter((c) => c.adjusted && c.effect).map((c) => c.effect!);
+  return fx.length ? { federal: fx.reduce((s, x) => s + x.federal, 0), california: fx.reduce((s, x) => s + x.california, 0) } : null;
 }
 
 /** Current (finalized) value of one line; every post-latest amount reads through this. */
@@ -83,7 +103,8 @@ function varianceRule(ix: PacketIndex): VarianceRule {
  * Year-over-year swings: every numeric latest line and every 2024 line, flagged by the firm's variance rule
  * (over the percent AND over the amount). A line absent last year is 'new' when it is over the amount.
  */
-export function swings(ix: PacketIndex): Swing[] {
+export function swings(ix: PacketIndex, fin?: FinalizedLine[]): Swing[] {
+  const now = fin ? new Map(fin.map((f) => [f.key, f.value])) : null;
   const rule = varianceRule(ix);
   const py = ix.packet.prior_years.return_2024 as Record<string, unknown>;
   const prior = (py.lines as Record<string, unknown>) || {};
@@ -106,7 +127,10 @@ export function swings(ix: PacketIndex): Swing[] {
     if (typeof l.value !== 'number') continue;
     seen.add(l.key);
     const p = priorNum(l.key);
-    out.push({ key: l.key, label: l.label, prior: p, current: l.value, delta: l.value - (p ?? 0), flag: flagOf(p, l.value), priorRef: priorRef(l.key) });
+    // The current column follows the finalized return when given (adjusted and derived values), else the engine's.
+    const f = Number(String(now?.get(l.key) ?? '').replace(/,/g, ''));
+    const cur = now && String(now.get(l.key) ?? '').trim() !== '' && Number.isFinite(f) ? f : l.value;
+    out.push({ key: l.key, label: l.label, prior: p, current: cur, delta: cur - (p ?? 0), flag: flagOf(p, cur), priorRef: priorRef(l.key) });
   }
   for (const k of Object.keys(prior)) {
     if (seen.has(k)) continue;
@@ -168,10 +192,10 @@ export function formsOf(ix: PacketIndex, version: string): { form: string; label
 
 /** Cells of one Return row. When comparing, the latest column is the engine's value and the other column carries the
  *  comparison (Finalized = adjusted); without a comparison, the latest column shows our adjusted value with "was". */
-export function cmpCells(engine: unknown, claim: { adjusted: boolean; current: unknown } | undefined, cmp: string | null, other: unknown): { latest: unknown; other: unknown; wasNote: boolean } {
+export function cmpCells(engine: unknown, claim: { adjusted: boolean; derived?: boolean; current: unknown } | undefined, cmp: string | null, other: unknown): { latest: unknown; other: unknown; wasNote: boolean } {
   if (cmp) return { latest: engine, other, wasNote: false };
-  const adjusted = !!claim?.adjusted;
-  return { latest: adjusted ? claim!.current : engine, other: undefined, wasNote: adjusted };
+  const moved = !!claim?.adjusted || !!claim?.derived;
+  return { latest: moved ? claim!.current : engine, other: undefined, wasNote: moved };
 }
 
 export function differLine(n: number, a: string, b: string): string {

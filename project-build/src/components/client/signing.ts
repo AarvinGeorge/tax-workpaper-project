@@ -23,7 +23,8 @@ export function returnFingerprint(ix: PacketIndex, staffState: WorkspaceState): 
   return h.toString(16).padStart(8, '0');
 }
 
-export interface Amount { key: string; label: string; value: number }
+/** needsEngine: the figure depends on an adjustment through a computation only the engine can redo (src/domain/flow.ts). */
+export interface Amount { key: string; label: string; value: number; needsEngine?: boolean }
 export interface KeyAmounts {
   jurisdiction: string; form: string;
   income?: Amount; totalTax?: Amount; payments?: Amount; result?: Amount & { kind: 'refund' | 'owe' };
@@ -37,7 +38,9 @@ const num = (x: unknown): number | null => {
 /** Per jurisdiction (in the order the latest version lists them): income, total tax, total payments, and the refund or
  *  balance due, from the main form (the one carrying the "Total tax" line). Values are finalized. */
 export function keyAmounts(ix: PacketIndex, staffState: WorkspaceState): KeyAmounts[] {
-  const fin = new Map(finalized(ix, staffState).map((f) => [f.key, f.value]));
+  const all = finalized(ix, staffState);
+  const fin = new Map(all.map((f) => [f.key, f.value]));
+  const engine = new Set(all.filter((f) => f.needsEngine).map((f) => f.key));
   const lines = ix.latest.lines;
   const mains = lines.filter((l) => /^total tax$/i.test(l.label.trim()));
   const out: KeyAmounts[] = [];
@@ -48,7 +51,7 @@ export function keyAmounts(ix: PacketIndex, staffState: WorkspaceState): KeyAmou
       for (const re of res) {
         const l = onForm.find((x) => re.test(x.label.trim()));
         const v = l ? num(fin.get(l.key)) : null;
-        if (l && v !== null) return { key: l.key, label: l.label, value: v };
+        if (l && v !== null) return { key: l.key, label: l.label, value: v, ...(engine.has(l.key) ? { needsEngine: true } : {}) };
       }
       return undefined;
     };

@@ -3,6 +3,7 @@ import { claimHref, fmtDay, fmtStory, fmtValue, screenPath } from '@/components/
 import type { Finding, RoleInfo, WorkspaceState } from '@/domain/contracts';
 import type { PacketIndex } from '@/domain/packet/load';
 import { visibleAt } from '@/domain/clock';
+import { basisText } from '@/domain/versions';
 import { humanize } from '@/domain/labels';
 import { findingStatus } from '@/components/work/lib';
 import { Term } from '@/components/term/Term';
@@ -39,7 +40,7 @@ export function AfterFiling({ ws, ix, state, me, findings, mask }: { ws: string;
       <section aria-label="As filed" className="panel" style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
         <h2 className="lbl">The return as filed</h2>
         {efile.map((e) => <span key={e.jurisdiction + e.date}><span className="tag t-pas">Accepted</span> {humanize(e.jurisdiction)} return, {fmtStory(e.date)}</span>)}
-        <span className="small muted">{ix.latest.version}{adjusted ? ` plus ${adjusted} adjustment${adjusted === 1 ? '' : 's'} (finalized, not recomputed by the engine)` : ', as computed'}. Read only; a later change is an amendment on top.<Term k="amend-on-top" /></span>
+        <span className="small muted">{adjusted ? `${basisText(ix.latest.version, state)} (finalized)` : `${ix.latest.version}, as computed`}. Read only; a later change is an amendment on top.<Term k="amend-on-top" /></span>
         {lines.map((l) => (
           <Link key={l.key} className="qrow" href={claimHref('line:' + l.key)}>
             <span className="grow"><span>{l.label}</span><span className="small muted">{humanize(l.jurisdiction)} · {l.key}</span></span>

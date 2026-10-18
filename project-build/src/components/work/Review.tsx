@@ -68,8 +68,12 @@ export function ReviewScreen(p: WorkProps) {
     { key: 'views', name: 'View log', count: state.reveals.length },
   ];
 
+  // Figures past a tax computation from an adjustment (src/domain/flow.ts): the return waits for an engine re-run.
+  const engineBlockers = state.blockers.filter((b) => /^Needs engine re-run: /.test(b.title)).length;
+  const engineFigures = Object.values(state.claims).filter((c) => c.needsEngine).length;
   const approveBlock = byRecord ? `${state.frozen ? 'Approved and filed' : 'Approved'} per the firm’s record.`
-    : block ?? (state.blockers.length ? `${state.blockers.length} blockers must clear first.` : null);
+    : block ?? (engineBlockers ? `Re-run the engine: ${engineFigures} figure${engineFigures === 1 ? ' depends' : 's depend'} on changes it has not computed${state.blockers.length > engineBlockers ? `, and ${state.blockers.length - engineBlockers} other blockers must clear` : ''}.`
+      : state.blockers.length ? `${state.blockers.length} blockers must clear first.` : null);
   const stop = blockerLine(ws, role.key, state.blockers, closed);
   const returnBlockers = state.blockers.filter((b) => b.claimId === 'return').length;
 

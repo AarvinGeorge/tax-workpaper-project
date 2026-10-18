@@ -12,6 +12,7 @@ import { AfterFiling } from './AfterFiling';
 import { blockerLine } from './blockers';
 import { notComputedText } from '@/domain/clock';
 import { FilingStatus } from './FilingStatus';
+import { basisText, effectEstimate } from '@/domain/versions';
 
 export type OverviewTab = 'forms' | 'areas' | 'documents' | 'whatifs';
 const TABS: { key: OverviewTab; screen: ScreenKey; label: string }[] = [
@@ -26,13 +27,14 @@ export function OverviewHead({ ws, w, tab }: { ws: string; w: Workspace; tab: Ov
   const rows = keyAmounts(ix, state);
   const fed = rows.find((r) => r.jurisdiction === 'federal');
   const ca = rows.find((r) => r.jurisdiction === 'california');
-  const n = Object.values(state.claims).filter((x) => x.adjusted).length;
   const notComputed = notComputedText(ix);
-  const basis = notComputed ?? `${ix.latest.version}${n ? ` plus ${n} adjustment${n === 1 ? '' : 's'}, not recomputed` : ', as computed'}`;
+  const basis = notComputed ?? basisText(ix.latest.version, state);
+  // A figure the flow-through cannot recompute keeps the engine value, says so, and shows the adjustments' estimate.
+  const est = effectEstimate(state);
   const cards = [
-    { label: 'Adjusted gross income', a: fed?.income },
-    { label: 'Federal tax', a: fed?.totalTax },
-    { label: 'California tax', a: ca?.totalTax },
+    { label: 'Adjusted gross income', a: fed?.income, est: undefined },
+    { label: 'Federal tax', a: fed?.totalTax, est: est?.federal },
+    { label: 'California tax', a: ca?.totalTax, est: est?.california },
   ];
   const visible = (k: ScreenKey) => me.screens.includes(k);
   const closed = state.frozen || signatures(ix, state).byRecord;
@@ -51,6 +53,7 @@ export function OverviewHead({ ws, w, tab }: { ws: string; w: Workspace; tab: Ov
           <Link key={k.label} className="kpi" href={k.a ? screenPath(ws, me.key, 'return') + claimHref('line:' + k.a.key) : screenPath(ws, me.key, 'return')}>
             <span className="kpi-l">{k.label}</span>
             <span className="kpi-v num">{k.a ? fmtValue(k.a.value) : notComputed ? 'Not computed' : 'Blank'}</span>
+            {k.a?.needsEngine && <span className="row small"><span className="tag t-wrn">Needs engine re-run</span>{k.est ? <span className="muted num">estimate {k.est > 0 ? '+' : ''}{fmtValue(k.est)}</span> : null}</span>}
             <span className="small muted">{basis}</span>
           </Link>
         ))}

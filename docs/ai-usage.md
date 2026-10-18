@@ -83,4 +83,8 @@ From here on, entries are written at the time again.
 - 18 Oct 15:27 EDT · Opus 5.5 subagent: fix round built test-first (A1-A7, B1-B8), 526 unit / 113 e2e / walk 36/36 on a production build, commit 9c6eb41
 - 18 Oct 15:28 EDT · Fable 5.1 subagent: code review of 9c6eb41 with probes on a production server
 - 18 Oct 15:38 EDT · Opus 5.5 subagent: the code review's four should-fixes (open at filing, client status sentence, clock row actor once, two tests that can fail), 526 unit / 115 e2e / walk 36/36 on a production build, commit 04af897
-- 18 Oct 16:10 EDT · Opus 5.5 (me): moved the ? button (test first: centred on the panel's top edge, set in from the right), screenshots at 1440 and 390, 116 e2e green
+- 18 Oct 16:04 EDT · Opus 5.5 (me): moved the ? button (test first: centred on the panel's top edge, set in from the right), screenshots at 1440 and 390, 116 e2e green
+- 18 Oct 16:2x EDT (approx) · Opus 5.5 (me): dry-ran the thin slice to client e-file signature through the UI on live (one adjustment, eight clears, partner sign-off, approve, both spouses sign) before writing Aarvin's guide
+- 18 Oct 16:34 EDT · Opus 5.5 (me): root-caused the client-table mismatch (measured the packet's line graph with python3 -I: 221 derived lines, 160 linear, 59 non-linear) and wrote the flow-through plan
+- 18 Oct 16:41 EDT · Fable 5.1 subagent: reviewed the flow-through plan against code and data (5 must-fix incl. ratio-line false positives, finalized() keyed on adjusted, staleness before overlay; all adopted)
+- 18 Oct 16:54 EDT · Opus 5.5 subagent: built the flow-through test-first (red on the old build: client table showed 27,130 / Refund 8,256), 541 unit / 118 e2e / walk 36/36 on a production build, UI dry run with screenshots at 1440 and 390

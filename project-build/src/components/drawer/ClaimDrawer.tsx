@@ -15,6 +15,7 @@ import { AiMark } from '../work/ui';
 import { AiDecision } from './AiDecision';
 import { DocNote } from './DocNote';
 import { needsPartnerSignoff } from '@/domain/project';
+import { effectEstimate } from '@/domain/versions';
 import { confidenceWord, suggestionStatus } from '@/domain/ai/merge';
 import { humanize } from '@/domain/labels';
 
@@ -239,6 +240,11 @@ function LineClaim({ c, key_, claimId }: { c: Ctx; key_: string; claimId: string
   const cs = c.state.claims[claimId];
   const current = cs ? cs.current : l.value;
   const adjusted = !!cs?.adjusted;
+  // Flow-through: a derived figure is recomputed exactly from an adjusted line; a needs-engine one keeps the engine value.
+  const derived = !adjusted && !!cs?.derived;
+  const engineOnly = !adjusted && !!cs?.needsEngine;
+  const fromLinks = (cs?.from ?? []).map((k, i) => <span key={k}>{i ? ' and ' : ''}<Link className="srcref" href={claimHref('line:' + k)}>{ix.line(ix.latest.version, k)?.label ?? k}</Link></span>);
+  const est = engineOnly ? effectEstimate(c.state) : null;
   const retracted = retractedSeqs(c.state.events);
   const lastAdj = [...(cs?.history ?? [])].reverse().find((e) => e.type === 'adjustment' && !retracted.has(e.seq));
   const proposed = !outsideView(c) && lastAdj?.payload.status === 'proposed' ? lastAdj : null;
@@ -258,10 +264,12 @@ function LineClaim({ c, key_, claimId }: { c: Ctx; key_: string; claimId: string
     <>
       {/* Pinned while the evidence below scrolls, so the number being read never leaves view. */}
       <div className="drw-head">
-        <div className="row"><span className={`tag ${adjusted ? 't-acc' : 't-mut'}`}>{adjusted ? 'Adjusted' : `As computed, ${ix.latest.version}`}</span>{adjusted ? <Term k="adjustment" /> : <Term k="version" />}<span className="mono muted">{l.key} · {l.jurisdiction}</span></div>
+        <div className="row"><span className={`tag ${adjusted || derived ? 't-acc' : engineOnly ? 't-wrn' : 't-mut'}`}>{adjusted ? 'Adjusted' : derived ? 'Recomputed' : engineOnly ? 'Needs engine re-run' : `As computed, ${ix.latest.version}`}</span>{adjusted ? <Term k="adjustment" /> : <Term k="version" />}<span className="mono muted">{l.key} · {l.jurisdiction}</span></div>
         <h2 style={{ fontSize: 19, lineHeight: 1.3, letterSpacing: '-.01em' }}>{l.label}</h2>
         <div className="row"><span className="drw-big num" data-testid="claim-value">{fmtValue(current)}</span>
-          {adjusted && <span className="small muted num">was <span className="del">{fmtValue(cs!.original)}</span> in {ix.latest.version}</span>}</div>
+          {(adjusted || derived) && <span className="small muted num">was <span className="del">{fmtValue(cs!.original)}</span> in {ix.latest.version}</span>}</div>
+        {derived && <div className="row small" data-testid="flow-note"><span>Recomputed from the adjustment to {fromLinks}.</span></div>}
+        {engineOnly && <div className="row small" data-testid="flow-note"><span>Depends on the adjustment to {fromLinks} through a computation only the engine can redo, so this is still the {ix.latest.version} figure.{est ? <> Tax effect estimate: federal {fmtValue(est.federal)}, California {fmtValue(est.california)} (an estimate).</> : null}</span></div>}
         {proposed && <div className="row small"><span className="tag t-wrn">Proposed</span><span className="num">Proposed {fmtValue(proposed.payload.value)} by {c.allRoles.find((r) => r.key === proposed.role)?.name.split(' ')[0] ?? proposed.role}, awaiting a reviewer (apply it on Review)</span></div>}
       </div>
       <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>

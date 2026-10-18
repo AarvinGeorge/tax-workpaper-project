@@ -79,7 +79,9 @@ describe('finalized', () => {
       'doc:D01': { adjusted: true, current: 1 },
     }));
     expect(fin.length).toBe(ix.latest.lines.length);
-    for (const f of fin) expect(f.recomputed).toBe(false);
+    // Hand-built claims carry no flow-through: nothing is recomputed, and recomputed always means derived.
+    for (const f of fin) expect(f.recomputed).toBe(f.derived);
+    expect(fin.some((f) => f.recomputed)).toBe(false);
     const hit = fin.find((f) => f.key === key)!;
     expect(hit).toMatchObject({ v3: ix.line(v3, key)!.value, value: 12345, adjusted: true });
     expect(fin.filter((f) => f.adjusted).length).toBe(1);

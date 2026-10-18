@@ -42,7 +42,7 @@ export async function FormsTab({ ws, role, sp, screen }: { ws: string; role: str
   }
   const changedCount = [...cmpMap.values()].filter((x) => x.change !== 'same').length;
 
-  const sw = new Map(swings(ix).map((s) => [s.key, s]));
+  const sw = new Map(swings(ix, finalized(ix, state)).map((s) => [s.key, s]));
   const swingCount = [...sw.values()].filter((s) => s.flag === 'swing').length;
   const visible = w.findings.filter((f) => f.source !== 'ai').filter((f) => !f.firstVisibleAt || f.firstVisibleAt <= state.storyAt);
   const findingOn = new Map<string, Finding>();
@@ -57,7 +57,7 @@ export async function FormsTab({ ws, role, sp, screen }: { ws: string; role: str
   // A picked form is shown alone (with the form of an open line, so the panel's line stays in view).
   const forms = formSel ? allForms.filter((f) => f.form === formSel || (!!selKey && f.lines.includes(selKey))) : allForms;
   const cmpLabel = cmp === 'finalized' ? 'Finalized' : cmp;
-  const finalizedNote = 'Finalized = the latest version plus applied adjustments. Totals are not recomputed by the engine.';
+  const finalizedNote = 'Finalized = the latest version plus applied adjustments, with the sums and differences below them recomputed. A figure past a tax computation needs the engine to re-run.';
 
   return (
     <Shell ws={ws} role={me.key} screen={screen} state={state} roleInfo={me} claim={sp.claim} q={sp.q}>
@@ -124,7 +124,9 @@ export async function FormsTab({ ws, role, sp, screen }: { ws: string; role: str
                           <td>
                             {fnd ? <Link href={claimHref('finding:' + fnd.id, keep)} className={`tag ${SEV[fnd.severity][1]}`} style={{ textDecoration: 'none' }}>{SEV[fnd.severity][0]}</Link>
                               : diagOn.has(l.key) ? <span className="tag t-wrn">Engine warning</span>
-                              : cs?.adjusted ? <span className="tag t-acc">Adjusted</span> : <span className="tag t-pas">No open checks</span>}
+                              : cs?.adjusted ? <span className="tag t-acc">Adjusted</span>
+                              : cs?.needsEngine ? <span className="tag t-wrn">Needs engine re-run</span>
+                              : cs?.derived ? <span className="tag t-acc">Recomputed</span> : <span className="tag t-pas">No open checks</span>}
                           </td>
                         </tr>
                       );

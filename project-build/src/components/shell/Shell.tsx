@@ -3,6 +3,7 @@ import type { ReactNode } from 'react';
 import type { RoleInfo, RoleKey, ScreenKey, WorkspaceState } from '@/domain/contracts';
 import { getWorkspace } from './load';
 import { stageAt, visibleAt } from '@/domain/clock';
+import { basisText } from '@/domain/versions';
 import { humanize } from '@/domain/labels';
 import { RoleSwitcher } from './RoleSwitcher';
 import { ResetButton } from './ResetButton';
@@ -75,7 +76,7 @@ export async function Shell({ ws, role, screen, claim, q, children, ...given }: 
     ? (state.frozen ? 'Your filed return' : 'Draft, being prepared by your tax team')
     : state.frozen ? 'As filed'
     : ix.latest.computed === false ? 'No return computed yet'
-    : adjusted ? `${ix.latest.version} plus ${adjusted} adjustment${adjusted === 1 ? '' : 's'} (finalized, not recomputed)`
+    : adjusted ? `${basisText(ix.latest.version, state)} (finalized)`
     : `${ix.latest.version}, none of our changes applied yet`;
   const people = (ix.packet.household.people ?? []).filter((p) => p.role === 'taxpayer' || p.role === 'spouse');
   const client = people.map((p) => String(p.name).split(' ').slice(-1)[0]).join(' and ');

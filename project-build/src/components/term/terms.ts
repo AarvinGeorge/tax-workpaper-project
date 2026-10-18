@@ -71,7 +71,7 @@ export const TERMS: Record<string, TermEntry> = {
   'story-clock': { label: 'story clock', text: 'The demo’s shared date. Documents and events after it stay hidden from everyone, so the season replays step by step; moving it is recorded.' },
   'workspace': { label: 'workspace', text: 'One saved copy of the work on this return. Every action is saved here as an event; the packet itself never changes.' },
   'version': { label: 'computed version', text: 'One run of the tax engine over the packet. The latest run is the starting point; our adjustments sit on top of it.' },
-  'finalized-version': { label: 'Finalized', text: 'The latest computed version plus the adjustments applied in this workspace. The engine has not recomputed, so totals may not reflect the changes yet.' },
+  'finalized-version': { label: 'Finalized', text: 'The latest version plus our adjustments. Sums that depend on an adjustment are recomputed; a figure past a tax computation is marked "Needs engine re-run" and blocks approval.' },
   'as-filed-locked': { label: 'As filed, locked', text: 'The return the agency accepted. Nothing in it changes; later work, such as a letter or an amendment, attaches on top.' },
   'amend-on-top': { label: 'amend on top', text: 'A change after filing becomes an amended return that refers to the filed one. The filed record stays exactly as it was.' },
   'example-tag': { label: 'Example', text: 'Marks anything not in the packet, shown to illustrate how the app works. It is never a fact about this household.' },

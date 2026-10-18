@@ -14,11 +14,13 @@ test('Overview: the extension estimate names its version and sits beside the fil
   await expect(page.getByTestId('filing-status')).toContainText(/Extension.*Filed .* estimated from v2/);
 });
 
-test('Overview: with an applied adjustment the figures beside the extension say not recomputed', async ({ page }) => {
+test('Overview: with an applied adjustment the figures beside the extension name it', async ({ page }) => {
   const w = `e2e-ext2-${Date.now().toString(36)}${Math.floor(Math.random() * 1e4)}`;
   await page.goto(`/w/${w}/daniel`);
   expect((await page.request.post(`/api/w/${w}/events`, { data: { role: 'daniel', type: 'adjustment', claimId: 'line:F540NR.72', payload: { value: 10500, reason: 'payment for 2024' } } })).ok()).toBe(true);
   await page.goto(`/w/${w}/daniel`);
-  await expect(page.getByTestId('kpis')).toContainText(/v3 plus 1 adjustment, not recomputed/);
+  // Every figure the payment change reaches is recomputed (plain sums), so nothing is left for the engine.
+  await expect(page.getByTestId('kpis')).toContainText(/v3 plus 1 adjustment/);
+  await expect(page.getByTestId('kpis')).not.toContainText(/not recomputed|need the engine/);
   await expect(page.getByTestId('filing-status')).toContainText(/Extension.*Filed .* estimated from v2/);
 });

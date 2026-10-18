@@ -1,7 +1,10 @@
 // Areas: the brief's record tables, each read from its packet path, with "not in the packet" where the data is absent.
 // Every amount on a return line opens its drawer. Copies Areas.dc.html (collapsible area cards).
 import type { ReactNode } from 'react';
-import { swings } from '@/domain/versions';
+import { finalized, swings } from '@/domain/versions';
+import { keyAmounts } from '@/components/client/signing';
+import type { PacketIndex } from '@/domain/packet/load';
+import type { WorkspaceState } from '@/domain/contracts';
 import s from './work.module.css';
 import { arr, claimHref, day, fmt, humanize, masker, obj, when, type WorkProps } from './lib';
 import { NoAccess, NotInPacket, Page, Tag } from './ui';
@@ -85,7 +88,9 @@ function LineTable({ p, m, forms, keyFilter, label }: { p: WorkProps; m: M; form
                 <td className={s.mono} style={{ whiteSpace: 'nowrap' }}>{l.key}</td>
                 <td>{m(l.label)}</td>
                 <td className={s.r}><a className={s.amt} href={claimHref(p.sp, 'line:' + l.key)}>{m(l.value)}</a></td>
-                <td className={s.r}>{c?.adjusted ? <><strong>{m(c.current)}</strong> <Tag tone="acc">Adjusted</Tag></> : ''}</td>
+                <td className={s.r}>{c?.adjusted ? <><strong>{m(c.current)}</strong> <Tag tone="acc">Adjusted</Tag></>
+                  : c?.derived ? <><strong>{m(c.current)}</strong> <Tag tone="acc">Recomputed</Tag></>
+                  : c?.needsEngine ? <Tag tone="wrn">Needs engine re-run</Tag> : ''}</td>
                 {anyPrior ? <td className={s.r}>{l.key in prior ? m(prior[l.key]) : ''}</td> : null}
                 <td className={s.note}>{l.sources.length}</td>
               </tr>
@@ -130,6 +135,33 @@ function SwingTable({ p, m, rows }: { p: WorkProps; m: M; rows: ReturnType<typeo
   );
 }
 
+/** The engine's summary with the return's main figures (income, total tax, payments, refund or balance due) read from
+ *  the finalized return, matched to their lines by the engine's own values. Unmatched keys stay the engine summary. */
+function currentSummary(ix: PacketIndex, state: WorkspaceState, summary: Record<string, unknown>): { data: Record<string, unknown>; engineOnly: number } {
+  const amounts = keyAmounts(ix, state);
+  const engine = (key: string) => ix.line(ix.latest.version, key)?.value;
+  let engineOnly = 0;
+  const data: Record<string, unknown> = {};
+  for (const [j, block] of Object.entries(summary)) {
+    const row = amounts.find((a) => a.jurisdiction === j);
+    if (!row || !block || typeof block !== 'object' || Array.isArray(block)) { data[j] = block; continue; }
+    const out: Record<string, unknown> = {};
+    for (const [k, x] of Object.entries(block as Record<string, unknown>)) {
+      let now: unknown;
+      if (typeof x === 'number' && /balance_due$/.test(k) && row.result) {
+        const sign = row.result.kind === 'refund' ? -1 : 1;
+        if (engine(row.result.key) === sign * x) now = sign * row.result.value;
+      } else if (typeof x === 'number') {
+        now = [row.income, row.totalTax, row.payments].find((a) => a && engine(a.key) === x)?.value;
+      }
+      if (now === undefined && typeof x === 'number') engineOnly++;
+      out[k] = now ?? x;
+    }
+    data[j] = out;
+  }
+  return { data, engineOnly };
+}
+
 // Form codes (README form_codes) grouped into the brief's record areas. Schema, not packet facts.
 const TAX_FORMS = ['F1040', 'Sch1', 'Sch2', 'F6251', 'F8959', 'F8960', 'F2210'];
 const BOOKS_FORMS = ['SchC', 'SchSE', 'F8995', 'F4562-C'];
@@ -147,7 +179,9 @@ export function AreasScreen(p: WorkProps) {
   const pk = ix.packet;
   const v = ix.latest;
   const py = pk.prior_years;
-  const sw = swings(ix);
+  const sw = swings(ix, finalized(ix, state));
+  const changed = Object.values(state.claims).some((c) => c.adjusted);
+  const summary = currentSummary(ix, state, obj(v.summary));
   const swingRows = sw.filter((x) => x.flag === 'swing');
   const newRows = sw.filter((x) => x.flag === 'new');
   const sales = v.lines.filter((l) => l.form === 'F8949');
@@ -171,7 +205,7 @@ export function AreasScreen(p: WorkProps) {
       tags={<><Tag tone="neu">{v.version} computed {when(v.computed_at)}</Tag><Tag tone="neu">As of {when(state.storyAt)}</Tag>{state.frozen ? <Tag tone="acc">As filed, locked</Tag> : null}</>}>
 
       <Area name="Return summary against last year" headline={<>{swingRows.length} swings<Term k="swing" /> over the firm&apos;s variance rule; {newRows.length} lines new this year</>} open>
-        <Sub title={`${v.version} summary`}><KV data={obj(v.summary)} m={m} label="Summary" /></Sub>
+        <Sub title={changed ? `Summary, finalized: income, tax, payments and the refund or balance due follow our adjustments; the other ${summary.engineOnly} figures are the engine summary, ${v.version} as computed` : `${v.version} summary`}><KV data={summary.data} m={m} label="Summary" /></Sub>
         <Sub title={`Against the 2024 return: ${swingRows.length} lines over the firm's variance rule`}>
           {sw.length ? <SwingTable p={p} m={m} rows={swingRows} /> : <NotInPacket what="2024 comparison" />}
           {sw.length > swingRows.length ? (

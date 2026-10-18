@@ -51,6 +51,9 @@ export interface ClaimState {
   claimId: string; original: number | string | null; current: number | string | null; adjusted: boolean;
   history: WorkEvent[]; signoffs: SignOff[]; openNotes: WorkEvent[]; version: number;   // version = count of value-changing events
   effect?: { federal: number; california: number; basis: string; version: string };
+  // Flow-through (src/domain/flow.ts): derived = recomputed exactly from adjusted lines (from); needsEngine = depends on
+  // an adjustment through a computation only the engine can redo (current stays the engine value). Never an adjustment.
+  derived?: boolean; needsEngine?: boolean; from?: string[];
 }
 export interface WorkspaceState {
   storyAt: string; frozen: boolean; stage: 'Preparation' | 'Review' | 'Approval' | 'Filing' | 'Filed';
@@ -102,9 +105,9 @@ export interface SimPage {
   fields: { valueId: string; label: string; field: string; text: string; valueType: string; position: Position | null; confidence: number }[];
 }
 // src/domain/versions.ts: compareVersions(ix, a, b, finalized?): CompareRow[];  finalized(ix, state): FinalizedLine[];
-//                          swings(ix): Swing[];  whatIfs(ix): WhatIf[];  formsOf(ix, version): { form: string; label: string; lines: string[] }[]
+//                          swings(ix, finalized?): Swing[];  whatIfs(ix): WhatIf[];  formsOf(ix, version): { form: string; label: string; lines: string[] }[]
 export interface CompareRow { key: string; label: string; form: string; a: unknown; b: unknown; change: 'added' | 'removed' | 'changed' | 'same' }
-export interface FinalizedLine { key: string; v3: unknown; value: unknown; adjusted: boolean; recomputed: false }
+export interface FinalizedLine { key: string; v3: unknown; value: unknown; adjusted: boolean; derived: boolean; needsEngine: boolean; recomputed: boolean }
 export interface Swing { key: string; label: string; prior: number | null; current: number; delta: number; flag: 'swing' | 'new' | null; priorRef?: string }
 export interface WhatIf { id: string; description: string; federalChange: number; californiaChange: number; penaltyChange?: number; changedLines: string[] }
 

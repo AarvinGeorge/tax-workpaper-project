@@ -29,7 +29,8 @@ test('item 2: compare with Finalized keeps the engine value in the v3 column', a
   await expect(cells.nth(1)).toContainText('14,000');
   await expect(cells.nth(1)).not.toContainText('10,500');
   await expect(cells.nth(2)).toContainText('10,500');
-  await expect(page.getByRole('main')).toContainText('1 line differs between Finalized and v3');
+  // The adjustment flows through: total payments (F540NR.78) and the overpayment (F540NR.97) are recomputed with it.
+  await expect(page.getByRole('main')).toContainText('3 lines differ between Finalized and v3');
 });
 
 test('item 3: Review and its Changes tab name the person and lead with story time', async ({ page }) => {
