@@ -70,3 +70,5 @@ From here on, entries are written at the time again.
 - 17 Oct 23:47 EDT · Fable 5.1 subagent: side-by-side walk of tax-workpaper.vercel.app and ours against the brief (Playwright MCP, read-only)
 - 18 Oct 00:39 EDT · Opus 5.5 (main): return overview plan · Fable 5.1 subagent: plan review (read-only)
 - 18 Oct 01:13 EDT · Fable 5.1 implementation review of the Return overview (probes, 18 min): 2 must-fix, 3 should-fix, applied
+- 18 Oct 11:55 EDT · Opus 5.5 (main): investigated 'tax figures differ between Return overview and Filing' on live (workspace dbg-tax-1792338933, clock 16 Jul): no calculation error; Filing's Extension box shows the packet's April estimate built from v2 (77,470 / 17,999); every other screen shows v3 (81,962 / 18,874)
+- 18 Oct 12:05 EDT · Fable 5.1 subagent: review of the Filing extension label fix (probes on a local server, 4 min): no must-fix; 2 should-fix ("not recomputed" wording, dead client guards), applied

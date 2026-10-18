@@ -9,6 +9,8 @@ import { arr, claimHref, day, humanize, masker, obj, refClaim, when, type WorkPr
 import { Designed, NoAccess, NotInPacket, Page, Tag } from './ui';
 import { Term } from '../term/Term';
 import { ClientSigning, StaffSigning } from '@/components/client/ClientFiling';
+import { keyAmounts } from '@/components/client/signing';
+import { fmtValue } from '@/components/shell/lib';
 
 function Rows({ data, m, names = [] }: { data: Record<string, unknown>; m: (t: unknown) => string; names?: string[] }) {
   const entries = Object.entries(data);
@@ -49,6 +51,15 @@ export function FilingScreen(p: WorkProps) {
   const ext = obj(pk.what_if.extension);
   const extEvent = pk.timeline.find((e) => /extension/i.test(e.event));
   const extVisible = extEvent ? visibleAt(extEvent.at, state.storyAt) : false;
+  // The estimate was computed from an earlier version, so its tax can differ from the return: name that version, and
+  // put the return's own figures (the Return overview cards' source, finalized) beside it when the versions differ.
+  const estFrom = ext.based_on_version ? `, estimate from ${String(ext.based_on_version)}` : '';
+  const adjusted = Object.values(state.claims).filter((c) => c.adjusted).length;
+  const filedTax = ext.based_on_version && ext.based_on_version !== ix.latest.version
+    ? `The ${state.frozen ? 'filed return' : 'return now'} (${ix.latest.version}${adjusted ? ` plus ${adjusted} adjustment${adjusted === 1 ? '' : 's'}, not recomputed` : ''}): ` +
+      keyAmounts(ix, state).filter((k) => k.totalTax).map((k) => `${humanize(k.jurisdiction)} tax ${fmtValue(k.totalTax!.value)}`).join(', ') +
+      `. The difference is what changed after ${String(ext.based_on_version)}.`
+    : '';
   const rejected = efile.filter((e) => e.status === 'rejected');
   const accepted = efile.filter((e) => e.status === 'accepted');
   const firstReject = rejected[0] ? String(rejected[0].date) : null;
@@ -180,9 +191,12 @@ export function FilingScreen(p: WorkProps) {
         {extVisible && Object.keys(ext).length ? (
           <div className={s.box}>
             <div className={s.boxRow}><span className={s.when}>{when(extEvent!.at)}</span><span className={s.body}>{isClient ? 'Your tax team asked for more time to file and sent a payment with the request.' : t(extEvent!.detail)}<span className={s.note}>Based on {m(ext.based_on_version)} · computed {when(String(ext.computed_at))}</span></span></div>
-            {!isClient ? (['federal', 'california'] as const).map((j) => ext[j] ? (
-              <div key={j} className={s.boxRow}><span className={s.when}>{humanize(j)}</span><span className={s.body}><Rows data={obj(ext[j])} m={m} /></span></div>
-            ) : null) : null}
+            {(['federal', 'california'] as const).map((j) => ext[j] ? (
+              <div key={j} className={s.boxRow}><span className={s.when}>{humanize(j)}{estFrom}</span><span className={s.body}><Rows data={obj(ext[j])} m={m} /></span></div>
+            ) : null)}
+            {filedTax ? (
+              <div className={s.boxRow} data-testid="ext-filed"><span className={s.when}>For comparison</span><span className={s.body}>{filedTax}</span></div>
+            ) : null}
           </div>
         ) : <p className={s.note} style={{ margin: 0 }}>No extension at this story time.</p>}
       </section>
