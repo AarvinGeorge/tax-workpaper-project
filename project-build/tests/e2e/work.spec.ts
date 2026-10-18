@@ -45,11 +45,15 @@ test('findings page lists every ledger row', async ({ page }) => {
 test('bulk sign-off is undone in one step', async ({ page }) => {
   const w = ws();
   await page.goto(`/w/${w}/priya/checks`);
-  const boxes = page.getByRole('checkbox');
+  const boxes = page.locator('[data-finding] input[type="checkbox"]');
   test.skip((await boxes.count()) < 2, 'needs at least two open findings');
-  await boxes.nth(0).check();
-  await boxes.nth(1).check();
-  await page.getByRole('button', { name: /Sign off selected/ }).click();
+  // Each sign-off needs its review note, written in the row (typing it ticks the row).
+  for (let i = 0; i < 2; i++) {
+    const row = page.locator('[data-finding]').filter({ has: page.locator('input[type="checkbox"]') }).nth(i);
+    await row.locator('summary').click();
+    await row.locator('[data-signoff-note]').fill(`Reviewed row ${i + 1}`);
+  }
+  await page.getByRole('button', { name: 'Sign off selected (2)' }).click();
   await expect(page.getByRole('status')).toContainText('2 sign-offs saved together');
   await page.getByRole('status').getByRole('button', { name: 'Undo' }).click();
   await expect(page.getByRole('status')).toHaveCount(0);

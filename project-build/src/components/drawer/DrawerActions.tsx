@@ -47,7 +47,8 @@ export function DrawerActions(p: Props) {
       case 'verification':
         return send('verification', { method: f.method || p.methods[0], note: f.note ?? '' }, 'Verification recorded.');
       case 'signoff':
-        return send('signoff', {}, `Signed off as ${spec.level}. It goes stale if the value changes.`);
+        if (!need('note', 'A review note')) return;
+        return send('signoff', { note: f.note }, `Signed off as ${spec.level}. It goes stale if the value changes.`);
       case 'review_note':
         if (!need('text', 'The note')) return;
         return send('review_note', { text: f.text, blocking: f.blocking === 'yes' }, 'Review note saved.');
@@ -90,7 +91,10 @@ export function DrawerActions(p: Props) {
             <select id="ver-m" className="field" value={f.method ?? p.methods[0] ?? ''} onChange={set('method')}>{p.methods.map((m) => <option key={m} value={m}>{m.replace(/_/g, ' ')}</option>)}</select>
             <label className="lbl" htmlFor="ver-n">Note</label><input id="ver-n" className="field" value={f.note ?? ''} onChange={set('note')} />
           </>}
-          {spec.kind === 'signoff' && <span className="small">You sign off the value as it stands now. If it changes later, this sign-off is marked stale.</span>}
+          {spec.kind === 'signoff' && <>
+            <label className="lbl" htmlFor="so-n">Review note (required)</label><textarea id="so-n" className="field" rows={2} value={f.note ?? ''} onChange={set('note')} placeholder="What you checked before signing off" />
+            <span className="small">You sign off the value as it stands now. If it changes later, this sign-off is marked stale.</span>
+          </>}
           {spec.kind === 'review_note' && <>
             <label className="lbl" htmlFor="rn-t">Note</label><textarea id="rn-t" className="field" rows={3} value={f.text ?? ''} onChange={set('text')} />
             <label className="row small"><input type="checkbox" checked={f.blocking === 'yes'} onChange={(e) => setF((x) => ({ ...x, blocking: e.target.checked ? 'yes' : '' }))} /> Blocking: open blocking notes stop approval</label>

@@ -52,7 +52,7 @@ export const TERMS: Record<string, TermEntry> = {
   'election': { label: 'election', text: 'A choice the tax law lets the taxpayer make, such as opting out of bonus depreciation. It is recorded with its authority and can bind later years.' },
 
   // Review concepts
-  'sign-off': { label: 'sign-off', text: 'A preparer, reviewer or partner records that they checked a value. It covers that exact value; if the value changes later, the sign-off goes stale.' },
+  'sign-off': { label: 'sign-off', text: 'A preparer, reviewer or partner records that they checked a value, with a note on what they checked. It covers that value; if the value changes, the sign-off goes stale.' },
   'stale-signoff': { label: 'stale sign-off', text: 'The value changed after it was signed. The old sign-off stays in the record but no longer counts, so someone checks and signs again.' },
   'blocker': { label: 'blocker', text: 'An open item that stops partner approval, such as a failed check marked blocking or a blocking review note. Approval opens once all clear.' },
   'review-note': { label: 'review note', text: 'A reviewer’s question or instruction on a number. A note marked blocking stops approval until someone resolves it.' },

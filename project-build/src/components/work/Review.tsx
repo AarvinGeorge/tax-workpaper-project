@@ -132,8 +132,8 @@ export function ReviewScreen(p: WorkProps) {
                       events={[{ type: 'adjustment', claimId: c.claimId, baseVersion: c.version, payload: { ...(adj?.payload ?? {}), status: 'applied', appliedBy: role.key } }]} />
                   ) : null}
                   {level ? (
-                    <EventButton ws={ws} role={role.key} small label={`Sign off as ${level}`} disabledReason={signReason}
-                      events={[{ type: 'signoff', claimId: c.claimId, baseVersion: c.version, payload: { level } }]} />
+                    <TextAction ws={ws} role={role.key} label="Review note" placeholder="What you checked before signing off" submitLabel={`Sign off as ${level}`}
+                      disabledReason={signReason} build={{ type: 'signoff', claimId: c.claimId, baseVersion: c.version, payload: { level }, field: 'note' }} />
                   ) : null}
                 </span>
               </div>
@@ -169,7 +169,7 @@ export function ReviewScreen(p: WorkProps) {
               <Tag tone={so.stale ? 'wrn' : 'pas'}>{so.stale ? 'Stale' : 'Current'}</Tag>
               <span className={s.grow}><a className={s.link} href={claimHref(p.sp, c.claimId)}>{m(claimTitle(p, c.claimId))}</a></span>
               <span className={s.num}>Signed {m(so.value)}{so.stale ? `, now ${m(c.current)}` : ''}</span>
-              <span className={s.note} title={byline(ix, { ...so, storyAt: storyAtOf(state, so.seq) }).title}>{so.level} · {byline(ix, { ...so, storyAt: storyAtOf(state, so.seq) }).text}</span>
+              <span className={s.note} title={byline(ix, { ...so, storyAt: storyAtOf(state, so.seq) }).title}>{so.level} · {byline(ix, { ...so, storyAt: storyAtOf(state, so.seq) }).text}{so.note ? <>: {m(so.note)}</> : null}</span>
             </div>
           ))}
         </section>

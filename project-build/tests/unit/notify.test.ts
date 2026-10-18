@@ -28,7 +28,7 @@ describe('notifications', () => {
 
   it('an adjustment over the partner threshold asks Helen to sign off, and makes earlier sign-offs stale for their signers', async () => {
     const ws = freshWs();
-    await postEvent(ws, 'priya', { type: 'signoff', claimId: CLAIM, payload: {} });
+    await postEvent(ws, 'priya', { type: 'signoff', claimId: CLAIM, payload: { note: 'Tied to the source' } });
     await postEvent(ws, 'daniel', { type: 'adjustment', claimId: CLAIM, payload: { value: 10500, reason: 'D68 designated 2024' } });
     const helen = await bell(ws, 'helen');
     expect(helen.some((x) => /needs your partner sign-off/.test(x.text))).toBe(true);

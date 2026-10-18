@@ -79,7 +79,7 @@ function buildClaims(ix: PacketIndex, events: WorkEvent[], retracted: Set<number
       const stale = claimId === 'return'
         ? events.some((x) => isApplied(x) && !retracted.has(x.seq) && x.seq > e.seq)
         : sameValue(value, current) === false;
-      return { seq: e.seq, role: e.role, level, value, stale, at: e.at };
+      return { seq: e.seq, role: e.role, level, value, stale, at: e.at, ...(typeof e.payload.note === 'string' && e.payload.note.trim() ? { note: e.payload.note } : {}) };
     });
     const resolved = new Set(live.filter((e) => e.type === 'note_resolved').map((e) => Number(e.payload.noteSeq)));
     const openNotes = live.filter((e) => e.type === 'review_note' && !resolved.has(e.seq));

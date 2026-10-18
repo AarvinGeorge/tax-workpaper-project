@@ -54,14 +54,25 @@ describe('can', () => {
   });
   it('refuses sign-off on a claim whose last adjustment you authored', () => {
     const s = stateOf([ev('daniel', 'adjustment', { claimId, payload: { value: 1, status: 'applied' } })]);
-    const r = can(ix, 'daniel', 'signoff', { claimId, payload: { level: 'reviewer' } }, s);
+    const r = can(ix, 'daniel', 'signoff', { claimId, payload: { level: 'reviewer', note: 'n' } }, s);
     expect(r.ok).toBe(false);
     expect(r.reason).toMatch(/review or sign off on work they prepared/);
-    expect(can(ix, 'helen', 'signoff', { claimId, payload: { level: 'partner' } }, s).ok).toBe(true);
+    expect(can(ix, 'helen', 'signoff', { claimId, payload: { level: 'partner', note: 'Agreed to the 1098' } }, s).ok).toBe(true);
   });
   it('sign-off level must match the role', () => {
-    expect(can(ix, 'priya', 'signoff', { claimId, payload: { level: 'partner' } }, empty).ok).toBe(false);
-    expect(can(ix, 'daniel', 'signoff', { claimId, payload: { level: 'reviewer' } }, empty).ok).toBe(true);
+    expect(can(ix, 'priya', 'signoff', { claimId, payload: { level: 'partner', note: 'n' } }, empty).ok).toBe(false);
+    expect(can(ix, 'daniel', 'signoff', { claimId, payload: { level: 'reviewer', note: 'Tied to the W-2' } }, empty).ok).toBe(true);
+  });
+  it('a sign-off on an item needs a review note; the return approval does not', () => {
+    for (const note of [undefined, '', '   ']) {
+      const r = can(ix, 'daniel', 'signoff', { claimId, payload: { level: 'reviewer', ...(note === undefined ? {} : { note }) } }, empty);
+      expect(r.ok).toBe(false);
+      expect(r.reason).toMatch(/review note/);
+    }
+    expect(can(ix, 'daniel', 'signoff', { claimId, payload: { level: 'reviewer', note: 'Tied to the W-2' } }, empty).ok).toBe(true);
+    // Stored sign-offs without a note still project (the rule gates new writes only).
+    const old = stateOf([ev('daniel', 'signoff', { claimId, payload: { level: 'reviewer', value: String(line.value) } })]);
+    expect(old.claims[claimId].signoffs).toHaveLength(1);
   });
   it('preparers may only propose an adjustment; reviewers may apply', () => {
     expect(can(ix, 'priya', 'adjustment', { claimId, payload: { value: 1, status: 'applied' } }, empty).ok).toBe(false);

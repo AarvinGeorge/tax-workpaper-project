@@ -11,7 +11,8 @@ import { AiMark, Est, NoAccess, Page, Tag } from './ui';
 import { confidenceWord, isAi, suggestionStatus } from '@/domain/ai/merge';
 import { personName } from './lib';
 import { Term } from '../term/Term';
-import { BulkSignoff, EventButton, TextAction } from './actions';
+import Link from 'next/link';
+import { EventButton, GroupSelect, RevealDrawerOnPhone, RowSelect, SignoffNote, SignoffScope, TextAction } from './actions';
 
 export function claimValue(p: WorkProps, claimId: string): unknown {
   const c = p.state.claims[claimId];
@@ -23,7 +24,9 @@ export function claimValue(p: WorkProps, claimId: string): unknown {
 export function Evidence({ p, refs }: { p: WorkProps; refs: string[] }) {
   const m = masker(p.state, p.role);
   if (!refs.length) return null;
-  // Readable labels, one per reference, separated; the raw reference stays in the tooltip.
+  const current = one(p.sp.claim);
+  // Readable labels, one per reference, separated; the raw reference stays in the tooltip. A link opens on the right
+  // without reloading the page (the row stays open, the list keeps its place); the one open now is marked.
   return (
     <span className={s.row} style={{ gap: 6 }}>
       <span className={s.lbl}>Evidence</span>
@@ -32,7 +35,8 @@ export function Evidence({ p, refs }: { p: WorkProps; refs: string[] }) {
         const label = m(refText(resolveRef(p.ix, r, p.ix.latest.version)));
         const sep = i < refs.length - 1 ? <span aria-hidden="true" className={s.note}> ·</span> : null;
         return c
-          ? <span key={r}><a className={s.link} href={claimHref(p.sp, c)} title={m(r)} data-ref={r} style={{ color: 'var(--acc)' }}>{label}</a>{sep}</span>
+          ? <span key={r}><Link scroll={false} prefetch={false} className={`${s.link} ${s.evLink} ${c === current ? s.evOn : ''}`} href={claimHref(p.sp, c)} title={m(r)} data-ref={r}
+              aria-current={c === current ? 'true' : undefined}>{label}{c === current ? <span className={s.evHint} aria-hidden="true"> · open</span> : null}</Link>{sep}</span>
           : <span key={r} title={m(r)} data-ref={r}>{label}{sep}</span>;
       })}
     </span>
@@ -74,9 +78,12 @@ export function ChecksScreen(p: WorkProps) {
   const bulk = [...state.events].reverse().find((e) => e.type === 'signoff' && e.role === role.key && e.groupId?.startsWith('bulk-') && !isRetracted(state.events, e.seq));
   const bulkGroup = bulk ? state.events.filter((e) => e.groupId === bulk.groupId && e.type === 'signoff' && !isRetracted(state.events, e.seq)) : [];
 
-  const signable = shown
-    .filter((f) => !findingStatus(f, state).cleared && !findingStatus(f, state).signed)
-    .map((f) => ({ claimId: 'finding:' + f.id, title: f.title, value: fmt(claimValue(p, f.claims[0] ?? '')) }));
+  // Rows this role can still sign: open (not cleared or adjusted), not yet signed, and the role signs off at all.
+  const canSign = !!level && !block;
+  const signable = canSign ? shown.filter((f) => !findingStatus(f, state).cleared && !findingStatus(f, state).signed).map((f) => 'finding:' + f.id) : [];
+  const blockerIds = shown.filter((f) => f.severity === 'blocker').map((f) => 'finding:' + f.id);
+  const current = one(p.sp.claim);
+  const holdsCurrent = (f: Finding) => !!current && (current === 'finding:' + f.id || f.evidence.some((r) => refClaim(ix, r) === current));
 
   let lastGroup: Severity | null = null;
   return (
@@ -107,9 +114,11 @@ export function ChecksScreen(p: WorkProps) {
       <div className={s.cols}>
         <div className={s.section} style={{ gap: 16 }}>
         {sev !== 'ai' ? <section className={s.section} aria-labelledby="chk-ours">
-          <h2 className={s.h2} id="chk-ours">Our checks <span className={s.note}>({shown.length})</span></h2>
+          <RevealDrawerOnPhone claim={current ?? null} />
+          <h2 className={s.h2} id="chk-ours" tabIndex={-1}>Our checks <span className={s.note}>({shown.length})</span></h2>
+          <SignoffScope ws={ws} role={role.key} level={level ?? 'preparer'} items={signable} blockers={blockerIds}>
           <div className={s.box}>
-            <div className={`${s.chkRow} ${s.chkHead}`}><span>Status</span><span>What</span><span className={s.right}>Amount</span><span className={s.hideSm}>Tax effect</span></div>
+            <div className={`${s.chkRow} ${s.chkSel} ${s.chkHead}`}><span>{canSign ? <Term k="sign-off" /> : null}</span><span>Status</span><span>What</span><span className={s.right}>Amount</span><span className={s.hideSm}>Tax effect</span></div>
             {shown.length === 0 ? <div className={s.boxRow}><span className={s.note}>No findings at this story time for this filter.</span></div> : null}
             {shown.map((f) => {
               const st = findingStatus(f, state);
@@ -118,10 +127,11 @@ export function ChecksScreen(p: WorkProps) {
               const c0 = f.claims[0];
               return (
                 <div key={f.id}>
-                  {showGrp ? <div className={s.grp}><span className={s.lbl}>{SEVERITY_WORD[f.severity]}</span>{f.severity === 'judgment' ? <Term k="judgment" /> : null}</div> : null}
-                  <div className={s.chkRow} data-finding={f.id}>
+                  {showGrp ? <div className={s.grp}><GroupSelect word={SEVERITY_WORD[f.severity]} ids={shown.filter((x) => x.severity === f.severity).map((x) => 'finding:' + x.id)}><span className={s.lbl}>{SEVERITY_WORD[f.severity]}</span>{f.severity === 'judgment' ? <Term k="judgment" /> : null}</GroupSelect></div> : null}
+                  <div className={`${s.chkRow} ${s.chkSel}`} data-finding={f.id} data-severity={f.severity}>
+                    <RowSelect id={'finding:' + f.id} title={m(f.title)} />
                     <span><Tag tone={st.tone}>{st.word}</Tag></span>
-                    <details className={s.peek}>
+                    <details className={s.peek} open={holdsCurrent(f) || undefined}>
                       <summary>
                         <span className={s.title}>{m(f.title)}</span>
                         <span className={s.mono} style={{ display: 'block' }}>{f.claims.map((c) => c.replace(/^line:/, '')).join(', ')}</span>
@@ -131,22 +141,24 @@ export function ChecksScreen(p: WorkProps) {
                         <Evidence p={p} refs={f.evidence} />
                         <span className={s.note}>Check {f.checkId} · {f.family}</span>
                         <div className={s.row}>
-                          {c0 ? <a className={`${s.btn} ${s.small}`} href={claimHref(p.sp, c0)}>Show where it came from</a> : null}
-                          <a className={`${s.btn} ${s.small}`} href={claimHref(p.sp, 'finding:' + f.id)}>Open the finding</a>
+                          {c0 ? <Link scroll={false} prefetch={false} className={`${s.btn} ${s.small}`} href={claimHref(p.sp, c0)}>Show where it came from</Link> : null}
+                          <Link scroll={false} prefetch={false} className={`${s.btn} ${s.small}`} href={claimHref(p.sp, 'finding:' + f.id)}>Open the finding</Link>
                         </div>
+                        <SignoffNote id={'finding:' + f.id} level={level ?? 'preparer'} />
                         {!st.cleared ? (
                           <TextAction ws={ws} role={role.key} label="Clear with a reason" placeholder="Why this needs no change"
                             disabledReason={block} build={{ type: 'finding_cleared', claimId: 'finding:' + f.id, payload: {}, field: 'reason' }} />
                         ) : null}
                       </div>
                     </details>
-                    <span className={s.right}>{c0 ? <a className={s.amt} href={claimHref(p.sp, c0)} aria-label={`Where ${fmt(claimValue(p, c0))} came from`}>{m(claimValue(p, c0))}</a> : null}</span>
+                    <span className={s.right}>{c0 ? <Link scroll={false} prefetch={false} className={s.amt} href={claimHref(p.sp, c0)} aria-label={`Where ${fmt(claimValue(p, c0))} came from`}>{m(claimValue(p, c0))}</Link> : null}</span>
                     <span className={`${s.num} ${s.hideSm}`} style={{ color: 'var(--ink2)', fontSize: 12.5 }}>{effectText(f)} {f.effect ? <Est /> : null}</span>
                   </div>
                 </div>
               );
             })}
           </div>
+          </SignoffScope>
           {bulkGroup.length ? (
             <div className={s.toast} role="status">
               <span>{bulkGroup.length} sign-offs saved together at {when(bulk!.at)}.</span>
@@ -154,8 +166,7 @@ export function ChecksScreen(p: WorkProps) {
                 events={[{ type: 'undo', groupId: bulk!.groupId, payload: { reason: 'Bulk sign-off undone' } }]} />
             </div>
           ) : null}
-          <BulkSignoff ws={ws} role={role.key} level={level ?? 'preparer'} items={signable}
-            disabledReason={block ?? (level ? null : `${role.title} does not sign off work.`)} />
+          {!canSign ? <p className={s.note} style={{ margin: 0 }}>{block ?? `${role.title} does not sign off work.`}</p> : null}
         </section> : null}
         {aiOn && (!sev || sev === 'ai') ? <AiGroup p={p} items={ai} held={held} /> : null}
         </div>
@@ -208,11 +219,11 @@ function AiGroup({ p, items, held }: { p: WorkProps; items: { f: Finding; st: Re
                   <Evidence p={p} refs={f.evidence} />
                   {st.status === 'accepted' ? <span className={s.note}>Suggested by AI, accepted by {by}</span> : null}
                   <div className={s.row}>
-                    <a className={`${s.btn} ${s.small}`} href={claimHref(p.sp, 'finding:' + f.id)}>{st.status === 'accepted' ? 'Open the suggestion' : 'Review the suggestion'}</a>
+                    <Link scroll={false} prefetch={false} className={`${s.btn} ${s.small}`} href={claimHref(p.sp, 'finding:' + f.id)}>{st.status === 'accepted' ? 'Open the suggestion' : 'Review the suggestion'}</Link>
                   </div>
                 </div>
               </details>
-              <span className={s.right}>{c0 ? <a className={s.amt} href={claimHref(p.sp, c0)} aria-label={`Where ${fmt(claimValue(p, c0))} came from`}>{m(claimValue(p, c0))}</a> : null}</span>
+              <span className={s.right}>{c0 ? <Link scroll={false} prefetch={false} className={s.amt} href={claimHref(p.sp, c0)} aria-label={`Where ${fmt(claimValue(p, c0))} came from`}>{m(claimValue(p, c0))}</Link> : null}</span>
               <span className={`${s.note} ${s.hideSm}`}>{f.ai ? confidenceWord(f.ai.confidence) : ''}</span>
             </div>
           );

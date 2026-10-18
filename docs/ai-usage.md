@@ -57,3 +57,7 @@ From here on, entries are written at the time again.
 - 17 Oct 19:38 EDT · Opus 5.5 subagent: Archify overview diagram (spec, showcase 9 of 9, visual check at 4 viewports) · Opus 5.5 (main): fact-checked the wording, looked at the screenshot, published card 00; rewrote the video script to 5 minutes and ran it through the no-ai-slop rules (petergyang/no-ai-slop SKILL.md, read via gh api this pass)
 - 17 Oct 19:49 EDT · Fable 5.1 subagent: video script review (human-voice and AI-feel ratings, reasoned edits only) · Sonnet 5.5 subagent with Playwright MCP: live walk of the 7 demo moments in workspace script-check for click-by-click steps
 - 17 Oct 20:07 EDT · Two video-script docs and the theme toggle committed and pushed on Aarvin's go
+- 17 Oct 20:28 EDT · Opus 5.5 (main): Checks sign-off and evidence proposal as a new prototype board (ChecksSignoff.dc.html); real titles from the live page, evidence values read from the packet with python -I; board logic executed in Node in place of a screenshot (the canvas runtime only renders inside claude.ai)
+- 17 Oct 20:40 EDT · Opus 5.5 (main): Checks sign-off and evidence fix, TDD · Fable 5.1 subagent: code review with probes (no edits)
+- 17 Oct 20:50 EDT · Fable 5.1 subagent: plan review of the sign-off note rule across the app (read-only)
+- 17 Oct 21:00 EDT · Fable 5.1 code review (probes, 910 s): 1 must-fix, 4 should-fix, all applied · Opus 5.5 (main): fixes, tests, screenshots of drawer and Review sign-off notes

@@ -21,7 +21,7 @@ function summary(e: WorkEvent, m: (t: unknown) => string): string {
   const pl = e.payload;
   switch (e.type) {
     case 'adjustment': return `${pl.from !== undefined ? m(pl.from) + ' to ' : ''}${m(pl.value ?? pl.to ?? pl.newValue)}${pl.reason ? ': ' + m(pl.reason) : ''}${pl.status ? ` (${m(pl.status)})` : ''}`;
-    case 'signoff': return `${m(pl.level ?? '')} sign-off on ${m(pl.value ?? '')}${pl.scope === 'return' ? ' (return approved)' : ''}`;
+    case 'signoff': return `${m(pl.level ?? '')} sign-off on ${m(pl.value ?? '')}${pl.scope === 'return' ? ' (return approved)' : ''}${pl.note ? ': ' + m(pl.note) : ''}`;
     case 'clock_moved': return `to ${when(String(pl.to ?? ''))}`;
     case 'undo': return e.retracts ? `reverses entry ${e.retracts}` : `reverses every entry in group ${e.groupId ?? ''}`;
     case 'reveal': return `revealed ${m(pl.what ?? pl.identifier ?? '')} (value never logged)`;

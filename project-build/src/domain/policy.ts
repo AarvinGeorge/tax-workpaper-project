@@ -184,6 +184,8 @@ export function can(ix: PacketIndex, roleArg: RoleKey | RoleInfo, action: Action
         const last = adjs[adjs.length - 1];
         if (last && last.role === roleKey) return no(ruleText(ix, /may not review/i) || 'You may not sign off your own work.');
       }
+      // Every sign-off on an item says what was checked. Gates new writes only: stored sign-offs still project.
+      if (!str(payload.note)) return no('A sign-off needs a review note: what you checked.');
       return yes;
     }
     case 'client_signature':

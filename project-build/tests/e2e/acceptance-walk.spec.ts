@@ -325,6 +325,7 @@ test('2.5 A sign-off reopens when the number changes', async ({ browser }) => {
   const pr = await go(browser, 'priya', 'return', FED_EST);
   await expect(drawer(pr).getByTestId('claim-value')).toHaveText('13,000');
   await action(pr, 'Sign off as preparer');
+  await drawer(pr).getByLabel('Review note (required)').fill('Agreed to the IRS account transcript');
   await saveAction(pr);
   const p = await go(browser, 'daniel', 'return', FED_EST);
   await action(p, 'Adjust');
@@ -361,10 +362,14 @@ test('2.6 A review note that blocks filing', async ({ browser }) => {
 
 test('2.7 Act on many items, then undo in one step', async ({ browser }) => {
   const p = await go(browser, 'daniel', 'checks');
-  const boxes = main(p).getByRole('checkbox', { name: /^Select / });
+  const boxes = main(p).locator('[data-finding] input[type="checkbox"]');
   expect(await boxes.count(), 'at least three rows to tick').toBeGreaterThanOrEqual(3);
-  for (let i = 0; i < 3; i++) await boxes.nth(i).check();
-  await p.getByRole('button', { name: 'Sign off selected as reviewer' }).click();
+  for (let i = 0; i < 3; i++) {
+    const row = main(p).locator('[data-finding]').filter({ has: p.locator('input[type="checkbox"]') }).nth(i);
+    await row.locator('summary').click();
+    await row.locator('[data-signoff-note]').fill(`Reviewed row ${i + 1}`);
+  }
+  await p.getByRole('button', { name: 'Sign off selected (3)' }).click();
   const toast = main(p).getByRole('status').filter({ hasText: 'sign-offs saved together' });
   await expect(toast, 'one grouped entry').toContainText('3 sign-offs saved together');
   const pt = await tab(browser, 'priya');
@@ -505,6 +510,7 @@ test('4.2 Partner sign-off and approval', async ({ browser }) => {
   await p.getByRole('link', { name: /^Partner items/ }).or(p.getByRole('button', { name: /^Partner items/ })).first().click();
   await main(p).getByRole('link', { name: /California estimate/i }).first().click();
   await action(p, 'Sign off as partner');
+  await drawer(p).getByLabel('Review note (required)').fill('Agreed to the FTB account');
   await saveAction(p);
   // a second partner item (the 2.5 federal adjustment, tax effect over 1,000) may also need her sign-off
   await go(browser, 'helen', 'review');

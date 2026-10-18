@@ -129,13 +129,13 @@ describe('story notices: safety and shape', () => {
 describe('grouping', () => {
   it('a bulk sign-off by the reviewer reaches the preparer as one notice; a single one names the item', async () => {
     const ws = freshWs();
-    for (const k of ['F540NR.72', 'F540NR.71', 'F1040.1a']) await postEvent(ws, 'daniel', { type: 'signoff', claimId: 'line:' + k, groupId: 'bulk-test1', payload: { level: 'reviewer', bulk: true } });
+    for (const k of ['F540NR.72', 'F540NR.71', 'F1040.1a']) await postEvent(ws, 'daniel', { type: 'signoff', claimId: 'line:' + k, groupId: 'bulk-test1', payload: { level: 'reviewer', bulk: true, note: 'Checked' } });
     let w = await loadWorkspace(ws, 'priya');
     const firm = notificationsFor(w.ix, w.state.events, 'priya').filter((x) => /signed off/.test(x.text));
     expect(firm).toHaveLength(1);
     expect(firm[0].text).toBe('Daniel signed off 3 items');
     expect(firm[0].id).toMatch(/^grp:/);
-    await postEvent(ws, 'daniel', { type: 'signoff', claimId: 'line:F1040.11', payload: { level: 'reviewer' } });
+    await postEvent(ws, 'daniel', { type: 'signoff', claimId: 'line:F1040.11', payload: { level: 'reviewer', note: 'Checked' } });
     w = await loadWorkspace(ws, 'priya');
     const all = notificationsFor(w.ix, w.state.events, 'priya').filter((x) => /signed off/.test(x.text));
     expect(all).toHaveLength(2);

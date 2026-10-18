@@ -116,7 +116,7 @@ function actionsFor(c: Ctx, claimId: string, current: unknown): ActionSpec[] {
   const colleague = colleaguesOf(c)[0]?.key;
   const sample: Record<ActionSpec['kind'], Record<string, unknown>> = {
     adjustment: { value: typeof current === 'number' || typeof current === 'string' ? current : 0, reason: 'x' },
-    verification: { method: methods[0] }, signoff: {}, review_note: { text: 'x' },
+    verification: { method: methods[0] }, signoff: { note: 'x' }, review_note: { text: 'x' },
     question_to_client: { to: client, text: 'x' }, decision: { kind: 'judgment', authority: 'x' },
     question_to_colleague: { to: colleague, text: 'x' },
   };
@@ -141,7 +141,7 @@ function Trail({ c, claimId }: { c: Ctx; claimId: string }) {
         <span className="lbl">Sign-offs<Term k="sign-off" /></span>
         {cs.signoffs.length === 0 && <span className="small muted">None yet.</span>}
         {cs.signoffs.map((s) => (
-          <div key={s.seq} className="row small"><span className={`tag ${s.stale ? 't-wrn' : 't-pas'}`}>{s.stale ? 'Stale' : 'Signed'}</span><span>{s.level} sign-off by {name(s.role)} on {fmtValue(s.value)}, {fmtDay(s.at)}{s.stale ? '; the value changed since' : ''}</span></div>
+          <div key={s.seq} className="row small"><span className={`tag ${s.stale ? 't-wrn' : 't-pas'}`}>{s.stale ? 'Stale' : 'Signed'}</span><span>{s.level} sign-off by {name(s.role)} on {fmtValue(s.value)}, {fmtDay(s.at)}{s.stale ? '; the value changed since' : ''}{s.note ? `: ${maskText(s.note, c.me, false)}` : ''}</span></div>
         ))}
       </div>
       {!isClient && cs.openNotes.length > 0 && (
@@ -156,7 +156,7 @@ function Trail({ c, claimId }: { c: Ctx; claimId: string }) {
           <span className="lbl">History · {cs.history.length}</span>
           {cs.history.length === 0 && <span className="small muted">Nothing recorded yet.</span>}
           {[...cs.history].reverse().map((e) => (
-            <div key={e.seq} className="row small"><span className="mono muted num">{fmtDay(e.storyAt)}</span><span><strong>{name(e.role)}</strong> {e.type.replace(/_/g, ' ')}{e.payload.value !== undefined ? ` to ${fmtValue(e.payload.value)}` : ''}{e.payload.reason ? `: ${maskText(String(e.payload.reason), c.me, false)}` : ''}{e.payload.method ? ` (${String(e.payload.method).replace(/_/g, ' ')})` : ''}</span></div>
+            <div key={e.seq} className="row small"><span className="mono muted num">{fmtDay(e.storyAt)}</span><span><strong>{name(e.role)}</strong> {e.type.replace(/_/g, ' ')}{e.payload.value !== undefined ? ` to ${fmtValue(e.payload.value)}` : ''}{e.payload.reason ?? e.payload.note ? `: ${maskText(String(e.payload.reason ?? e.payload.note), c.me, false)}` : ''}{e.payload.method ? ` (${String(e.payload.method).replace(/_/g, ' ')})` : ''}</span></div>
           ))}
         </div>
       )}

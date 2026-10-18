@@ -46,7 +46,7 @@ export interface EventStore {
 
 // ---------- Claims and workspace state (lane C: src/domain/project.ts) ----------
 /** A claim id is 'line:<KEY>' (latest version), 'doc:<ID>', or 'finding:<ID>'. */
-export interface SignOff { seq: number; role: RoleKey; level: 'preparer' | 'reviewer' | 'partner'; value: string; stale: boolean; at: string }
+export interface SignOff { seq: number; role: RoleKey; level: 'preparer' | 'reviewer' | 'partner'; value: string; stale: boolean; at: string; note?: string }
 export interface ClaimState {
   claimId: string; original: number | string | null; current: number | string | null; adjusted: boolean;
   history: WorkEvent[]; signoffs: SignOff[]; openNotes: WorkEvent[]; version: number;   // version = count of value-changing events

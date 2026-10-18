@@ -25,7 +25,7 @@ test('G2: undo from Changes on a bulk entry reverses the whole group', async ({ 
   const st0 = await state(page, w, 'daniel');
   const ids: string[] = st0.findings.filter((f: { source?: string }) => f.source !== 'ai').slice(0, 3).map((f: { id: string }) => 'finding:' + f.id);
   const groupId = 'bulk-gaptest';
-  for (const claimId of ids) expect((await post(page, w, 'daniel', { type: 'signoff', claimId, groupId, payload: { level: 'reviewer', bulk: true } })).ok()).toBe(true);
+  for (const claimId of ids) expect((await post(page, w, 'daniel', { type: 'signoff', claimId, groupId, payload: { level: 'reviewer', bulk: true, note: 'Checked' } })).ok()).toBe(true);
   await page.goto(`/w/${w}/daniel/changes`);
   const undo = page.locator('section[aria-label="Change log"]').getByRole('button', { name: 'Undo all 3' });
   await expect(undo).toHaveCount(3);
@@ -70,7 +70,7 @@ test('G5: a large adjustment says it needs partner sign-off until the partner si
   expect((await post(page, w, 'daniel', { type: 'adjustment', claimId: CA_EST, payload: { value: 10500, reason: 'D68' } })).ok()).toBe(true);
   await page.goto(`/w/${w}/daniel/return?claim=${CA_EST}`);
   await expect(page.getByTestId('drawer')).toContainText('Needs partner sign-off (tax effect over 1,000)');
-  expect((await post(page, w, 'helen', { type: 'signoff', claimId: CA_EST, payload: {} })).ok()).toBe(true);
+  expect((await post(page, w, 'helen', { type: 'signoff', claimId: CA_EST, payload: { note: 'Agreed to the FTB account' } })).ok()).toBe(true);
   await page.reload();
   await expect(page.getByTestId('drawer')).not.toContainText('Needs partner sign-off');
 });
