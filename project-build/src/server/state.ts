@@ -6,7 +6,7 @@ import { getStore } from '@/domain/store';
 import { isWorkspaceId } from '@/domain/store/ids';
 import { validateNewEvent, type EventInput } from '@/domain/events';
 import { projectWorkspace, storyAtOf } from '@/domain/project';
-import { can, isRoleKey, maskText, roleInfo, roles, signoffLevel } from '@/domain/policy';
+import { can, isRoleKey, maskText, roleInfo, roles, signingBlock, signoffLevel } from '@/domain/policy';
 import { aiReview, NO_AI, type AiReview } from '@/domain/ai/merge';
 import { indexAt, visibleAt } from '@/domain/clock';
 import type { Packet } from '@/domain/packet/types';
@@ -131,6 +131,9 @@ export async function postEvent(ws: string, role: RoleKey, e: EventInput | NewEv
   // What a client signs is fingerprinted here from the finalized return, never taken from the browser.
   if (input.type === 'client_signature') payload.value = returnFingerprint(ix, staffView);
   const verdict = can(ix, role, input.type, { ...input, payload }, view);
+  // A client's view does not carry the firm's adjustments: whether the approved return changed since is read from staff.
+  const staleSign = input.type === 'client_signature' && verdict.ok ? signingBlock(ix, staffView) : null;
+  if (staleSign) return { ok: false, status: 403, reason: staleSign };
   if (!verdict.ok) {
     if (verdict.conflict) return { ok: false, status: 409, reason: verdict.reason ?? 'Conflict.', newer: verdict.newer };
     return { ok: false, status: 403, reason: verdict.reason ?? 'Not allowed.' };

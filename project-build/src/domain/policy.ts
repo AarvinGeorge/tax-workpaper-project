@@ -316,6 +316,17 @@ export function returnApproved(ix: PacketIndex, events: WorkEvent[]): boolean {
   return events.some((e) => e.type === 'signoff' && e.claimId === 'return' && !r.has(e.seq) && signoffLevel(ix, e.role) === 'partner');
 }
 
+/** Why the clients may not sign an approved return, read from a staff projection (a client's own projection does not
+ *  carry the firm's adjustments): the return changed after the partner approved it, or a figure on it still needs an
+ *  engine re-run (src/domain/flow.ts). Plain words, shown to the client. null when signing may go ahead. */
+export function signingBlock(ix: PacketIndex, staffState: WorkspaceState): string | null {
+  if (!returnApproved(ix, staffState.events)) return null;
+  const approvals = (staffState.claims.return?.signoffs ?? []).filter((s) => s.level === 'partner');
+  if (approvals.length && approvals.every((s) => s.stale)) return 'Your tax team changed the return after approving it; they will ask you to sign once it is approved again.';
+  if (Object.values(staffState.claims).some((c) => c.needsEngine)) return 'Your tax team is re-running the return after a change; they will ask you to sign once the new figures are approved.';
+  return null;
+}
+
 /** One spouse signs Form 8879 and FTB 8879: after the partner's approval, before federal acceptance, once per version
  *  of the return (payload.value is the fingerprint of the finalized return signed). No PIN is asked for or kept. */
 function clientSignature(ix: PacketIndex, meta: RoleMeta, target: Target, state: WorkspaceState): Verdict {
@@ -328,6 +339,8 @@ function clientSignature(ix: PacketIndex, meta: RoleMeta, target: Target, state:
   if (!value) return no('A signature must name the return it covers.');
   if (state.frozen) return no(`The return was filed and accepted on ${fmtDate(frozenAt(ix)!)}. Signing is closed.`);
   if (!returnApproved(ix, state.events)) return no('The partner has not approved the return yet. You can sign once it is approved.');
+  const stale = signingBlock(ix, state);
+  if (stale) return no(stale);
   const r = retractedSeqs(state.events);
   const mine = state.events.filter((e) => e.type === 'client_signature' && e.role === meta.info.key && !r.has(e.seq));
   const last = mine[mine.length - 1];

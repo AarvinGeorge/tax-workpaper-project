@@ -244,7 +244,7 @@ function LineClaim({ c, key_, claimId }: { c: Ctx; key_: string; claimId: string
   const derived = !adjusted && !!cs?.derived;
   const engineOnly = !adjusted && !!cs?.needsEngine;
   const fromLinks = (cs?.from ?? []).map((k, i) => <span key={k}>{i ? ' and ' : ''}<Link className="srcref" href={claimHref('line:' + k)}>{ix.line(ix.latest.version, k)?.label ?? k}</Link></span>);
-  const est = engineOnly ? effectEstimate(c.state) : null;
+  const est = engineOnly ? effectEstimate(c.state, cs?.from ?? []) : null;
   const retracted = retractedSeqs(c.state.events);
   const lastAdj = [...(cs?.history ?? [])].reverse().find((e) => e.type === 'adjustment' && !retracted.has(e.seq));
   const proposed = !outsideView(c) && lastAdj?.payload.status === 'proposed' ? lastAdj : null;
@@ -269,7 +269,7 @@ function LineClaim({ c, key_, claimId }: { c: Ctx; key_: string; claimId: string
         <div className="row"><span className="drw-big num" data-testid="claim-value">{fmtValue(current)}</span>
           {(adjusted || derived) && <span className="small muted num">was <span className="del">{fmtValue(cs!.original)}</span> in {ix.latest.version}</span>}</div>
         {derived && <div className="row small" data-testid="flow-note"><span>Recomputed from the adjustment to {fromLinks}.</span></div>}
-        {engineOnly && <div className="row small" data-testid="flow-note"><span>Depends on the adjustment to {fromLinks} through a computation only the engine can redo, so this is still the {ix.latest.version} figure.{est ? <> Tax effect estimate: federal {fmtValue(est.federal)}, California {fmtValue(est.california)} (an estimate).</> : null}</span></div>}
+        {engineOnly && <div className="row small" data-testid="flow-note"><span>Depends on the adjustment to {fromLinks} through a computation only the engine can redo, so this is still the {ix.latest.version} figure.{est ? <> Estimated effect of the adjustment{(cs?.from ?? []).length === 1 ? '' : 's'} to {fromLinks}: federal {fmtValue(est.federal)}, California {fmtValue(est.california)} (an estimate, not this line&rsquo;s figure).</> : null}</span></div>}
         {proposed && <div className="row small"><span className="tag t-wrn">Proposed</span><span className="num">Proposed {fmtValue(proposed.payload.value)} by {c.allRoles.find((r) => r.key === proposed.role)?.name.split(' ')[0] ?? proposed.role}, awaiting a reviewer (apply it on Review)</span></div>}
       </div>
       <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>

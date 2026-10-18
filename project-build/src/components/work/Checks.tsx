@@ -83,7 +83,10 @@ export function ChecksScreen(p: WorkProps) {
     .sort((a, b) => SEVERITY_ORDER.indexOf(a.severity) - SEVERITY_ORDER.indexOf(b.severity));
   const counts = Object.fromEntries(SEVERITY_ORDER.map((k) => [k, visible.filter((f) => f.severity === k).length]));
   const open = visible.filter((f) => !findingStatus(f, state).cleared);
-  const openBlockers = open.filter((f) => f.severity === 'blocker').length; // same cleared rule as the rows
+  // Lines an adjustment reaches through a computation only the engine can redo block approval too (src/domain/flow.ts):
+  // listed here as blocker rows so this count agrees with the overview and Review.
+  const engineBlockers = state.blockers.filter((b) => /^Needs engine re-run: /.test(b.title));
+  const openBlockers = open.filter((f) => f.severity === 'blocker').length + engineBlockers.length; // same cleared rule as the rows
   // Approved by the firm's record or filed: the blockers no longer stop anything; they were open at filing.
   const closed = state.frozen || signatures(ix, state).byRecord;
   const block = writeBlock(role, state);
@@ -135,7 +138,17 @@ export function ChecksScreen(p: WorkProps) {
           <SignoffScope ws={ws} role={role.key} level={level ?? 'preparer'} items={signable} blockers={blockerIds}>
           <div className={s.box}>
             <div className={`${s.chkRow} ${s.chkSel} ${s.chkHead}`}><span>{canSign ? <Term k="sign-off" /> : null}</span><span>Status</span><span>What</span><span className={s.right}>Amount</span><span className={s.hideSm}>Tax effect</span></div>
-            {shown.length === 0 ? <div className={s.boxRow}><span className={s.note}>No findings at this story time for this filter.</span></div> : null}
+            {(!sev || sev === 'blocker') && engineBlockers.map((b) => (
+              <div key={b.claimId} className={`${s.chkRow} ${s.chkSel}`} data-engine-blocker={b.claimId}>
+                <span />
+                <span><Tag tone={closed ? 'neu' : 'blk'}>{closed ? 'Open' : 'Blocker'}</Tag></span>
+                <span><Link scroll={false} prefetch={false} className={s.title} href={claimHref(p.sp, b.claimId)}>{m(b.title)}</Link>
+                  <span className={s.mono} style={{ display: 'block' }}>{b.claimId.replace(/^line:/, '')}</span></span>
+                <span className={s.right}><Link scroll={false} prefetch={false} className={s.amt} href={claimHref(p.sp, b.claimId)}>{m(claimValue(p, b.claimId))}</Link></span>
+                <span className={`${s.note} ${s.hideSm}`}>Clears when the engine re-runs</span>
+              </div>
+            ))}
+            {shown.length === 0 && !engineBlockers.length ? <div className={s.boxRow}><span className={s.note}>No findings at this story time for this filter.</span></div> : null}
             {shown.map((f) => {
               const st = findingStatus(f, state);
               const showGrp = f.severity !== lastGroup;

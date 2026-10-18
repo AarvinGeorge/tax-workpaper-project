@@ -2,10 +2,10 @@ import { describe, expect, it } from 'vitest';
 import { loadPacket, indexPacket } from '@/domain/packet/load';
 import { flowThrough, FLOW_RULES } from '@/domain/flow';
 import { projectWorkspace } from '@/domain/project';
-import { finalized } from '@/domain/versions';
+import { effectEstimate, finalized } from '@/domain/versions';
 import { keyAmounts } from '@/components/client/signing';
 import { DEFAULT_STORY_AT } from '@/domain/clock';
-import { can } from '@/domain/policy';
+import { can, signingBlock } from '@/domain/policy';
 import type { NewEvent, RoleKey, WorkEvent } from '@/domain/contracts';
 
 const p = loadPacket();
@@ -145,5 +145,35 @@ describe('the projection carries the flow', () => {
     const r = can(ix, 'helen', 'approve', { claimId: 'return' }, s);
     expect(r.ok).toBe(false);
     expect(r.reason).toMatch(/Needs engine re-run/);
+  });
+});
+
+describe('review follow-ups', () => {
+  const approveEv = () => ev('helen', 'signoff', { claimId: 'return', payload: { scope: 'return', level: 'partner', value: 'v3' } });
+  const sign = { claimId: 'return', payload: { forms: ['8879', 'FTB 8879'], value: 'abcd1234' } };
+
+  it('a client cannot sign once the return changed after the partner approved it', () => {
+    const ok = project([approveEv()]);
+    expect(signingBlock(ix, ok)).toBeNull();
+    expect(can(ix, 'ngozi', 'client_signature', sign, ok).ok).toBe(true);
+    const s = project([approveEv(), adj('F1040.1a', engine('F1040.1a') + 1000)]);
+    expect(signingBlock(ix, s)).toMatch(/changed the return after approving it/);
+    const r = can(ix, 'ngozi', 'client_signature', sign, s);
+    expect(r.ok).toBe(false);
+    expect(r.reason).toMatch(/changed the return after approving it/);
+  });
+
+  it('a client cannot sign while a figure needs the engine, even with a fresh approval', () => {
+    const s = project([adj('F1040.1a', engine('F1040.1a') + 1000), approveEv()]);
+    expect(signingBlock(ix, s)).toMatch(/re-run/);
+  });
+
+  it('the estimate on a needs-engine line counts only the adjustments it depends on', () => {
+    const wages = ev('daniel', 'adjustment', { claimId: 'line:F1040.1a', payload: { value: engine('F1040.1a') + 1000, status: 'applied', category: 'wages' } });
+    const s = project([wages, adj('F540NR.72', 10500)]);
+    const all = effectEstimate(s)!;
+    const mine = effectEstimate(s, s.claims['line:F1040.24'].from)!;
+    expect(mine).toEqual({ federal: s.claims['line:F1040.1a'].effect!.federal, california: s.claims['line:F1040.1a'].effect!.california });
+    expect(all.california).toBe(mine.california + 3500);
   });
 });

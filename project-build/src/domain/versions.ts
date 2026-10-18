@@ -77,8 +77,9 @@ export function basisText(version: string, state: WorkspaceState): string {
 
 /** The tax effect estimate of every applied adjustment, summed (tax_effect_rates or 1:1), for figures the flow cannot
  *  recompute; null when no adjustment carries one. An estimate, never a figure on the return. */
-export function effectEstimate(state: WorkspaceState): { federal: number; california: number } | null {
-  const fx = Object.values(state.claims).filter((c) => c.adjusted && c.effect).map((c) => c.effect!);
+export function effectEstimate(state: WorkspaceState, only?: string[]): { federal: number; california: number } | null {
+  // only: the adjusted line keys to count (a needs-engine line's own dependencies); all adjustments when absent.
+  const fx = Object.values(state.claims).filter((c) => c.adjusted && c.effect && (!only || only.includes(c.claimId.slice(5)))).map((c) => c.effect!);
   return fx.length ? { federal: fx.reduce((s, x) => s + x.federal, 0), california: fx.reduce((s, x) => s + x.california, 0) } : null;
 }
 

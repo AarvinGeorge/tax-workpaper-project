@@ -3,7 +3,7 @@
 // staff projection on the server; only those derived amounts reach the client's page. No PIN is asked for or shown.
 import type { RoleInfo, WorkspaceState } from '@/domain/contracts';
 import type { PacketIndex } from '@/domain/packet/load';
-import { can, roles, ruleText } from '@/domain/policy';
+import { can, roles, ruleText, signingBlock } from '@/domain/policy';
 import { getWorkspace } from '@/components/shell/load';
 import { EventButton } from '@/components/work/actions';
 import { day, fmt, when } from '@/components/work/lib';
@@ -88,6 +88,8 @@ export async function ClientSigning({ ws, ix, role, state }: { ws: string; ix: P
   const amounts = keyAmounts(ix, staff);
   const verdict = can(ix, role, 'client_signature', { claimId: 'return', payload: { forms: [...SIGN_FORMS], value: fp } }, state);
   const copy = clientCopy(ix, state, staff);
+  // The approved return changed since (or still needs an engine re-run): say so plainly and hold the signature.
+  const held = st.approved && !st.byRecord ? signingBlock(ix, staff) : null;
   const keep = ruleText(ix, /retain/i);
   return (
     <>
@@ -102,6 +104,7 @@ export async function ClientSigning({ ws, ix, role, state }: { ws: string; ix: P
             <div className={s.boxRow}><span className={s.note}>Your tax team is still finishing your return. You can sign here once the partner has approved it.</span></div>
           ) : (
             <>
+              {held ? <div className={s.boxRow} data-testid="signing-held"><span className={s.body}><Tag tone="wrn">Not ready to sign</Tag> <span>{held}</span></span></div> : null}
               <div className={s.boxRow}><span className={s.body}>
                 <span>Please check these amounts. By signing, you approve the return and allow it to be filed electronically (Form 8879 for the IRS and FTB 8879<Term k="ftb-8879" /> for California). Each of you signs for yourself.</span>
                 <span className={s.note}>{ix.packet.firm.name}, your tax firm, sends the return once you have both signed. No PIN is needed here.</span>
@@ -117,7 +120,7 @@ export async function ClientSigning({ ws, ix, role, state }: { ws: string; ix: P
           {!state.frozen && st.approved && !st.byRecord ? (
             <div className={s.boxRow}>
               <EventButton ws={ws} role={role.key} primary label="Approve and sign both forms"
-                disabledReason={verdict.ok ? null : verdict.reason}
+                disabledReason={held ?? (verdict.ok ? null : verdict.reason)}
                 events={[{ type: 'client_signature', claimId: 'return', payload: { forms: [...SIGN_FORMS], value: fp } }]} />
             </div>
           ) : null}

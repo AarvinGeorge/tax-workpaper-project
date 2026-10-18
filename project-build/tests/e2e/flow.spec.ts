@@ -61,3 +61,57 @@ test('a wage change: the federal tax card says "Needs engine re-run" and the par
   await expect(page.getByRole('button', { name: 'Approve the return' })).toBeDisabled();
   await expect(page.getByRole('main')).toContainText(/Re-run the engine: \d+ figures depend on changes it has not computed/);
 });
+
+async function clearFindings(rq: APIRequestContext, w: string) {
+  const st = await (await rq.get(`/api/w/${w}/state?role=helen`)).json() as { state: { blockers: { claimId: string }[] } };
+  for (const b of st.state.blockers) {
+    if (b.claimId.startsWith('finding:')) expect((await post(rq, w, 'daniel', { type: 'finding_cleared', claimId: b.claimId, payload: { reason: 'Reviewed for this test.' } })).ok()).toBeTruthy();
+  }
+}
+
+test('a change after the partner approved: the clients cannot sign, and their page says why', async ({ page }) => {
+  const rq = page.request;
+  const w = ws('stale');
+  await clearFindings(rq, w);
+  const a = await post(rq, w, 'helen', { type: 'signoff', claimId: 'return', payload: { scope: 'return', level: 'partner', value: 'v3' } });
+  expect(a.ok(), await a.text()).toBeTruthy();
+  expect((await post(rq, w, 'daniel', { type: 'adjustment', claimId: 'line:F1040.1a', payload: { value: 213400, reason: 'Corrected W-2 for this test.' } })).ok()).toBeTruthy();
+  const r = await post(rq, w, 'ngozi', { type: 'client_signature', claimId: 'return', payload: { forms: ['8879', 'FTB 8879'], value: 'x' } });
+  expect(r.status()).toBe(403);
+  expect(await r.text()).toMatch(/changed the return after approving it/);
+  await page.goto(`/w/${w}/ngozi/filing`);
+  const box = page.getByTestId('client-signing');
+  await expect(box).toContainText('Your tax team changed the return after approving it');
+  await expect(box.getByRole('button', { name: /Approve and sign/ })).toBeDisabled();
+});
+
+test('a wage change: Checks, the overview and Review count the same blockers, and Checks lists the engine lines', async ({ page }) => {
+  const rq = page.request;
+  const w = ws('count');
+  expect((await post(rq, w, 'daniel', { type: 'adjustment', claimId: 'line:F1040.1a', payload: { value: 222400, reason: 'Corrected W-2 for this test.' } })).ok()).toBeTruthy();
+  const st = await (await rq.get(`/api/w/${w}/state?role=helen`)).json() as { state: { blockers: { claimId: string; title: string }[] } };
+  const n = st.state.blockers.length;
+  const engine = st.state.blockers.filter((b) => /^Needs engine re-run/.test(b.title));
+  expect(engine.length).toBeGreaterThan(0);
+  await page.goto(`/w/${w}/daniel`);
+  await expect(page.getByRole('main')).toContainText(`${n} items stop filing`);
+  await page.goto(`/w/${w}/helen/review`);
+  await expect(page.locator('section[aria-label="Approval"]')).toContainText(`${n} blockers`);
+  await page.goto(`/w/${w}/daniel/checks`);
+  await expect(page.getByRole('main')).toContainText(`${n} blockers`);
+  const rows = page.locator('[data-engine-blocker]');
+  await expect(rows).toHaveCount(engine.length);
+  await rows.first().getByRole('link').first().click();
+  await expect(page.getByTestId('drawer')).toContainText('Needs engine re-run');
+});
+
+test('the estimate on a needs-engine line names the adjustment it depends on and counts only that one', async ({ page }) => {
+  const rq = page.request;
+  const w = ws('est');
+  expect((await post(rq, w, 'daniel', { type: 'adjustment', claimId: 'line:F1040.1a', payload: { value: 222400, reason: 'Corrected W-2.', category: 'wages' } })).ok()).toBeTruthy();
+  expect((await post(rq, w, 'daniel', { type: 'adjustment', claimId: 'line:F540NR.72', payload: { value: 10500, reason: 'D68.' } })).ok()).toBeTruthy();
+  await page.goto(`/w/${w}/daniel/return?claim=${encodeURIComponent('line:F1040.24')}`);
+  const note = page.getByTestId('flow-note');
+  await expect(note).toContainText(/Estimated effect of the adjustment to Wages \(Forms W-2, box 1\): federal/);
+  await expect(note).not.toContainText('estimated tax payments');
+});
