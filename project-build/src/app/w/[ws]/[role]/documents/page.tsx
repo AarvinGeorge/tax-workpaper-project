@@ -7,6 +7,7 @@ import { claimHref, fmtDay, parseClaim } from '@/components/shell/lib';
 import type { DocLanding } from '@/domain/contracts';
 import type { ReactNode } from 'react';
 import { Term } from '@/components/term/Term';
+import { OverviewHead } from '@/components/overview/OverviewHead';
 
 type P = { params: Promise<{ ws: string; role: string }>; searchParams: Promise<Record<string, string | undefined>> };
 
@@ -53,10 +54,17 @@ export default async function Documents({ params, searchParams }: P) {
   return (
     <Shell ws={ws} role={me.key} screen="documents" state={state} roleInfo={me} claim={sp.claim} q={sp.q}>
       <div className="screen">
-        <div className="screen-head">
-          <div><h1>{head}</h1><span className="sub">{sub}</span></div>
-          <span className="small muted num">{scope.length} shown{hidden > 0 ? ` · ${hidden} arrive later in the story` : ''}</span>
-        </div>
+        {staff ? (
+          <>
+            <OverviewHead ws={ws} w={w} tab="documents" />
+            <span className="sub">{sub} <span className="small muted num">{scope.length} shown{hidden > 0 ? ` · ${hidden} arrive later in the story` : ''}</span></span>
+          </>
+        ) : (
+          <div className="screen-head">
+            <div><h1>{head}</h1><span className="sub">{sub}</span></div>
+            <span className="small muted num">{scope.length} shown{hidden > 0 ? ` · ${hidden} arrive later in the story` : ''}</span>
+          </div>
+        )}
         {staff && (
           <div className="row" role="group" aria-label="Filter documents">
             {pill('all', 'All', scope.length)}

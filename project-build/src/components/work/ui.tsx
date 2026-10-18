@@ -20,14 +20,16 @@ export function Est() {
   return <span className={s.ex} title="Estimated from the packet's tax effect rates or what-if; the engine has not recomputed">estimate</span>;
 }
 
-export function Page({ label, h1, intro, tags, children }: { label: string; h1: string; intro?: ReactNode; tags?: ReactNode; children: ReactNode }) {
+export function Page({ label, h1, intro, tags, children, head }: { label: string; h1: string; intro?: ReactNode; tags?: ReactNode; children: ReactNode; head?: ReactNode }) {
   return (
     <div className={s.page}>
-      <header style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
-        <div className={s.eyebrow}><span className={s.lbl}>{label}</span>{tags}</div>
-        <h1 className={s.h1}>{h1}</h1>
-        {intro ? <p className={s.intro}>{intro}</p> : null}
-      </header>
+      {head ? <>{head}{intro ? <p className={s.intro}>{intro}</p> : null}</> : (
+        <header style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
+          <div className={s.eyebrow}><span className={s.lbl}>{label}</span>{tags}</div>
+          <h1 className={s.h1}>{h1}</h1>
+          {intro ? <p className={s.intro}>{intro}</p> : null}
+        </header>
+      )}
       {children}
     </div>
   );

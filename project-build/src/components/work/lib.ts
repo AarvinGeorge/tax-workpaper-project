@@ -7,6 +7,7 @@ import { retractedSeqs } from '@/domain/events';
 import type { AiReview } from '@/domain/ai/merge';
 
 export interface WorkProps {
+  head?: import('react').ReactNode; // replaces the screen's own header (Areas as a tab of the Return overview)
   ws: string;
   role: RoleInfo;
   ix: PacketIndex;

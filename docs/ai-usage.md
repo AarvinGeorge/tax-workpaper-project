@@ -66,3 +66,6 @@ From here on, entries are written at the time again.
 - 17 Oct 22:20 EDT · Fable 5.1 implementation review (probes, 28 min): 2 must-fix, 1 should-fix, applied · Opus 5.5 (main): fixes, tests
 - 17 Oct 22:35 EDT · Fable 5.1 subagent: story clock fix review with probes (read-only)
 - 17 Oct 22:46 EDT · Opus 5.5 (main): clock rule per Fable's spec, tests · Fable 5.1: review and spec (earlier this hour)
+- 17 Oct 23:12 EDT · Opus 5.5 (main): hand-in rewrite and PDF · Fable 5.1 subagent: fact-check of five hand-in documents against code, tests and live API
+- 17 Oct 23:47 EDT · Fable 5.1 subagent: side-by-side walk of tax-workpaper.vercel.app and ours against the brief (Playwright MCP, read-only)
+- 18 Oct 00:39 EDT · Opus 5.5 (main): return overview plan · Fable 5.1 subagent: plan review (read-only)

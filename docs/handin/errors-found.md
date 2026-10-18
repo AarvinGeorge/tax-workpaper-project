@@ -1,16 +1,15 @@
 # Taxmark: the errors we found, and how the design surfaced them
 
-Deliverable 3. Draft for Aarvin's review, 17 Oct 2026. Generated from the app's own catalogue
-(`project-build/src/domain/checks/catalogue.ts`) and the checks' output on the real packet, so every row here is what
-the app shows on its Findings page.
+Generated from the app's own catalogue of checks and their output on the real packet, so every row here is what the app
+shows on its Findings page. Ids starting GT- are our ledger numbers for each mistake.
 
 ## How they were found
 
 Before building, we hunted the packet for confident mistakes: four AI researchers (Claude Opus 5.5), one per area,
-each reading the printed documents against the extracted values, the three computed versions, the IRS and FTB account
+each reading the printed documents against the extracted values, the three computed versions, the IRS and California Franchise Tax Board (FTB) account
 records, the prior year and the client's own answers. Each finding was logged with its document, field, value, why it is
-wrong and its evidence (`docs/ground-truth/`); findings were spot-checked against the printed pages, and a second model
-(Claude Fable 5.1) reconciled the ledger before the build. Two entries turned out to be
+wrong and its evidence; findings were spot-checked against the printed pages. Reviewers, including a second model (Claude
+Fable 5.1), raised and checked doubtful items, and the main session resolved them before the build. Two entries turned out to be
 the same mistake logged twice, so 29 ledger ids collapse into **27 distinct mistakes**.
 
 Then each mistake became a **deterministic check** in the app, written against the packet's schema and never against
@@ -29,12 +28,12 @@ Tax effect is the estimated change in tax from correcting the mistake, from the 
 | GT-A03 | California estimated payments include a payment designated tax year 2024 | Tie-out to agency record; Field the rule ignores | Blocker | +3,500 California |
 | GT-A04 | Federal Q4 estimate from the client's guess (4,000); the IRS transcript shows 3,000 | Tie-out to agency record | Check failed | +1,000 federal |
 | GT-A05 | Theo's SSN transposed in the organizer; caused the July e-file rejection | Identity vs documents and prior year | Blocker | no dollar effect |
-| GT-A06 (also GT-C03) | Self-employed health insurance deducted though Erik could join Ngozi's employer plan (qa-25) | Client answer vs line | Blocker | +4,464 federal, +605 California |
+| GT-A06 (also GT-C03) | Self-employed health insurance deducted though Erik could join Ngozi's employer plan (the client's own questionnaire answer) | Client answer vs line | Blocker | +4,464 federal, +605 California |
 | GT-A07 | Little Sprouts tax ID misread at 0.97 confidence | Two sources disagree | Check failed | no dollar effect |
 | GT-A08 | Wrong provider name on Form 2441 | Two sources disagree | Check failed | no dollar effect |
 | GT-B01 | Northlake sweep interest on two forms, counted twice | Value counted twice | Check failed | −640 federal, −127 California |
 | GT-B02 | Swedish interest converted at the 2024 exchange rate, not 2025 | Field the rule ignores | Check failed | +43 federal, +9 California |
-| GT-B03 | Crypto lot C6 at zero basis after the client sent the real cost (msg-07, after v3) | Answer after the last computation | Blocker | −1,312 federal, −195 California |
+| GT-B03 | Crypto lot C6 at zero basis after the client sent the real cost (in a message that arrived after the last computed version, v3) | Answer after the last computation | Blocker | −1,312 federal, −195 California |
 | GT-B04 | Meridian lot M18 (page 32) never read in either 1099; the cause of the engine's own mismatch warning | Blank read used as zero | Check failed | −21 federal, −2 California |
 | GT-B05 (also GT-C09) | Prior preparer's open item (2023 Form 3520, foreign inheritance) dropped | Open item never closed | Check failed | no dollar effect |
 | GT-C01 | 1099-K card money counted twice in Schedule C gross receipts | Value counted twice | Blocker | −4,402 federal, −384 California |
@@ -78,7 +77,7 @@ Per mistake, as the Findings page states it:
 - **GT-A01.** Blank broker basis read as 0.00 matched to the supplement lot with the same acquisition date; the unused supplement value is shown beside each lot.
 - **GT-A02.** State wages rebuilt per employer from W-2 box 16, or the paystub split at the move date where one exists, against the residency dates.
 - **GT-A03.** The payment's own tax-year field (read correctly by the pipeline) is checked, and the line is tied out to the FTB account by tax year.
-- **GT-A04.** Estimated payments tied out to transcript code 670 lines; the part resting only on a client answer is named.
+- **GT-A04.** Estimated payments tied out to the estimated-payment lines on the IRS account transcript; the part resting only on a client answer is named.
 - **GT-A05.** Every organizer SSN compared with every document that prints one for the same person (the 2024 return already had it); a mismatch blocks e-file. Last 4 only.
 - **GT-A06.** The questionnaire answer on eligibility is linked to the line it gates, with last year's treatment beside it.
 - **GT-A07.** Each identifier read is compared with the printed page; a transposition is shown whatever the confidence.
@@ -97,7 +96,7 @@ Per mistake, as the Findings page states it:
 - **GT-C08.** A simplified home office with two areas in a year with two homes asks for a method per home.
 - **GT-C10.** Prior-year figures are compared with this year's source documents, saying which year looks wrong.
 - **GT-D01.** A lender statement that says it is reported on the Form 1098 is linked to the 1098 as detail, never a second source.
-- **GT-D02.** A closing-statement tax credit that feeds no line is set beside the property-tax line for the same address, with the SALT cap effect.
+- **GT-D02.** A closing-statement tax credit that feeds no line is set beside the property-tax line for the same address, with the effect of the cap on deductible state and local taxes (SALT).
 - **GT-D03.** A line taken from a client's estimate is shown against the third-party form for the same item.
 - **GT-D04.** A credit equal to the raw other-state tax times a day ratio is checked against the limit to California's tax on that income.
 - **GT-D05.** The penalty is recomputed from the packet (proven by reproducing the engine's figure first) with excess social security counted as withholding.
@@ -109,6 +108,7 @@ After the build we ran an AI reader (Claude Sonnet 5.5) blind over the packet, w
 titles in any prompt. Judged by a second model, it found 13 of the 27 for the same reason (14 counting a partial).
 It also found one we had missed, now logged as **GT-D07**: the 1,500 gift to St. Brigid rests on a handwritten
 receipt (D64) with no statement of goods or services, which IRC 170(f)(8) requires for gifts of 250 or more; our hunt
-had treated a phone confirmation of the amount as enough. If disallowed: about +390 federal and +72 California. It
-also produced three confident mistakes of its own (true quotes from a superseded 1099, wrong conclusions), which our
-verifier now holds back. Full results: `docs/handin/ai-scorecard.md`.
+had treated a phone confirmation of the amount as enough. If disallowed: about +390 federal and +72 California. Of its
+other suggestions outside our list, a second model judged 8 wrong and 3 repeats of others, which is why every AI
+suggestion waits for a person. An earlier run had made three confident mistakes from a 1099 that was later replaced;
+a verifier rule now holds those back.

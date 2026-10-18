@@ -91,13 +91,11 @@ test('T8: the All count matches our checks', async ({ page }) => {
   await expect(page.getByRole('link', { name: /^All / })).toContainText(ours.replace(/[()]/g, ''));
 });
 
-test('T9 and Areas: Home counts the other open checks instead of listing them; Areas links to Review', async ({ page }) => {
+test('T9 and Areas: the overview does not repeat Checks; Areas links to Review', async ({ page }) => {
   const w = ws();
   await page.goto(`/w/${w}/priya`);
-  const open = page.locator('section[aria-label="Open checks"]');
-  await expect(open).toContainText(/\d+ more open checks/);
-  await expect(open.locator('a.qrow')).toHaveCount(0);
-  await expect(open.getByRole('link', { name: 'Open all checks' })).toBeVisible();
+  await expect(page.locator('section[aria-label="Open checks"]')).toHaveCount(0);
+  await expect(page.getByRole('link', { name: 'Open all checks' })).toHaveCount(0);
   await page.goto(`/w/${w}/priya/areas`);
   await page.getByRole('main').locator('summary').filter({ hasText: 'Prior preparer against our changes' }).click();
   await expect(page.getByRole('main').getByRole('link', { name: /Adjustments on Review/ })).toBeVisible();

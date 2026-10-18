@@ -17,7 +17,7 @@ People fix what is wrong, every change is kept forever, AI points at problems in
 
 | # | Time | Show (click) | Say |
 |---|---|---|---|
-| 1 | 0:00-0:35 | Daniel `/daniel`: Home, the counts | "A tax return is a few hundred numbers. Behind each one is a document: a W-2, a brokerage statement, a receipt. Software reads those documents for the firm, and it is usually right. When it is wrong, it is wrong with 99% confidence, and nobody notices until the IRS does. So I built Taxmark around one idea: every number on the return carries its receipt." |
+| 1 | 0:00-0:35 | Daniel `/daniel`: Return overview, the three figures and the counts | "A tax return is a few hundred numbers. Behind each one is a document: a W-2, a brokerage statement, a receipt. Software reads those documents for the firm, and it is usually right. When it is wrong, it is wrong with 99% confidence, and nobody notices until the IRS does. So I built Taxmark around one idea: every number on the return carries its receipt." |
 | 2 | 0:35-1:20 | `/daniel/return?claim=line:F540NR.72`, click a source | "Here is a line on the California return. I click it and I see where it came from: the document, the page, the exact field, highlighted. I see the rule that added it up and how confident the reading was. You never have to trust a number. You can follow it back to the paper. In this demo the pages are rebuilt from the extracted data, and the design lets a real PDF take their place." |
 | 3 | 1:20-2:05 | `/daniel/checks`: the blockers | "Taxmark does not take the software's word for it. It checks each number against something else: the tax agencies' records, the client's other documents, last year's return. The checks read the packet format, so the same checks run on the next client's packet. I also ran them on a second, altered packet, to make sure they catch real mistakes and stay quiet otherwise. In this client's packet they found 27 mistakes. Here is one. The return claims 14,000 dollars of California estimated payments, but one of those payments was for the year before. That is a blocker. The return cannot be approved until it is fixed." |
 | 4 | 2:05-2:50 | Daniel (reviewer) adjusts F540NR.72 to 10,500 with a reason; switch to Priya's tab: the notice and the bell | "Daniel, the reviewer, fixes the number and writes why. Taxmark keeps the old value, who changed it, why, and what it does to the tax. This change is over 1,000 dollars, so it needs the partner. Switch to Priya's tab. Priya prepared this return, and the notice is already waiting. Nothing is ever edited or deleted. Every action is added to a record, like a bank statement, and that record is the audit trail." |
@@ -31,8 +31,8 @@ All links start with `https://taxmark-workpaper.vercel.app/w/video-take1`. Tabs:
 
 **Order matters.** Do the adjustment (moment 4) before the clock (moment 7). After 15 Jul the return is locked and Adjust is refused. To redo a take: Reset to start, Confirm reset, reload Priya's tab.
 
-**0:00-0:35 · Home (Daniel's tab)**
-1. Open `/daniel`. Point at the "Start here" counts.
+**0:00-0:35 · Return overview (Daniel's tab)**
+1. Open `/daniel`. Point at the three figures (adjusted gross income, federal tax, California tax), then the "Start here" counts.
 2. Do not click **Dismiss** on that panel, or the counts disappear.
 
 **0:35-1:20 · Trace a number**

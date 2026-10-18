@@ -85,6 +85,9 @@ test('first use only: each term is marked at most once per screen', async ({ pag
 test('a click or tap inside an open tooltip keeps it open', async ({ page }) => {
   await page.goto(`/w/e2e-terms-${Date.now().toString(36)}/daniel/return`);
   const mark = page.locator('button[data-term="form-1040"]').first();
+  // A tooltip closes when the page scrolls; bring the mark into view first so the click itself does not scroll.
+  await mark.scrollIntoViewIfNeeded();
+  await page.waitForTimeout(200);
   await mark.click();
   const tip = page.getByRole('tooltip');
   await expect(tip).toBeVisible();

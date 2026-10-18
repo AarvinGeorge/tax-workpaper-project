@@ -21,7 +21,7 @@ test('the root link opens a new workspace as Daniel', async ({ page }) => {
 });
 
 test('Daniel opens a v3 line and sees its source document page and field', async ({ page }) => {
-  await page.goto(`/w/${ws('trace')}/daniel/return`);
+  await page.goto(`/w/${ws('trace')}/daniel/return?open=F540NR`); // forms start collapsed; open California's
   await page.locator('a[data-line="F540NR.72"]').click();
   await expect(page).toHaveURL(/claim=line%3AF540NR\.72/);
   const d = drawer(page);

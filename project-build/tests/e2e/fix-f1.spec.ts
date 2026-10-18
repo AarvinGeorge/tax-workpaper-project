@@ -83,8 +83,9 @@ test('item 6: blockers listed once on Home; ledger ids off staff Checks and draw
   await page.goto(`/w/${w}/daniel`);
   const blockers = await page.locator('section[aria-label="Blocking approval"] .qrow').allInnerTexts();
   expect(blockers.length).toBeGreaterThan(0);
-  const others = await page.locator('section[aria-label="Open checks"]').innerText();
-  for (const b of blockers) expect(others).not.toContain(b.replace(/^Blocking\s*/, '').trim());
+  // The overview lists blockers once and no second list of open checks (those live on Checks).
+  expect(new Set(blockers).size).toBe(blockers.length);
+  await expect(page.locator('section[aria-label="Open checks"]')).toHaveCount(0);
   await page.goto(`/w/${w}/daniel/checks`);
   await expect(page.getByRole('main')).not.toContainText(/\bGT-[A-Z]\d/);
   const first = await page.locator('[data-finding]').first().getAttribute('data-finding');

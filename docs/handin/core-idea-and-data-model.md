@@ -1,7 +1,5 @@
 # Taxmark: the core idea and the data model
 
-Deliverable 2, one page. Draft for Aarvin's review, 17 Oct 2026.
-
 ## The core idea
 
 **Every number is a claim that carries its proof.** A workpaper exists to prove the return, so Taxmark makes each
@@ -15,7 +13,7 @@ be followed, challenged and signed.
 Three inputs, one log, and views computed per person.
 
 ```
- PACKET (read-only)            AI PAYLOAD (read-only, untrusted)          EVENT LOG (append-only)
+ PACKET (read-only, encrypted) AI PAYLOAD (read-only, untrusted)          EVENT LOG (append-only)
  documents, pages, values      suggestions with verbatim quotes,          adjustment, review_note, signoff,
  3 computed versions           tied to the packet's hash                  question, answer, verification,
  prior years, agency records         │                                    decision, reveal, clock_moved,
@@ -36,12 +34,14 @@ Three inputs, one log, and views computed per person.
 - **Claim:** anything that can carry evidence and actions: a return line (`line:F540NR.72`), a document
   (`doc:D68`), a finding (`finding:…`) or the return as a whole.
 - **Event:** who did what to which claim, when (wall time and story time), with a payload (new value and reason,
-  note text, signed value, method of verification). Never edited or deleted; an undo or a reset is a new event.
+  note text, the signed value and a note on what was checked, method of verification). Never edited or deleted; an
+  undo or a reset is a new event.
 - **Finding:** produced by a check (or a verified AI suggestion) with its evidence references, severity, tax effect
   and the time it becomes visible in the story.
 - **Role:** from the packet's firm staff and client users, with clearance and the screens it may open; the server
   enforces every action and masks identifiers before anything reaches the browser.
 - **Story clock:** one per workspace; everything after it is hidden, and the return freezes at federal acceptance.
+  The workspace also records the latest point it has reached: earlier points can be viewed but not written to.
 
 ## Why this model
 

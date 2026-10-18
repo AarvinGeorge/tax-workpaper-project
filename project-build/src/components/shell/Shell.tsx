@@ -77,6 +77,8 @@ const VERB: Partial<Record<WorkEvent['type'], string>> = {
 
 const claimTitle = claimLabel;
 
+const OVERVIEW_TABS: ScreenKey[] = ['return', 'areas', 'documents'];
+
 export async function Shell({ ws, role, screen, claim, q, children, ...given }: ShellProps) {
   const w = await getWorkspace(ws, role);
   const { ix } = w;
@@ -172,12 +174,17 @@ export async function Shell({ ws, role, screen, claim, q, children, ...given }: 
         <aside className="sh-pane-l" aria-label="Screens and history">
           <nav aria-label="Screens" style={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
             <div className="lbl" style={{ padding: '0 10px 6px' }}>{isClient ? 'Your return' : 'Screens'}</div>
-            {me.screens.map((k) => (
-              <Link key={k} className="sh-nav" href={screenPath(ws, role, k)} aria-current={k === screen ? 'page' : undefined}>
-                <span className="t">{screenLabel(k, me.kind)}</span>
-                <span className="small muted">{screenHint(k, me.kind)}</span>
-              </Link>
-            ))}
+            {/* Staff: Home, Return, Areas and Documents are one entry, the Return overview, whose tabs are those routes. */}
+            {me.screens.filter((k) => me.kind !== 'staff' || !OVERVIEW_TABS.includes(k)).map((k) => {
+              const overview = me.kind === 'staff' && k === 'home';
+              const current = k === screen || (overview && OVERVIEW_TABS.includes(screen));
+              return (
+                <Link key={k} className="sh-nav" href={screenPath(ws, role, k)} aria-current={current ? 'page' : undefined}>
+                  <span className="t">{overview ? 'Return overview' : screenLabel(k, me.kind)}</span>
+                  <span className="small muted">{overview ? 'Figures, open items, forms, areas, documents' : screenHint(k, me.kind)}</span>
+                </Link>
+              );
+            })}
           </nav>
           <div>
             <div className="lbl" style={{ padding: '0 10px 6px' }}>{isClient ? 'Your activity' : 'History'}</div>

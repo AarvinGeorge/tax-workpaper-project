@@ -158,7 +158,7 @@ export function AreasScreen(p: WorkProps) {
   const carryOut = obj(v.carryovers_out);
 
   return (
-    <Page label="Areas" h1="Records by area"
+    <Page head={p.head} label="Areas" h1="Records by area"
       tags={<><Tag tone="neu">{v.version} computed {when(v.computed_at)}</Tag><Tag tone="neu">As of {when(state.storyAt)}</Tag>{state.frozen ? <Tag tone="acc">As filed, locked</Tag> : null}</>}
       intro="The record tables behind the return, each read from its place in the packet. Amounts on return lines open where they came from. Where the packet has no record, the table says so.">
 

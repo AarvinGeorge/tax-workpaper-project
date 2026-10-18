@@ -224,3 +224,16 @@ a.srcitem:hover { border-color: var(--ink2); }
   .client-sw { position: static; }
   .client-sw-menu { left: 0; right: 0; width: auto; }
 }
+
+/* Return overview: three figures and the tab bar (Forms, Areas, Documents) */
+.kpis { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 12px; }
+.kpi { display: flex; flex-direction: column; gap: 4px; padding: 14px 16px; border: 1px solid var(--line); border-radius: 10px; background: var(--surface); color: var(--ink); text-decoration: none; }
+.kpi:hover { border-color: var(--ink2); }
+.kpi:focus-visible, .ov-tab:focus-visible { outline: 2px solid var(--acc); outline-offset: 2px; }
+.kpi-l { font-size: 13px; color: var(--ink2); }
+.kpi-v { font-size: 26px; font-weight: 700; letter-spacing: -.01em; }
+.ov-tabs { display: flex; gap: 4px; border-bottom: 1px solid var(--line); }
+.ov-tab { padding: 8px 14px; font-weight: 600; color: var(--ink2); text-decoration: none; border-bottom: 2px solid transparent; margin-bottom: -1px; }
+.ov-tab:hover { color: var(--ink); }
+.ov-tab[aria-current="page"] { color: var(--acc); border-bottom-color: var(--acc); }
+@media (max-width: 640px) { .kpis { grid-template-columns: minmax(0, 1fr); } }
