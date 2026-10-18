@@ -67,7 +67,7 @@ describe('can', () => {
     for (const note of [undefined, '', '   ']) {
       const r = can(ix, 'daniel', 'signoff', { claimId, payload: { level: 'reviewer', ...(note === undefined ? {} : { note }) } }, empty);
       expect(r.ok).toBe(false);
-      expect(r.reason).toMatch(/review note/);
+      expect(r.reason).toMatch(/what you checked/);
     }
     expect(can(ix, 'daniel', 'signoff', { claimId, payload: { level: 'reviewer', note: 'Tied to the W-2' } }, empty).ok).toBe(true);
     // Stored sign-offs without a note still project (the rule gates new writes only).

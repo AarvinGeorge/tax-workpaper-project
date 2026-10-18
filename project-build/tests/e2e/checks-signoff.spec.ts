@@ -23,7 +23,7 @@ test('one table: a checkbox in each row, no separate sign-off list, bar only onc
   const first = rows.nth(0);
   await first.locator('summary').click();
   await expect(first.locator('details')).toHaveAttribute('open', '');
-  await expect(first.getByRole('textbox', { name: /Review note for sign-off/ })).toBeVisible();
+  await expect(first.getByRole('textbox', { name: /What you checked/ })).toBeVisible();
 });
 
 test('no sign-off without a review note: the first row missing one opens, then each note is saved with its sign-off', async ({ page }) => {
@@ -46,12 +46,12 @@ test('no sign-off without a review note: the first row missing one opens, then e
   await rowBoxes(page).nth(1).check();
   const second = blockers.nth(1);
   await second.locator('summary').click();
-  await second.getByRole('textbox', { name: /Review note for sign-off/ }).fill('Checked against the 1099-K');
+  await second.getByRole('textbox', { name: /What you checked/ }).fill('Checked against the 1099-K');
   await bar.getByRole('button', { name: 'Sign off selected (2)' }).click();
-  await expect(bar).toContainText('1 selected row needs a review note');
+  await expect(bar).toContainText('1 selected row needs a note on what you checked');
   const first = blockers.nth(0);
   await expect(first.locator('details')).toHaveAttribute('open', '');
-  const firstNote = first.getByRole('textbox', { name: /Review note for sign-off/ });
+  const firstNote = first.getByRole('textbox', { name: /What you checked/ });
   await expect(firstNote).toBeFocused();
   await expect(ours(page).locator('[data-finding]').filter({ hasText: 'Signed off' })).toHaveCount(0);
   await firstNote.fill('Proration agreed to the closing statement');
@@ -103,9 +103,9 @@ test('the drawer sign-off needs a review note too, and the note shows in its Sig
   const acts = drawer.getByTestId('drawer-actions');
   await acts.getByRole('button', { name: 'Sign off as reviewer', exact: true }).click();
   await acts.locator('.drw-panel').getByRole('button', { name: 'Sign off', exact: true }).click();
-  await expect(acts).toContainText(/A review note/);
+  await expect(acts).toContainText(/What you checked/);
   await expect(drawer).not.toContainText('reviewer sign-off by');
-  await drawer.getByLabel('Review note (required)').fill('Agreed to the IRS account transcript');
+  await drawer.getByLabel('What you checked (required)').fill('Agreed to the IRS account transcript');
   await acts.locator('.drw-panel').getByRole('button', { name: 'Sign off', exact: true }).click();
   await expect(drawer).toContainText('Agreed to the IRS account transcript');
   await expect(drawer).toContainText('reviewer sign-off by');

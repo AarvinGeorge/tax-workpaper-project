@@ -80,7 +80,7 @@ export function TextAction({ ws, role, label, placeholder, build, disabledReason
 
 /**
  * Sign-off inside the Checks table: one selection shared by the row checkboxes, the per-group select-all and the bar.
- * Every selected row needs its own review note (written in the row, kept here until sent). Signing with a note missing
+ * Every selected row needs its own note on what was checked (written in the row, kept here until sent). Signing with a note missing
  * sends nothing: the first such row opens, scrolls into view and takes focus. Otherwise one signoff event per row goes
  * out under one groupId, each with its note, so a single undo reverses the batch.
  */
@@ -128,8 +128,8 @@ export function SignoffScope({ ws, role, level, items, blockers, children }: {
           <strong className={s.num} style={{ fontSize: 13 }}>{live.length} selected</strong>
           <span className={s.note} aria-live="polite" style={ask && missing.length ? { color: 'var(--wrn)', fontWeight: 600 } : undefined}>
             {missing.length
-              ? `${missing.length} selected ${missing.length === 1 ? 'row needs' : 'rows need'} a review note${ask ? '; opened the first one' : ''}`
-              : 'Every selected row has its review note'}
+              ? `${missing.length} selected ${missing.length === 1 ? 'row needs' : 'rows need'} a note on what you checked${ask ? '; opened the first one' : ''}`
+              : 'Every selected row says what you checked'}
           </span>
           <span style={{ flex: '1 1 auto' }} />
           <button type="button" className={`${s.btn} ${s.small} ${s.primary}`} disabled={pending} onClick={signSelected}>
@@ -153,14 +153,14 @@ export function RevealDrawerOnPhone({ claim }: { claim: string | null }) {
   return null;
 }
 
-/** The row's review note for sign-off, inside the expanded row; only for rows this role can still sign. */
+/** The row's sign-off note (what you checked), inside the expanded row; only for rows this role can still sign. */
 export function SignoffNote({ id, level }: { id: string; level: string }) {
   const c = useContext(SignoffCtx);
   if (!c || !c.signable.has(id)) return null;
   const v = c.notes[id] ?? '';
   return (
     <label className={s.row} style={{ gap: 6 }}>
-      <span className={s.note}>Review note for sign-off <span className={s.lbl}>required</span></span>
+      <span className={s.note}>What you checked <span className={s.lbl}>required</span></span>
       <input className={s.input} data-signoff-note="" style={{ flex: '1 1 260px', minWidth: 0 }} value={v}
         placeholder={`What you checked before signing off as ${level}`}
         onChange={(e) => { c.note(id, e.target.value); if (e.target.value.trim() && !c.sel.includes(id)) c.set([...c.sel, id]); }} />

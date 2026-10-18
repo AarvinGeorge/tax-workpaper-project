@@ -325,7 +325,7 @@ test('2.5 A sign-off reopens when the number changes', async ({ browser }) => {
   const pr = await go(browser, 'priya', 'return', FED_EST);
   await expect(drawer(pr).getByTestId('claim-value')).toHaveText('13,000');
   await action(pr, 'Sign off as preparer');
-  await drawer(pr).getByLabel('Review note (required)').fill('Agreed to the IRS account transcript');
+  await drawer(pr).getByLabel('What you checked (required)').fill('Agreed to the IRS account transcript');
   await saveAction(pr);
   const p = await go(browser, 'daniel', 'return', FED_EST);
   await action(p, 'Adjust');
@@ -346,7 +346,7 @@ test('2.5 A sign-off reopens when the number changes', async ({ browser }) => {
 
 test('2.6 A review note that blocks filing', async ({ browser }) => {
   const p = await go(browser, 'daniel', 'return', CA_EST);
-  await action(p, 'Review note');
+  await action(p, 'Leave a review note');
   await p.locator('#rn-t').fill('Hold: confirm the D68 designation with the client before approval.');
   await drawer(p).getByLabel(/Block/).check();
   await saveAction(p);
@@ -510,7 +510,7 @@ test('4.2 Partner sign-off and approval', async ({ browser }) => {
   await p.getByRole('link', { name: /^Partner items/ }).or(p.getByRole('button', { name: /^Partner items/ })).first().click();
   await main(p).getByRole('link', { name: /California estimate/i }).first().click();
   await action(p, 'Sign off as partner');
-  await drawer(p).getByLabel('Review note (required)').fill('Agreed to the FTB account');
+  await drawer(p).getByLabel('What you checked (required)').fill('Agreed to the FTB account');
   await saveAction(p);
   // a second partner item (the 2.5 federal adjustment, tax effect over 1,000) may also need her sign-off
   await go(browser, 'helen', 'review');
@@ -589,7 +589,7 @@ test('5.2 Move past acceptance: the record locks', async ({ browser }) => {
   }
   await expect(status, 'refused with amend on top').toContainText(/amend on top/i);
   await expect(drawer(p).getByTestId('claim-value')).not.toHaveText('9,999');
-  await action(p, 'Review note');
+  await action(p, 'Leave a review note');
   await p.locator('#rn-t').fill('Note after filing: the September payment was moved to 2024 by the FTB.');
   await saveAction(p);
   await expect(drawer(p), 'note recorded on top of the filed record').toContainText('Note after filing');

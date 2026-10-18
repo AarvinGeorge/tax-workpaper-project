@@ -47,7 +47,7 @@ export function DrawerActions(p: Props) {
       case 'verification':
         return send('verification', { method: f.method || p.methods[0], note: f.note ?? '' }, 'Verification recorded.');
       case 'signoff':
-        if (!need('note', 'A review note')) return;
+        if (!need('note', 'What you checked')) return;
         return send('signoff', { note: f.note }, `Signed off as ${spec.level}. It goes stale if the value changes.`);
       case 'review_note':
         if (!need('text', 'The note')) return;
@@ -92,7 +92,7 @@ export function DrawerActions(p: Props) {
             <label className="lbl" htmlFor="ver-n">Note</label><input id="ver-n" className="field" value={f.note ?? ''} onChange={set('note')} />
           </>}
           {spec.kind === 'signoff' && <>
-            <label className="lbl" htmlFor="so-n">Review note (required)</label><textarea id="so-n" className="field" rows={2} value={f.note ?? ''} onChange={set('note')} placeholder="What you checked before signing off" />
+            <label className="lbl" htmlFor="so-n">What you checked (required)</label><textarea id="so-n" className="field" rows={2} value={f.note ?? ''} onChange={set('note')} placeholder="What you checked before signing off" />
             <span className="small">You sign off the value as it stands now. If it changes later, this sign-off is marked stale.</span>
           </>}
           {spec.kind === 'review_note' && <>

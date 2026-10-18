@@ -65,7 +65,7 @@ test('Ngozi sees no review notes and no internal screens', async ({ page }) => {
   const note = `Internal note ${Date.now()}`;
   await page.goto(`/w/${id}/daniel/return?claim=line%3AF540NR.72`);
   const d = drawer(page);
-  await d.getByRole('button', { name: 'Review note' }).click();
+  await d.getByRole('button', { name: 'Leave a review note' }).click();
   await d.locator('#rn-t').fill(note);
   await d.getByRole('button', { name: 'Save' }).click();
   await expect(d).toContainText(note);

@@ -137,7 +137,7 @@ export function ReviewScreen(p: WorkProps) {
                       events={[{ type: 'adjustment', claimId: c.claimId, baseVersion: c.version, payload: { ...(adj?.payload ?? {}), status: 'applied', appliedBy: role.key } }]} />
                   ) : null}
                   {level ? (
-                    <TextAction ws={ws} role={role.key} label="Review note" placeholder="What you checked before signing off" submitLabel={`Sign off as ${level}`}
+                    <TextAction ws={ws} role={role.key} label="What you checked" placeholder="What you checked before signing off" submitLabel={`Sign off as ${level}`}
                       disabledReason={signReason} build={{ type: 'signoff', claimId: c.claimId, baseVersion: c.version, payload: { level }, field: 'note' }} />
                   ) : null}
                 </span>

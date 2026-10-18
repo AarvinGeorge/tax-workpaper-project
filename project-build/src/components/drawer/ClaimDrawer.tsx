@@ -123,7 +123,7 @@ function actionsFor(c: Ctx, claimId: string, current: unknown): ActionSpec[] {
   };
   const test = (action: ActionSpec['kind']) => can(ix, me, action, { claimId, payload: sample[action] }, state);
   const kinds: [ActionSpec['kind'], string][] = [
-    ['adjustment', 'Adjust'], ['verification', 'Verify'], ['signoff', `Sign off as ${level}`], ['review_note', 'Review note'],
+    ['adjustment', 'Adjust'], ['verification', 'Verify'], ['signoff', `Sign off as ${level}`], ['review_note', 'Leave a review note'],
     ['question_to_client', 'Ask the client'], ['decision', 'Record a decision'], ['question_to_colleague', 'Ask a colleague'],
   ];
   return kinds.map(([kind, label]) => { const r = test(kind); return { kind, label, ok: r.ok, reason: r.reason, level, current }; });
