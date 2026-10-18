@@ -106,6 +106,34 @@ describe('can', () => {
     expect(r.reason).toMatch(/joins/);
     expect(can(ix, 'marcus', 'review_note', { claimId, payload: { text: 'x' } }, empty).ok).toBe(true);
   });
+  it('the past is view-only: after a rewind every write is refused until the clock is back at the latest point reached', () => {
+    const fwd = ev('jo', 'clock_moved', { payload: { to: '2026-07-15T02:10:00Z' } });
+    const back = ev('jo', 'clock_moved', { payload: { to: '2026-06-23T06:05:00Z' } });
+    const rewound = projectWorkspace(ix, [fwd, back], 'daniel', []);
+    expect(rewound.frontierAt).toBe('2026-07-15T02:10:00Z');
+    for (const [role, type, payload] of [
+      ['daniel', 'adjustment', { value: 12000 }], ['daniel', 'review_note', { text: 'x', blocking: true }],
+      ['priya', 'reveal', { what: 'household:ngozi.ssn' }], ['ngozi', 'answer_recorded', { questionSeq: 1, text: 'x' }],
+    ] as [RoleKey, NewEvent['type'], Record<string, unknown>][]) {
+      const r = can(ix, role, type, { claimId, payload }, rewound);
+      expect(r.ok, `${role} ${type}`).toBe(false);
+      expect(r.reason).toMatch(/earlier point in the story/);
+    }
+    // The clock itself still moves, and at the latest point writes are allowed again.
+    expect(can(ix, 'jo', 'clock_moved', { payload: { to: '2026-07-15T02:10:00Z' } }, rewound).ok).toBe(true);
+    const there = projectWorkspace(ix, [ev('jo', 'clock_moved', { payload: { to: '2026-07-01T00:00:00Z' } })], 'daniel', []);
+    expect(can(ix, 'daniel', 'review_note', { claimId, payload: { text: 'x' } }, there).ok).toBe(true);
+  });
+  it('the latest point reached counts an undone clock move; a reset clears it', () => {
+    const fwd = ev('jo', 'clock_moved', { payload: { to: '2026-07-15T02:10:00Z' } });
+    const undone = projectWorkspace(ix, [fwd, ev('jo', 'undo', { retracts: fwd.seq, payload: {} })], 'daniel', []);
+    expect(undone.storyAt).toBe(AT);
+    expect(undone.frontierAt).toBe('2026-07-15T02:10:00Z');
+    expect(can(ix, 'daniel', 'review_note', { claimId, payload: { text: 'x' } }, undone).ok).toBe(false);
+    const reset = projectWorkspace(ix, [fwd, ev('daniel', 'workspace_reset')], 'daniel', []);
+    expect(reset.frontierAt).toBe(AT);
+    expect(can(ix, 'daniel', 'review_note', { claimId, payload: { text: 'x' } }, reset).ok).toBe(true);
+  });
   it('approval is refused while blockers stand, with the list', () => {
     const s = stateOf([ev('daniel', 'review_note', { claimId, payload: { text: 'fix', blocking: true } })]);
     const r = can(ix, 'helen', 'approve', {}, s);

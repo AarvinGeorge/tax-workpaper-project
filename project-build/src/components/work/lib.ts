@@ -118,6 +118,7 @@ export function levelOf(ix: PacketIndex, role: RoleInfo): 'preparer' | 'reviewer
 export function writeBlock(role: RoleInfo, state: WorkspaceState): string | null {
   if (role.kind === 'examiner') return 'The examiner view is read only.';
   if (role.activeFrom && new Date(role.activeFrom).getTime() > new Date(state.storyAt).getTime()) return `${role.name} joins at ${when(role.activeFrom)}; story time is ${when(state.storyAt)}, earlier.`;
+  if (state.frontierAt && new Date(state.frontierAt).getTime() > new Date(state.storyAt).getTime()) return `You are viewing an earlier point in the story. Move the clock to ${when(state.frontierAt)} to act.`;
   return null;
 }
 

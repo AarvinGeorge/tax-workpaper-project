@@ -12,9 +12,8 @@ test('Ngozi gets the e-file rejection in plain words once the clock passes 13 Ju
   const bell = page.getByTestId('bell');
   await expect(bell).toHaveAttribute('aria-label', 'Notifications, none unread');
   expect((await moveClock(request, w, '2026-07-13T18:00:00Z')).ok()).toBe(true);
-  await page.reload(); // a client tab does not yet follow a clock move on its own: see the fixme below
-
-  await expect(bell).toHaveAttribute('aria-label', 'Notifications, 1 unread');
+  // No reload: an open client tab follows a clock move on its own (LiveRefresh polls every 5 s).
+  await expect(bell).toHaveAttribute('aria-label', 'Notifications, 1 unread', { timeout: 15_000 });
   await bell.click();
   const panel = page.getByTestId('bell-panel');
   await expect(panel).toContainText('The IRS returned your return; we need a document from you');

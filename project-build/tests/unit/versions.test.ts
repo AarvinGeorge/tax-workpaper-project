@@ -14,7 +14,7 @@ function stateWith(claims: Record<string, Partial<ClaimState>>): WorkspaceState 
   for (const [id, c] of Object.entries(claims)) {
     full[id] = { claimId: id, original: null, current: null, adjusted: false, history: [], signoffs: [], openNotes: [], version: 0, ...c };
   }
-  return { storyAt: ix.latest.computed_at, frozen: false, stage: 'Review', claims: full, blockers: [], reveals: [], reasons: {}, events: [] };
+  return { storyAt: ix.latest.computed_at, frontierAt: ix.latest.computed_at, frozen: false, stage: 'Review', claims: full, blockers: [], reveals: [], reasons: {}, events: [] };
 }
 
 describe('compareVersions', () => {

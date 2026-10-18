@@ -64,3 +64,5 @@ From here on, entries are written at the time again.
 - 17 Oct 21:17 EDT · Fable 5.1 subagent: UX audit, live walk with Playwright MCP, report only
 - 17 Oct 21:37 EDT · Opus 5.5 (main): UX tier plan · Fable 5.1 subagent: plan review (read-only)
 - 17 Oct 22:20 EDT · Fable 5.1 implementation review (probes, 28 min): 2 must-fix, 1 should-fix, applied · Opus 5.5 (main): fixes, tests
+- 17 Oct 22:35 EDT · Fable 5.1 subagent: story clock fix review with probes (read-only)
+- 17 Oct 22:46 EDT · Opus 5.5 (main): clock rule per Fable's spec, tests · Fable 5.1: review and spec (earlier this hour)

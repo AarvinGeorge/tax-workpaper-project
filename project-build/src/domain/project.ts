@@ -43,6 +43,17 @@ function storyTime(ix: PacketIndex, events: WorkEvent[], retracted: Set<number>)
   return at;
 }
 
+/** The latest story time reached since the last reset: every clock move counts, undone or not, so undoing a forward
+ *  move restores the view but never reopens the past for writing (Reset does). */
+function frontierTime(ix: PacketIndex, events: WorkEvent[]): string {
+  let at = DEFAULT_STORY_AT(ix);
+  for (const e of events) {
+    const to = e.type === 'clock_moved' ? e.payload.to : undefined;
+    if (typeof to === 'string' && !Number.isNaN(Date.parse(to)) && Date.parse(to) > Date.parse(at)) at = to;
+  }
+  return at;
+}
+
 function originalOf(ix: PacketIndex, claimId: string): number | string | null {
   if (!claimId.startsWith('line:')) return null;
   const v = ix.line(ix.latest.version, claimId.slice(5))?.value;
@@ -118,7 +129,7 @@ export function projectWorkspace(ix: PacketIndex, events: WorkEvent[], role: Rol
   const visible = sorted.filter((e) => e.type === 'clock_moved' || visibleAt(e.storyAt, storyAt)).map((e) => maskEvent(e, info));
   const retracted = retractedSeqs(visible);
   const fz = frozenAt(ix);
-  const base = { storyAt, frozen: !!fz && visibleAt(fz, storyAt), stage: stageAt(ix, storyAt) };
+  const base = { storyAt, frontierAt: frontierTime(ix, sorted), frozen: !!fz && visibleAt(fz, storyAt), stage: stageAt(ix, storyAt) };
 
   if (!info || info.kind !== 'staff') {
     // Outside views: a client sees questions addressed to them, what they themselves wrote, and the signing record of

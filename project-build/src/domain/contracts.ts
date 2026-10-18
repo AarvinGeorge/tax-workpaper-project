@@ -54,6 +54,7 @@ export interface ClaimState {
 }
 export interface WorkspaceState {
   storyAt: string; frozen: boolean; stage: 'Preparation' | 'Review' | 'Approval' | 'Filing' | 'Filed';
+  frontierAt: string; // the latest story time this workspace has reached; earlier times are view-only
   claims: Record<string, ClaimState>; blockers: { claimId: string; title: string }[];
   reveals: { seq: number; role: RoleKey; what: string; at: string }[];
   reasons: Record<string, { code: string; text: string; role: RoleKey }>;

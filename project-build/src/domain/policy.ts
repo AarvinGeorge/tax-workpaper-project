@@ -146,6 +146,11 @@ export function can(ix: PacketIndex, roleArg: RoleKey | RoleInfo, action: Action
   }
   if (info.kind === 'examiner') return no('The examiner has read-only access to the items under examination.');
   if (!meta.writes) return no(`${info.title} has read-only access to this return.`);
+  // The past is view-only: acting is only at the latest story time reached, so nothing is written into a past that a
+  // later point (the filed return, the view log) has already recorded. The clock and Reset stay free (above).
+  if (state.frontierAt && !visibleAt(state.frontierAt, state.storyAt)) {
+    return no(`You are viewing an earlier point in the story. Move the clock to ${fmtDate(state.frontierAt)} to act.`);
+  }
 
   if (info.kind === 'client') return clientCan(ix, meta, action, target, state);
 
