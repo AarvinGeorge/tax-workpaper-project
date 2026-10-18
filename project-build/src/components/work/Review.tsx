@@ -122,7 +122,7 @@ export function ReviewScreen(p: WorkProps) {
                   {adj ? <span className={s.note}>{m(adj.payload.reason ?? '')}{adj.payload.authority ? ` · Authority: ${m(adj.payload.authority)}` : ''} · <span title={byline(ix, adj).title}>{byline(ix, adj).text}</span></span> : null}
                 </span>
                 <span className={s.num} style={{ flex: '0 1 220px', display: 'flex', flexDirection: 'column', gap: 3 }}>
-                  <span><span className={s.old}>{m(c.original)}</span> to <strong>{m(c.current)}</strong></span>
+                  <span><span className={s.old}>{m(c.original)}</span> to <strong>{m(status === 'applied' ? c.current : adj?.payload.value)}</strong></span>
                   {c.effect ? <span className={s.note}>Fed {signed(c.effect.federal)} · CA {signed(c.effect.california)} <Est /></span> : null}
                 </span>
                 <span className={s.row} style={{ flex: '1 1 260px', gap: 6 }}>

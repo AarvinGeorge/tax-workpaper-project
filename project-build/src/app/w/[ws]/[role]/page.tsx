@@ -1,3 +1,4 @@
+import { roles } from '@/domain/policy';
 import Link from 'next/link';
 import { Shell, roleLabel } from '@/components/shell/Shell';
 import { StartHere } from '@/components/shell/StartHere';
@@ -27,7 +28,10 @@ export default async function Home({ params, searchParams }: P) {
   const myQuestions = state.events.filter((e) => e.type === 'question_to_client' && e.payload.to === me.key);
   const openQuestions = myQuestions.filter((q) => !state.events.some((x) => x.type === 'answer_recorded' && Number(x.payload.questionSeq) === q.seq));
   // A client's asks stand only while the return is open and the item is not already resolved.
-  const plain = state.frozen ? [] : visible.filter((f) => f.plain && !findingStatus(f, state).cleared);
+  // Whether an ask is resolved is the firm's record (a client's own projection never sees a clear or an adjustment).
+  const staffKey = isClient ? roles(ix).find((r) => r.kind === 'staff')?.key : undefined;
+  const firm = staffKey ? (await getWorkspace(ws, staffKey)).state : state;
+  const plain = state.frozen ? [] : visible.filter((f) => f.plain && !findingStatus(f, firm).cleared);
   // Blockers are listed once, in their own section; the open-checks list holds the rest.
   const listed = new Set(state.blockers.map((b) => b.claimId));
   const others = visible.filter((f) => !listed.has('finding:' + f.id));

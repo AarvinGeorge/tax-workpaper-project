@@ -50,12 +50,12 @@ All links start with `https://taxmark-workpaper.vercel.app/w/video-take1`. Tabs:
 2. New value `10500`. Reason `Sept payment was for tax year 2024`. Leave Authority blank. Click **Save**.
 3. Point at "was 14,000 in v3", then at "Needs partner sign-off (tax effect over 1,000)". There is no pop-up; that line is the rule.
 4. Talk for about 5 seconds (the other tab checks every 5 seconds), then switch to Priya's tab.
-5. Point at the bell (3 unread) and at "Since you last looked". The pop-up toast may already be gone; don't wait for it.
+5. Click the bell (3 unread): the notice "Daniel changed 2025 California estimated tax payments" is at the top. Press Escape to close it. The pop-up toast may already be gone; don't wait for it.
 
 **2:50-3:20 · Roles**
 1. Back in Daniel's tab, open `/daniel/documents`. Set **Viewing as** to "Marcus Bell, preparer".
 2. Click the first W-2 row (D08, Corvane Systems). Point at the SSN shown as last four, "Masked, last 4".
-3. Scroll the right panel down and click **Reveal**. The refusal appears, quoting the firm rule.
+3. In the right panel, under Actions (near the top, above the page), click **Reveal**. The refusal appears, quoting the firm rule.
 4. Switch to Ngozi's tab (not the dropdown, which would keep you on Documents). Point at "What we need from you · 3".
 
 **3:20-4:25 · AI**

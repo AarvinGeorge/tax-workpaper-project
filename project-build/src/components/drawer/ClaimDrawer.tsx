@@ -216,7 +216,7 @@ function FindingsOn({ c, claimId }: { c: Ctx; claimId: string }) {
   );
 }
 
-const isClientView = (c: Ctx) => c.me.kind !== 'staff';
+const outsideView = (c: Ctx) => c.me.kind !== 'staff';
 
 function LineClaim({ c, key_, claimId }: { c: Ctx; key_: string; claimId: string }) {
   const { ix } = c;
@@ -229,7 +229,7 @@ function LineClaim({ c, key_, claimId }: { c: Ctx; key_: string; claimId: string
   const adjusted = !!cs?.adjusted;
   const retracted = retractedSeqs(c.state.events);
   const lastAdj = [...(cs?.history ?? [])].reverse().find((e) => e.type === 'adjustment' && !retracted.has(e.seq));
-  const proposed = !isClientView(c) && lastAdj?.payload.status === 'proposed' ? lastAdj : null;
+  const proposed = !outsideView(c) && lastAdj?.payload.status === 'proposed' ? lastAdj : null;
   const ruleText = l.rule ? ix.packet.engine_reference.rules[l.rule] : null;
   const docScope = visibleDocIds(ix, c.role);
   const refs = (l.sources ?? []).map((s) => resolveRef(ix, s, ix.latest.version)).filter((r) => !docScope || !r.docId || docScope.has(r.docId));

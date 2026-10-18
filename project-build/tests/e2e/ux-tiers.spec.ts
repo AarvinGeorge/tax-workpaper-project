@@ -21,6 +21,7 @@ test('T1: a preparer\'s proposed adjustment reaches Review, where the reviewer a
   const main = page.getByRole('main');
   await expect(main.getByRole('link', { name: /^Adjustments 1/ }).or(main.getByRole('button', { name: /^Adjustments 1/ })).first()).toBeVisible();
   await expect(main).toContainText('Proposed');
+  await expect(main).toContainText(/13,420\s*to\s*6,508/); // the reviewer sees what they would apply
   await main.getByRole('button', { name: 'Apply' }).click();
   await expect(main).toContainText('Applied');
 });
@@ -78,11 +79,10 @@ test('T6: notices live in the bell only; Home has no second copy', async ({ page
 test('T7: a Checks row has one link per destination', async ({ page }) => {
   await page.goto(`/w/${ws()}/daniel/checks`);
   await expect(page.getByRole('link', { name: 'Show where it came from' })).toHaveCount(0);
-  const rows = page.locator('section[aria-labelledby="chk-ours"] [data-finding]');
-  for (let i = 0; i < await rows.count(); i++) {
-    const hrefs = await rows.nth(i).locator('a[data-ref]').evaluateAll((as) => as.map((a) => (a as HTMLAnchorElement).getAttribute('href')));
-    expect(new Set(hrefs).size, `row ${i} evidence links: ${hrefs.join(' ')}`).toBe(hrefs.length);
-  }
+  // Paywell: the reading on D15 page 3 is cited, so the separate 'D15, page 3' link is dropped.
+  const refs = await page.locator('[data-finding="CHK-DUP-1099K-BOOKS:line:SchC.1"] a[data-ref]').evaluateAll((as) => as.map((a) => a.getAttribute('data-ref')));
+  expect(refs).toContain('ev-0109');
+  expect(refs).not.toContain('doc:D15#page3');
 });
 
 test('T8: the All count matches our checks', async ({ page }) => {
@@ -101,4 +101,34 @@ test('T9 and Areas: Home counts the other open checks instead of listing them; A
   await page.goto(`/w/${w}/priya/areas`);
   await page.getByRole('main').locator('summary').filter({ hasText: 'Prior preparer against our changes' }).click();
   await expect(page.getByRole('main').getByRole('link', { name: /Adjustments on Review/ })).toBeVisible();
+});
+
+test('T7: de-duplication keeps distinct values and pages, and drops only a repeated document', async ({ page }) => {
+  await page.goto(`/w/${ws()}/daniel/checks`);
+  const row = (id: string) => page.locator(`section[aria-labelledby="chk-ours"] [data-finding="${id}"]`);
+  // The video's blocker cites three readings on one page: all three stay.
+  await expect(row('CHK-PAYMENT-TAX-YEAR:line:F540NR.72').locator('a[data-ref]')).toHaveCount(3);
+  // A duplicate-page check keeps both pages.
+  const dup = row('CHK-DUP-PAGE:line:SchC.44a').locator('a[data-ref]');
+  const labels = (await dup.evaluateAll((as) => as.map((a) => a.textContent ?? ''))).join(' | ');
+  expect(labels, labels).toMatch(/page 2/);
+  expect(labels, labels).toMatch(/page 3/);
+  // The proration blocker cited D54 twice (a reading and the bare document): the bare one goes.
+  const pr = await row('CHK-PRORATION-CREDIT-UNUSED:line:SchA.5b').locator('a[data-ref]').evaluateAll((as) => as.map((a) => a.getAttribute('data-ref')));
+  expect(pr).toContain('ev-1027');
+  expect(pr).not.toContain('doc:D54');
+});
+
+test('T4: a client ask disappears once the firm clears it', async ({ page }) => {
+  const w = ws();
+  await page.goto(`/w/${w}/ngozi`);
+  const needed = page.getByRole('main').locator('a.qrow').filter({ hasText: 'Needed' });
+  const before = await needed.count();
+  expect(before).toBeGreaterThan(0);
+  const href = (await needed.first().getAttribute('href'))!;
+  const claimId = decodeURIComponent(href.split('claim=')[1].split('&')[0]);
+  const r = await page.request.post(`/api/w/${w}/events`, { data: { role: 'daniel', type: 'finding_cleared', claimId, payload: { reason: 'Client sent it by email' } } });
+  expect(r.ok()).toBe(true);
+  await page.reload();
+  await expect(needed).toHaveCount(before - 1);
 });

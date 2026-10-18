@@ -21,6 +21,16 @@ export function claimValue(p: WorkProps, claimId: string): unknown {
   return null;
 }
 
+/** A 'doc:X' or 'doc:X#pageN' ref that adds nothing because a cited reading sits on that document (and page). */
+function docCovered(p: WorkProps, r: string, refs: string[]): boolean {
+  const m = /^doc:([^#]+)(?:#page(\d+))?$/.exec(r);
+  if (!m) return false;
+  return refs.some((x) => {
+    const v = p.ix.valueById.get(x);
+    return !!v && v.document_id === m[1] && (m[2] === undefined || Number(m[2]) === v.page);
+  });
+}
+
 export function Evidence({ p, refs }: { p: WorkProps; refs: string[] }) {
   const m = masker(p.state, p.role);
   if (!refs.length) return null;
@@ -30,7 +40,8 @@ export function Evidence({ p, refs }: { p: WorkProps; refs: string[] }) {
   return (
     <span className={s.row} style={{ gap: 6 }}>
       <span className={s.lbl}>Evidence</span>
-      {refs.filter((r, i) => { const c = refClaim(p.ix, r); return !c || refs.findIndex((x) => refClaim(p.ix, x) === c) === i; }).map((r, i, kept) => {
+      {/* A document or page link is dropped when a reading on that document (and page) is already cited; readings stay. */}
+      {refs.filter((r) => !docCovered(p, r, refs)).map((r, i, kept) => {
         const c = refClaim(p.ix, r);
         const label = m(refText(resolveRef(p.ix, r, p.ix.latest.version)));
         const sep = i < kept.length - 1 ? <span aria-hidden="true" className={s.note}> ·</span> : null;
