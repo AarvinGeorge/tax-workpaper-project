@@ -64,13 +64,14 @@ export async function FormsTab({ ws, role, sp, screen }: { ws: string; role: str
         <div className="panel" aria-label="Compare versions">
           <div className="row">
             <span className="lbl">Compare {latest} with</span>
-            <Link className={`btn${!cmp ? ' on' : ''}`} aria-pressed={!cmp} href={q({})}>Nothing</Link>
-            {others.map((v) => <Link key={v} className={`btn${cmp === v ? ' on' : ''}`} aria-pressed={cmp === v} href={q({ cmp: v, only: onlyChanged ? 'changed' : undefined })}>{v}</Link>)}
-            <Link className={`btn${cmp === 'finalized' ? ' on' : ''}`} aria-pressed={cmp === 'finalized'} href={q({ cmp: 'finalized', only: onlyChanged ? 'changed' : undefined })}>Finalized</Link><Term k="finalized-version" />
-            {cmp && <Link className={`btn${onlyChanged ? ' on' : ''}`} aria-pressed={onlyChanged} href={q({ cmp, only: onlyChanged ? undefined : 'changed' })}>Only changed lines</Link>}
+            <Link className={`btn${!cmp ? ' on' : ''}`} aria-pressed={!cmp} href={q({ form: formSel ?? undefined, claim: sp.claim })}>Nothing</Link>
+            {others.map((v) => <Link key={v} className={`btn${cmp === v ? ' on' : ''}`} aria-pressed={cmp === v} href={q({ cmp: v, only: onlyChanged ? 'changed' : undefined, form: formSel ?? undefined, claim: sp.claim })}>{v}</Link>)}
+            <Link className={`btn${cmp === 'finalized' ? ' on' : ''}`} aria-pressed={cmp === 'finalized'} href={q({ cmp: 'finalized', only: onlyChanged ? 'changed' : undefined, form: formSel ?? undefined, claim: sp.claim })}>Finalized</Link><Term k="finalized-version" />
+            {cmp && <Link className={`btn${onlyChanged ? ' on' : ''}`} aria-pressed={onlyChanged} href={q({ cmp, only: onlyChanged ? undefined : 'changed', form: formSel ?? undefined, claim: sp.claim })}>Only changed lines</Link>}
           </div>
-          <FormPicker value={formSel ? q({ ...keep, form: formSel }) : q({ ...keep, form: undefined })}
-            options={[{ label: 'All forms', href: q({ ...keep, form: undefined }) }, ...allForms.map((f) => ({ label: `${f.label} (${f.form})`, href: q({ ...keep, form: f.form }) }))]} />
+          {/* Picking a form keeps the comparison and the line open in the side panel. */}
+          <FormPicker value={q({ ...keep, form: formSel ?? undefined, claim: sp.claim })}
+            options={[{ label: 'All forms', href: q({ ...keep, form: undefined, claim: sp.claim }) }, ...allForms.map((f) => ({ label: `${f.label} (${f.form})`, href: q({ ...keep, form: f.form, claim: sp.claim }) }))]} />
           {cmp && <span className="small num">{differLine(changedCount, cmpLabel!, latest)} {cmp === 'finalized' ? `${finalizedNote} The ${latest} column is the engine's value.` : 'From the packet’s computed versions.'}</span>}
           <span className="small muted num">Last year column: the 2024 return as filed (prior year). {swingCount} line{swingCount === 1 ? '' : 's'} flagged as swings by the firm&apos;s variance rule.</span>
         </div>
@@ -80,7 +81,8 @@ export async function FormsTab({ ws, role, sp, screen }: { ws: string; role: str
           if (onlyChanged && rows.length === 0) return null;
           const flagged = rows.filter((l) => findingOn.has('line:' + l.key)).length;
           // Every form starts collapsed; it opens for its selected line, a comparison of changed lines, ?open= or the picker.
-          const open = rows.some((l) => l.key === selKey) || onlyChanged || sp.open === f.form || formSel === f.form;
+          const differs = !!cmp && rows.some((l) => (cmpMap.get(l.key)?.change ?? 'same') !== 'same');
+          const open = rows.some((l) => l.key === selKey) || onlyChanged || differs || sp.open === f.form || formSel === f.form;
           if (!open) return (
             <section key={f.form} className="form" aria-label={f.label}>
               <div className="row" style={{ padding: '10px 14px', minHeight: 44 }}>

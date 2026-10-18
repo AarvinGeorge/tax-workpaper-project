@@ -69,3 +69,4 @@ From here on, entries are written at the time again.
 - 17 Oct 23:12 EDT · Opus 5.5 (main): hand-in rewrite and PDF · Fable 5.1 subagent: fact-check of five hand-in documents against code, tests and live API
 - 17 Oct 23:47 EDT · Fable 5.1 subagent: side-by-side walk of tax-workpaper.vercel.app and ours against the brief (Playwright MCP, read-only)
 - 18 Oct 00:39 EDT · Opus 5.5 (main): return overview plan · Fable 5.1 subagent: plan review (read-only)
+- 18 Oct 01:13 EDT · Fable 5.1 implementation review of the Return overview (probes, 18 min): 2 must-fix, 3 should-fix, applied

@@ -66,3 +66,22 @@ test('Areas and Documents are tabs of the overview; the old addresses land on th
   await expect(page.getByRole('navigation', { name: 'Screens' }).getByRole('link', { name: /documents/i })).toBeVisible();
   await expect(page.getByTestId('kpis')).toHaveCount(0);
 });
+
+test('review fixes: the picker keeps the open line, the compare buttons keep the form, a comparison opens the forms that differ', async ({ page }) => {
+  const w = ws();
+  await page.goto(`/w/${w}/daniel/return?cmp=v2&claim=line:F540NR.72`);
+  await expect(page.locator('main table').first()).toContainText('v2'); // forms with differences open
+  const picker = page.getByLabel('Form to compare');
+  const opt = (await picker.locator('option').allInnerTexts()).find((o) => /\(F1040\)$/.test(o))!;
+  await picker.selectOption({ label: opt });
+  await expect(page).toHaveURL(/form=F1040/);
+  await expect(page).toHaveURL(/claim=line%3AF540NR\.72/);
+  await expect(page.getByTestId('drawer').getByTestId('claim-value')).toBeVisible();
+  const nothing = page.getByRole('link', { name: 'Nothing', exact: true });
+  await expect(nothing).toHaveAttribute('href', /form=F1040/);
+  // The tabs sit right under the figures, so the current tab is on the first screen.
+  const tabs = page.getByRole('navigation', { name: 'Return overview tabs' });
+  const box = (await tabs.boundingBox())!;
+  expect(box.y).toBeLessThan(900);
+  await expect(page.getByRole('main')).toHaveAttribute('aria-label', 'Return overview');
+});

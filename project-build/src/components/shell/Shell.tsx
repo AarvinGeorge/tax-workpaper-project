@@ -199,7 +199,7 @@ export async function Shell({ ws, role, screen, claim, q, children, ...given }: 
           </div>
         </aside>
 
-        <main className="sh-pane-c" aria-label={screenLabel(screen, me.kind)}>
+        <main className="sh-pane-c" aria-label={me.kind === 'staff' && (screen === 'home' || OVERVIEW_TABS.includes(screen)) ? 'Return overview' : screenLabel(screen, me.kind)}>
           {notYet ? (
             <div className="screen">
               <h1>Not yet in the story</h1>

@@ -1,5 +1,5 @@
-// The Return overview's head, shared by its three tabs (Forms, Areas, Documents): the three figures, Start here, and on
-// the Forms tab the approval queue (blockers before filing, the filed record after). The tabs are the existing routes,
+// The Return overview's head, shared by its three tabs (Forms, Areas, Documents): the three figures, the tab bar (on
+// the first screen), Start here, and on the Forms tab the approval queue (blockers before filing, the filed record after). The tabs are the existing routes,
 // so every deep link and the side panel keep working.
 import Link from 'next/link';
 import { roleLabel } from '@/components/shell/Shell';
@@ -55,7 +55,13 @@ export function OverviewHead({ ws, w, tab }: { ws: string; w: Workspace; tab: Ov
         ))}
       </div>
 
-<StartHere>
+      <nav className="ov-tabs" aria-label="Return overview tabs">
+        {TABS.filter((t) => visible(t.screen)).map((t) => (
+          <Link key={t.key} className="ov-tab" href={screenPath(ws, me.key, t.screen)} aria-current={t.key === tab ? 'page' : undefined}>{t.label}</Link>
+        ))}
+      </nav>
+
+      <StartHere>
         <p>Taxmark is a web-native workpaper for one household&apos;s {String(ix.packet.household.tax_year ?? '')} return: click any number to see the page and field it came from, the rule that built it, who checked it and what is still open.</p>
         <div className="counts num" data-testid="counts">
           <span><strong>{c.documents.toLocaleString('en-US')}</strong> documents</span>
@@ -92,11 +98,6 @@ export function OverviewHead({ ws, w, tab }: { ws: string; w: Workspace; tab: Ov
           </section>
         ))}
 
-      <nav className="ov-tabs" aria-label="Return overview tabs">
-        {TABS.filter((t) => visible(t.screen)).map((t) => (
-          <Link key={t.key} className="ov-tab" href={screenPath(ws, me.key, t.screen)} aria-current={t.key === tab ? 'page' : undefined}>{t.label}</Link>
-        ))}
-      </nav>
     </>
   );
 }
