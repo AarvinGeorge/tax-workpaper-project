@@ -29,7 +29,8 @@ export default async function Home({ params, searchParams }: P) {
   const visible = w.findings.filter((f) => f.source !== 'ai').filter((f) => !f.firstVisibleAt || f.firstVisibleAt <= state.storyAt).sort((a, b) => ORDER[a.severity] - ORDER[b.severity]);
   const myQuestions = state.events.filter((e) => e.type === 'question_to_client' && e.payload.to === me.key);
   const openQuestions = myQuestions.filter((q) => !state.events.some((x) => x.type === 'answer_recorded' && Number(x.payload.questionSeq) === q.seq));
-  const plain = visible.filter((f) => f.plain);
+  // A client's asks stand only while the return is open and the item is not already resolved.
+  const plain = state.frozen ? [] : visible.filter((f) => f.plain && !findingStatus(f, state).cleared);
   // Blockers are listed once, in their own section; the open-checks list holds the rest.
   const listed = new Set(state.blockers.map((b) => b.claimId));
   const others = visible.filter((f) => !listed.has('finding:' + f.id));

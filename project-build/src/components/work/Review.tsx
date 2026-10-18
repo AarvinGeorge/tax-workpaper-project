@@ -2,6 +2,7 @@
 // ones block approval), sign-offs with stale ones marked, partner items over the firm's threshold, and the partner's
 // approve button, disabled with the blocker list. Copies Review.dc.html.
 import type { ClaimState, WorkEvent } from '@/domain/contracts';
+import { retractedSeqs } from '@/domain/events';
 import s from './work.module.css';
 import {
   byline, claimHref, findRule, fmt, levelOf, liveEvents, lineLabel, masker, one, partnerThreshold, personName, queryHref, signed, storyAtOf, when, writeBlock, type WorkProps,
@@ -10,8 +11,9 @@ import { Est, NoAccess, Page, Tag } from './ui';
 import { Term } from '../term/Term';
 import { EventButton, TextAction } from './actions';
 
-function lastAdjustment(c: ClaimState): WorkEvent | undefined {
-  return [...c.history].reverse().find((e) => e.type === 'adjustment');
+/** The claim's last adjustment that has not been undone, proposed or applied. */
+function lastAdjustment(c: ClaimState, retracted: Set<number>): WorkEvent | undefined {
+  return [...c.history].reverse().find((e) => e.type === 'adjustment' && !retracted.has(e.seq));
 }
 function overThreshold(c: ClaimState, amount: number | null): boolean {
   if (amount === null || !c.effect) return false;
@@ -37,7 +39,10 @@ export function ReviewScreen(p: WorkProps) {
   const notesRule = findRule(ix, /review notes block/i);
 
   const claims = Object.values(state.claims);
-  const adjusted = claims.filter((c) => c.adjusted);
+  // Proposed and applied adjustments both belong here: a preparer's proposal is applied from this list. (c.adjusted
+  // means applied only and drives blockers and versions; it is deliberately not used for this list.)
+  const retracted = retractedSeqs(state.events);
+  const adjusted = claims.filter((c) => !!lastAdjustment(c, retracted));
   const notes = claims.flatMap((c) => c.openNotes.map((n) => ({ c, n })));
   const blockingNotes = notes.filter(({ n }) => n.payload.blocking === true);
   const signoffs = claims.flatMap((c) => c.signoffs.map((so) => ({ c, so })));
@@ -47,7 +52,7 @@ export function ReviewScreen(p: WorkProps) {
 
   const approval = [...liveEvents(state.events)].reverse().find((e) => e.type === 'signoff' && e.payload.scope === 'return');
   const tabs = [
-    { key: 'changes', name: 'Changes', count: adjusted.length },
+    { key: 'changes', name: 'Adjustments', count: adjusted.length },
     { key: 'notes', name: 'Review notes', count: notes.length },
     { key: 'signoffs', name: 'Sign-offs', count: signoffs.length },
     { key: 'partner', name: 'Partner items', count: partnerItems.length },
@@ -103,7 +108,7 @@ export function ReviewScreen(p: WorkProps) {
           </div>
           {adjusted.length === 0 ? <div className={s.boxRow}><span className={s.note}>No adjustments yet. Adjust a number from its drawer (open any amount).</span></div> : null}
           {adjusted.map((c) => {
-            const adj = lastAdjustment(c);
+            const adj = lastAdjustment(c, retracted);
             const status = String(adj?.payload.status ?? 'proposed');
             const mine = adj?.role === role.key;
             const over = overThreshold(c, thr.amount);

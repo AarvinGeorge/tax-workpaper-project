@@ -105,7 +105,9 @@ export async function ClientSigning({ ws, ix, role, state }: { ws: string; ix: P
               <div className={s.boxRow} style={{ display: 'block' }}><AmountsTable rows={amounts} caption="The amounts you are signing for" /></div>
             </>
           )}
-          <SignatureRows st={st} plain me={role.key} />
+          {/* Once filed, the signing is a fact from the firm's record ("What has happened"); rows that only know the
+              workspace's own signatures would say "Not signed" against a filed return. */}
+          <SignatureRows st={{ ...st, spouses: st.spouses.filter((sp) => !state.frozen || sp.signed) }} plain me={role.key} />
           {!state.frozen && st.approved ? (
             <div className={s.boxRow}>
               <EventButton ws={ws} role={role.key} primary label="Approve and sign both forms"

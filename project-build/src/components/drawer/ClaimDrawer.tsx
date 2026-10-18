@@ -7,6 +7,7 @@ import { documentLanding, simulatedPage } from '@/domain/docs';
 import { refText, resolveRef } from '@/domain/refs';
 import { claimHref, examinedLines, fmtDay, fmtStory, fmtValue, isRevealed, parseClaim } from '../shell/lib';
 import { highlightSegments, revealReason } from './lib';
+import { refClaim } from '../work/lib';
 import { DrawerActions, type ActionSpec } from './DrawerActions';
 import { retractedSeqs } from '@/domain/events';
 import { Term } from '../term/Term';
@@ -189,7 +190,11 @@ function ClientAnswers({ c, claimId }: { c: Ctx; claimId: string }) {
 }
 
 function FindingsOn({ c, claimId }: { c: Ctx; claimId: string }) {
-  const list = c.findings.filter((f) => f.source !== 'ai' && f.claims.includes(claimId) && (!f.firstVisibleAt || f.firstVisibleAt <= c.state.storyAt));
+  // A document is rarely a check's claim; it is its evidence. Staff see the checks that cite it, so a blocker's own
+  // evidence never reads "No open checks".
+  const isDoc = claimId.startsWith('doc:') && c.me.kind !== 'client';
+  const cites = (f: Finding) => isDoc && f.evidence.some((r) => refClaim(c.ix, r) === claimId);
+  const list = c.findings.filter((f) => f.source !== 'ai' && (f.claims.includes(claimId) || cites(f)) && (!f.firstVisibleAt || f.firstVisibleAt <= c.state.storyAt));
   if (c.me.kind === 'client') {
     const plain = list.filter((f) => f.plain);
     if (!plain.length) return null;
@@ -197,8 +202,8 @@ function FindingsOn({ c, claimId }: { c: Ctx; claimId: string }) {
   }
   return (
     <div className="drw-sec">
-      <span className="lbl">Our checks on this · {list.length}</span>
-      {list.length === 0 && <span className="small"><span className="tag t-pas">No open checks</span> <span className="muted">No check in the library fails on this claim.</span></span>}
+      <span className="lbl">{isDoc ? 'Checks that cite this document' : 'Our checks on this'} · {list.length}</span>
+      {list.length === 0 && <span className="small"><span className="tag t-pas">No open checks</span> <span className="muted">{isDoc ? 'No check cites this document.' : 'No check in the library fails on this claim.'}</span></span>}
       {list.map((f) => (
         <Link key={f.id} href={claimHref('finding:' + f.id)} className="srcitem">
           <span className="row" style={{ gap: 6 }}><span className={`tag ${SEV[f.severity][1]}`}>{SEV[f.severity][0]}</span><strong style={{ fontWeight: 600 }}>{f.title}</strong></span>
@@ -209,6 +214,8 @@ function FindingsOn({ c, claimId }: { c: Ctx; claimId: string }) {
   );
 }
 
+const isClientView = (c: Ctx) => c.me.kind !== 'staff';
+
 function LineClaim({ c, key_, claimId }: { c: Ctx; key_: string; claimId: string }) {
   const { ix } = c;
   const l = ix.line(ix.latest.version, key_);
@@ -218,6 +225,9 @@ function LineClaim({ c, key_, claimId }: { c: Ctx; key_: string; claimId: string
   const cs = c.state.claims[claimId];
   const current = cs ? cs.current : l.value;
   const adjusted = !!cs?.adjusted;
+  const retracted = retractedSeqs(c.state.events);
+  const lastAdj = [...(cs?.history ?? [])].reverse().find((e) => e.type === 'adjustment' && !retracted.has(e.seq));
+  const proposed = !isClientView(c) && lastAdj?.payload.status === 'proposed' ? lastAdj : null;
   const ruleText = l.rule ? ix.packet.engine_reference.rules[l.rule] : null;
   const docScope = visibleDocIds(ix, c.role);
   const refs = (l.sources ?? []).map((s) => resolveRef(ix, s, ix.latest.version)).filter((r) => !docScope || !r.docId || docScope.has(r.docId));
@@ -238,6 +248,7 @@ function LineClaim({ c, key_, claimId }: { c: Ctx; key_: string; claimId: string
         <h2 style={{ fontSize: 19, lineHeight: 1.3, letterSpacing: '-.01em' }}>{l.label}</h2>
         <div className="row"><span className="drw-big num" data-testid="claim-value">{fmtValue(current)}</span>
           {adjusted && <span className="small muted num">was <span className="del">{fmtValue(cs!.original)}</span> in {ix.latest.version}</span>}</div>
+        {proposed && <div className="row small"><span className="tag t-wrn">Proposed</span><span className="num">Proposed {fmtValue(proposed.payload.value)} by {c.allRoles.find((r) => r.key === proposed.role)?.name.split(' ')[0] ?? proposed.role}, awaiting a reviewer (apply it on Review)</span></div>}
       </div>
       <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
         {cs && needsPartnerSignoff(ix, cs) && <span className="row small"><span className="tag t-wrn">Needs partner sign-off (tax effect over {partnerThreshold(ix).toLocaleString('en-US')})</span><Term k="partner-threshold" /></span>}

@@ -61,3 +61,5 @@ From here on, entries are written at the time again.
 - 17 Oct 20:40 EDT · Opus 5.5 (main): Checks sign-off and evidence fix, TDD · Fable 5.1 subagent: code review with probes (no edits)
 - 17 Oct 20:50 EDT · Fable 5.1 subagent: plan review of the sign-off note rule across the app (read-only)
 - 17 Oct 21:00 EDT · Fable 5.1 code review (probes, 910 s): 1 must-fix, 4 should-fix, all applied · Opus 5.5 (main): fixes, tests, screenshots of drawer and Review sign-off notes
+- 17 Oct 21:17 EDT · Fable 5.1 subagent: UX audit, live walk with Playwright MCP, report only
+- 17 Oct 21:37 EDT · Opus 5.5 (main): UX tier plan · Fable 5.1 subagent: plan review (read-only)
