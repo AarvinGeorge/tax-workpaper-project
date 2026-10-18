@@ -55,3 +55,5 @@ From here on, entries are written at the time again.
 - 2026-10-17 19:25 EDT · Opus 5.5 subagents: Archify updates (system, data flow, revision 9c62de0) · Opus 5.5 (main): acceptance walk on live, test fixes, checklist and diagram republish
 - 2026-10-17 19:30 EDT · Opus 5.5 subagent: Archify overview diagram (running)
 - 17 Oct 19:38 EDT · Opus 5.5 subagent: Archify overview diagram (spec, showcase 9 of 9, visual check at 4 viewports) · Opus 5.5 (main): fact-checked the wording, looked at the screenshot, published card 00; rewrote the video script to 5 minutes and ran it through the no-ai-slop rules (petergyang/no-ai-slop SKILL.md, read via gh api this pass)
+- 17 Oct 19:49 EDT · Fable 5.1 subagent: video script review (human-voice and AI-feel ratings, reasoned edits only) · Sonnet 5.5 subagent with Playwright MCP: live walk of the 7 demo moments in workspace script-check for click-by-click steps
+- 17 Oct 20:07 EDT · Two video-script docs and the theme toggle committed and pushed on Aarvin's go

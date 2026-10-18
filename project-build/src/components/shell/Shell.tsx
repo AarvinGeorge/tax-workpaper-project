@@ -6,6 +6,7 @@ import { maskText } from '@/domain/policy';
 import { RoleSwitcher } from './RoleSwitcher';
 import { ResetButton } from './ResetButton';
 import { ClientSwitcher } from './ClientSwitcher';
+import { ThemeToggle } from './ThemeToggle';
 import { Bell } from './Bell';
 import { claimLabel, notificationsFor } from '@/domain/notify';
 import { LiveRefresh } from './LiveRefresh';
@@ -133,6 +134,7 @@ export async function Shell({ ws, role, screen, claim, q, children, ...given }: 
         <RoleSwitcher ws={ws} role={role} screen={screen}
           options={w.allRoles.map((r) => ({ key: r.key, label: roleLabel(r), screens: r.screens }))} />
         {bellItems && <Bell ws={ws} role={role} storyAt={state.storyAt} items={bellItems} />}
+        <ThemeToggle />
         </div>
       </header>
 

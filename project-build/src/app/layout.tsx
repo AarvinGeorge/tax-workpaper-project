@@ -11,9 +11,15 @@ export const metadata: Metadata = {
   description: 'A web-native tax workpaper: every number traced to its source, checks that do not trust the engine, roles and an audit trail.',
 };
 
+const THEME_SCRIPT = `try{var t=localStorage.getItem('taxmark-theme');if(t==='dark'||t==='light')document.documentElement.dataset.theme=t}catch(e){}`;
+
 export default function RootLayout({ children }: Readonly<{ children: React.ReactNode }>) {
   return (
-    <html lang="en" className={`${sans.variable} ${serif.variable} ${mono.variable}`}>
+    <html lang="en" className={`${sans.variable} ${serif.variable} ${mono.variable}`} suppressHydrationWarning>
+      <head>
+        {/* The saved light/dark choice, applied before first paint so the page never flashes the other theme. */}
+        <script dangerouslySetInnerHTML={{ __html: THEME_SCRIPT }} />
+      </head>
       <body>{children}</body>
     </html>
   );
