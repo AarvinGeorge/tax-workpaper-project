@@ -60,7 +60,7 @@ test('no sign-off without a review note: the first row missing one opens, then e
   await expect(toast).toContainText('2 sign-offs saved together');
   await expect(ours(page).locator('[data-finding]').filter({ hasText: 'Signed off' })).toHaveCount(2);
   await expect(blockerChip).toHaveText(before);
-  await page.goto(`/w/${w}/daniel/changes`);
+  await page.goto(`/w/${w}/daniel/review?tab=log`);
   await expect(page.getByRole('main')).toContainText('Proration agreed to the closing statement');
   await expect(page.getByRole('main')).toContainText('Checked against the 1099-K');
   await page.goto(`/w/${w}/daniel/checks`);

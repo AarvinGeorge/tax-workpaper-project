@@ -91,7 +91,7 @@ test('8879 signing: refused before approval, each spouse once after it, stale af
     await noSecrets(page);
   }
 
-  await page.goto(`/w/${w}/daniel/filing`);
+  await page.goto(`/w/${w}/daniel/review`);
   const staff = page.getByTestId('staff-signing');
   await expect(staff).toContainText('Approved');
   await expect(page.getByTestId('signature-ngozi')).toContainText('Signed');

@@ -9,7 +9,9 @@ import { suggestionStatus } from './ai/merge';
 type Level = 'preparer' | 'reviewer' | 'partner';
 interface RoleMeta { info: RoleInfo; level: Level | null; writes: boolean; householdRole?: string; householdId?: string }
 
-const ALL_SCREENS: ScreenKey[] = ['home', 'return', 'areas', 'documents', 'checks', 'review', 'changes', 'filing', 'firm', 'findings'];
+// Staff: the Return overview (home and its tabs), Checks and Review. Firm, Changes, staff Filing and Findings are retired:
+// their routes redirect to the "?" dialog, Review's Changes tab, the overview and Checks.
+const ALL_SCREENS: ScreenKey[] = ['home', 'return', 'areas', 'documents', 'whatifs', 'checks', 'review'];
 const OUTSIDE_SCREENS: ScreenKey[] = ['home', 'documents', 'filing'];
 const TITLES: Record<string, string> = {
   preparer: 'Preparer', reviewer: 'Reviewer', partner: 'Partner', firm_administrator: 'Firm administrator', quality_reviewer: 'Quality reviewer',

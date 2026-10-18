@@ -32,7 +32,7 @@ test('item 2: compare with Finalized keeps the engine value in the v3 column', a
   await expect(page.getByRole('main')).toContainText('1 line differs between Finalized and v3');
 });
 
-test('item 3: Review and Changes name the person and lead with story time', async ({ page }) => {
+test('item 3: Review and its Changes tab name the person and lead with story time', async ({ page }) => {
   const w = ws();
   await adjust(page, w);
   const name = staffName('reviewer');
@@ -41,7 +41,7 @@ test('item 3: Review and Changes name the person and lead with story time', asyn
   await expect(change).toContainText(name);
   await expect(change).not.toContainText(/\bdaniel\b/);
   await expect(change).toContainText('Jun 2026');
-  await page.goto(`/w/${w}/daniel/changes`);
+  await page.goto(`/w/${w}/daniel/review?tab=log`);
   const log = page.locator('section[aria-label="Change log"]');
   await expect(log).toContainText(name);
   await expect(log).not.toContainText(/\bdaniel\b/);
@@ -78,7 +78,7 @@ test('item 5: no finding drawer shows raw JSON evidence', async ({ page }) => {
   }
 });
 
-test('item 6: blockers listed once on Home; ledger ids off staff Checks and drawer; readable labels on Filing', async ({ page }) => {
+test('item 6: blockers listed once on Home; ledger ids off staff Checks and drawer; readable labels in the clock and on Areas', async ({ page }) => {
   const w = ws();
   await page.goto(`/w/${w}/daniel`);
   const blockers = await page.locator('section[aria-label="Blocking approval"] .qrow').allInnerTexts();
@@ -91,12 +91,13 @@ test('item 6: blockers listed once on Home; ledger ids off staff Checks and draw
   const first = await page.locator('[data-finding]').first().getAttribute('data-finding');
   await page.goto(`/w/${w}/daniel/checks?claim=finding:${first}`);
   await expect(page.getByTestId('drawer')).not.toContainText(/Ledger:|\bGT-[A-Z]\d/);
-  await page.goto(`/w/${w}/daniel/findings`);
-  await expect(page.getByRole('main')).toContainText(/GT-[A-Z]\d/);
   await moveClock(page, w, lastAt());
-  await page.goto(`/w/${w}/daniel/filing`);
+  // Staff Filing is retired: the timeline is the story clock's dropdown, the carryovers out are on Areas.
+  await page.goto(`/w/${w}/daniel/areas`);
+  const clock = page.getByRole('group', { name: 'Story clock' }).getByLabel(/Move story time to/);
+  await expect(clock).toContainText('IRS transcript pulled');
+  await expect(clock).not.toContainText(/Irs transcript/);
   const main = page.getByRole('main');
-  await expect(main).toContainText('IRS transcript pulled');
   await expect(main).not.toContainText(/Irs transcript|Passive 1450 fremont/);
   await expect(main).toContainText('Passive 1450 Fremont');
   await expect(main).not.toContainText(/D\d+msg-\d+/);

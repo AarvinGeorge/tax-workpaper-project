@@ -67,9 +67,9 @@ async function marksPerKey(page: Page): Promise<Record<string, number>> {
 test('first use only: each term is marked at most once per screen', async ({ page }) => {
   const w = ws();
   const screens: [string, string][] = [
-    ['daniel', ''], ['daniel', '/return'], ['daniel', '/areas'], ['daniel', '/checks'], ['daniel', '/review'], ['daniel', '/changes'],
-    ['daniel', '/findings'], ['daniel', '/filing'], ['daniel', '/documents'], ['daniel', '/return?claim=line%3AF1040.1a'],
-    ['jo', '/firm'], ['marcus', ''],
+    ['daniel', ''], ['daniel', '/return'], ['daniel', '/areas'], ['daniel', '/checks'], ['daniel', '/review'], ['daniel', '/review?tab=log'],
+    ['daniel', '/whatifs'], ['daniel', '/documents'], ['daniel', '/return?claim=line%3AF1040.1a'],
+    ['jo', '/review?tab=views'], ['marcus', ''],
   ];
   let total = 0;
   for (const [role, path] of screens) {

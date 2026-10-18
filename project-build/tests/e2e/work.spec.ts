@@ -1,5 +1,5 @@
-// Work screens (lane D2): an adjustment survives reload, the partner's approval lists blockers, the Findings page lists
-// every ledger row, and outside roles never reach the internal screens. Runs against the built app (playwright.config).
+// Work screens (lane D2): an adjustment survives reload, the partner's approval lists blockers, Checks surfaces every
+// ledger mistake (Findings left the app), and outside roles never reach the internal screens. Runs against the built app (playwright.config).
 import { readFileSync } from 'node:fs';
 import path from 'node:path';
 import { expect, test } from '@playwright/test';
@@ -21,7 +21,7 @@ test('daniel adjusts California estimates; reload keeps it; Review shows origina
   await expect(change).toContainText('14,000');
   await page.reload();
   await expect(change).toContainText('10,500');
-  await page.goto(`/w/${w}/daniel/changes`);
+  await page.goto(`/w/${w}/daniel/review?tab=log`);
   await expect(page.locator('section[aria-label="Change log"]')).toContainText('15 Sep 2025 payment');
 });
 
@@ -35,11 +35,20 @@ test("helen's approval is disabled and lists the blockers", async ({ page }) => 
   await expect(page.getByRole('list', { name: 'Blockers' })).toContainText('Hold for the RSU basis');
 });
 
-test('findings page lists every ledger row', async ({ page }) => {
-  await page.goto(`/w/${ws()}/daniel/findings`);
-  const rows = page.locator('tr[data-ledger]');
-  await expect(rows).toHaveCount(LEDGER.length);
-  for (const l of LEDGER) await expect(page.locator(`tr[data-ledger="${l.id}"]`)).toBeVisible();
+test('every ledger mistake is a finding on Checks once the story reaches it; /findings lands on Checks', async ({ page }) => {
+  const w = ws() + 'l';
+  const st0 = (await (await page.request.get(`/api/w/${w}/state?role=daniel`)).json()) as { findings: { id: string; ledgerIds: string[]; firstVisibleAt?: string }[] };
+  const last = st0.findings.reduce((m, f) => (f.firstVisibleAt && f.firstVisibleAt > m ? f.firstVisibleAt : m), '2026-06-23T06:05:00Z');
+  expect((await page.request.post(`/api/w/${w}/events`, { data: { role: 'jo', type: 'clock_moved', payload: { to: last } } })).ok()).toBeTruthy();
+  const st = (await (await page.request.get(`/api/w/${w}/state?role=daniel`)).json()) as typeof st0;
+  await page.goto(`/w/${w}/daniel/findings`);
+  await expect(page).toHaveURL(/\/daniel\/checks$/);
+  for (const l of LEDGER) {
+    const ids = [l.id, ...((l as { aliases?: string[] }).aliases ?? [])];
+    const hit = st.findings.find((f) => f.ledgerIds.some((i) => ids.includes(i)));
+    expect(hit, `${l.id} is caught by a check`).toBeTruthy();
+    await expect(page.locator(`[data-finding="${hit!.id}"]`), `${l.id} on Checks`).toHaveCount(1);
+  }
 });
 
 test('bulk sign-off is undone in one step', async ({ page }) => {
@@ -63,12 +72,16 @@ test('clients and the examiner never see internal work screens', async ({ page }
   const w = ws();
   // Every screen outside the roles' own list (home, documents, filing), the Return included: a typed URL must refuse.
   for (const role of ['ngozi', 'erik', 'irs']) {
-    for (const screen of ['return', 'checks', 'review', 'changes', 'firm', 'areas', 'findings']) {
+    for (const screen of ['return', 'checks', 'review', 'changes', 'whatifs', 'areas', 'findings']) { // findings and changes redirect to refusing screens
       await page.goto(`/w/${w}/${role}/${screen}`);
       // The screen refuses ("Not part of this view"), or the shell holds a role that has not joined the story yet.
       await expect(page.getByRole('main').getByRole('heading', { level: 1 })).toHaveText(/Not part of this view|Not yet in the story/);
       await expect(page.getByRole('main')).not.toContainText(/Blocking stops filing|Engine warning|Compare v3 with/);
     }
+    // The old Firm address opens the "?" dialog, which holds no firm reference for these roles.
+    await page.goto(`/w/${w}/${role}/firm`);
+    await expect(page.getByRole('dialog')).toBeVisible();
+    await expect(page.getByRole('dialog')).not.toContainText(/Firm standards|People and clearance|Time against budget|View log/);
   }
 });
 

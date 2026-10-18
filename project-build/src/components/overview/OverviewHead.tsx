@@ -1,4 +1,5 @@
-// The Return overview's head, shared by its three tabs (Forms, Areas, Documents): the three figures, the tab bar (on
+// The Return overview's head, shared by its four tabs (Forms, Areas, Documents, What-ifs): the three figures, the filing
+// status, the tab bar (on
 // the first screen), Start here, and on the Forms tab the approval queue (blockers before filing, the filed record after). The tabs are the existing routes,
 // so every deep link and the side panel keep working.
 import Link from 'next/link';
@@ -12,10 +13,12 @@ import type { ScreenKey } from '@/domain/contracts';
 import { Term } from '@/components/term/Term';
 import { AfterFiling } from './AfterFiling';
 import { notComputedText } from '@/domain/clock';
+import { FilingStatus } from './FilingStatus';
 
-export type OverviewTab = 'forms' | 'areas' | 'documents';
+export type OverviewTab = 'forms' | 'areas' | 'documents' | 'whatifs';
 const TABS: { key: OverviewTab; screen: ScreenKey; label: string }[] = [
   { key: 'forms', screen: 'return', label: 'Forms' }, { key: 'areas', screen: 'areas', label: 'Areas' }, { key: 'documents', screen: 'documents', label: 'Documents' },
+  { key: 'whatifs', screen: 'whatifs', label: 'What-ifs' },
 ];
 
 export function OverviewHead({ ws, w, tab }: { ws: string; w: Workspace; tab: OverviewTab }) {
@@ -56,6 +59,8 @@ export function OverviewHead({ ws, w, tab }: { ws: string; w: Workspace; tab: Ov
           </Link>
         ))}
       </div>
+
+      <FilingStatus ix={ix} state={state} mask={mask} />
 
       <nav className="ov-tabs" aria-label="Return overview tabs">
         {TABS.filter((t) => visible(t.screen)).map((t) => (

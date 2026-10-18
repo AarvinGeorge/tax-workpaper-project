@@ -64,16 +64,6 @@ export async function FormsTab({ ws, role, sp, screen }: { ws: string; role: str
       <div className="screen">
         <OverviewHead ws={ws} w={w} tab="forms" />
 
-        <div className="keyrow" role="group" aria-label="Status key">
-          <span><span className="tag t-blk">Blocking</span>stops filing<Term k="blocker" /></span>
-          <span><span className="tag t-wrn">Check failed</span>our check disagrees</span>
-          <span><span className="tag t-wrn">Judgment</span>needs a recorded decision<Term k="judgment" /></span>
-          <span><span className="tag t-wrn">Engine warning</span>from the engine only<Term k="engine-diagnostics" /></span>
-          <span><span className="tag t-acc">Adjusted</span>changed in this workspace<Term k="adjustment" /></span>
-          <span><span className="tag t-wrn">Swing</span>moved past the firm&apos;s variance rule from last year<Term k="swing" /></span>
-          <span><span className="tag t-acc">New this year</span>no amount last year</span>
-        </div>
-
         <div className="panel" aria-label="Compare versions">
           <div className="row">
             <span className="lbl">Compare {latest} with</span>

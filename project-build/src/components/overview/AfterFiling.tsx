@@ -1,5 +1,5 @@
 import Link from 'next/link';
-import { claimHref, fmtStory, fmtValue, screenPath } from '@/components/shell/lib';
+import { claimHref, fmtDay, fmtStory, fmtValue, screenPath } from '@/components/shell/lib';
 import type { Finding, RoleInfo, WorkspaceState } from '@/domain/contracts';
 import type { PacketIndex } from '@/domain/packet/load';
 import { visibleAt } from '@/domain/clock';
@@ -23,7 +23,17 @@ export function AfterFiling({ ws, ix, state, me, findings, mask }: { ws: string;
     if (v && typeof v === 'object') return [{ key: j + k, j, label: humanize(k, names), value: Object.entries(v as Record<string, unknown>).map(([a, b]) => `${a} ${fmtValue(b)}`).join(', ') }];
     return [];
   }));
-  const link = (k: Parameters<typeof screenPath>[2], text: string) => me.screens.includes(k) ? <Link className="btn" href={screenPath(ws, me.key, k)}>{text}</Link> : null;
+  const link = (k: Parameters<typeof screenPath>[2], text: string, query = '') => me.screens.includes(k) ? <Link className="btn" href={screenPath(ws, me.key, k) + query}>{text}</Link> : null;
+  // Next year's estimated payments, from the packet's planning reference (moved from the staff Filing screen).
+  const plan = (ix.packet.planning_reference_2026 ?? {}) as Record<string, unknown>;
+  const dates = (v: unknown) => (Array.isArray(v) ? v.map(String) : []);
+  const caPct = Array.isArray(plan.california_installment_percentages) ? plan.california_installment_percentages : [];
+  const planRows = [
+    { key: 'fed', label: 'Federal estimates due', value: dates(plan.federal_estimate_due_dates).map(fmtDay).join(', ') },
+    { key: 'fsh', label: <>Federal safe harbor<Term k="safe-harbor" /></>, value: typeof plan.federal_safe_harbor === 'string' ? mask(plan.federal_safe_harbor) : '' },
+    { key: 'ca', label: 'California estimates due', value: dates(plan.california_estimate_due_dates).map((d, i) => `${fmtDay(d)}${typeof caPct[i] === 'number' ? ` (${Math.round(caPct[i] * 100)}%)` : ''}`).join(', ') },
+    { key: 'csh', label: 'California safe harbor', value: typeof plan.california_safe_harbor === 'string' ? mask(plan.california_safe_harbor) : '' },
+  ].filter((r) => r.value);
   return (
     <>
       <section aria-label="As filed" className="panel" style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
@@ -46,20 +56,21 @@ export function AfterFiling({ ws, ix, state, me, findings, mask }: { ws: string;
         ) : (
           <p style={{ margin: 0 }}>The return is filed and locked. Anything new, such as an agency letter or a client message, attaches as a later event.</p>
         )}
+        <h3 className="lbl">Carryovers into next year<Term k="carryover" /> · <span className="num">{carryRows.length}</span></h3>
+        {carryRows.length === 0 && <p className="small muted">No carryovers in the packet.</p>}
+        {carryRows.map((r) => <div key={r.key} className="qrow"><span className="grow"><span>{mask(r.label)}</span><span className="small muted">{humanize(r.j)}</span></span><span className="val num">{mask(r.value)}</span></div>)}
+        {planRows.length > 0 && <>
+          <h3 className="lbl">Next year<Term k="estimated-tax" /></h3>
+          {planRows.map((r) => <div key={r.key} className="qrow"><span style={{ flex: '0 0 200px' }}>{r.label}</span><span className="grow small num">{r.value}</span></div>)}
+        </>}
         {me.key === 'next' && (
           <>
-            <h3 className="lbl">Carryovers into next year<Term k="carryover" /> · <span className="num">{carryRows.length}</span></h3>
-            {carryRows.length === 0 && <p className="small muted">No carryovers in the packet.</p>}
-            {carryRows.map((r) => <div key={r.key} className="qrow"><span className="grow"><span>{mask(r.label)}</span><span className="small muted">{humanize(r.j)}</span></span><span className="val num">{mask(r.value)}</span></div>)}
             <h3 className="lbl">Open items at filing · <span className="num">{open.length}</span></h3>
             {open.length === 0 && <p className="small muted">Nothing was left open.</p>}
             {open.slice(0, 12).map((f) => <Link key={f.id} className="qrow" href={claimHref('finding:' + f.id)}><span className="grow"><span>{mask(f.title)}</span></span></Link>)}
           </>
         )}
-        <div className="row">
-          {me.key === 'sam' ? <>{link('review', 'Open Review')}{link('changes', 'Open Changes')}{link('findings', 'Open Findings')}</> : null}
-          {link('filing', me.key === 'next' ? 'Carryovers and next-year plan' : 'The filed record')}
-        </div>
+        {me.key === 'sam' ? <div className="row">{link('review', 'Open Review')}{link('review', 'Open Changes', '?tab=log')}</div> : null}
       </section>
     </>
   );

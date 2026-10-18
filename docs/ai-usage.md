@@ -76,3 +76,4 @@ From here on, entries are written at the time again.
 - 18 Oct 12:34 EDT · Fable 5.1 plan review (probes, 5.5 min): 3 must-fix (clock on static index, fully shaped pre-v1 placeholder, explicit AI gate), applied to the plan · Opus 5.5 subagent: implementing Part A (TDD)
 - 18 Oct 12:37 EDT · Deep research (3 researcher subagents + report writer): open temporal-clock systems (bitemporal databases, time-scrubber UX, as-of conventions in accounting/audit/tax), notes in docs/research/research_notes/Temporal clock design patterns/
 - 18 Oct 12:41 EDT · Opus 5.5 subagent: Part A built (indexAt, per-version checks, AI gate, clock for every role), TDD, 525 unit / 88 e2e
+- 18 Oct 13:11 EDT · Opus 5.5 subagent: Part B built (clock bar, ? dialog, Review tabs, What-ifs tab, filing status, Firm/Changes/Filing/Findings retired with redirects), TDD, 523 unit / 99 e2e, walk 36/36 locally

@@ -25,7 +25,7 @@ test('Checks shows the AI group after our checks: marked, needs review, filter c
   const ours = page.locator('#chk-ours');
   expect(await ours.evaluate((a, b) => !!(a.compareDocumentPosition(b as Node) & Node.DOCUMENT_POSITION_FOLLOWING), await page.locator('#chk-ai').elementHandle())).toBe(true);
   // The AI chip shows only the AI group.
-  await page.getByRole('link', { name: /^AI\s*1$/ }).click();
+  await page.getByRole('link', { name: /^AI suggestions\s*1$/ }).click();
   await expect(page.locator('#chk-ours')).toHaveCount(0);
   await expect(page.getByTestId('ai-suggestions').locator(`[data-finding="${ID}"]`)).toBeVisible();
 });
@@ -74,11 +74,3 @@ test('clients and the examiner see no AI suggestions anywhere', async ({ page })
   }
 });
 
-test('Findings says how the mistakes were found and marks the ledger row the AI also flagged', async ({ page }) => {
-  await page.goto(`/w/${ws()}/daniel/findings`);
-  await expect(page.locator('body')).toContainText('found during an AI-assisted review of the packet and are now caught by deterministic checks');
-  const marked = page.getByRole('img', { name: 'The AI reader also flagged this' });
-  await expect(marked.first()).toBeVisible();
-  await expect(page.locator('tr[data-ledger="GT-C05"]').getByRole('img', { name: 'The AI reader also flagged this' })).toBeVisible();
-  await expect(page.locator('tr[data-ledger] th, thead th')).toHaveCount(5);
-});

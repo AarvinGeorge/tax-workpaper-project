@@ -163,17 +163,19 @@ test('1.3 The checks inbox', async ({ browser }) => {
 });
 
 test('1.4 Findings: the confident mistakes', async ({ browser }) => {
+  // Findings (the hand-found answer key) left the app, 18 Oct: each logged mistake is a finding on Checks, with its evidence.
   const p = await go(browser, 'daniel', 'findings');
-  const rows = p.locator('tr[data-ledger]');
-  await expect(rows, '27 logged mistakes').toHaveCount(27);
+  await expect(p, 'the old address lands on Checks').toHaveURL(/\/daniel\/checks/);
+  const rows = main(p).locator('[data-finding]');
+  await expect(main(p), '27 open at this story time').toContainText('27 open');
   const first = rows.first();
-  await expect(first, 'each with its check').toContainText(/GT-[A-Z]\d+/);
-  const links = first.locator('a');
+  await first.locator('summary').click();
+  const links = first.locator('[data-ref]');
   expect(await links.count(), 'evidence links').toBeGreaterThan(0);
-  await expect(first, 'when it appears in the story').toContainText(/20\d\d|story|v[123]/i);
-  await links.first().click();
+  await first.locator('a[data-ref]').first().click();
   await expect(drawer(p)).not.toContainText('Pick any number');
-  await rows.nth(1).locator('a').first().click();
+  await rows.nth(1).locator('summary').click();
+  await rows.nth(1).locator('a[data-ref]').first().click();
   await expect(drawer(p)).not.toContainText('Pick any number');
 });
 
@@ -183,7 +185,7 @@ test('1.5 Compare versions and try what-ifs', async ({ browser }) => {
   await expect(p).toHaveURL(/cmp=v2/);
   await expect(main(p), 'lines side by side with what changed').toContainText(/\d+ lines differ between v2 and v3/);
   await expect(main(p).locator('table').first(), 'a v2 column beside v3').toContainText(/v2/i);
-  await go(browser, 'daniel', 'changes');
+  await go(browser, 'daniel', 'whatifs');
   const m = main(p);
   await expect(m).toContainText('What-ifs from the engine');
   await expect(m, 'labelled as not a change').toContainText('Not a change; nothing is saved to the return');
@@ -314,7 +316,7 @@ test('2.4 Verify a number and record a decision', async ({ browser }) => {
   await p.locator('#d-t').fill('Estimated payments agreed to the IRS transcript; no underpayment penalty change.');
   await p.locator('#d-a').fill('IRC 6654; IRS account transcript 2026-03-12');
   await saveAction(p);
-  await go(browser, 'daniel', 'changes');
+  await go(browser, 'daniel', 'review?tab=log');
   const log = p.locator('section[aria-label="Change log"]');
   await expect(log, 'verification in Changes').toContainText(new RegExp(transcript.split(' ')[0], 'i'));
   await expect(log, 'decision with its authority in Changes').toContainText('IRC 6654');
@@ -381,7 +383,7 @@ test('2.7 Act on many items, then undo in one step', async ({ browser }) => {
   expect(bulkTexts.filter((t) => /3|three/.test(t)).length, `one notice for all three; saw: ${bulkTexts.join(' / ')}`).toBe(1);
   await pt.keyboard.press('Escape');
   await p.bringToFront(); current = p;
-  await go(browser, 'daniel', 'changes');
+  await go(browser, 'daniel', 'review?tab=log');
   await main(p).getByRole('button', { name: /^Undo/ }).first().click();
   await go(browser, 'daniel', 'checks');
   await expect(main(p).getByRole('status').filter({ hasText: 'sign-offs saved together' }), 'one undo removes all three').toHaveCount(0);
@@ -436,7 +438,7 @@ test('3.2 A cleared reveal is logged', async ({ browser }) => {
   const d = drawer(p);
   await d.getByTestId('reveal').first().click();
   await expect(d).toContainText('Revealed, logged');
-  const j = await go(browser, 'jo', 'firm');
+  const j = await go(browser, 'jo', 'review?tab=views');
   const log = main(j).locator('section, div').filter({ hasText: /^View log/ }).first();
   await expect(main(j), 'View log exists').toContainText(/View log/);
   await expect(main(j), 'who saw which identifier').toContainText(/Priya Raman/);
@@ -500,7 +502,7 @@ test('4.1 Clear the blockers', async ({ browser }) => {
   await expect.soft(main(p), 'Checks blocker count falls to 0').toContainText(/\b0 blockers/);
   await go(browser, 'daniel', 'review');
   await expect(main(p), 'Review keeps only the partner sign-off').toContainText(/(^|\D)1 blockers?/);
-  await go(browser, 'daniel', 'changes');
+  await go(browser, 'daniel', 'review?tab=log');
   await expect(p.locator('section[aria-label="Change log"]'), 'clearing recorded with its reason').toContainText('Reviewed; the return already reflects');
 });
 
@@ -536,7 +538,7 @@ test('4.3 Each spouse signs Form 8879 and FTB 8879', async ({ browser }) => {
     await expect(box.getByRole('button', { name: /Approve and sign/ }), 'signs once').toBeDisabled();
     expect(await p.locator('body').innerText(), 'no PIN').not.toMatch(/PIN\s*\d{4,}/);
   }
-  const d = await go(browser, 'daniel', 'filing');
+  const d = await go(browser, 'daniel', 'review');
   await expect(d.getByTestId('signature-ngozi'), 'staff see both signatures').toContainText(/Signed/);
   await expect(d.getByTestId('signature-erik')).toContainText(/Signed/);
   await expect(d.getByTestId('staff-signing'), 'and when').toContainText(/\d{2} \w{3} 2026/);
@@ -549,7 +551,7 @@ test('4.4 A change after signing makes the signature stale', async ({ browser })
   await p.locator('#adj-v').fill('12500');
   await p.locator('#adj-r').fill('Acceptance walk: a change after signing.');
   await saveAction(p);
-  await go(browser, 'daniel', 'filing');
+  await go(browser, 'daniel', 'review');
   await expect(p.getByTestId('signature-ngozi'), 'Ngozi signature stale').toContainText('Stale');
   await expect(p.getByTestId('signature-erik'), 'Erik signature stale').toContainText('Stale');
   await expect(p.getByTestId('staff-signing'), 'approval also stale').toContainText(/Approved[^\n]*stale|stale[^\n]*approv/i);
@@ -560,12 +562,12 @@ test('4.4 A change after signing makes the signature stale', async ({ browser })
 // ───────────── Act 5: Filing
 test('5.1 Move to the rejection', async ({ browser }) => {
   const ng = await go(browser, 'ngozi');
-  const j = await go(browser, 'jo', 'firm');
+  const j = await go(browser, 'jo');
   await moveClockUI(j, '13 Jul 2026, 19:02 UTC · Document received');
   await ng.bringToFront();
   await expect(ng.getByTestId('toast'), 'Ngozi gets a plain-words toast').toContainText('The IRS returned your return', { timeout: 12_000 });
   current = ng;
-  const p = await go(browser, 'priya', 'filing');
+  const p = await go(browser, 'priya');
   const m = main(p);
   await expect(m, 'the extension').toContainText('Extension');
   await expect(m, 'the e-file rejection').toContainText(/rejected/i);
@@ -574,7 +576,7 @@ test('5.1 Move to the rejection', async ({ browser }) => {
 });
 
 test('5.2 Move past acceptance: the record locks', async ({ browser }) => {
-  const j = await go(browser, 'jo', 'firm');
+  const j = await go(browser, 'jo');
   await moveClockUI(j, '15 Jul 2026, 02:10 UTC · E-file accepted California');
   const p = await go(browser, 'daniel', 'return', CA_EST);
   await expect(p.locator('header').first(), 'header shows As filed, locked').toContainText(/As filed, locked/i);
@@ -606,8 +608,11 @@ test("5.3 The client's copy", async ({ browser }) => {
 });
 
 test('5.4 Deadlines and status', async ({ browser }) => {
-  const p = await go(browser, 'jo', 'firm');
-  const m = main(p);
+  const p = await go(browser, 'jo');
+  await p.getByRole('button', { name: /About this workspace/ }).click();
+  const m = p.getByRole('dialog');
+  const closed = m.locator('details:not([open]) > summary');
+  while (await closed.count()) await closed.first().click();
   await expect(m, 'Deadlines').toContainText(/Deadlines/);
   await expect(m, 'measured on the story clock').toContainText(/story clock|story time/i);
   await expect(m, 'Time against budget').toContainText(/Time against budget/i);
@@ -625,9 +630,9 @@ test('5.4 Deadlines and status', async ({ browser }) => {
 
 // ───────────── Act 6: After filing
 test("6.1 Next year's preparer", async ({ browser }) => {
-  const j = await go(browser, 'jo', 'firm');
+  const j = await go(browser, 'jo');
   await moveClockUI(j, '15 Jan 2027, 15:00 UTC · Next year engagement started');
-  const p = await go(browser, 'next', 'filing');
+  const p = await go(browser, 'next');
   const m = main(p);
   await expect(m, 'carryovers out of 2025').toContainText(/Carryovers/);
   await expect(m, 'with their history').toContainText(/2024|2023|history/i);
@@ -640,7 +645,7 @@ test("6.1 Next year's preparer", async ({ browser }) => {
 });
 
 test('6.2 An IRS examiner years later', async ({ browser }) => {
-  const j = await go(browser, 'jo', 'firm');
+  const j = await go(browser, 'jo');
   await moveClockUI(j, '26 Jan 2028, 15:00 UTC · Notice received');
   const p = await go(browser, 'irs', 'filing');
   const m = main(p);
@@ -658,7 +663,7 @@ test('6.2 An IRS examiner years later', async ({ browser }) => {
 });
 
 test('6.3 Related returns and outside filings', async ({ browser }) => {
-  const p = await go(browser, 'daniel', 'filing');
+  const p = await go(browser, 'daniel', 'areas');
   const m = main(p);
   await expect(m).toContainText('Related returns and outside filings');
   await expect(m, "Ada's own return").toContainText(/Ada/);
@@ -678,19 +683,19 @@ test('7.1 Attach evidence', async ({ browser }) => {
   await note.getByRole('textbox').first().fill('Acceptance walk: this is the signed copy.');
   await note.getByRole('button', { name: /Save|Add|Send/ }).first().click();
   await expect(p.locator('body'), 'saved as evidence').toContainText('Acceptance walk: this is the signed copy.');
-  const fil = await go(browser, 'daniel', 'filing');
-  await expect(main(fil), 'upload listed on Filing as designed, not built').toContainText(/Attaching a real file/);
+  // The "Designed, not built: Attaching a real file" box was on staff Filing, retired 18 Oct (plan B7); it is in the hand-in write-up.
+  judgment('File upload is designed, not built; the app no longer lists it (staff Filing retired).');
 });
 
 test('7.2 Saving survives everything', async ({ browser }) => {
-  const p = await go(browser, 'daniel', 'changes');
+  const p = await go(browser, 'daniel', 'review?tab=log');
   await p.reload();
   const log = p.locator('section[aria-label="Change log"]');
   for (const t of ['15 Sep payment designated for 2024', 'IRC 6654', 'Reviewed; the return already reflects', 'Acceptance walk: a change after signing']) await expect(log, t).toContainText(t);
   // a private window: a new context with no shared storage
   const fresh = await browser.newContext({ baseURL: test.info().project.use.baseURL });
   const q = await fresh.newPage();
-  await q.goto(url('daniel', 'changes'));
+  await q.goto(url('daniel', 'review?tab=log'));
   await expect(q.locator('section[aria-label="Change log"]'), 'same record in a private window').toContainText('15 Sep payment designated for 2024');
   await q.screenshot({ path: path.join(OUT, '7.2-private.png') });
   await fresh.close();

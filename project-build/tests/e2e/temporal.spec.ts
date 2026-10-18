@@ -29,7 +29,7 @@ test('the overview at default, at 14 Apr (v2) and before the first computation',
 test('before the first computation every main screen renders', async ({ page }) => {
   const w = ws();
   expect((await move(page, w, 'jo', '2026-03-02T00:00:00Z')).ok()).toBe(true);
-  for (const path of ['', '/checks', '/review', '/filing']) {
+  for (const path of ['', '/checks', '/review', '/review?tab=log', '/whatifs', '/filing']) {
     const res = await page.goto(`/w/${w}/daniel${path}`);
     expect(res?.status(), path).toBe(200);
     await expect(page.getByRole('main')).toBeVisible();

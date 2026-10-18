@@ -116,7 +116,7 @@ export function ChecksScreen(p: WorkProps) {
         ))}
         {aiOn ? (
           <a className={`${s.chip} ${sev === 'ai' ? s.chipOn : ''}`} href={queryHref(p.sp, 'sev', 'ai')} aria-current={sev === 'ai' ? 'true' : undefined}>
-            <AiMark label="" />AI <span className={s.num}>{ai.length}</span>
+            <AiMark label="" />AI suggestions <span className={s.num}>{ai.length}</span>
           </a>
         ) : null}
       </div>

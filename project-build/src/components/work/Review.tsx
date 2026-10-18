@@ -1,6 +1,7 @@
 // Review: the pull-request view of the return. Our adjustments against the latest version, open review notes (blocking
 // ones block approval), sign-offs with stale ones marked, partner items over the firm's threshold, and the partner's
-// approve button, disabled with the blocker list. Copies Review.dc.html.
+// approve button, disabled with the blocker list, and the clients' e-file signatures. Two more tabs: Changes (every
+// event, undoable; the old /changes) and View log (who revealed which identifier; from the old Firm screen). Copies Review.dc.html.
 import type { ClaimState, WorkEvent } from '@/domain/contracts';
 import { retractedSeqs } from '@/domain/events';
 import s from './work.module.css';
@@ -10,6 +11,8 @@ import {
 import { Est, NoAccess, Page, Tag } from './ui';
 import { Term } from '../term/Term';
 import { EventButton, TextAction } from './actions';
+import { ChangeLog } from './ChangeLog';
+import { StaffSigning } from '@/components/client/ClientFiling';
 
 /** The claim's last adjustment that has not been undone, proposed or applied. */
 function lastAdjustment(c: ClaimState, retracted: Set<number>): WorkEvent | undefined {
@@ -56,6 +59,8 @@ export function ReviewScreen(p: WorkProps) {
     { key: 'notes', name: 'Review notes', count: notes.length },
     { key: 'signoffs', name: 'Sign-offs', count: signoffs.length },
     { key: 'partner', name: 'Partner items', count: partnerItems.length },
+    { key: 'log', name: 'Changes', count: state.events.length },
+    { key: 'views', name: 'View log', count: state.reveals.length },
   ];
 
   const approveBlock = block ?? (state.blockers.length ? `${state.blockers.length} blockers must clear first.` : null);
@@ -65,7 +70,7 @@ export function ReviewScreen(p: WorkProps) {
       tags={<><Tag tone="neu">As of {when(state.storyAt)}</Tag><Tag tone="neu">Stage: {state.stage}</Tag>{state.frozen ? <Tag tone="acc">As filed, locked</Tag> : null}</>}
       intro={<>Everything we changed over the engine&apos;s {ix.latest.version}, with who did it, why, and who signed. A sign-off<Term k="sign-off" /> covers the value it signed; when the value changes, the sign-off goes stale<Term k="stale-signoff" />.</>}>
 
-      <div className={s.box} style={{ padding: '14px 16px', display: 'flex', flexWrap: 'wrap', gap: 12, alignItems: 'center' }}>
+      <section className={s.box} aria-label="Approval" style={{ padding: '14px 16px', display: 'flex', flexWrap: 'wrap', gap: 12, alignItems: 'center' }}>
         <strong>Approval</strong>
         <span><Tag tone={state.blockers.length ? 'blk' : 'pas'}>{state.blockers.length ? `${state.blockers.length} blockers` : 'No blockers'}</Tag><Term k="blocker" /></span>
         <Tag tone={blockingNotes.length ? 'blk' : 'neu'}>{blockingNotes.length} blocking notes</Tag>
@@ -90,7 +95,8 @@ export function ReviewScreen(p: WorkProps) {
             {notesRule ? <p className={s.note} style={{ margin: '6px 0 0' }}>Firm rule: “{notesRule}”</p> : null}
           </div>
         ) : null}
-      </div>
+        <div style={{ flex: '1 1 100%' }}><StaffSigning ix={ix} state={state} /></div>
+      </section>
 
       <nav className={s.tabs} aria-label="Review views">
         {tabs.map((t) => (
@@ -194,6 +200,21 @@ export function ReviewScreen(p: WorkProps) {
               </div>
             );
           })}
+        </section>
+      ) : null}
+
+      {tab === 'log' ? <ChangeLog {...p} /> : null}
+
+      {tab === 'views' ? (
+        <section className={s.section} aria-labelledby="firm-log">
+          <h2 className={s.h2} id="firm-log">View log<Term k="view-log" /></h2>
+          <p className={s.note} style={{ margin: 0 }}>Every unmasked view of an identifier: who, which, when. The value itself is never logged.</p>
+          <div className={s.box}>
+            {state.reveals.length === 0 ? <div className={s.boxRow}><span className={s.note}>No reveals in this workspace at this story time.</span></div> : null}
+            {state.reveals.map((r) => (
+              <div key={r.seq} className={s.boxRow}><span className={s.when}>{when(r.at)}</span><strong>{personName(ix, r.role)}</strong><span className={s.grow}>{m(r.what)}</span></div>
+            ))}
+          </div>
         </section>
       ) : null}
 

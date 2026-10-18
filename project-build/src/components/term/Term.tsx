@@ -24,7 +24,9 @@ export function Term({ k }: { k: string }) {
   useLayoutEffect(() => {
     const me = btn.current;
     if (!me) return;
-    const first = document.querySelector(`[data-term="${CSS.escape(k)}"]`);
+    // The "?" dialog is its own screen: its marks and the page's are counted apart.
+    const scope = me.closest('dialog');
+    const first = [...document.querySelectorAll(`[data-term="${CSS.escape(k)}"]`)].find((el) => el.closest('dialog') === scope);
     if (first && first !== me) setDup(true);
   }, [k]);
 

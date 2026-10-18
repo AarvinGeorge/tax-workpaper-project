@@ -1,5 +1,5 @@
 // Gaps the acceptance walk found (G1-G5): decision authority and adjustment reasons shown; undo of a bulk group from
-// Changes; Checks header counts exclude cleared findings; notes on documents; the partner sign-off flag in the panel.
+// Review's Changes tab; Checks header counts exclude cleared findings; notes on documents; the partner sign-off flag in the panel.
 import { readFileSync } from 'node:fs';
 import path from 'node:path';
 import { expect, test, type Page } from '@playwright/test';
@@ -14,7 +14,7 @@ test('G1: Changes shows a decision\'s authority; History shows an adjustment\'s 
   const w = ws();
   expect((await post(page, w, 'daniel', { type: 'decision', claimId: CA_EST, payload: { kind: 'judgment', text: 'Keep as filed.', authority: 'IRC 6654 (gap test)' } })).ok()).toBe(true);
   expect((await post(page, w, 'daniel', { type: 'adjustment', claimId: CA_EST, payload: { value: 10500, reason: 'Payment designated for 2024 (gap test)' } })).ok()).toBe(true);
-  await page.goto(`/w/${w}/daniel/changes`);
+  await page.goto(`/w/${w}/daniel/review?tab=log`);
   await expect(page.locator('section[aria-label="Change log"]')).toContainText('Authority: IRC 6654 (gap test)');
   await expect(page.locator('section[aria-label="Change log"]')).toContainText('Payment designated for 2024 (gap test)');
   await expect(page.locator('.sh-hist').first()).toContainText('Payment designated for 2024 (gap test)');
@@ -26,7 +26,7 @@ test('G2: undo from Changes on a bulk entry reverses the whole group', async ({ 
   const ids: string[] = st0.findings.filter((f: { source?: string }) => f.source !== 'ai').slice(0, 3).map((f: { id: string }) => 'finding:' + f.id);
   const groupId = 'bulk-gaptest';
   for (const claimId of ids) expect((await post(page, w, 'daniel', { type: 'signoff', claimId, groupId, payload: { level: 'reviewer', bulk: true, note: 'Checked' } })).ok()).toBe(true);
-  await page.goto(`/w/${w}/daniel/changes`);
+  await page.goto(`/w/${w}/daniel/review?tab=log`);
   const undo = page.locator('section[aria-label="Change log"]').getByRole('button', { name: 'Undo all 3' });
   await expect(undo).toHaveCount(3);
   await undo.first().click();

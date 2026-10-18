@@ -23,11 +23,11 @@ People fix what is wrong, every change is kept forever, AI points at problems in
 | 4 | 2:05-2:50 | Daniel (reviewer) adjusts F540NR.72 to 10,500 with a reason; switch to Priya's tab: the notice and the bell | "Daniel, the reviewer, fixes the number and writes why. Taxmark keeps the old value, who changed it, why, and what it does to the tax. This change is over 1,000 dollars, so it needs the partner. Switch to Priya's tab. Priya prepared this return, and the notice is already waiting. Nothing is ever edited or deleted. Every action is added to a record, like a bank statement, and that record is the audit trail." |
 | 5 | 2:50-3:20 | Role switcher: Marcus on Documents (masked, Reveal refused); then Ngozi's Home | "Everyone on the return shares one workpaper, and each person sees only what their job needs. The server enforces that; hiding a button on its own would never be enough. Marcus has no clearance, so the Social Security number shows as its last four digits. Asking for the rest is refused, and every time someone does see a full number, it is logged. Ngozi is the client and sees only the questions meant for Ngozi, in plain words." |
 | 6 | 3:20-4:25 | `/daniel/checks?claim=finding%3Aai-repair_vs_improvement-3`, the heat-pump ✦ suggestion | "Now, AI. Rules are good with numbers. They cannot read a sentence like 'we replaced the heat pump' and ask whether that is a repair or an improvement. That is the one job I give the AI. Claude reads the documents once, when the packet arrives, never while you browse. Names and ID numbers are masked first. Every suggestion has to quote the document word for word, and code checks that the quote is really on that page. Anything it cannot prove is held back. It is marked with this star, it never blocks filing, and a person accepts or dismisses it. Before trusting it, I tested it blind on this client's packet, against the 27 mistakes already known. The automatic score said 17. A second model judged each match and said 13. I report 13. It also found one real mistake my own review had missed." |
-| 7 | 4:25-5:00 | Jo: clock to 13 Jul, show Filing (rejected), back to Firm, clock to 15 Jul ("As filed, locked") | "Jo is the firm's administrator. This clock replays the tax season: the e-file is rejected, fixed, and accepted. Once it is accepted the return is locked, and any later change is filed as an amendment. I built this with Claude Code. A different model reviewed every round by running the tests. Every decision and its trade-off is in the log. The client data is encrypted, and the AI key never leaves the server." |
+| 7 | 4:25-5:00 | Jo: clock to 13 Jul from the Story time bar, the filing status under the figures (rejected), clock to 15 Jul ("As filed, locked") | "Jo is the firm's administrator. This clock replays the tax season: the e-file is rejected, fixed, and accepted. Once it is accepted the return is locked, and any later change is filed as an amendment. I built this with Claude Code. A different model reviewed every round by running the tests. Every decision and its trade-off is in the log. The client data is encrypted, and the AI key never leaves the server." |
 
 ## Click guide, step by step (walked on the live site, 17 Oct 19:53 EDT)
 
-All links start with `https://taxmark-workpaper.vercel.app/w/video-take1`. Tabs: Daniel `/daniel`, Priya `/priya`, Ngozi `/ngozi`, Jo `/jo/firm`. Marcus has no tab; you reach him through the **Viewing as** dropdown, top right.
+All links start with `https://taxmark-workpaper.vercel.app/w/video-take1`. Tabs: Daniel `/daniel`, Priya `/priya`, Ngozi `/ngozi`, Jo `/jo`. Marcus has no tab; you reach him through the **Viewing as** dropdown, top right.
 
 **Order matters.** Do the adjustment (moment 4) before the clock (moment 7). After 15 Jul the return is locked and Adjust is refused. To redo a take: Reset to start, Confirm reset, reload Priya's tab.
 
@@ -64,9 +64,9 @@ All links start with `https://taxmark-workpaper.vercel.app/w/video-take1`. Tabs:
 3. Point at the ✦ and at **Accept** / **Dismiss**. Don't click either. Don't read the confidence column aloud (the list and the panel use different words).
 
 **4:25-5:00 · Clock (Jo's tab)**
-1. In **Move story time to**, pick "13 Jul 2026, 17:04 UTC · E-file rejected" and click **Move clock**. Wait 3 to 4 seconds.
-2. Click **Filing and after** in the sidebar. Point at "Rejected" and the reason (a dependent's ID number and name must match). Click back to **Firm**.
-3. Pick "15 Jul 2026, 02:10 UTC · E-file accepted California" and click **Move clock**. Point at the "As filed, locked" chip in the header.
+1. In the Story time bar, under the header, in **Move story time to**, pick "13 Jul 2026, 17:04 UTC · E-file rejected" (under Filing) and click **Move clock**. Wait 3 to 4 seconds.
+2. Under the three figures, point at the filing status: "Rejected 13 Jul 2026" and the reason (a dependent's ID number and name must match).
+3. Pick "15 Jul 2026, 02:10 UTC · E-file accepted California" (under Filed) and click **Move clock**. Point at the "As filed, locked" chip in the header and in the filing status.
 
 ## Lines to keep exact
 

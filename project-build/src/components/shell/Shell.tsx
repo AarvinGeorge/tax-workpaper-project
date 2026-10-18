@@ -3,6 +3,8 @@ import type { ReactNode } from 'react';
 import type { RoleInfo, RoleKey, ScreenKey, WorkspaceState, WorkEvent } from '@/domain/contracts';
 import { getWorkspace } from './load';
 import { maskText } from '@/domain/policy';
+import { stageAt, visibleAt } from '@/domain/clock';
+import { humanize } from '@/domain/labels';
 import { RoleSwitcher } from './RoleSwitcher';
 import { ResetButton } from './ResetButton';
 import { ClientSwitcher } from './ClientSwitcher';
@@ -15,6 +17,8 @@ import { claimHref, fmtDay, fmtStory, fmtValue, notYetText, screenHint, screenLa
 import { NoAccess } from '../work/ui';
 import { Term } from '../term/Term';
 import { ClaimDrawer } from '../drawer/ClaimDrawer';
+import { ClockControl, ReturnToLatest } from './StoryClock';
+import { Info } from '../info/Info';
 
 export interface ShellProps {
   ws: string; role: RoleKey; screen: ScreenKey; state?: WorkspaceState; roleInfo?: RoleInfo;
@@ -49,7 +53,7 @@ function bannerText(r: RoleInfo, rules: unknown, frozen: boolean): string {
     case 'marcus': return 'You can adjust values, ask the client, verify and sign off as preparer. You cannot reveal full SSNs or bank numbers: no sensitive-data clearance.';
     case 'daniel': return 'You can leave review notes, verify, apply proposed adjustments and sign off as reviewer.';
     case 'helen': return `You approve the return once nothing blocks it.${partner ? ` Firm rule: “${partner}”` : ''}`;
-    case 'jo': return 'You see who viewed what, time against budget and file status, and you move the story clock. Return values are read only for you.';
+    case 'jo': return 'You see who viewed what, time against budget and file status, and you move the story clock from the bar above. Return values are read only for you.';
     default: return '';
   }
 }
@@ -77,7 +81,7 @@ const VERB: Partial<Record<WorkEvent['type'], string>> = {
 
 const claimTitle = claimLabel;
 
-const OVERVIEW_TABS: ScreenKey[] = ['return', 'areas', 'documents'];
+const OVERVIEW_TABS: ScreenKey[] = ['return', 'areas', 'documents', 'whatifs'];
 
 export async function Shell({ ws, role, screen, claim, q, children, ...given }: ShellProps) {
   const w = await getWorkspace(ws, role);
@@ -110,6 +114,19 @@ export async function Shell({ ws, role, screen, claim, q, children, ...given }: 
     href: screenPath(ws, role, isClient || !x.claimId ? 'home' : screen) + (isClient || !x.claimId ? '' : claimHref(x.claimId)),
   }));
   const drawerOpen = !!claim;
+  // The clock: every timeline event, grouped by stage, plus the current story time when it is not one of them.
+  const clockOptions = [...ix.packet.timeline].map((t) => ({ at: t.at, label: `${fmtStory(t.at)} · ${humanize(t.event)}` }));
+  if (!clockOptions.some((o) => o.at === state.storyAt)) clockOptions.push({ at: state.storyAt, label: `${fmtStory(state.storyAt)} · current story time` });
+  clockOptions.sort((a, b) => a.at.localeCompare(b.at));
+  const clockGroups: { stage: string; options: typeof clockOptions }[] = [];
+  for (const o of clockOptions) {
+    const stage = stageAt(ix, o.at);
+    const g = clockGroups[clockGroups.length - 1];
+    if (g && g.stage === stage) g.options.push(o); else clockGroups.push({ stage, options: [o] });
+  }
+  // Viewing the past is said up front: the story time is before the latest point this workspace has reached.
+  const past = !!state.frontierAt && !visibleAt(state.frontierAt, state.storyAt);
+  const lastMove = [...state.events].reverse().find((e) => e.type === 'clock_moved');
 
   return (
     <div className="wp" data-role={role} data-screen={screen}>
@@ -141,10 +158,17 @@ export async function Shell({ ws, role, screen, claim, q, children, ...given }: 
         </div>
       </header>
 
-      <div className="sh-story" role="group" aria-label="Story clock">
+      <div className={`sh-story${past ? ' past' : ''}`} role="group" aria-label="Story clock">
         <span className="num" title="The one story clock for this workspace; times are UTC"><strong>Story time</strong><Term k="story-clock" /> {fmtStory(state.storyAt)}</span>
-        {!isClient && canSee('firm') && me.kind === 'staff' && <span className="small muted">The story clock is moved on <Link href={screenPath(ws, role, 'firm')}>Firm</Link>; moving it is recorded as an event everyone sees.</span>}
+        <ClockControl key={state.storyAt} ws={ws} role={role} groups={clockGroups} current={state.storyAt} />
+        {past && (
+          <span className="row sh-past" style={{ gap: 8 }}>
+            <span>You are viewing {fmtStory(state.storyAt)}, an earlier point in the story. Nothing can be changed here.{lastMove ? <span className="muted"> {lastMove.role === role ? 'You' : roleName(lastMove.role)} moved the clock last.</span> : null}</span>
+            <ReturnToLatest ws={ws} role={role} current={state.storyAt} latest={state.frontierAt} />
+          </span>
+        )}
         <span style={{ marginLeft: 'auto' }}><ResetButton ws={ws} role={role} /></span>
+        <Info ix={ix} state={state} role={me} ws={ws} />
       </div>
 
       <div className="sh-banner" role="note">
@@ -182,7 +206,7 @@ export async function Shell({ ws, role, screen, claim, q, children, ...given }: 
               return (
                 <Link key={k} className="sh-nav" href={screenPath(ws, role, k)} aria-current={current ? 'page' : undefined}>
                   <span className="t">{overview ? 'Return overview' : screenLabel(k, me.kind)}</span>
-                  <span className="small muted">{overview ? 'Figures, open items, forms, areas, documents' : screenHint(k, me.kind)}</span>
+                  <span className="small muted">{overview ? 'Figures, open items, forms, areas, documents, what-ifs' : screenHint(k, me.kind)}</span>
                 </Link>
               );
             })}
@@ -204,8 +228,7 @@ export async function Shell({ ws, role, screen, claim, q, children, ...given }: 
           {notYet ? (
             <div className="screen">
               <h1>Not yet in the story</h1>
-              <p className="sub">{notYet} Move it on the Firm screen (as Jo) to see this role&apos;s view.</p>
-              <div className="row"><Link className="btn primary" href={screenPath(ws, 'jo', 'firm')}>Open Firm as Jo</Link></div>
+              <p className="sub">{notYet} Move the story clock in the bar above to see this role&apos;s view.</p>
             </div>
           ) : allowed ? children : <NoAccess role={me} screen={screen} />}
         </main>

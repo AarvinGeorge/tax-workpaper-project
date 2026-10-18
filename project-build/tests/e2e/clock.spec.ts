@@ -18,7 +18,7 @@ test('the filed return never changes: a rewind is for looking, and acting waits 
   const acts = page.getByTestId('drawer-actions');
   await expect(acts.getByRole('button', { name: 'Adjust', exact: true })).toBeDisabled();
   await expect(acts).toContainText(/earlier point in the story/);
-  await page.goto(`/w/${w}/jo/firm`);
+  await page.goto(`/w/${w}/jo`);
   await expect(page.getByLabel(/Move story time to/)).toBeEnabled(); // the clock stays free while rewound
   expect((await post('jo', { type: 'clock_moved', payload: { to: '2026-07-15T02:10:00Z' } })).ok()).toBe(true);
   const s = await state();

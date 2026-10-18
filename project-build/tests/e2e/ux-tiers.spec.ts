@@ -38,8 +38,8 @@ test('T4: after filing the client sees no "Not signed" and no stale asks; before
   const w = ws();
   await page.goto(`/w/${w}/ngozi`);
   await expect(page.getByRole('main')).toContainText('Needed');
-  // Move the story to after acceptance (as Jo, on Firm).
-  await page.goto(`/w/${w}/jo/firm`);
+  // Move the story to after acceptance (as Jo, from the Story time bar).
+  await page.goto(`/w/${w}/jo`);
   const pick = page.getByLabel(/Move story time to/);
   const options = await pick.locator('option').allInnerTexts();
   const accepted = options.find((o) => /accepted California/i.test(o));

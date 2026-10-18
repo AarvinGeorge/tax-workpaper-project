@@ -3,7 +3,7 @@
 import type { ReactNode } from 'react';
 import { swings } from '@/domain/versions';
 import s from './work.module.css';
-import { arr, claimHref, fmt, humanize, masker, obj, when, type WorkProps } from './lib';
+import { arr, claimHref, day, fmt, humanize, masker, obj, when, type WorkProps } from './lib';
 import { NoAccess, NotInPacket, Page, Tag } from './ui';
 import { Term } from '../term/Term';
 
@@ -156,6 +156,8 @@ export function AreasScreen(p: WorkProps) {
   const basis = obj(py.basis_records);
   const carryIn = obj(py.carryovers_into_2025);
   const carryOut = obj(v.carryovers_out);
+  const related = arr(pk.household.related_returns).map(obj);
+  const outside = (pk.firm.deadlines as Record<string, unknown>[]).filter((d) => /outside/i.test(String(d.what)));
 
   return (
     <Page head={p.head} label="Areas" h1="Records by area"
@@ -297,6 +299,23 @@ export function AreasScreen(p: WorkProps) {
         <Sub title="Our changes in this workspace">
           <p className={s.note} style={{ margin: 0 }}>Every proposed and applied adjustment, with who, why and who signed: <a className={s.link} href={`/w/${p.ws}/${p.role.key}/review`}>Adjustments on Review</a>.</p>
         </Sub>
+      </Area>
+
+      <Area name="Related returns and outside filings">
+        <div className={s.scroll}>
+          <table className={s.table} aria-label="Related returns and outside filings">
+            <thead><tr><th>Who</th><th>Return or filing</th><th>Prepared by or due</th><th>In this packet</th></tr></thead>
+            <tbody>
+              {related.map((r, i) => (
+                <tr key={'r' + i}><td>{m(r.who)}</td><td>{m(r.return)}</td><td>{m(r.prepared_by)}</td><td>{r.in_this_packet === false ? 'No' : m(r.in_this_packet)}</td></tr>
+              ))}
+              {outside.map((d, i) => (
+                <tr key={'o' + i}><td>Outside this engagement</td><td>{m(d.what)}</td><td>Due {day(String(d.date))}</td><td>No</td></tr>
+              ))}
+              {related.length + outside.length === 0 ? <tr><td colSpan={4}>Not in the packet.</td></tr> : null}
+            </tbody>
+          </table>
+        </div>
       </Area>
     </Page>
   );

@@ -56,15 +56,15 @@ export function fmtStory(iso: string): string {
 }
 
 const NAME: Record<ScreenKey, string> = {
-  home: 'Home', return: 'Return', areas: 'Areas', documents: 'Documents', checks: 'Checks', review: 'Review',
-  changes: 'Changes', filing: 'Filing and after', firm: 'Firm', findings: 'Findings',
+  home: 'Home', return: 'Return', areas: 'Areas', documents: 'Documents', whatifs: 'What-ifs', checks: 'Checks', review: 'Review',
+  filing: 'Filing and after',
 };
 const HINT: Record<ScreenKey, string> = {
   home: 'Start here, your queue', return: 'Forms and lines, every number traced', areas: 'Records a CPA expects, area by area',
-  documents: 'Every document and where it landed', checks: 'Our checks beside the engine’s diagnostics',
-  review: 'Changes against the engine, notes, sign-offs', changes: 'Every action: why, authority, effect, who',
-  filing: 'Approval, e-file, the filed record, notices', firm: 'Standards, view log, time against budget',
-  findings: 'The packet’s confident mistakes, each with its check',
+  documents: 'Every document and where it landed', whatifs: 'The engine’s alternatives, not changes',
+  checks: 'Our checks beside the engine’s diagnostics',
+  review: 'Adjustments, notes, sign-offs, every change and view',
+  filing: 'Approval, e-file, the filed record, notices',
 };
 const CNAME: Partial<Record<ScreenKey, string>> = { home: 'Home', documents: 'Your documents', filing: 'Approve and sign', return: 'Your return' };
 const CHINT: Partial<Record<ScreenKey, string>> = { home: 'What we need from you', documents: 'What you sent and what is still needed', filing: 'Sign Form 8879 (e-file signature authorization)', return: 'Your return, line by line' };

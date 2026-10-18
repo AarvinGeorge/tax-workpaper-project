@@ -47,7 +47,6 @@ export const TERMS: Record<string, TermEntry> = {
   'part-year-resident': { label: 'part-year resident', text: 'Someone who moved into or out of California during the year. California taxes all income while resident and California-source income for the rest.' },
   'extension': { label: 'extension', text: 'More time to file, to October 15, through Form 4868 and California’s automatic extension. Tax is still due by the April deadline.' },
   'efile-rejection': { label: 'e-file rejection', text: 'The agency refused the electronic return and sent an error code. Nothing is filed until the error is fixed and the return is sent again and accepted.' },
-  'tie-out': { label: 'tie-out', text: 'Confirming that a number on the return matches its source, such as a W-2 box or a broker total, and that the totals add up.' },
   'due-diligence': { label: 'due diligence', text: 'The questions and records the IRS requires before a preparer claims certain credits, such as the child tax credit, documented on Form 8867.' },
   'election': { label: 'election', text: 'A choice the tax law lets the taxpayer make, such as opting out of bonus depreciation. It is recorded with its authority and can bind later years.' },
 

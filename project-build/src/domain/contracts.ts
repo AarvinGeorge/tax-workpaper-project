@@ -11,7 +11,7 @@ export interface RoleInfo {
   clearance: boolean; activeFrom: string | null;        // ISO; null = from the start
   screens: ScreenKey[];                                  // screens this role may open
 }
-export type ScreenKey = 'home' | 'return' | 'areas' | 'documents' | 'checks' | 'review' | 'changes' | 'filing' | 'firm' | 'findings';
+export type ScreenKey = 'home' | 'return' | 'areas' | 'documents' | 'whatifs' | 'checks' | 'review' | 'filing';
 // roles(ix): RoleInfo[]                       derived from firm.staff, firm.client_users and the two non-staff seats
 // can(ix, role, action, target, state): { ok: boolean; reason?: string }
 // maskValue(text, valueType, role, revealed): string   last 4 only for ssn/account/ip_pin/pin types; EIN never masked

@@ -104,8 +104,6 @@ p { margin: 0; }
 .sub { color: var(--ink2); max-width: 76ch; }
 .panel { background: var(--surface); border: 1px solid var(--line); border-radius: 10px; padding: 14px 16px; display: flex; flex-direction: column; gap: 10px; }
 .row { display: flex; flex-wrap: wrap; align-items: center; gap: 8px 12px; }
-.keyrow { display: flex; flex-wrap: wrap; gap: 8px 14px; font-size: 12.5px; color: var(--ink2); }
-.keyrow > span { display: inline-flex; gap: 6px; align-items: center; }
 
 /* Start here */
 .start { background: var(--surface); border: 1px solid var(--line); border-radius: 12px; padding: 16px 18px; display: flex; flex-direction: column; gap: 10px; }
@@ -237,3 +235,38 @@ a.srcitem:hover { border-color: var(--ink2); }
 .ov-tab:hover { color: var(--ink); }
 .ov-tab[aria-current="page"] { color: var(--acc); border-bottom-color: var(--acc); }
 @media (max-width: 640px) { .kpis { grid-template-columns: minmax(0, 1fr); } }
+
+/* Story time bar: the clock for every role; viewing the past is said up front */
+.sh-story { position: relative; }
+.sh-story.past { background: var(--wrnsoft); }
+.sh-past { color: var(--ink); }
+.sh-banner { padding-right: 64px; }
+
+/* The "?" button under Reset to start, and its centred dialog: legends and reference */
+.info-btn { position: absolute; right: 20px; top: calc(100% + 4px); z-index: var(--z-dropdown); width: 32px; height: 32px; border-radius: 999px; border: 1px solid var(--line); background: var(--surface); color: var(--ink); font: inherit; font-size: 15px; font-weight: 700; cursor: pointer; display: inline-flex; align-items: center; justify-content: center; box-shadow: 0 2px 8px oklch(0.2 0.02 255 / 0.10); }
+.info-btn:hover { border-color: var(--ink2); }
+.info-dlg { padding: 0; border: 1px solid var(--line); border-radius: 12px; background: var(--bg); color: var(--ink); width: min(880px, calc(100vw - 32px)); max-height: min(86dvh, 900px); box-shadow: 0 24px 64px oklch(0.2 0.02 255 / 0.22); }
+.info-dlg::backdrop { background: oklch(0.2 0.02 255 / 0.38); }
+.info-in { display: flex; flex-direction: column; gap: 10px; padding: 18px 22px 22px; }
+.info-top { display: flex; align-items: center; justify-content: space-between; gap: 12px; position: sticky; top: -18px; margin: -18px -22px 0; padding: 14px 22px 10px; background: var(--bg); border-bottom: 1px solid var(--line); z-index: var(--z-sticky); }
+.info-top h2 { font-size: 18px; }
+.info-sec { background: var(--surface); border: 1px solid var(--line); border-radius: 10px; }
+.info-sec > summary { list-style: none; cursor: pointer; display: flex; align-items: center; gap: 8px; padding: 10px 14px; min-height: 44px; }
+.info-sec > summary::-webkit-details-marker { display: none; }
+.info-sec > summary::before { content: "▸"; color: var(--ink2); width: 10px; }
+.info-sec[open] > summary::before { content: "▾"; }
+.info-sec > summary h3 { font-size: 15px; display: inline-flex; align-items: center; }
+.info-body { padding: 0 14px 14px; }
+.legend { list-style: none; margin: 0; padding: 0; display: grid; grid-template-columns: repeat(auto-fill, minmax(min(300px, 100%), 1fr)); gap: 8px 18px; font-size: 13px; color: var(--ink2); }
+.legend li { display: flex; align-items: center; gap: 8px; }
+.legend li > span:first-child { flex: none; }
+@media (max-width: 899.98px) { .info-btn { right: 16px; } .sh-banner { padding-right: 56px; } }
+
+/* Filing status under the overview figures */
+.filestat { display: flex; flex-direction: column; gap: 4px; font-size: 13px; padding: 10px 14px; background: var(--surface); border: 1px solid var(--line); border-radius: 10px; }
+.filestat > div { display: grid; grid-template-columns: 96px minmax(0, 1fr); gap: 4px 10px; align-items: baseline; }
+.filestat .k { color: var(--ink2); }
+.filestat .tag { white-space: normal; }
+.sh-story form, .sh-story label { min-width: 0; max-width: 100%; }
+.sh-story .select { max-width: 100%; min-width: 0; text-overflow: ellipsis; }
+@media (max-width: 899.98px) { .sh-story form, .sh-story label { flex: 1 1 100%; } .sh-story .select { flex: 1 1 0; } }
