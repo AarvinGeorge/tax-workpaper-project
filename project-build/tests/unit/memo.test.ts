@@ -7,7 +7,7 @@ import { runChecks } from '@/domain/checks/index';
 import { DEFAULT_STORY_AT } from '@/domain/clock';
 import { SIGN_FORMS } from '@/domain/policy';
 import { returnFingerprint } from '@/components/client/signing';
-import { memoBlock, memoData } from '@/domain/memo';
+import { memoBlock, memoData } from '@/components/work/memoData';
 import type { NewEvent, RoleKey, WorkEvent } from '@/domain/contracts';
 
 const ix = indexPacket(loadPacket());

@@ -1,7 +1,7 @@
-// Review memo: one page, read top to bottom, printable (src/domain/memo.ts builds it from the projected state). Opened
+// Review memo: one page, read top to bottom, printable (memoData.ts beside it builds it from the projected state). Opened
 // from Review once the return is approved; staff only (the Shell refuses other roles, as for Review).
 import { redirect } from 'next/navigation';
-import { memoBlock, memoData, type MemoBy } from '@/domain/memo';
+import { memoBlock, memoData, type MemoBy } from './memoData';
 import type { Amount } from '@/components/client/signing';
 import { SEVERITY_ORDER, SEVERITY_WORD, day, fmt, humanize, masker, signed, when, type WorkProps } from './lib';
 import { Est } from './ui';

@@ -15,7 +15,7 @@ import { ChangeLog } from './ChangeLog';
 import { StaffSigning } from '@/components/client/ClientFiling';
 import { signatures } from '@/components/client/signing';
 import { blockerLine, openAtFiling } from '@/components/overview/blockers';
-import { memoBlock } from '@/domain/memo';
+import { memoBlock } from './memoData';
 
 const MEMO_CAPTION = 'Prints the review memo. Planned: the full review record, ready to hand over when an examiner asks for documents.';
 
@@ -106,7 +106,7 @@ export function ReviewScreen(p: WorkProps) {
             {returnBlockers ? <a className={s.link} href={queryHref(p.sp, 'tab', 'notes')}>{returnBlockers} on the return itself, in Review notes</a> : null}
           </div>
         ) : null}
-        {/* The review memo: a printable snapshot once the return is approved (src/domain/memo.ts). */}
+        {/* The review memo: a printable snapshot once the return is approved (memoData.ts). */}
         <div style={{ flex: '1 1 100%', display: 'flex', flexWrap: 'wrap', gap: '6px 12px', alignItems: 'center' }} title={MEMO_CAPTION}>
           {memoReason ? <button type="button" className={s.btn} disabled aria-describedby="memo-why">Review memo</button>
             : <a className={s.btn} href={`/w/${encodeURIComponent(ws)}/${encodeURIComponent(role.key)}/review/memo`}>Review memo</a>}

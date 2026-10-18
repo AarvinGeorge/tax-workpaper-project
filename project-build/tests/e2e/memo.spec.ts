@@ -1,11 +1,24 @@
 // Review memo: a printable snapshot on Review once the partner approves (staff only), from the projected state.
-import { expect, test, type APIRequestContext } from '@playwright/test';
+import { readFileSync } from 'node:fs';
+import path from 'node:path';
+import { expect, test, type APIRequestContext, type Page } from '@playwright/test';
 
 const ws = (n: string) => `e2e-memo-${n}-${Date.now().toString(36)}${Math.floor(Math.random() * 1e4)}`;
 const post = (rq: APIRequestContext, w: string, role: string, data: Record<string, unknown>) =>
   rq.post(`/api/w/${w}/events`, { data: { role, ...data } });
 const CAPTION = 'Prints the review memo. Planned: the full review record, ready to hand over when an examiner asks for documents.';
 const SSN = /\b\d{3}-\d{2}-\d{4}\b/;
+// The firm's Form 8879 record carries both spouses' PINs in its detail: its digit runs (5 or more digits) must never
+// reach the page. Read here only to test for their absence; never printed (the message names no digits).
+const PIN_RUNS: string[] = (() => {
+  const p = JSON.parse(readFileSync(path.join(process.cwd(), 'data', 'packet.json'), 'utf8')) as { timeline: { event: string; detail?: unknown }[] };
+  return p.timeline.filter((t) => /8879/.test(t.event)).flatMap((t) => String(t.detail ?? '').match(/\d{5,}/g) ?? []);
+})();
+async function noPins(page: Page) {
+  expect(PIN_RUNS.length, 'the 8879 record has digit runs to test for').toBeGreaterThan(0);
+  const html = await page.content();
+  expect(PIN_RUNS.filter((d) => html.includes(d)).length, 'PIN digits on the page').toBe(0);
+}
 const REASON = 'The 15 Sep 2025 payment is designated tax year 2024 (D68).';
 
 // The dry-run path through the API: the change, its partner sign-off, every finding blocker cleared, then (optionally)
@@ -63,6 +76,7 @@ test('after approval the memo opens and shows the figures, the change, its reaso
   const text = await page.locator('body').innerText();
   expect(text).not.toMatch(SSN);
   expect(text).not.toMatch(/PIN\s*\d{4,}/);
+  await noPins(page);
 
   // Print: no shell chrome, nothing held to one viewport, so every page of the memo prints.
   await page.emulateMedia({ media: 'print' });
@@ -70,11 +84,13 @@ test('after approval the memo opens and shows the figures, the change, its reaso
   await expect(page.getByRole('button', { name: 'Print or save as PDF' })).toBeHidden();
   const css = await page.evaluate(() => ['.wp', '.sh-pane-c'].map((s) => getComputedStyle(document.querySelector(s)!).overflowY));
   expect(css).toEqual(['visible', 'visible']);
+  // Letter less the 0.6in page margins: 7.3in by 9.8in of content at 96px an inch. Measured at that width, the memo
+  // prints on as many pages as its height needs: no fewer (nothing clipped), and no more (no section pushed whole).
+  await page.setViewportSize({ width: Math.round(7.3 * 96), height: Math.round(9.8 * 96) });
   const height = await memo.evaluate((el) => el.getBoundingClientRect().height);
-  const pdf = (await page.pdf({ format: 'Letter', margin: { top: '0.6in', bottom: '0.6in' } })).toString('latin1');
+  const pdf = (await page.pdf({ format: 'Letter' })).toString('latin1');
   const pages = (pdf.match(/\/Type\s*\/Page[^s]/g) ?? []).length;
-  // Letter is 11in; less the margins, 9.8in at 96px an inch of content per page.
-  expect(pages).toBeGreaterThanOrEqual(Math.ceil(height / (9.8 * 96)));
+  expect(pages).toBe(Math.ceil(height / (9.8 * 96)));
 });
 
 test('clients and the examiner get no memo: no button, and the address refuses', async ({ page }) => {
@@ -104,6 +120,6 @@ test('at 16 Jul the memo is available from the firm’s record, with no approver
   await page.getByRole('link', { name: 'Review memo' }).click();
   const memo = page.getByTestId('memo');
   await expect(memo).toContainText(/Approved per the firm’s record: the clients signed Form 8879 on 10 Jul 2026\. No partner approval event in this workspace\./);
-  expect(await page.locator('body').innerText()).not.toMatch(/PIN\s*\d{4,}/);
+  await noPins(page);
   expect(await page.locator('body').innerText()).not.toMatch(SSN);
 });

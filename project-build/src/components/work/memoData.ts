@@ -1,14 +1,14 @@
 // Review memo: a frozen, printable snapshot of the review once the return is approved (Review screen, staff only).
 // Read only from the projected state: no new domain rules. Text from events is as recorded (already masked by the
 // projection); packet text is masked by the screen that renders it. The Form 8879 record's detail is never read.
-import type { Finding, RoleKey, Severity, WorkEvent, WorkspaceState } from './contracts';
-import type { PacketIndex } from './packet/load';
-import { isApplied, retractedSeqs } from './events';
-import { needsPartnerSignoff } from './project';
-import { partnerThreshold, returnApproved, roleInfo } from './policy';
-import { basisText } from './versions';
-import { visibleAt } from './clock';
-import { isAi, suggestionStatus } from './ai/merge';
+import type { Finding, RoleKey, Severity, WorkEvent, WorkspaceState } from '@/domain/contracts';
+import type { PacketIndex } from '@/domain/packet/load';
+import { isApplied, retractedSeqs } from '@/domain/events';
+import { needsPartnerSignoff } from '@/domain/project';
+import { partnerThreshold, returnApproved, roleInfo } from '@/domain/policy';
+import { basisText } from '@/domain/versions';
+import { visibleAt } from '@/domain/clock';
+import { isAi, suggestionStatus } from '@/domain/ai/merge';
 import { keyAmounts, signatures, type KeyAmounts } from '@/components/client/signing';
 
 const SEVERITIES: Severity[] = ['blocker', 'check', 'judgment', 'info'];
