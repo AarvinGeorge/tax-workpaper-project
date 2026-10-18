@@ -55,7 +55,7 @@ test('T4: after filing the client sees no "Not signed" and no stale asks; before
   void post;
 });
 
-test('T5: the panel names what its actions act on, puts them first, and offers only actions that fit', async ({ page }) => {
+test('T5: the panel names what its actions act on, puts them after the evidence, and offers only actions that fit', async ({ page }) => {
   const w = ws();
   await page.goto(`/w/${w}/daniel/return?claim=line:SchA.5b`);
   const drawer = page.getByTestId('drawer');
@@ -63,7 +63,7 @@ test('T5: the panel names what its actions act on, puts them first, and offers o
   await expect(acts).toContainText('Acting on: Real estate taxes (home)');
   const actsY = (await acts.boundingBox())!.y;
   const srcY = (await drawer.getByText(/^Where it came from/).first().boundingBox())!.y;
-  expect(actsY).toBeLessThan(srcY);
+  expect(srcY).toBeLessThan(actsY); // evidence first (fix round B6)
   await expect(acts.getByRole('button', { name: 'Adjust', exact: true })).toBeVisible();
   await page.goto(`/w/${w}/daniel/documents?claim=doc:D54`);
   await expect(acts).toContainText('Acting on:');

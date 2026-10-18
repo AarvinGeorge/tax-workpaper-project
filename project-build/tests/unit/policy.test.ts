@@ -103,6 +103,13 @@ describe('can', () => {
     for (const r of roles(ix)) expect(can(ix, r.key, 'clock_moved', { payload: { to: '2026-04-14T12:00:00Z' } }, empty).ok, r.key).toBe(true);
     expect(can(ix, 'ngozi', 'clock_moved', { payload: { to: 'soon' } }, empty).ok).toBe(false);
   });
+  it('the clock stays inside the packet timeline: before its first or after its last event is refused, both ends allowed', () => {
+    const at = ix.packet.timeline.map((t) => t.at).sort();
+    expect(can(ix, 'jo', 'clock_moved', { payload: { to: '2999-01-01T00:00:00Z' } }, empty).ok).toBe(false);
+    expect(can(ix, 'jo', 'clock_moved', { payload: { to: 'garbage' } }, empty).ok).toBe(false);
+    expect(can(ix, 'jo', 'clock_moved', { payload: { to: '2000-01-01T00:00:00Z' } }, empty).ok).toBe(false);
+    for (const r of roles(ix)) for (const t of [at[0], at[at.length - 1]]) expect(can(ix, r.key, 'clock_moved', { payload: { to: t } }, empty).ok, `${r.key} ${t}`).toBe(true);
+  });
   it('a role is unavailable before it joins', () => {
     const early = projectWorkspace(ix, [ev('jo', 'clock_moved', { payload: { to: '2026-03-10T00:00:00Z' } })], 'daniel', []);
     const r = can(ix, 'marcus', 'review_note', { claimId, payload: { text: 'x' } }, early);

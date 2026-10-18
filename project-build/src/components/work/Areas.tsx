@@ -46,14 +46,21 @@ function RecordTable({ rows, m, skip = [], label }: { rows: Record<string, unkno
   );
 }
 
+/** A balance due below zero is a refund: say so, with the amount unsigned (the packet's summary keeps one signed key). */
+function signRule([k, v]: [string, unknown]): [string, string, unknown] {
+  const label = colLabel(k);
+  if (/(^|\.)balance_due$/.test(k) && typeof v === 'number' && v < 0) return [k, label.replace(/Balance due$/, 'Refund'), -v];
+  return [k, label, v];
+}
+
 /** A two-column key/value table for one record (nested objects flattened). */
 function KV({ data, m, label }: { data: Record<string, unknown>; m: M; label: string }) {
-  const rows = flatten(data);
+  const rows = flatten(data).map(signRule);
   if (!rows.length) return <NotInPacket what={label} />;
   return (
     <div className={s.scroll}>
       <table className={s.table} aria-label={label}>
-        <tbody>{rows.map(([k, v]) => <tr key={k}><td>{colLabel(k)}</td><td className={typeof v === 'number' ? s.r : undefined}>{Array.isArray(v) ? m(v.map((x) => (typeof x === 'object' ? JSON.stringify(x) : String(x))).join('; ')) : m(v)}</td></tr>)}</tbody>
+        <tbody>{rows.map(([k, name, v]) => <tr key={k}><td>{name}</td><td className={typeof v === 'number' ? s.r : undefined}>{Array.isArray(v) ? m(v.map((x) => (typeof x === 'object' ? JSON.stringify(x) : String(x))).join('; ')) : m(v)}</td></tr>)}</tbody>
       </table>
     </div>
   );
@@ -161,8 +168,7 @@ export function AreasScreen(p: WorkProps) {
 
   return (
     <Page head={p.head} label="Areas" h1="Records by area"
-      tags={<><Tag tone="neu">{v.version} computed {when(v.computed_at)}</Tag><Tag tone="neu">As of {when(state.storyAt)}</Tag>{state.frozen ? <Tag tone="acc">As filed, locked</Tag> : null}</>}
-      intro="The record tables behind the return, each read from its place in the packet. Amounts on return lines open where they came from. Where the packet has no record, the table says so.">
+      tags={<><Tag tone="neu">{v.version} computed {when(v.computed_at)}</Tag><Tag tone="neu">As of {when(state.storyAt)}</Tag>{state.frozen ? <Tag tone="acc">As filed, locked</Tag> : null}</>}>
 
       <Area name="Return summary against last year" headline={<>{swingRows.length} swings<Term k="swing" /> over the firm&apos;s variance rule; {newRows.length} lines new this year</>} open>
         <Sub title={`${v.version} summary`}><KV data={obj(v.summary)} m={m} label="Summary" /></Sub>

@@ -25,14 +25,18 @@ test('daniel adjusts California estimates; reload keeps it; Review shows origina
   await expect(page.locator('section[aria-label="Change log"]')).toContainText('15 Sep 2025 payment');
 });
 
-test("helen's approval is disabled and lists the blockers", async ({ page }) => {
+test("helen's approval is disabled; the blockers are a count, and a blocker on the return opens Review notes", async ({ page }) => {
   const w = ws();
   await page.request.post(`/api/w/${w}/events`, {
     data: { role: 'daniel', type: 'review_note', claimId: 'return', payload: { text: 'Hold for the RSU basis', blocking: true } },
   });
   await page.goto(`/w/${w}/helen/review`);
   await expect(page.getByRole('button', { name: 'Approve the return' })).toBeDisabled();
-  await expect(page.getByRole('list', { name: 'Blockers' })).toContainText('Hold for the RSU basis');
+  const box = page.getByRole('region', { name: 'Approval', exact: true });
+  await expect(box).toContainText(/\d+ items? stops? filing/);
+  await box.getByRole('link', { name: /on the return itself, in Review notes/ }).click();
+  await expect(page).toHaveURL(/tab=notes/);
+  await expect(page.locator('section[aria-label="Review notes"]')).toContainText('Hold for the RSU basis');
 });
 
 test('every ledger mistake is a finding on Checks once the story reaches it; /findings lands on Checks', async ({ page }) => {

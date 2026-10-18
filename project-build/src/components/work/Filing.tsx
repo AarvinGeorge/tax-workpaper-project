@@ -70,8 +70,7 @@ export function FilingScreen(p: WorkProps) {
     const fedPay = obj(ext.federal).paid_with_form_4868;
     return (
       <Page label="Filing" h1="Filing your return"
-        tags={<>{state.frozen ? <Tag tone="pas">Filed and accepted</Tag> : <Tag tone="neu">Not filed yet</Tag>}</>}
-        intro="Where your return is, what was sent, and what comes next. Your tax team handles the filing; nothing here needs you unless it says so.">
+        tags={<>{state.frozen ? <Tag tone="pas">Filed and accepted</Tag> : <Tag tone="neu">Not filed yet</Tag>}</>}>
         <section className={s.section} aria-labelledby="fil-c-where">
           <h2 className={s.h2} id="fil-c-where">Where your return is</h2>
           <div className={s.box}>

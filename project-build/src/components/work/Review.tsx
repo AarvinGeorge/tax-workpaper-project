@@ -13,6 +13,8 @@ import { Term } from '../term/Term';
 import { EventButton, TextAction } from './actions';
 import { ChangeLog } from './ChangeLog';
 import { StaffSigning } from '@/components/client/ClientFiling';
+import { signatures } from '@/components/client/signing';
+import { blockerLine } from '@/components/overview/blockers';
 
 /** The claim's last adjustment that has not been undone, proposed or applied. */
 function lastAdjustment(c: ClaimState, retracted: Set<number>): WorkEvent | undefined {
@@ -40,6 +42,8 @@ export function ReviewScreen(p: WorkProps) {
   const thr = partnerThreshold(ix);
   const selfRule = findRule(ix, /may not review/i);
   const notesRule = findRule(ix, /review notes block/i);
+  // Approval from the firm's record once story time passes the clients' Form 8879 (the packet has no workspace event).
+  const byRecord = signatures(ix, state).byRecord;
 
   const claims = Object.values(state.claims);
   // Proposed and applied adjustments both belong here: a preparer's proposal is applied from this list. (c.adjusted
@@ -63,12 +67,14 @@ export function ReviewScreen(p: WorkProps) {
     { key: 'views', name: 'View log', count: state.reveals.length },
   ];
 
-  const approveBlock = block ?? (state.blockers.length ? `${state.blockers.length} blockers must clear first.` : null);
+  const approveBlock = byRecord ? `${state.frozen ? 'Approved and filed' : 'Approved'} per the firm’s record.`
+    : block ?? (state.blockers.length ? `${state.blockers.length} blockers must clear first.` : null);
+  const stop = blockerLine(ws, role.key, state.blockers);
+  const returnBlockers = state.blockers.filter((b) => b.claimId === 'return').length;
 
   return (
-    <Page label="Review" h1={`Review of ${ix.latest.version} and our adjustments`}
-      tags={<><Tag tone="neu">As of {when(state.storyAt)}</Tag><Tag tone="neu">Stage: {state.stage}</Tag>{state.frozen ? <Tag tone="acc">As filed, locked</Tag> : null}</>}
-      intro={<>Everything we changed over the engine&apos;s {ix.latest.version}, with who did it, why, and who signed. A sign-off<Term k="sign-off" /> covers the value it signed; when the value changes, the sign-off goes stale<Term k="stale-signoff" />.</>}>
+    <Page label="Review" h1="Review"
+      tags={<><Tag tone="neu">As of {when(state.storyAt)}</Tag><Tag tone="neu">Stage: {state.stage}</Tag>{state.frozen ? <Tag tone="acc">As filed, locked</Tag> : null}</>}>
 
       <section className={s.box} aria-label="Approval" style={{ padding: '14px 16px', display: 'flex', flexWrap: 'wrap', gap: 12, alignItems: 'center' }}>
         <strong>Approval</strong>
@@ -84,15 +90,11 @@ export function ReviewScreen(p: WorkProps) {
               events={[{ type: 'signoff', claimId: 'return', payload: { scope: 'return', level: 'partner', value: ix.latest.version } }]} />
           ) : <span className={s.note}>Only the partner approves the return.</span>}
         </span>
-        {state.blockers.length ? (
-          <div style={{ flex: '1 1 100%' }}>
-            <span className={s.lbl}>Blocking approval</span>
-            <ul style={{ margin: '6px 0 0', paddingLeft: 20, display: 'flex', flexDirection: 'column', gap: 3 }} aria-label="Blockers">
-              {state.blockers.map((b) => (
-                <li key={b.claimId + b.title}><a className={s.link} href={claimHref(p.sp, b.claimId)}>{m(b.title)}</a></li>
-              ))}
-            </ul>
-            {notesRule ? <p className={s.note} style={{ margin: '6px 0 0' }}>Firm rule: “{notesRule}”</p> : null}
+        {/* One blocker list, on Checks: here a count that opens it, and the notes tab for blockers on the whole return. */}
+        {stop ? (
+          <div style={{ flex: '1 1 100%' }} className={s.row}>
+            <a className={s.link} href={stop.href}>{stop.text}</a>
+            {returnBlockers ? <a className={s.link} href={queryHref(p.sp, 'tab', 'notes')}>{returnBlockers} on the return itself, in Review notes</a> : null}
           </div>
         ) : null}
         <div style={{ flex: '1 1 100%' }}><StaffSigning ix={ix} state={state} /></div>
@@ -173,7 +175,7 @@ export function ReviewScreen(p: WorkProps) {
 
       {tab === 'signoffs' ? (
         <section className={s.box} aria-label="Sign-offs">
-          <div className={s.boxRow}><span className={s.lbl}>Sign-offs</span><span className={s.note}>Stale means the value changed after it was signed.</span></div>
+          <div className={s.boxRow}><span className={s.lbl}>Sign-offs</span><span className={s.note}>Stale means the value changed after it was signed.<Term k="stale-signoff" /></span></div>
           {signoffs.length === 0 ? <div className={s.boxRow}><span className={s.note}>No sign-offs yet.</span></div> : null}
           {signoffs.map(({ c, so }) => (
             <div key={so.seq} className={s.boxRow}>

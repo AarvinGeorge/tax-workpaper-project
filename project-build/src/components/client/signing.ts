@@ -70,15 +70,27 @@ export function keyAmounts(ix: PacketIndex, staffState: WorkspaceState): KeyAmou
 
 export interface SpouseSignature {
   key: RoleKey; name: string;
-  signed?: { seq: number; at: string; storyAt: string; value: string; stale: boolean };
+  /** record: the signature is the packet timeline's Form 8879 event (the firm's record), not a workspace event. */
+  signed?: { seq: number; at: string; storyAt: string; value: string; stale: boolean; record?: boolean };
 }
-export interface SigningState { approved: boolean; fingerprint: string; spouses: SpouseSignature[] }
+/** byRecord: the approval is known from the firm's record (the clients signed Form 8879, which follows the partner's
+ *  approval), not from a workspace event. */
+export interface SigningState { approved: boolean; byRecord: boolean; fingerprint: string; spouses: SpouseSignature[] }
 
-/** Who has signed, when, and whether the return changed since (stale). fp is the current fingerprint, computed from
- *  the staff projection: a client's own view does not carry the adjustments. */
+/** The packet timeline's Form 8879 event once story time has reached it: its time only. Its detail text holds both
+ *  spouses' PINs and is never read here. */
+export function recordSignedAt(ix: PacketIndex, storyAt: string): string | null {
+  return ix.packet.timeline.filter((t) => /8879/.test(t.event) && visibleAt(t.at, storyAt)).map((t) => t.at).sort()[0] ?? null;
+}
+
+/** Who has signed, when, and whether the return changed since (stale): from the workspace's own client_signature
+ *  events, or else from the firm's record (the timeline's 8879 event, both spouses) once story time reaches it. fp is
+ *  the current fingerprint, computed from the staff projection: a client's own view does not carry the adjustments.
+ *  Review's Approval box, staff signing and the client's Filing page all read this one answer. */
 export function signatures(ix: PacketIndex, state: WorkspaceState, fp: string = returnFingerprint(ix, state)): SigningState {
   const r = retractedSeqs(state.events);
   const live = state.events.filter((e) => e.type === 'client_signature' && !r.has(e.seq));
+  const recordAt = recordSignedAt(ix, state.storyAt);
   const spouses = roles(ix).filter((x) => x.kind === 'client').map((c) => {
     const mine = live.filter((e) => e.role === c.key);
     const last = mine[mine.length - 1];
@@ -86,10 +98,13 @@ export function signatures(ix: PacketIndex, state: WorkspaceState, fp: string = 
     if (last) {
       const value = String(last.payload.value ?? '');
       s.signed = { seq: last.seq, at: last.at, storyAt: last.storyAt, value, stale: value !== fp };
+    } else if (recordAt) {
+      s.signed = { seq: 0, at: recordAt, storyAt: recordAt, value: '', stale: false, record: true };
     }
     return s;
   });
-  return { approved: returnApproved(ix, state.events), fingerprint: fp, spouses };
+  const inWorkspace = returnApproved(ix, state.events);
+  return { approved: inWorkspace || !!recordAt, byRecord: !inWorkspace && !!recordAt, fingerprint: fp, spouses };
 }
 
 /** The client's copy: null until federal acceptance at story time; then the as-filed key amounts per jurisdiction with

@@ -13,7 +13,10 @@ export function FilingStatus({ ix, state, mask }: { ix: PacketIndex; state: Work
   const pk = ix.packet;
   const agency = obj(pk.tax_agency_records);
   const efile = arr(agency.efile).map(obj).filter((e) => visibleAt(String(e.date), state.storyAt));
-  const notices = arr(agency.notices).map(obj).filter((n) => visibleAt(String(n.dated) + 'T23:59:59Z', state.storyAt));
+  // This return's filing status: a notice about another tax year (the 2023 CP2000) is not part of it; it stays on Documents.
+  const taxYear = Number(pk.household.tax_year);
+  const notices = arr(agency.notices).map(obj)
+    .filter((n) => visibleAt(String(n.dated) + 'T23:59:59Z', state.storyAt) && (!taxYear || Number(n.tax_year) === taxYear));
   const ext = obj(pk.what_if.extension);
   const extEvent = pk.timeline.find((e) => /extension/i.test(e.event));
   const extVisible = extEvent ? visibleAt(extEvent.at, state.storyAt) : false;

@@ -17,8 +17,7 @@ export function WhatIfsScreen(p: WorkProps) {
   return (
     <Page head={p.head} label="What-ifs" h1="What-ifs from the engine">
       <section className={s.section} aria-labelledby="chg-whatif">
-        <div className={s.row}><h2 className={s.h2} id="chg-whatif">What-ifs from the engine</h2><Term k="what-if" /><Tag tone="neu">Not a change; nothing is saved to the return</Tag></div>
-        <p className={s.intro}>Alternatives the engine computed on {base ?? ix.latest.version}. Reading them changes nothing; to act on one, record an election<Term k="election" /> from the line’s drawer.</p>
+        <div className={s.row}><h2 className={s.h2} id="chg-whatif">What-ifs from the engine</h2><Term k="what-if" /><Tag tone="neu">Not a change; nothing is saved to the return</Tag><span className={s.note}>Computed on {base ?? ix.latest.version}</span></div>
         <div className={s.box}>
           {!reached ? <div className={s.boxRow}><span className={s.note}>The engine computed these on {base}; they show once the story clock reaches it.</span></div>
             : alts.length === 0 ? <div className={s.boxRow}><span className={s.note}>No what-ifs in the packet.</span></div> : null}

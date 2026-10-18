@@ -44,7 +44,7 @@ test('the "?" dialog: legends for staff with the firm reference, Esc closes it; 
   await expect(dlg).toBeHidden();
 });
 
-test('a client sees only Legends and Deadlines in the "?" dialog', async ({ page }) => {
+test('a client sees only Demo, Legends and Deadlines in the "?" dialog', async ({ page }) => {
   await page.goto(`/w/${ws()}/ngozi`);
   await infoButton(page).click();
   const dlg = page.getByRole('dialog');
@@ -117,7 +117,7 @@ test('the overview carries the filing status: rejection, acceptance, extension, 
   await expect(fs).toContainText('Accepted 15 Jul 2026');
   await expect(fs).toContainText(/Extension.*Filed 14 Apr 2026 with 36,000, estimated from v2/);
   await expect(fs).toContainText('As filed, locked');
-  await expect(fs.getByRole('link', { name: /CP2000/ })).toBeVisible();
+  await expect(fs).not.toContainText('CP2000'); // a 2023 notice is not this return's filing status (fix round A3)
   await expect(page.getByRole('main')).not.toContainText('For comparison');
 });
 

@@ -3,7 +3,7 @@ import type { Finding, ResolvedRef, RoleInfo, RoleKey, WorkspaceState } from '@/
 import type { PacketIndex } from '@/domain/packet/load';
 import { getWorkspace } from '../shell/load';
 import { can, maskText, maskValue, partnerThreshold, sensitiveTypeOf, signoffLevel, visibleDocIds } from '@/domain/policy';
-import { documentLanding, simulatedPage } from '@/domain/docs';
+import { documentLanding, REASON_LABEL, simulatedPage } from '@/domain/docs';
 import { refText, resolveRef } from '@/domain/refs';
 import { claimHref, examinedLines, fmtDay, fmtStory, fmtValue, isRevealed, parseClaim } from '../shell/lib';
 import { highlightSegments, revealReason } from './lib';
@@ -16,6 +16,7 @@ import { AiDecision } from './AiDecision';
 import { DocNote } from './DocNote';
 import { needsPartnerSignoff } from '@/domain/project';
 import { confidenceWord, suggestionStatus } from '@/domain/ai/merge';
+import { humanize } from '@/domain/labels';
 
 type Ctx = { ix: PacketIndex; me: RoleInfo; state: WorkspaceState; revealed: Set<string>; findings: Finding[]; ws: string; role: RoleKey; allRoles: RoleInfo[] };
 
@@ -26,6 +27,9 @@ function kindOf(c: Ctx, ref: string, valueType: string): string {
   return v ? sensitiveTypeOf(v) : valueType;
 }
 const isIdent = (c: Ctx, ref: string, valueType: string) => SENSITIVE.test(kindOf(c, ref, valueType));
+
+// A document's extraction status in the Documents tab's words.
+const EXTRACTION: Record<string, string> = { extracted: 'Extracted', partial: 'Partly extracted', not_extracted: 'Not extracted' };
 
 const SEV: Record<Finding['severity'], [string, string]> = {
   blocker: ['Blocking', 't-blk'], check: ['Check failed', 't-wrn'], judgment: ['Judgment', 't-wrn'], info: ['Note', 't-mut'],
@@ -72,13 +76,13 @@ function SourcePage({ c, docId, page, selected }: { c: Ctx; docId: string; page:
           </div>
           <div className="small" style={{ flex: '1 1 160px', display: 'flex', flexDirection: 'column', gap: 4 }}>
             {sel.slice(0, 6).map((f) => (
-              <span key={f.valueId}><span className="muted">Field:</span> <span className="mono">{f.field}</span>{f.position ? <span className="mono muted"> at {f.position.x0.toFixed(2)}, {f.position.y0.toFixed(2)}</span> : <span className="muted"> (no position)</span>}</span>
+              <span key={f.valueId} title={f.position ? `At ${f.position.x0.toFixed(2)}, ${f.position.y0.toFixed(2)} from the top left (the packet's synthetic box)` : 'No position in the packet'}><span className="muted">Field:</span> <span className="mono">{f.field}</span></span>
             ))}
             {sel.length > 6 && <span className="muted">and {sel.length - 6} more fields on this page</span>}
           </div>
         </div>
       )}
-      <span className="small muted">Highlighted: the exact text this number depends on. Simulated from the packet&apos;s printed content; positions are the packet&apos;s synthetic boxes, fractions from the top left.</span>
+      <span className="small muted">Highlighted: the exact text this number depends on. Simulated from the packet&apos;s printed content.</span>
     </div>
   );
 }
@@ -90,15 +94,23 @@ function SourceItem({ c, r }: { c: Ctx; r: ResolvedRef }) {
     : ['string', 'number', 'boolean'].includes(typeof r.value) && r.kind !== 'version' ? maskText(fmtValue(r.value), c.me, false) : ''; // objects never print as JSON
   const body = (
     <>
-      <span className="row" style={{ gap: 6 }}><span className="mono muted">{r.ref}</span>{r.sourceKind && <span className="tag t-mut" title="What sort of record this rests on. A label, not a trust score.">{r.sourceKind}</span>}</span>
+      {/* An extracted value's id (ev-…) is for the record, not the reader: it stays in the tooltip. */}
+      <span className="row" style={{ gap: 6 }}>{/^ev-/.test(r.ref) ? null : <span className="mono muted">{r.ref}</span>}{r.sourceKind && <span className="tag t-mut" title="What sort of record this rests on. A label, not a trust score.">{r.sourceKind}</span>}</span>
       <span><strong style={{ fontWeight: 600 }}>{maskText(r.kind === 'value' ? r.label : refText(r), c.me, false)}</strong>{shown ? <span className="num"> · {shown}</span> : null}</span>
       {r.text && r.kind !== 'value' && <span className="small muted">{maskText(r.text, c.me, false).slice(0, 220)}</span>}
-      {typeof r.confidence === 'number' && <span className="small muted num">Pipeline read {r.confidence.toFixed(2)}<Term k="read-confidence" />: how surely the text was read, not how far to trust the source.</span>}
     </>
   );
-  if (r.docId) return <Link className="srcitem" href={claimHref(`doc:${r.docId}${r.page ? `#page${r.page}` : ''}`)}>{body}</Link>;
+  if (r.docId) return <Link className="srcitem" title={r.ref} href={claimHref(`doc:${r.docId}${r.page ? `#page${r.page}` : ''}`)}>{body}</Link>;
   if (r.kind === 'line') return <Link className="srcitem" href={claimHref('line:' + r.ref.replace(/^line:/, ''))}>{body}</Link>;
-  return <div className="srcitem">{body}</div>;
+  return <div className="srcitem" title={r.ref}>{body}</div>;
+}
+
+/** How surely the pipeline read the cited values, once per panel: one number, or the range when they differ. */
+function ReadConfidence({ refs }: { refs: ResolvedRef[] }) {
+  const n = refs.map((r) => r.confidence).filter((x): x is number => typeof x === 'number');
+  if (!n.length) return null;
+  const lo = Math.min(...n).toFixed(2), hi = Math.max(...n).toFixed(2);
+  return <span className="small muted num">Pipeline read {lo === hi ? lo : `${lo} to ${hi}`}<Term k="read-confidence" />: how surely the text was read, not how far to trust the source.</span>;
 }
 
 /** Staff a question can go to: other staff seats that are in the story and can act. */
@@ -257,7 +269,6 @@ function LineClaim({ c, key_, claimId }: { c: Ctx; key_: string; claimId: string
         {cs?.effect && <span className="small num">Tax effect estimate: federal {fmtValue(cs.effect.federal)}, California {fmtValue(cs.effect.california)} ({cs.effect.basis}, {cs.effect.version}). Not recomputed by the engine.</span>}
         {l.note && !isClient && <p className="small muted" style={{ maxWidth: '60ch' }}>Engine note: {maskText(String(l.note), c.me, false)}</p>}
       </div>
-      {c.me.kind === 'staff' && <Actions c={c} claimId={claimId} current={current} title={l.label} />}
       {!isClient && (
         <div className="drw-sec">
           <span className="lbl">How it was built</span>
@@ -270,10 +281,13 @@ function LineClaim({ c, key_, claimId }: { c: Ctx; key_: string; claimId: string
       {refs.length > 0 && (
         <div className="drw-sec">
           <span className="lbl">Where it came from · {refs.length} source{refs.length === 1 ? '' : 's'}</span>
+          <ReadConfidence refs={refs} />
           {refs.map((r) => <SourceItem key={r.ref} c={c} r={r} />)}
         </div>
       )}
       {refs.length === 0 && l.inputs.length === 0 && <div className="drw-sec"><span className="lbl">Where it came from</span><span className="small muted">The engine cites no source for this line.</span></div>}
+      {/* Evidence first: the actions follow where the number came from. */}
+      {c.me.kind === 'staff' && <Actions c={c} claimId={claimId} current={current} title={l.label} />}
       <FindingsOn c={c} claimId={claimId} />
       {!isClient && diags.length > 0 && (
         <div className="drw-sec"><span className="lbl">From the engine<Term k="engine-diagnostics" /> · {diags.length}</span>
@@ -333,8 +347,8 @@ function DocClaim({ c, docId, page, claimId }: { c: Ctx; docId: string; page?: n
           <span className="mono muted">{d.id} · {d.document_type.replace(/_/g, ' ')}</span>{/^w-?2/i.test(d.document_type) ? <Term k="w-2" /> : /^1099/i.test(d.document_type) ? <Term k="form-1099" /> : /^k-?1/i.test(d.document_type) ? <Term k="k-1" /> : null}
         </div>
         <h2 style={{ fontSize: 19, lineHeight: 1.3 }}>{maskText(d.title, c.me, false)}</h2>
-        <span className="small muted">{d.issuer ?? 'No issuer'} · received {fmtStory(d.received_at)} · {d.page_count} page{d.page_count === 1 ? '' : 's'} · extraction {d.extraction.status.replace(/_/g, ' ')}</span>
-        {landing?.reason && !isClient && <p className="small"><span className="tag t-mut">{landing.reason.code.replace(/_/g, ' ')}</span> {maskText(landing.reason.text, c.me, false)}</p>}
+        <span className="small muted">{d.issuer ?? 'No issuer'} · received {fmtStory(d.received_at)} · {d.page_count} page{d.page_count === 1 ? '' : 's'} · {EXTRACTION[d.extraction.status] ?? humanize(d.extraction.status)}</span>
+        {landing?.reason && !isClient && <p className="small"><span className="tag t-mut">{REASON_LABEL[landing.reason.code] ?? humanize(landing.reason.code)}</span> {maskText(landing.reason.text, c.me, false)}</p>}
         {landing && landing.landedLines.length > 0 && !isClient && (
           <div className="row small" style={{ gap: 6 }}><span className="muted">Lands on:</span>{landing.landedLines.slice(0, 12).map((k) => <Link key={k} className="srcref" href={claimHref('line:' + k)}>{k}</Link>)}{landing.landedLines.length > 12 && <span className="muted">and {landing.landedLines.length - 12} more</span>}</div>
         )}
@@ -393,7 +407,7 @@ function FindingClaim({ c, id }: { c: Ctx; id: string }) {
       </div>
       {c.me.kind === 'staff' && <Actions c={c} claimId={'finding:' + id} current={null} title={f.title} />}
       {f.claims.length > 0 && <div className="drw-sec"><span className="lbl">Sits on</span><div className="row small" style={{ gap: 6 }}>{f.claims.map((k) => <Link key={k} className="srcref" href={claimHref(k)}>{k.replace(/^line:|^doc:/, '')}</Link>)}</div></div>}
-      <div className="drw-sec"><span className="lbl">Evidence · {evidence.length}</span>{evidence.map((r) => <SourceItem key={r.ref} c={c} r={r} />)}</div>
+      <div className="drw-sec"><span className="lbl">Evidence · {evidence.length}</span><ReadConfidence refs={evidence} />{evidence.map((r) => <SourceItem key={r.ref} c={c} r={r} />)}</div>
       {c.me.kind === 'staff' && <Trail c={c} claimId={'finding:' + id} />}
       {c.me.kind !== 'staff' && <Actions c={c} claimId={'finding:' + id} current={null} title={f.title} />}
     </>

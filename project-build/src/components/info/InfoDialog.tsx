@@ -19,7 +19,7 @@ export function InfoDialog({ children }: { children: ReactNode }) {
   return (
     <>
       <button type="button" className="info-btn" onClick={open}
-        aria-label="About this workspace: legends, firm standards, people, time, deadlines" title="Legends and reference">
+        aria-label="About this workspace: demo, legends, deadlines, firm standards, people, time" title="Legends and reference">
         <span aria-hidden="true">?</span>
       </button>
       <dialog ref={ref} className="info-dlg" aria-labelledby="info-title" onClose={onClose}

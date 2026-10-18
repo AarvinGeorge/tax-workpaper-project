@@ -1,8 +1,7 @@
 import Link from 'next/link';
 import type { ReactNode } from 'react';
-import type { RoleInfo, RoleKey, ScreenKey, WorkspaceState, WorkEvent } from '@/domain/contracts';
+import type { RoleInfo, RoleKey, ScreenKey, WorkspaceState } from '@/domain/contracts';
 import { getWorkspace } from './load';
-import { maskText } from '@/domain/policy';
 import { stageAt, visibleAt } from '@/domain/clock';
 import { humanize } from '@/domain/labels';
 import { RoleSwitcher } from './RoleSwitcher';
@@ -10,10 +9,10 @@ import { ResetButton } from './ResetButton';
 import { ClientSwitcher } from './ClientSwitcher';
 import { ThemeToggle } from './ThemeToggle';
 import { Bell } from './Bell';
-import { claimLabel, notificationsFor } from '@/domain/notify';
+import { notificationsFor } from '@/domain/notify';
 import { LiveRefresh } from './LiveRefresh';
 import { ScrollHint } from './ScrollHint';
-import { claimHref, fmtDay, fmtStory, fmtValue, notYetText, screenHint, screenLabel, screenPath, searchPacket } from './lib';
+import { claimHref, fmtStory, fmtValue, notYetText, roleLabel, screenLabel, screenPath, searchPacket } from './lib';
 import { NoAccess } from '../work/ui';
 import { Term } from '../term/Term';
 import { ClaimDrawer } from '../drawer/ClaimDrawer';
@@ -29,38 +28,28 @@ export interface ShellProps {
   children: ReactNode;
 }
 
-export function roleLabel(r: RoleInfo): string {
-  if (r.kind === 'client') return `${r.name}, ${r.title.toLowerCase()}`;
-  if (r.kind === 'examiner' || !r.staffId) return r.name;
-  if (r.key === 'next') return `${r.name} (${r.title.toLowerCase()})`;
-  return `${r.name}, ${r.title.split(',')[0].toLowerCase()}`;
-}
+export { roleLabel };
 
-function rule(rules: unknown, re: RegExp): string | null {
-  return Array.isArray(rules) ? ((rules as string[]).find((t) => re.test(t)) ?? null) : null;
-}
-
-function bannerText(r: RoleInfo, rules: unknown, frozen: boolean): string {
-  const partner = rule(rules, /partner sign-off/i);
-  const locked = 'As filed, locked. You can read the filed record and its full history; anything new attaches as a later event.';
-  if (r.kind === 'client') return 'Here is what we need from you. You can answer questions and send documents; you sign Form 8879 (e-file signature authorization) once your tax team has finished.';
-  if (r.kind === 'examiner') return 'Read only. You see the items under examination, as filed, and only the documents they cite.';
-  if (r.key === 'next') return 'The 2025 return is read only. You can read every number, its source and its history.';
-  if (r.key === 'sam') return 'Read only. You see the filed record with its full internal history.';
-  if (frozen && r.key !== 'jo') return locked;
+/** One clause per role: who they are here and what they may do. The enabled buttons say the rest. */
+function bannerText(r: RoleInfo, frozen: boolean): string {
+  if (r.kind === 'client') return 'Client: answer questions, send documents, sign when ready.';
+  if (r.kind === 'examiner') return 'Examiner: read only, the items under examination as filed.';
+  if (r.key === 'next') return 'Next year\u2019s preparer: read only.';
+  if (r.key === 'sam') return 'Quality reviewer: read only.';
+  if (frozen && r.key !== 'jo') return 'As filed, locked: anything new attaches on top.';
   switch (r.key) {
-    case 'priya': return 'You can adjust values, ask the client, verify, record decisions and sign off as preparer. Sensitive numbers are masked; a reveal is logged.';
-    case 'marcus': return 'You can adjust values, ask the client, verify and sign off as preparer. You cannot reveal full SSNs or bank numbers: no sensitive-data clearance.';
-    case 'daniel': return 'You can leave review notes, verify, apply proposed adjustments and sign off as reviewer.';
-    case 'helen': return `You approve the return once nothing blocks it.${partner ? ` Firm rule: “${partner}”` : ''}`;
-    case 'jo': return 'You see who viewed what, time against budget and file status, and you move the story clock from the bar above. Return values are read only for you.';
+    case 'priya': return 'Preparer: you adjust and propose; a reveal is logged.';
+    case 'marcus': return 'Preparer: you adjust and propose; no sensitive-data clearance.';
+    case 'daniel': return 'Reviewer: you note, verify, apply and sign off.';
+    case 'helen': return 'Partner: you approve once nothing blocks it.';
+    case 'jo': return 'Administrator: views, time and filing; return values are read only.';
     default: return '';
   }
 }
 
 /** The banner sentence with a help mark after it for the one term it leans on most. */
-function banner(r: RoleInfo, rules: unknown, frozen: boolean): ReactNode {
-  const text = bannerText(r, rules, frozen);
+function banner(r: RoleInfo, frozen: boolean): ReactNode {
+  const text = bannerText(r, frozen);
   const k = r.kind === 'client' ? 'form-8879'
     : frozen && r.key !== 'jo' && r.kind === 'staff' && r.key !== 'next' && r.key !== 'sam' ? null
     : r.key === 'marcus' || r.key === 'priya' ? 'sensitive-data-clearance'
@@ -70,17 +59,6 @@ function banner(r: RoleInfo, rules: unknown, frozen: boolean): ReactNode {
   return <>{text}{k ? <Term k={k} /> : null}</>;
 }
 
-const VERB: Partial<Record<WorkEvent['type'], string>> = {
-  adjustment: 'adjusted', review_note: 'left a review note on', note_resolved: 'resolved a note on', signoff: 'signed off',
-  question_to_client: 'asked the client about', answer_recorded: 'recorded an answer on', reason_set: 'set a reason on',
-  reveal: 'revealed an identifier on', clock_moved: 'moved the story clock', undo: 'undid an action on', assignment: 'assigned',
-  attach_note: 'attached a note to', time_logged: 'logged time', verification: 'verified', decision: 'recorded a decision on',
-  question_to_colleague: 'asked a colleague about', finding_cleared: 'cleared a finding on',
-  suggestion_accepted: 'accepted an AI suggestion on', suggestion_dismissed: 'dismissed an AI suggestion on',
-};
-
-const claimTitle = claimLabel;
-
 const OVERVIEW_TABS: ScreenKey[] = ['return', 'areas', 'documents', 'whatifs'];
 
 export async function Shell({ ws, role, screen, claim, q, children, ...given }: ShellProps) {
@@ -89,8 +67,6 @@ export async function Shell({ ws, role, screen, claim, q, children, ...given }: 
   const state = given.state ?? w.state;
   const me = given.roleInfo ?? w.role;
   const isClient = me.kind === 'client';
-  const mask = (t: string) => maskText(t, me, false);
-  const rules = ix.packet.firm.starter_standards.rules;
   const notYet = notYetText(me.name, me.activeFrom, state.storyAt);
   // The one gate for every screen route: a role opens only the screens in its list; a typed URL gets the refusal.
   const allowed = me.screens.includes(screen);
@@ -108,7 +84,6 @@ export async function Shell({ ws, role, screen, claim, q, children, ...given }: 
   const results = q ? searchPacket(ix, q) : null;
   const canSee = (k: ScreenKey) => me.screens.includes(k);
   const roleName = (k: RoleKey) => { const r = w.allRoles.find((x) => x.key === k); return r ? r.name.split(' ')[0] : k; };
-  const history = [...state.events].reverse().slice(0, 8);
   const bellItems = me.kind === 'examiner' ? null : notificationsFor(ix, state.events, role, state.storyAt).map((x) => ({
     id: x.id, at: x.at, text: x.text, when: fmtStory(x.at),
     href: screenPath(ws, role, isClient || !x.claimId ? 'home' : screen) + (isClient || !x.claimId ? '' : claimHref(x.claimId)),
@@ -137,9 +112,6 @@ export async function Shell({ ws, role, screen, claim, q, children, ...given }: 
         <div className="sh-meta num">
           <span><span className="muted">Version</span>{!isClient && <Term k="version" />} {version}{!isClient && !state.frozen && adjusted ? <Term k="finalized-version" /> : null}</span>
           <span><span className="muted">Stage</span> {state.stage}</span>
-          <span className="tag t-pas" title="Every action is saved as an event in this workspace">
-            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.4" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><path d="M5 12l5 5L20 7" /></svg>Saved
-          </span>
           {state.frozen && <span className="tag t-acc" title="Accepted by the agency; later events attach to the record, nothing in it changes">As filed, locked</span>}
           {state.frozen && !isClient && <Term k="as-filed-locked" />}
         </div>
@@ -173,7 +145,7 @@ export async function Shell({ ws, role, screen, claim, q, children, ...given }: 
 
       <div className="sh-banner" role="note">
         <span><span className="muted">Viewing as</span> <strong>{roleLabel(me)}</strong></span>
-        <span style={{ flex: '1 1 360px' }}>{banner(me, rules, state.frozen)}</span>
+        <span style={{ flex: '1 1 360px' }}>{banner(me, state.frozen)}</span>
       </div>
 
       {results && (
@@ -196,7 +168,7 @@ export async function Shell({ ws, role, screen, claim, q, children, ...given }: 
       )}
 
       <div className="sh-frame">
-        <aside className="sh-pane-l" aria-label="Screens and history">
+        <aside className="sh-pane-l" aria-label="Screens">
           <nav aria-label="Screens" style={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
             <div className="lbl" style={{ padding: '0 10px 6px' }}>{isClient ? 'Your return' : 'Screens'}</div>
             {/* Staff: Home, Return, Areas and Documents are one entry, the Return overview, whose tabs are those routes. */}
@@ -206,22 +178,10 @@ export async function Shell({ ws, role, screen, claim, q, children, ...given }: 
               return (
                 <Link key={k} className="sh-nav" href={screenPath(ws, role, k)} aria-current={current ? 'page' : undefined}>
                   <span className="t">{overview ? 'Return overview' : screenLabel(k, me.kind)}</span>
-                  <span className="small muted">{overview ? 'Figures, open items, forms, areas, documents, what-ifs' : screenHint(k, me.kind)}</span>
                 </Link>
               );
             })}
           </nav>
-          <div>
-            <div className="lbl" style={{ padding: '0 10px 6px' }}>{isClient ? 'Your activity' : 'History'}</div>
-            <div className="small muted" style={{ padding: '0 10px 4px' }}>Story dates in UTC.</div>
-            {history.length === 0 && <div className="small muted" style={{ padding: '6px 10px' }}>Nothing recorded in this workspace yet.</div>}
-            {history.map((e) => (
-              <div key={e.seq} className="sh-hist">
-                <span className="num muted">{fmtDay(e.storyAt)}</span>
-                <span><strong>{e.role === role ? 'You' : roleName(e.role)}</strong> {VERB[e.type] ?? e.type} {e.claimId ? <Link href={claimHref(e.claimId)}>{mask(claimTitle(ix, e.claimId))}</Link> : null}{e.type === 'adjustment' && typeof e.payload.reason === 'string' && e.payload.reason.trim() ? <span className="muted">: {mask(e.payload.reason)}</span> : null}</span>
-              </div>
-            ))}
-          </div>
         </aside>
 
         <main className="sh-pane-c" aria-label={me.kind === 'staff' && (screen === 'home' || OVERVIEW_TABS.includes(screen)) ? 'Return overview' : screenLabel(screen, me.kind)}>

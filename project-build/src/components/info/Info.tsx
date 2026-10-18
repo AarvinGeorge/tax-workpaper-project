@@ -1,5 +1,6 @@
-// What the "?" dialog holds, in order: Legends, Deadlines, then for staff the firm reference (standards, people, time).
-// Clients and the examiner see Legends and Deadlines only.
+// What the "?" dialog holds, in order: Demo (what this is, the packet, the roles), Legends, Deadlines, then for staff
+// the firm reference (standards, people, time) and how AI was used. Clients and the examiner see Demo, Legends and the
+// deadlines that are not the firm's internal ones.
 import type { ReactNode } from 'react';
 import type { RoleInfo, WorkspaceState } from '@/domain/contracts';
 import type { PacketIndex } from '@/domain/packet/load';
@@ -7,6 +8,8 @@ import { Term } from '../term/Term';
 import { InfoDialog } from './InfoDialog';
 import { Legends } from './Legends';
 import { Deadlines, FirmStandards, People, TimeBudget } from './FirmInfo';
+import { Demo } from './Demo';
+import { AI_FOUND, AI_READER } from './aiUse';
 
 function Sec({ id, title, open, children }: { id: string; title: ReactNode; open?: boolean; children: ReactNode }) {
   return (
@@ -22,12 +25,14 @@ export function Info({ ix, state, role, ws }: { ix: PacketIndex; state: Workspac
   const p = { ix, state, role, ws };
   return (
     <InfoDialog>
-      <Sec id="info-legends" title="Legends" open><Legends /></Sec>
+      <Sec id="info-demo" title="Demo" open><Demo {...p} /></Sec>
+      <Sec id="info-legends" title="Legends"><Legends /></Sec>
       <Sec id="firm-dl" title="Deadlines on the story clock"><Deadlines {...p} /></Sec>
       {staff ? <>
         <Sec id="firm-std" title="Firm standards"><FirmStandards {...p} /></Sec>
         <Sec id="firm-staff" title={<>People and clearance<Term k="sensitive-data-clearance" /></>}><People {...p} /></Sec>
         <Sec id="firm-time" title="Time against budget"><TimeBudget {...p} /></Sec>
+        <Sec id="info-ai" title="How AI was used"><p style={{ margin: 0 }}>{AI_FOUND}</p><p style={{ margin: '8px 0 0' }}>{AI_READER}</p></Sec>
       </> : null}
     </InfoDialog>
   );

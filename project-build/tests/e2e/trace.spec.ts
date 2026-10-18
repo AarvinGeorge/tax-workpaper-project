@@ -5,9 +5,10 @@ const ws = (name: string) => `e2e-${name}-${Date.now().toString(36)}${Math.floor
 const drawer = (page: Page) => page.getByTestId('drawer');
 const SSN_SHAPED = /\b\d{3}-\d{2}-\d{4}\b/;
 
-test('Start here shows the packet counts and the roles', async ({ page }) => {
+test('the "?" Demo section shows the packet counts and the roles', async ({ page }) => {
   await page.goto(`/w/${ws('start')}/daniel`);
-  const start = page.getByTestId('start-here');
+  await page.getByRole('button', { name: /About this workspace/ }).click();
+  const start = page.getByTestId('demo');
   await expect(start).toBeVisible();
   await expect(page.getByTestId('counts')).toContainText('74 documents');
   await expect(page.getByTestId('counts')).toContainText('3,012 values');
@@ -99,9 +100,9 @@ test('header search finds a line and never searches identifier digits', async ({
   await expect(page.getByRole('region', { name: 'Search results' })).toContainText('never searchable');
 });
 
-test('the product is named Taxmark in the header, the tab and Start here', async ({ page }) => {
+test('the product is named Taxmark in the header, the tab and the "?" Demo section', async ({ page }) => {
   await page.goto(`/w/${ws('brand')}/daniel`);
   await expect(page).toHaveTitle(/^Taxmark/);
   await expect(page.locator('.sh-brand strong')).toHaveText('Taxmark');
-  await expect(page.getByTestId('start-here')).toContainText('Taxmark is a web-native workpaper');
+  await expect(page.getByTestId('demo')).toContainText('Taxmark is a web-native workpaper');
 });

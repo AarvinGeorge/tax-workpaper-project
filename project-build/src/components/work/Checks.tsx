@@ -8,8 +8,9 @@ import {
   signed, visibleFinding, when, writeBlock, type WorkProps,
 } from './lib';
 import { AiMark, Est, NoAccess, Page, Tag } from './ui';
-import { confidenceWord, isAi, suggestionStatus } from '@/domain/ai/merge';
-import { personName } from './lib';
+import { confidenceWord, groupAiRows, isAi, suggestionStatus } from '@/domain/ai/merge';
+import { lineLabel, personName } from './lib';
+import { AI_FOUND, AI_READER } from '../info/aiUse';
 import { Term } from '../term/Term';
 import Link from 'next/link';
 import { EventButton, GroupSelect, RevealDrawerOnPhone, RowSelect, SignoffNote, SignoffScope, TextAction } from './actions';
@@ -105,7 +106,7 @@ export function ChecksScreen(p: WorkProps) {
         <Tag tone="wrn">{open.length} open</Tag>{' '}
         {later ? <Tag tone="neu" title="Findings that depend on a document or message later in the story">{later} later in the story</Tag> : null}
       </>}
-      intro={<>Our checks run over the packet and do not trust the engine. Blockers<Term k="blocker" /> come first. The engine&apos;s own diagnostics<Term k="engine-diagnostics" /> are listed beside them under their own label. Tax effects are estimates at the latest version&apos;s rates or from the engine&apos;s what-if<Term k="what-if" />.</>}>
+      >
 
       <div role="group" aria-label="Filter by severity" className={s.row}>
         <a className={`${s.chip} ${!sev ? s.chipOn : ''}`} href={queryHref(p.sp, 'sev', null)} aria-current={!sev ? 'true' : undefined}>All <span className={s.num}>{visible.length}</span></a>
@@ -126,7 +127,7 @@ export function ChecksScreen(p: WorkProps) {
         <div className={s.section} style={{ gap: 16 }}>
         {sev !== 'ai' ? <section className={s.section} aria-labelledby="chk-ours">
           <RevealDrawerOnPhone claim={current ?? null} />
-          <h2 className={s.h2} id="chk-ours" tabIndex={-1}>Our checks <span className={s.note}>({shown.length})</span></h2>
+          <h2 className={s.h2} id="chk-ours" tabIndex={-1}>Our checks <span className={s.note}>({shown.length})</span><Term k="blocker" /></h2>
           <SignoffScope ws={ws} role={role.key} level={level ?? 'preparer'} items={signable} blockers={blockerIds}>
           <div className={s.box}>
             <div className={`${s.chkRow} ${s.chkSel} ${s.chkHead}`}><span>{canSign ? <Term k="sign-off" /> : null}</span><span>Status</span><span>What</span><span className={s.right}>Amount</span><span className={s.hideSm}>Tax effect</span></div>
@@ -182,7 +183,7 @@ export function ChecksScreen(p: WorkProps) {
         </div>
 
         <section className={s.section} aria-labelledby="chk-engine">
-          <h2 className={s.h2} id="chk-engine">From the engine <span className={s.note}>({diags.length}, {ix.latest.version})</span></h2>
+          <h2 className={s.h2} id="chk-engine">From the engine <span className={s.note}>({diags.length}, {ix.latest.version})</span><Term k="engine-diagnostics" /></h2>
           <p className={s.note} style={{ margin: 0 }}>The engine’s own diagnostics, shown as it reported them. They are not our checks and are not counted as findings.</p>
           <div className={s.box}>
             {diags.length === 0 ? <div className={s.boxRow}><span className={s.note}>The engine reported nothing.</span></div> : null}
@@ -207,21 +208,30 @@ export function ChecksScreen(p: WorkProps) {
 function AiGroup({ p, items, held }: { p: WorkProps; items: { f: Finding; st: ReturnType<typeof suggestionStatus> }[]; held: { id: string | null; reasons: string[] }[] }) {
   const m = masker(p.state, p.role);
   const open = items.filter((x) => x.st.status === 'needs_review').length;
+  // Each row names the line and amount it concerns; the same suggestion on the same line with the same status is one row.
+  const rows = groupAiRows(items, (f) => {
+    const c0 = f.claims[0];
+    if (!c0?.startsWith('line:')) return m(f.title);
+    const kind = /^[A-Z][a-z]/.test(f.title) ? f.title.charAt(0).toLowerCase() + f.title.slice(1) : f.title;
+    return m(`${lineLabel(p.ix, c0.slice(5))}, ${fmt(claimValue(p, c0))}: ${kind}`);
+  });
   return (
     <section className={s.section} aria-labelledby="chk-ai" data-testid="ai-suggestions">
       <h2 className={s.h2} id="chk-ai">AI suggestions<Term k="ai-suggestion" /> <span className={s.note}>({items.length}{open ? `, ${open} ${open === 1 ? 'needs' : 'need'} review` : ''})</span></h2>
       <div className={s.box}>
         <div className={`${s.chkRow} ${s.chkHead}`}><span>Status</span><span>What</span><span className={s.right}>Amount</span><span className={s.hideSm}>Confidence</span></div>
         {items.length === 0 ? <div className={s.boxRow}><span className={s.note}>No AI suggestions at this story time.</span></div> : null}
-        {items.map(({ f, st }) => {
+        {rows.map((row) => {
+          const { f, st } = row.items[0];
           const c0 = f.claims[0];
           const by = st.by ? personName(p.ix, st.by).split(' ')[0] : '';
+          const more = row.items.slice(1);
           return (
             <div key={f.id} className={s.chkRow} data-finding={f.id} data-ai="">
               <span>{st.status === 'accepted' ? <Tag tone="pas">Accepted</Tag> : <Tag tone="wrn">Needs review</Tag>}</span>
               <details className={s.peek}>
                 <summary>
-                  <span className={s.title}><AiMark />{m(f.title)}</span>
+                  <span className={s.title}><AiMark />{row.title}{more.length ? <> <Tag tone="neu">{row.items.length} suggestions</Tag></> : null}</span>
                   <span className={s.mono} style={{ display: 'block' }}>{f.claims.map((c) => c.replace(/^line:/, '')).join(', ')}</span>
                 </summary>
                 <div className={s.peekBody}>
@@ -231,6 +241,17 @@ function AiGroup({ p, items, held }: { p: WorkProps; items: { f: Finding; st: Re
                   <div className={s.row}>
                     <Link scroll={false} prefetch={false} className={`${s.btn} ${s.small}`} href={claimHref(p.sp, 'finding:' + f.id)}>{st.status === 'accepted' ? 'Open the suggestion' : 'Review the suggestion'}</Link>
                   </div>
+                  {more.length ? (
+                    <div className={s.body}>
+                      <span className={s.lbl}>The same suggestion, {more.length} more</span>
+                      {more.map((x) => (
+                        <span key={x.f.id} data-finding-also={x.f.id} className={s.row} style={{ gap: 8 }}>
+                          <span className={s.note} style={{ maxWidth: '60ch' }}>{m(x.f.explanation)}</span>
+                          <Link scroll={false} prefetch={false} className={s.link} href={claimHref(p.sp, 'finding:' + x.f.id)}>{st.status === 'accepted' ? 'Open it' : 'Review it'}</Link>
+                        </span>
+                      ))}
+                    </div>
+                  ) : null}
                 </div>
               </details>
               <span className={s.right}>{c0 ? <Link scroll={false} prefetch={false} className={s.amt} href={claimHref(p.sp, c0)} aria-label={`Where ${fmt(claimValue(p, c0))} came from`}>{m(claimValue(p, c0))}</Link> : null}</span>
@@ -239,6 +260,7 @@ function AiGroup({ p, items, held }: { p: WorkProps; items: { f: Finding; st: Re
           );
         })}
       </div>
+      <p className={s.note} style={{ margin: 0, maxWidth: '90ch' }}>{AI_READER} {AI_FOUND}</p>
       {held.length ? (
         <details className={s.note} data-testid="ai-held">
           <summary>{held.length} AI suggestion{held.length === 1 ? '' : 's'} held back: failed verification</summary>

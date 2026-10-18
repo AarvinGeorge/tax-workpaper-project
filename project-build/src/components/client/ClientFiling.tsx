@@ -49,6 +49,7 @@ export function SignatureRows({ st, plain, me }: { st: SigningState; plain: bool
             <span className={s.when}>{sp.name}</span>
             <span className={s.body}>
               {!sp.signed ? <span><Tag tone="neu">Not signed</Tag> {who} {plain && sp.key === me ? 'have' : 'has'} not signed yet.</span>
+                : sp.signed.record ? <span><Tag tone="pas">Signed</Tag> {who} signed Form 8879 and FTB 8879 on {when(sp.signed.storyAt)}{plain ? '.' : ", per the firm's record."}</span>
                 : sp.signed.stale ? <span><Tag tone="wrn">Stale</Tag> {who} signed on {when(sp.signed.storyAt)}, but the return changed after that{plain ? '. Please review it and sign again.' : `: signed version ${sp.signed.value}, now ${st.fingerprint}.`}</span>
                 : <span><Tag tone="pas">Signed</Tag> {who} signed Form 8879 and FTB 8879 on {when(sp.signed.storyAt)}{plain ? '.' : `, on version ${sp.signed.value}.`}</span>}
             </span>
@@ -68,7 +69,8 @@ export function StaffSigning({ ix, state }: { ix: PacketIndex; state: WorkspaceS
       <div className={s.box}>
         <div className={s.boxRow}>
           <span className={s.when}>Partner approval</span>
-          <span className={s.body}>{st.approved ? <span><Tag tone="pas">Approved</Tag> The clients may sign.</span> : <span><Tag tone="neu">Not yet</Tag> The clients can sign once the partner approves the return on Review.</span>}</span>
+          <span className={s.body}>{st.byRecord ? <span><Tag tone="pas">Approved</Tag> {state.frozen ? 'Approved and filed' : 'Approved'} per the firm&rsquo;s record: the clients signed Form 8879.</span>
+            : st.approved ? <span><Tag tone="pas">Approved</Tag> The clients may sign.</span> : <span><Tag tone="neu">Not yet</Tag> The clients can sign once the partner approves the return on Review.</span>}</span>
         </div>
         <SignatureRows st={st} plain={false} />
         <div className={s.boxRow}><span className={s.note}>Each spouse signs Form 8879<Term k="form-8879" /> and FTB 8879<Term k="ftb-8879" /> for themself, on version {st.fingerprint} of the finalized return. A signature goes stale when any finalized value changes after it. No PIN is asked for or kept.</span></div>
@@ -94,6 +96,8 @@ export async function ClientSigning({ ws, ix, role, state }: { ws: string; ix: P
         <div className={s.box}>
           {state.frozen ? (
             <div className={s.boxRow}><span className={s.note}>Your return has been filed, so signing is closed.</span></div>
+          ) : st.byRecord ? (
+            <div className={s.boxRow}><span className={s.note}>You approved and signed the return. Your tax team files it next.</span></div>
           ) : !st.approved ? (
             <div className={s.boxRow}><span className={s.note}>Your tax team is still finishing your return. You can sign here once the partner has approved it.</span></div>
           ) : (
@@ -108,7 +112,7 @@ export async function ClientSigning({ ws, ix, role, state }: { ws: string; ix: P
           {/* Once filed, the signing is a fact from the firm's record ("What has happened"); rows that only know the
               workspace's own signatures would say "Not signed" against a filed return. */}
           <SignatureRows st={{ ...st, spouses: st.spouses.filter((sp) => !state.frozen || sp.signed) }} plain me={role.key} />
-          {!state.frozen && st.approved ? (
+          {!state.frozen && st.approved && !st.byRecord ? (
             <div className={s.boxRow}>
               <EventButton ws={ws} role={role.key} primary label="Approve and sign both forms"
                 disabledReason={verdict.ok ? null : verdict.reason}

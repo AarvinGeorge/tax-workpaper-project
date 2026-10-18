@@ -111,3 +111,10 @@ export function simulatedPage(ix: PacketIndex, docId: string, page: number): Sim
   }));
   return { docId: d.id, page: pg.page, pageCount: d.page_count, title: d.title, issuer: d.issuer ?? null, printed: pg.printed_content, fields };
 }
+
+/** The Documents tab's word for each reason a document did not land; the side panel uses the same words. */
+export const REASON_LABEL: Record<NonNullable<DocLanding['reason']>['code'], string> = {
+  duplicate: 'Duplicate', superseded: 'Superseded', not_extracted: 'Not extracted', partial: 'Partly extracted',
+  after_last_computation: 'After the last computation', corroborates: 'Corroborates only', prior_year: 'Prior year',
+  post_filing: 'After filing', unused: 'Unused',
+};

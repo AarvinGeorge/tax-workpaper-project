@@ -74,3 +74,19 @@ test('clients and the examiner see no AI suggestions anywhere', async ({ page })
   }
 });
 
+
+test('A7: Checks and the "?" dialog say how AI was used: what it read, the final version only, a person decides', async ({ page }) => {
+  await page.goto(`/w/${ws()}/daniel/checks`);
+  const group = page.getByTestId('ai-suggestions');
+  await expect(group).toContainText('found during an AI-assisted review of the packet and are now caught by deterministic checks');
+  await expect(group).toContainText(/AI reader read/);
+  await expect(group).toContainText(/final computed version/);
+  await expect(group).toContainText(/a person accepts or dismisses each/);
+  // B7: titles name the line, never a raw snake_case kind; one row per title and line.
+  const titles = await group.locator('[data-finding] summary').allInnerTexts();
+  expect(titles.length).toBeGreaterThan(0);
+  for (const t of titles) expect(t).not.toMatch(/[A-Za-z]_[A-Za-z]/);
+  expect(new Set(titles).size).toBe(titles.length);
+  await page.getByRole('button', { name: /About this workspace/ }).click();
+  await expect(page.getByRole('dialog')).toContainText('found during an AI-assisted review of the packet and are now caught by deterministic checks');
+});

@@ -100,11 +100,15 @@ test('0.1 Open the app and reset to the start', async ({ browser }) => {
   await expect(p).toHaveURL(new RegExp(`/w/${W}/daniel$`));
   await expect(p.locator('.sh-story'), 'story time').toContainText('23 Jun 2026, 06:05 UTC');
   await expect(p.locator('header').first(), 'stage').toContainText('Stage Review');
-  const counts = p.getByTestId('counts');
+  // The packet counts are the "?" dialog's Demo section; the empty history is Review's Changes tab (fix round B1, B4).
+  await p.getByRole('button', { name: /About this workspace/ }).click();
+  const counts = p.getByRole('dialog').getByTestId('counts');
   await expect(counts).toContainText('74 documents');
   await expect(counts).toContainText('3,012 values');
   await expect(counts).toContainText('3 computed versions');
-  await expect(p.getByText('Nothing recorded in this workspace yet.')).toBeVisible();
+  await p.keyboard.press('Escape');
+  await p.goto(url('daniel', 'review?tab=log'));
+  await expect(p.getByText('Nothing recorded yet in this workspace at this story time.')).toBeVisible();
 });
 
 // ───────────── Act 1: First look
@@ -117,7 +121,9 @@ test('1.1 Trace a number to the page and field it came from', async ({ browser }
   const src = d.getByTestId('source-page').first();
   await expect(src, 'a simulated FTB page').toContainText('California Franchise Tax Board');
   await expect(src.locator('mark').first(), 'exact fields highlighted').toBeVisible();
-  await expect(src, 'field positions').toContainText(/Field: \S+ at \d\.\d+, \d\.\d+/);
+  // The field is named; its synthetic position is in the tooltip, not the text (fix round B6).
+  await expect(src, 'field named').toContainText(/Field: \S+/);
+  await expect(src.locator('[title^="At "]').first(), 'field position in the tooltip').toHaveAttribute('title', /At \d\.\d+, \d\.\d+/);
   await expect(d, 'sources with kind').toContainText(/Where it came from/i);
   await expect(d).toContainText('FTB record');
   await expect(d, 'read confidence').toContainText(/Pipeline read 0\.\d+/);
@@ -283,9 +289,12 @@ test('2.2 Adjust the California estimates to 10,500', async ({ browser }) => {
   await expect(d, 'tax effect estimate').toContainText(/Tax effect estimate:[^\n]*California \+?3,500/);
   // The checklist does not say where "needs a partner sign-off" shows; the drawer is checked softly, Review hard.
   await expect.soft(d, 'drawer says it needs a partner sign-off').toContainText(/partner/i);
-  await expect(p.locator('.sh-hist').first(), 'who in History').toContainText(/You adjusted|Daniel/);
-  await expect.soft(p.locator('.sh-hist').first(), 'why (the reason) in History').toContainText(/D68|designated/);
   await expect(d, 'why, in the panel').toContainText('15 Sep payment designated for 2024');
+  // History is Review's Changes tab (the sidebar pane left in the fix round, B4).
+  await go(browser, 'daniel', 'review?tab=log');
+  const log = p.locator('section[aria-label="Change log"] article').first();
+  await expect(log, 'who in Changes').toContainText(/Daniel/);
+  await expect.soft(log, 'why (the reason) in Changes').toContainText(/D68|designated/);
   await go(browser, 'daniel', 'review');
   await expect(main(p), 'Review counts it as needing partner sign-off').toContainText(/1 needs? partner sign-off/);
   await go(browser, 'daniel', 'checks', CA_EST);
@@ -572,7 +581,8 @@ test('5.1 Move to the rejection', async ({ browser }) => {
   await expect(m, 'the extension').toContainText('Extension');
   await expect(m, 'the e-file rejection').toContainText(/rejected/i);
   await expect(m, 'its reason').toContainText(/name control|did not match|dependent/i);
-  await expect(m, 'the fix that followed').toContainText(/13 Jul 2026, 19:02 UTC/);
+  // This matched only the overview subtitle's "As of" story time, cut in the fix round (B3); the time is in the bar.
+  await expect(p.locator('.sh-story'), 'the fix that followed').toContainText(/13 Jul 2026, 19:02 UTC/);
 });
 
 test('5.2 Move past acceptance: the record locks', async ({ browser }) => {

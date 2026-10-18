@@ -140,8 +140,16 @@ export function can(ix: PacketIndex, roleArg: RoleKey | RoleInfo, action: Action
   if (action === 'workspace_reset') return yes;
 
   // Also a demo instrument: every role may move the story clock (one clock per workspace, recorded as an event).
+  // The clock stays inside the packet's own timeline (first to last event, inclusive): a time past the story would
+  // move the frontier there and leave the whole workspace in "the past".
   if (action === 'clock_moved') {
-    return Number.isNaN(Date.parse(str(payload.to))) ? no('payload.to must be a date and time.') : yes;
+    const to = Date.parse(str(payload.to));
+    if (Number.isNaN(to)) return no('payload.to must be a date and time.');
+    const span = ix.packet.timeline.map((t) => Date.parse(t.at)).filter((t) => !Number.isNaN(t));
+    if (span.length && (to < Math.min(...span) || to > Math.max(...span))) {
+      return no(`The story runs from ${fmtDate(new Date(Math.min(...span)).toISOString())} to ${fmtDate(new Date(Math.max(...span)).toISOString())}. Pick a time inside it.`);
+    }
+    return yes;
   }
   // Before the engine's first run there is no return to adjust (ix is then the index as of story time).
   const notComputed = notComputedText(ix);

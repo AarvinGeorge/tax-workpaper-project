@@ -132,7 +132,8 @@ export function TimeBudget({ ix, state, role, ws }: P) {
 
 export function Deadlines({ ix, state, role }: Omit<P, 'ws'>) {
   const m = masker(state, role);
-  const dl = deadlines(ix, state.storyAt);
+  // The firm's internal milestones are for its staff; clients and the examiner see the filing deadlines only.
+  const dl = deadlines(ix, state.storyAt).filter((d) => role.kind === 'staff' || !/^internal\b/i.test(d.what.trim()));
   return (
     <section className={s.section} aria-labelledby="firm-dl">
       <div className={s.box}>

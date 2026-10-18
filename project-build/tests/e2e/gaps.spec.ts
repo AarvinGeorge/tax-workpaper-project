@@ -10,14 +10,13 @@ const post = (page: Page, w: string, role: string, data: Record<string, unknown>
   page.request.post(`/api/w/${w}/events`, { data: { role, ...data } });
 const state = async (page: Page, w: string, role: string) => (await (await page.request.get(`/api/w/${w}/state?role=${role}`)).json());
 
-test('G1: Changes shows a decision\'s authority; History shows an adjustment\'s reason', async ({ page }) => {
+test('G1: Changes shows a decision\'s authority and an adjustment\'s reason', async ({ page }) => {
   const w = ws();
   expect((await post(page, w, 'daniel', { type: 'decision', claimId: CA_EST, payload: { kind: 'judgment', text: 'Keep as filed.', authority: 'IRC 6654 (gap test)' } })).ok()).toBe(true);
   expect((await post(page, w, 'daniel', { type: 'adjustment', claimId: CA_EST, payload: { value: 10500, reason: 'Payment designated for 2024 (gap test)' } })).ok()).toBe(true);
   await page.goto(`/w/${w}/daniel/review?tab=log`);
   await expect(page.locator('section[aria-label="Change log"]')).toContainText('Authority: IRC 6654 (gap test)');
   await expect(page.locator('section[aria-label="Change log"]')).toContainText('Payment designated for 2024 (gap test)');
-  await expect(page.locator('.sh-hist').first()).toContainText('Payment designated for 2024 (gap test)');
 });
 
 test('G2: undo from Changes on a bulk entry reverses the whole group', async ({ page }) => {

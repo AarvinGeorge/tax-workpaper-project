@@ -23,8 +23,25 @@ const KIND_TITLE: Record<Exclude<AiKind, 'other'>, string> = {
 
 export function aiTitle(kind: string, otherKind: string | null): string {
   if (kind !== 'other' && kind in KIND_TITLE) return KIND_TITLE[kind as keyof typeof KIND_TITLE];
-  const label = (otherKind ?? '').replace(/\s+/g, ' ').trim().slice(0, 80);
+  // The reader may name its own kind in snake_case ("Duplicate_scan_double_counted"): read it as words.
+  const label = (otherKind ?? '').replace(/_/g, ' ').replace(/\s+/g, ' ').trim().slice(0, 80);
   return label ? label.charAt(0).toUpperCase() + label.slice(1) : 'Another issue';
+}
+
+export interface AiRow<T> { title: string; claims: string; status: string; items: T[] }
+
+/** Checks' AI rows: suggestions with the same shown title, the same lines and the same review status are one row with
+ *  a count, in first-seen order; the first item keeps the row (its id, its link). Other statuses stay separate rows. */
+export function groupAiRows<T extends { f: Finding; st: { status: string } }>(items: T[], title: (f: Finding) => string): AiRow<T>[] {
+  const rows = new Map<string, AiRow<T>>();
+  for (const x of items) {
+    const t = title(x.f);
+    const claims = x.f.claims.join(',');
+    const key = `${t}|${claims}|${x.st.status}`;
+    const row = rows.get(key);
+    if (row) row.items.push(x); else rows.set(key, { title: t, claims, status: x.st.status, items: [x] });
+  }
+  return [...rows.values()];
 }
 
 export function confidenceWord(n: number): 'high' | 'medium' | 'low' {

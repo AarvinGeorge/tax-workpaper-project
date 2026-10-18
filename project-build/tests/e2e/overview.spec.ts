@@ -4,7 +4,7 @@ import { expect, test } from '@playwright/test';
 // (rows open Checks) and tabs Forms | Areas | Documents. Every old address still works and lands on its tab.
 const ws = () => `e2e-ov-${Date.now().toString(36)}${Math.floor(Math.random() * 1e4)}`;
 
-test('the overview: three figures from the return, Start here, blockers that open Checks, tabs, no leftover buttons', async ({ page }) => {
+test('the overview: three figures from the return, a blocker count that opens Checks, tabs, no leftover buttons', async ({ page }) => {
   const w = ws();
   await page.goto(`/w/${w}/daniel`);
   const main = page.getByRole('main');
@@ -17,7 +17,7 @@ test('the overview: three figures from the return, Start here, blockers that ope
   await expect(kpis).toContainText('California tax');
   await expect(kpis).toContainText('18,874');
   await expect(kpis).toContainText(/as computed/);
-  await expect(page.getByTestId('counts')).toBeVisible(); // Start here kept
+  await expect(page.getByTestId('start-here')).toHaveCount(0); // Start here is the "?" Demo section (fix round B1)
   const tabs = main.getByRole('navigation', { name: 'Return overview tabs' });
   await expect(tabs.getByRole('link', { name: 'Forms' })).toHaveAttribute('aria-current', 'page');
   await expect(tabs.getByRole('link', { name: 'Areas' })).toBeVisible();

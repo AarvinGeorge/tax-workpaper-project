@@ -11,22 +11,22 @@ test('reset brings every tab back to the pipeline output at the start of review'
 
   await page.goto(`/w/${w}/daniel/checks?claim=line:F540NR.72`);
   await expect(page.locator('.sh-story')).toContainText('20 Jul 2026');
-  await page.goto(`/w/${w}/daniel`);
-  await page.getByTestId('start-here').getByRole('button', { name: 'Dismiss' }).click();
+  // The workspace's history is Review's Changes tab (the History pane left the sidebar in the fix round, B4).
+  const EMPTY = 'Nothing recorded yet in this workspace at this story time.';
   const other = await context.newPage();
-  await other.goto(`/w/${w}/marcus`);
-  await expect(other.locator('.sh-hist')).not.toHaveCount(0);
+  await other.goto(`/w/${w}/marcus/review?tab=log`);
+  await expect(other.locator('section[aria-label="Change log"] article')).not.toHaveCount(0);
 
   await page.goto(`/w/${w}/daniel/checks?claim=line:F540NR.72`);
   await page.getByRole('button', { name: 'Reset to start' }).click();
   await page.getByRole('button', { name: 'Confirm reset' }).click();
 
   await expect(page).toHaveURL(new RegExp(`/w/${w}/daniel$`));
-  await expect(page.getByText('Nothing recorded in this workspace yet.')).toBeVisible();
   await expect(page.locator('.sh-story')).toContainText('23 Jun 2026');
-  await expect(page.getByTestId('start-here')).toBeVisible();
   // The other tab follows on its next poll.
-  await expect(other.getByText('Nothing recorded in this workspace yet.')).toBeVisible({ timeout: 12_000 });
+  await expect(other.getByText(EMPTY)).toBeVisible({ timeout: 12_000 });
+  await page.goto(`/w/${w}/daniel/review?tab=log`);
+  await expect(page.getByText(EMPTY)).toBeVisible();
 });
 
 test('reset asks for confirmation and can be cancelled', async ({ page, request }) => {
@@ -35,5 +35,6 @@ test('reset asks for confirmation and can be cancelled', async ({ page, request 
   await page.goto(`/w/${w}/daniel`);
   await page.getByRole('button', { name: 'Reset to start' }).click();
   await page.getByRole('button', { name: 'Cancel' }).click();
-  await expect(page.locator('.sh-hist')).toHaveCount(1);
+  await page.goto(`/w/${w}/daniel/review?tab=log`);
+  await expect(page.locator('section[aria-label="Change log"] article')).toHaveCount(1);
 });

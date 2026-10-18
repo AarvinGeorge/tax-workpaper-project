@@ -59,27 +59,21 @@ const NAME: Record<ScreenKey, string> = {
   home: 'Home', return: 'Return', areas: 'Areas', documents: 'Documents', whatifs: 'What-ifs', checks: 'Checks', review: 'Review',
   filing: 'Filing and after',
 };
-const HINT: Record<ScreenKey, string> = {
-  home: 'Start here, your queue', return: 'Forms and lines, every number traced', areas: 'Records a CPA expects, area by area',
-  documents: 'Every document and where it landed', whatifs: 'The engine’s alternatives, not changes',
-  checks: 'Our checks beside the engine’s diagnostics',
-  review: 'Adjustments, notes, sign-offs, every change and view',
-  filing: 'Approval, e-file, the filed record, notices',
-};
 const CNAME: Partial<Record<ScreenKey, string>> = { home: 'Home', documents: 'Your documents', filing: 'Approve and sign', return: 'Your return' };
-const CHINT: Partial<Record<ScreenKey, string>> = { home: 'What we need from you', documents: 'What you sent and what is still needed', filing: 'Sign Form 8879 (e-file signature authorization)', return: 'Your return, line by line' };
 const INAME: Partial<Record<ScreenKey, string>> = { filing: 'Filed return and the letter', documents: 'Documents cited' };
-const IHINT: Partial<Record<ScreenKey, string>> = { filing: 'The items under examination, as filed', documents: 'Only the documents those items cite' };
+
+/** How a role is named in the switcher, the banner and the Demo role list. */
+export function roleLabel(r: RoleInfo): string {
+  if (r.kind === 'client') return `${r.name}, ${r.title.toLowerCase()}`;
+  if (r.kind === 'examiner' || !r.staffId) return r.name;
+  if (r.key === 'next') return `${r.name} (${r.title.toLowerCase()})`;
+  return `${r.name}, ${r.title.split(',')[0].toLowerCase()}`;
+}
 
 export function screenLabel(k: ScreenKey, kind: RoleInfo['kind']): string {
   if (kind === 'client') return CNAME[k] ?? NAME[k];
   if (kind === 'examiner') return INAME[k] ?? NAME[k];
   return NAME[k];
-}
-export function screenHint(k: ScreenKey, kind: RoleInfo['kind']): string {
-  if (kind === 'client') return CHINT[k] ?? HINT[k];
-  if (kind === 'examiner') return IHINT[k] ?? HINT[k];
-  return HINT[k];
 }
 export function screenPath(ws: string, role: string, k: ScreenKey): string {
   return `/w/${ws}/${role}${k === 'home' ? '' : '/' + k}`;

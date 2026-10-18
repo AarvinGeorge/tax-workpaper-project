@@ -1,7 +1,7 @@
 import Link from 'next/link';
 import { Shell } from '@/components/shell/Shell';
 import { getWorkspace } from '@/components/shell/load';
-import { documentLanding } from '@/domain/docs';
+import { documentLanding, REASON_LABEL } from '@/domain/docs';
 import { maskText, visibleDocIds } from '@/domain/policy';
 import { claimHref, fmtDay, parseClaim } from '@/components/shell/lib';
 import type { DocLanding } from '@/domain/contracts';
@@ -11,11 +11,7 @@ import { OverviewHead } from '@/components/overview/OverviewHead';
 
 type P = { params: Promise<{ ws: string; role: string }>; searchParams: Promise<Record<string, string | undefined>> };
 
-const REASON: Record<NonNullable<DocLanding['reason']>['code'], string> = {
-  duplicate: 'Duplicate', superseded: 'Superseded', not_extracted: 'Not extracted', partial: 'Partly extracted',
-  after_last_computation: 'After the last computation', corroborates: 'Corroborates only', prior_year: 'Prior year',
-  post_filing: 'After filing', unused: 'Unused',
-};
+const REASON = REASON_LABEL;
 
 export default async function Documents({ params, searchParams }: P) {
   const { ws, role } = await params;
@@ -50,6 +46,9 @@ export default async function Documents({ params, searchParams }: P) {
     <Link key={key} className={`btn${filter === key ? ' on' : ''}`} aria-pressed={filter === key} href={href(key)}>{label} <span className="num muted">{n}</span></Link>
   );
   const hidden = ix.counts.documents - all.length;
+  const said = new Map<string, number>();
+  for (const d of rows) if (d.reason?.text) said.set(d.reason.text, (said.get(d.reason.text) ?? 0) + 1);
+  const shared = new Set([...said].filter(([, n]) => n > 1).map(([t]) => t));
 
   return (
     <Shell ws={ws} role={me.key} screen="documents" state={state} roleInfo={me} claim={sp.claim} q={sp.q}>
@@ -57,7 +56,7 @@ export default async function Documents({ params, searchParams }: P) {
         {staff ? (
           <>
             <OverviewHead ws={ws} w={w} tab="documents" />
-            <span className="sub">{sub} <span className="small muted num">{scope.length} shown{hidden > 0 ? ` · ${hidden} arrive later in the story` : ''}</span></span>
+            <span className="small muted num">{scope.length} shown{hidden > 0 ? ` · ${hidden} arrive later in the story` : ''}</span>
           </>
         ) : (
           <div className="screen-head">
@@ -85,7 +84,8 @@ export default async function Documents({ params, searchParams }: P) {
               <span style={{ display: 'flex', flexDirection: 'column', gap: 4, minWidth: 0 }}>
                 {staff ? <>
                   <span><span className={`tag ${d.status === 'landed' ? 't-pas' : d.reason?.code === 'unused' ? 't-wrn' : 't-mut'}`}>{d.status === 'landed' ? 'Landed' : REASON[d.reason?.code ?? 'unused']}</span></span>
-                  <span className="small">{d.status === 'landed' ? `On ${d.landedLines.slice(0, 4).join(', ')}${d.landedLines.length > 4 ? ` and ${d.landedLines.length - 4} more` : ''}` : mask(d.reason?.text ?? '')}</span>
+                  {/* A reason sentence several rows share says no more than their tag; it stays in the panel. */}
+                  <span className="small">{d.status === 'landed' ? `On ${d.landedLines.slice(0, 4).join(', ')}${d.landedLines.length > 4 ? ` and ${d.landedLines.length - 4} more` : ''}` : (shared.has(d.reason?.text ?? '') ? '' : mask(d.reason?.text ?? ''))}</span>
                 </> : <span><span className="tag t-pas">Received</span></span>}
               </span>
               <span className="small num" style={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
@@ -94,7 +94,6 @@ export default async function Documents({ params, searchParams }: P) {
             </Link>
           ))}
         </section>
-        {staff && <p className="small muted" style={{ maxWidth: '90ch' }}>Kind of document is a plain label for where it comes from, never a ranking of trust; how surely each value was read (its confidence<Term k="read-confidence" />) is shown on the value in the panel.</p>}
       </div>
     </Shell>
   );

@@ -77,3 +77,6 @@ From here on, entries are written at the time again.
 - 18 Oct 12:37 EDT · Deep research (3 researcher subagents + report writer): open temporal-clock systems (bitemporal databases, time-scrubber UX, as-of conventions in accounting/audit/tax), notes in docs/research/research_notes/Temporal clock design patterns/
 - 18 Oct 12:41 EDT · Opus 5.5 subagent: Part A built (indexAt, per-version checks, AI gate, clock for every role), TDD, 525 unit / 88 e2e
 - 18 Oct 13:11 EDT · Opus 5.5 subagent: Part B built (clock bar, ? dialog, Review tabs, What-ifs tab, filing status, Firm/Changes/Filing/Findings retired with redirects), TDD, 523 unit / 99 e2e, walk 36/36 locally
+- 18 Oct 13:11 EDT · Fable 5.1 subagents in parallel: code review of 7102816+13b1d37 (probes) and the whole-app UX pass (keep/move/cut list, docs/reviews/2026-10-18-whole-app-pass.md)
+- 18 Oct 15:00 EDT · Opus 5.5 (me): merged the code review's six should-fixes and the whole-app pass top 10 into one list with a recommendation; Aarvin approved all of it
+- 18 Oct 15:05 EDT · Fable 5.1 subagent: reviewed the fix-round plan against the code (4 must-fix, 4 should-fix, all adopted), docs/reviews/2026-10-18-fix-round-plan-review.md
