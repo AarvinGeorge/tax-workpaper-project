@@ -1,7 +1,7 @@
 // Projection: events over the read-only packet -> the workspace state one role sees.
 import type { PacketIndex } from './packet/load';
 import type { ClaimState, Finding, RoleKey, SignOff, WorkEvent, WorkspaceState } from './contracts';
-import { DEFAULT_STORY_AT, frozenAt, stageAt, visibleAt } from './clock';
+import { DEFAULT_STORY_AT, frozenAt, indexAt, stageAt, visibleAt } from './clock';
 import { isApplied, retractedSeqs, sinceLastReset } from './events';
 import { maskText, partnerThreshold, roleInfo, signoffLevel } from './policy';
 
@@ -41,6 +41,12 @@ function storyTime(ix: PacketIndex, events: WorkEvent[], retracted: Set<number>)
   let at = DEFAULT_STORY_AT(ix);
   for (const e of events) if (e.type === 'clock_moved' && !retracted.has(e.seq) && typeof e.payload.to === 'string') at = e.payload.to;
   return at;
+}
+
+/** The workspace's story time (from the static index), before any projection: what loaders pass to indexAt. */
+export function storyAtOf(ix: PacketIndex, events: WorkEvent[]): string {
+  const sorted = sinceLastReset([...events].sort((a, b) => a.seq - b.seq));
+  return storyTime(ix, sorted, retractedSeqs(sorted));
 }
 
 /** The latest story time reached since the last reset: every clock move counts, undone or not, so undoing a forward
@@ -130,6 +136,8 @@ export function projectWorkspace(ix: PacketIndex, events: WorkEvent[], role: Rol
   const retracted = retractedSeqs(visible);
   const fz = frozenAt(ix);
   const base = { storyAt, frontierAt: frontierTime(ix, sorted), frozen: !!fz && visibleAt(fz, storyAt), stage: stageAt(ix, storyAt) };
+  // The clock above reads the static index; the return itself (originals, effects, labels) is the version of the day.
+  const pix = indexAt(ix, storyAt);
 
   if (!info || info.kind !== 'staff') {
     // Outside views: a client sees questions addressed to them, what they themselves wrote, and the signing record of
@@ -140,10 +148,10 @@ export function projectWorkspace(ix: PacketIndex, events: WorkEvent[], role: Rol
       ? visible.filter((e) => !retracted.has(e.seq) && ((e.type === 'question_to_client' && mine(e.payload.to)) ||
         ((e.type === 'answer_recorded' || e.type === 'attach_note') && e.role === role) || signing(e)))
       : [];
-    return { ...base, claims: buildClaims(ix, own, new Set()), blockers: [], reveals: [], reasons: {}, events: own };
+    return { ...base, claims: buildClaims(pix, own, new Set()), blockers: [], reveals: [], reasons: {}, events: own };
   }
 
-  const claims = buildClaims(ix, visible, retracted);
+  const claims = buildClaims(pix, visible, retracted);
   const live = visible.filter((e) => e.type !== 'undo' && !retracted.has(e.seq));
   const blockers: WorkspaceState['blockers'] = [];
   for (const c of Object.values(claims)) {
@@ -158,7 +166,7 @@ export function projectWorkspace(ix: PacketIndex, events: WorkEvent[], role: Rol
   const threshold = partnerThreshold(ix);
   for (const c of Object.values(claims)) {
     if (!needsPartnerSignoff(ix, c)) continue;
-    const label = c.claimId.startsWith('line:') ? ix.line(ix.latest.version, c.claimId.slice(5))?.label ?? c.claimId : c.claimId;
+    const label = c.claimId.startsWith('line:') ? ix.line(pix.latest.version, c.claimId.slice(5))?.label ?? c.claimId : c.claimId;
     blockers.push({ claimId: c.claimId, title: `Partner sign-off needed: ${label} (tax effect over ${threshold.toLocaleString('en-US')})` });
   }
   const reveals = live.filter((e) => e.type === 'reveal').map((e) => ({ seq: e.seq, role: e.role, what: String(e.payload.what ?? ''), at: e.at }));

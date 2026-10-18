@@ -94,6 +94,7 @@ export async function Shell({ ws, role, screen, claim, q, children, ...given }: 
   const version = isClient
     ? (state.frozen ? 'Your filed return' : 'Draft, being prepared by your tax team')
     : state.frozen ? 'As filed'
+    : ix.latest.computed === false ? 'No return computed yet'
     : adjusted ? `${ix.latest.version} plus ${adjusted} adjustment${adjusted === 1 ? '' : 's'} (finalized, not recomputed)`
     : `${ix.latest.version}, none of our changes applied yet`;
   const people = (ix.packet.household.people ?? []).filter((p) => p.role === 'taxpayer' || p.role === 'spouse');

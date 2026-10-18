@@ -2,7 +2,7 @@
 // Everything about people comes from firm.staff, firm.client_users, household, timeline and notices.
 import type { PacketIndex } from './packet/load';
 import type { NewEvent, RoleInfo, RoleKey, ScreenKey, WorkEvent, WorkspaceState } from './contracts';
-import { visibleAt, frozenAt } from './clock';
+import { visibleAt, frozenAt, notComputedText } from './clock';
 import { isApplied, retractedSeqs } from './events';
 import { suggestionStatus } from './ai/merge';
 
@@ -137,10 +137,13 @@ export function can(ix: PacketIndex, roleArg: RoleKey | RoleInfo, action: Action
   // A demo control, not a firm action: anyone at the link may take the workspace back to the pipeline output.
   if (action === 'workspace_reset') return yes;
 
+  // Also a demo instrument: every role may move the story clock (one clock per workspace, recorded as an event).
   if (action === 'clock_moved') {
-    if (info.kind !== 'staff') return no('Only firm staff move the story clock.');
     return Number.isNaN(Date.parse(str(payload.to))) ? no('payload.to must be a date and time.') : yes;
   }
+  // Before the engine's first run there is no return to adjust (ix is then the index as of story time).
+  const notComputed = notComputedText(ix);
+  if (action === 'adjustment' && notComputed) return no(notComputed);
   if (info.activeFrom && !visibleAt(info.activeFrom, state.storyAt)) {
     return no(`${info.name} joins on ${fmtDate(info.activeFrom)}. Move the story clock to that date or later.`);
   }

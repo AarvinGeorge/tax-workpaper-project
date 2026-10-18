@@ -11,6 +11,7 @@ import { maskText } from '@/domain/policy';
 import type { ScreenKey } from '@/domain/contracts';
 import { Term } from '@/components/term/Term';
 import { AfterFiling } from './AfterFiling';
+import { notComputedText } from '@/domain/clock';
 
 export type OverviewTab = 'forms' | 'areas' | 'documents';
 const TABS: { key: OverviewTab; screen: ScreenKey; label: string }[] = [
@@ -26,7 +27,8 @@ export function OverviewHead({ ws, w, tab }: { ws: string; w: Workspace; tab: Ov
   const fed = rows.find((r) => r.jurisdiction === 'federal');
   const ca = rows.find((r) => r.jurisdiction === 'california');
   const n = Object.values(state.claims).filter((x) => x.adjusted).length;
-  const basis = `${ix.latest.version}${n ? ` plus ${n} adjustment${n === 1 ? '' : 's'}, not recomputed` : ', as computed'}`;
+  const notComputed = notComputedText(ix);
+  const basis = notComputed ?? `${ix.latest.version}${n ? ` plus ${n} adjustment${n === 1 ? '' : 's'}, not recomputed` : ', as computed'}`;
   const cards = [
     { label: 'Adjusted gross income', a: fed?.income },
     { label: 'Federal tax', a: fed?.totalTax },
@@ -42,14 +44,14 @@ export function OverviewHead({ ws, w, tab }: { ws: string; w: Workspace; tab: Ov
     <>
       <div className="screen-head"><div>
         <h1>Return overview</h1>
-        <span className="sub">The return, its open questions and its sources in one place. As of {fmtStory(state.storyAt)}.</span>
+        <span className="sub">{notComputed ? `${notComputed}. ` : 'The return, its open questions and its sources in one place. '}As of {fmtStory(state.storyAt)}.</span>
       </div></div>
 
       <div className="kpis" data-testid="kpis" role="group" aria-label="The return in three figures">
         {cards.map((k) => (
           <Link key={k.label} className="kpi" href={k.a ? screenPath(ws, me.key, 'return') + claimHref('line:' + k.a.key) : screenPath(ws, me.key, 'return')}>
             <span className="kpi-l">{k.label}</span>
-            <span className="kpi-v num">{k.a ? fmtValue(k.a.value) : 'Blank'}</span>
+            <span className="kpi-v num">{k.a ? fmtValue(k.a.value) : notComputed ? 'Not computed' : 'Blank'}</span>
             <span className="small muted">{basis}</span>
           </Link>
         ))}

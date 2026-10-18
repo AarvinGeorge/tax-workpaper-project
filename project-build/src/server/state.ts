@@ -5,10 +5,11 @@ import { indexPacket, loadPacket, type PacketIndex } from '@/domain/packet/load'
 import { getStore } from '@/domain/store';
 import { isWorkspaceId } from '@/domain/store/ids';
 import { validateNewEvent, type EventInput } from '@/domain/events';
-import { projectWorkspace } from '@/domain/project';
+import { projectWorkspace, storyAtOf } from '@/domain/project';
 import { can, isRoleKey, maskText, roleInfo, roles, signoffLevel } from '@/domain/policy';
 import { aiReview, NO_AI, type AiReview } from '@/domain/ai/merge';
-import { visibleAt } from '@/domain/clock';
+import { indexAt, visibleAt } from '@/domain/clock';
+import type { Packet } from '@/domain/packet/types';
 import { ensureReturnData } from './data';
 
 export { isWorkspaceId };
@@ -16,7 +17,10 @@ export { isWorkspaceId };
 type RunChecks = (ix: PacketIndex, asOf?: string) => Finding[];
 let runChecksFn: RunChecks | null | undefined;
 
-/** Lane A's check library, loaded lazily so the app runs before it lands; [] until then. */
+const checksCache = new WeakMap<Packet, Map<string, Finding[]>>();
+
+/** Lane A's check library, loaded lazily so the app runs before it lands; [] until then. Run on the version of the
+ *  story time (pix), memoised per packet and version. */
 async function findingsFor(ix: PacketIndex): Promise<Finding[]> {
   if (runChecksFn === undefined) {
     try {
@@ -28,8 +32,14 @@ async function findingsFor(ix: PacketIndex): Promise<Finding[]> {
     }
   }
   if (!runChecksFn) return [];
+  const byVersion = checksCache.get(ix.packet) ?? new Map<string, Finding[]>();
+  checksCache.set(ix.packet, byVersion);
+  const hit = byVersion.get(ix.latest.version);
+  if (hit) return hit;
   try {
-    return runChecksFn(ix); // checks run independent of the clock; each finding carries firstVisibleAt
+    const out = runChecksFn(ix); // each finding carries firstVisibleAt, gated on top by the story clock
+    byVersion.set(ix.latest.version, out);
+    return out;
   } catch (err) {
     console.error('runChecks failed', err);
     return [];
@@ -48,8 +58,10 @@ function assertArgs(ws: string, role: RoleKey) {
 /** ai: the AI review for staff (verified suggestions and the held-back count); empty for clients and the examiner. */
 export interface Workspace { ix: PacketIndex; findings: Finding[]; state: WorkspaceState; role: RoleInfo; ai: AiReview }
 
-/** AI suggestions never reach the projection (so never a blocker); a broken payload never breaks the workspace. */
-function aiFor(ix: PacketIndex): AiReview {
+/** AI suggestions never reach the projection (so never a blocker); a broken payload never breaks the workspace. They
+ *  were made on the final version, so they show only when the story time has reached it. */
+function aiFor(ix: PacketIndex, pix: PacketIndex = ix): AiReview {
+  if (pix !== ix) return NO_AI;
   try {
     return aiReview(ix);
   } catch (err) {
@@ -64,13 +76,16 @@ export async function loadWorkspace(ws: string, role: RoleKey): Promise<Workspac
   const ix = packet();
   const info = roleInfo(ix, role);
   if (!info) throw new Error('role not present in this packet');
-  const [events, allFindings] = await Promise.all([getStore().list(ws), findingsFor(ix)]);
+  const events = await getStore().list(ws);
+  // The clock comes from the static index; every screen gets the return as of story time (pix).
+  const pix = indexAt(ix, storyAtOf(ix, events));
+  const allFindings = await findingsFor(pix);
   const state = projectWorkspace(ix, events, role, allFindings);
   // Findings per role: staff see all (inboxes filter by firstVisibleAt) plus verified AI suggestions after our checks;
   // clients only those written for them; examiner none. AI suggestions are for staff only.
-  const ai = info.kind === 'staff' ? aiFor(ix) : NO_AI;
+  const ai = info.kind === 'staff' ? aiFor(ix, pix) : NO_AI;
   const findings = info.kind === 'staff' ? [...allFindings, ...ai.findings] : info.kind === 'client' ? allFindings.filter((f) => f.plain) : [];
-  return { ix, findings, state, role: info, ai };
+  return { ix: pix, findings, state, role: info, ai };
 }
 
 export type PostResult =
@@ -90,12 +105,16 @@ export async function postEvent(ws: string, role: RoleKey, e: EventInput | NewEv
     if (!aiFor(ix).findings.some((f) => f.id === id)) return { ok: false, status: 400, reason: 'No AI suggestion with that id is shown.' };
   }
   const store = getStore();
-  const [events, findings] = await Promise.all([store.list(ws), findingsFor(ix)]);
+  const events = await store.list(ws);
+  // Policy runs on the static index (frontier, write gate); findings are those of the version at the story time.
+  const pix = indexAt(ix, storyAtOf(ix, events));
+  const findings = await findingsFor(pix);
   const staffView = projectWorkspace(ix, events, policyViewer(ix, role), findings);
   if (input.type === 'suggestion_accepted' || input.type === 'suggestion_dismissed') {
     // Same rule as the inbox: a suggestion shows once every document it quotes has arrived at the story clock.
     const f = aiFor(ix).findings.find((x) => 'finding:' + x.id === input.claimId);
     if (f && !visibleAt(f.firstVisibleAt, staffView.storyAt)) return { ok: false, status: 403, reason: 'This suggestion is not in the story yet: a document it quotes arrives later.' };
+    if (pix !== ix) return { ok: false, status: 403, reason: `AI suggestions were made on ${ix.latest.version}, which is not computed yet at this story time.` };
   }
   // A client's own view decides what a client may touch.
   const view = roleInfo(ix, role)?.kind === 'staff' ? staffView : projectWorkspace(ix, events, role, findings);

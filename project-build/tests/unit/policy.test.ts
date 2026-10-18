@@ -99,6 +99,10 @@ describe('can', () => {
       expect(can(ix, k, 'review_note', { claimId, payload: { text: 'x' } }, late).ok).toBe(false);
     }
   });
+  it('every role may move the story clock, even read-only and not yet joined; a bad time is refused', () => {
+    for (const r of roles(ix)) expect(can(ix, r.key, 'clock_moved', { payload: { to: '2026-04-14T12:00:00Z' } }, empty).ok, r.key).toBe(true);
+    expect(can(ix, 'ngozi', 'clock_moved', { payload: { to: 'soon' } }, empty).ok).toBe(false);
+  });
   it('a role is unavailable before it joins', () => {
     const early = projectWorkspace(ix, [ev('jo', 'clock_moved', { payload: { to: '2026-03-10T00:00:00Z' } })], 'daniel', []);
     const r = can(ix, 'marcus', 'review_note', { claimId, payload: { text: 'x' } }, early);

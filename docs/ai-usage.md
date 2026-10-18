@@ -72,3 +72,7 @@ From here on, entries are written at the time again.
 - 18 Oct 01:13 EDT · Fable 5.1 implementation review of the Return overview (probes, 18 min): 2 must-fix, 3 should-fix, applied
 - 18 Oct 11:55 EDT · Opus 5.5 (main): investigated 'tax figures differ between Return overview and Filing' on live (workspace dbg-tax-1792338933, clock 16 Jul): no calculation error; Filing's Extension box shows the packet's April estimate built from v2 (77,470 / 17,999); every other screen shows v3 (81,962 / 18,874)
 - 18 Oct 12:05 EDT · Fable 5.1 subagent: review of the Filing extension label fix (probes on a local server, 4 min): no must-fix; 2 should-fix ("not recomputed" wording, dead client guards), applied
+- 18 Oct 12:28 EDT · Opus 5.5 Plan subagent: impact map of version-at-story-time (read-only) · Opus 5.5 (main): plan docs/superpowers/plans/2026-10-18-clock-and-lean-screens.md · Fable 5.1 subagent: plan review (read-only)
+- 18 Oct 12:34 EDT · Fable 5.1 plan review (probes, 5.5 min): 3 must-fix (clock on static index, fully shaped pre-v1 placeholder, explicit AI gate), applied to the plan · Opus 5.5 subagent: implementing Part A (TDD)
+- 18 Oct 12:37 EDT · Deep research (3 researcher subagents + report writer): open temporal-clock systems (bitemporal databases, time-scrubber UX, as-of conventions in accounting/audit/tax), notes in docs/research/research_notes/Temporal clock design patterns/
+- 18 Oct 12:41 EDT · Opus 5.5 subagent: Part A built (indexAt, per-version checks, AI gate, clock for every role), TDD, 525 unit / 88 e2e

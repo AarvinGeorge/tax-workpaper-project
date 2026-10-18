@@ -7,6 +7,7 @@ import type { Finding } from '@/domain/contracts';
 import { FormTerm, Term } from '@/components/term/Term';
 import { OverviewHead } from '@/components/overview/OverviewHead';
 import { FormPicker } from '@/components/overview/FormPicker';
+import { notComputedText } from '@/domain/clock';
 
 const SEV: Record<Finding['severity'], [string, string, number]> = { blocker: ['Blocking', 't-blk', 0], check: ['Check failed', 't-wrn', 1], judgment: ['Judgment', 't-wrn', 2], info: ['Note', 't-mut', 3] };
 
@@ -14,6 +15,18 @@ const SEV: Record<Finding['severity'], [string, string, number]> = { blocker: ['
 export async function FormsTab({ ws, role, sp, screen }: { ws: string; role: string; sp: Record<string, string | undefined>; screen: 'home' | 'return' }) {
   const w = await getWorkspace(ws, role);
   const { ix, state, role: me } = w;
+  // Before the engine's first run there are no forms to show; the head says why.
+  const notComputed = notComputedText(ix);
+  if (notComputed) {
+    return (
+      <Shell ws={ws} role={me.key} screen={screen} state={state} roleInfo={me} claim={sp.claim} q={sp.q}>
+        <div className="screen">
+          <OverviewHead ws={ws} w={w} tab="forms" />
+          <p className="panel" data-testid="not-computed">{notComputed}. The forms appear once a version is computed.</p>
+        </div>
+      </Shell>
+    );
+  }
   const latest = ix.latest.version;
   const others = ix.versions.map((v) => v.version).filter((v) => v !== latest);
   const cmp = sp.cmp && (others.includes(sp.cmp) || sp.cmp === 'finalized') ? sp.cmp : null;
