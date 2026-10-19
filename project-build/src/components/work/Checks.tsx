@@ -310,7 +310,7 @@ function AiFoot({ p, held, count, items }: { p: WorkProps; held: { id: string | 
   const m = masker(p.state, p.role);
   return (
     <div className={s.body} data-testid="ai-suggestions">
-      <p className={s.note} style={{ margin: 0 }} data-testid="ai-count"><AiMark label="" />{count} AI suggestion{count === 1 ? '' : 's'} on {items} item{items === 1 ? '' : 's'}; open a row to see each one.</p>
+      <p className={s.note} style={{ margin: 0 }} data-testid="ai-count"><AiMark label="" />{count} AI suggestion{count === 1 ? '' : 's'} on {items} item{items === 1 ? '' : 's'}{count > items ? ' (some items carry more than one)' : ''}; open a row to see each one.</p>
       <p className={s.note} style={{ margin: 0, maxWidth: '90ch' }}>{AI_READER} {AI_FOUND}</p>
       {held.length ? (
         <details className={s.note} data-testid="ai-held">
