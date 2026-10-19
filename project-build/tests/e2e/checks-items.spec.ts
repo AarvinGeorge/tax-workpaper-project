@@ -87,3 +87,26 @@ test('the "Confident mistake" pill fits inside its status cell on a wide screen'
   const a = await pill.boundingBox(); const b = await title.boundingBox();
   expect(a!.x + a!.width).toBeLessThanOrEqual(b!.x - 4);
 });
+
+test('an engine warning that names an item shows on its row, quoted inside; others do not', async ({ page }) => {
+  await page.goto(`/w/${ws()}/daniel/checks`);
+  const d31 = page.locator(item('doc:D31'));
+  await expect(d31).toContainText('Engine warning');
+  await d31.locator('summary').click();
+  await expect(d31.locator('[data-engine-note="BROKER_SUMMARY_DETAIL_MISMATCH"]')).toContainText('The engine\'s own note on this item');
+  await expect(page.locator(item('line:F540NR.72'))).not.toContainText('Engine warning');
+  await expect(page.getByTestId('pill-key')).toContainText('Engine warning');
+  await expect(page.locator('section[aria-labelledby="chk-engine"]')).toContainText('BROKER_SUMMARY_DETAIL_MISMATCH'); // the engine list is unchanged
+});
+
+test('on the busiest row every stacked pill stays inside the status cell', async ({ page }) => {
+  await page.setViewportSize({ width: 1440, height: 900 });
+  await page.goto(`/w/${ws()}/daniel/checks`);
+  const row = page.locator(item('line:SchC.30'));
+  await expect(row).toContainText('Engine warning');
+  const title = await row.locator('summary').boundingBox();
+  for (const pill of await row.locator('[class*="tags"] [class*="tag"]').all()) {
+    const b = await pill.boundingBox();
+    if (b) expect(b.x + b.width).toBeLessThanOrEqual(title!.x - 4);
+  }
+});

@@ -105,3 +105,5 @@ From here on, entries are written at the time again.
 - 18 Oct 22:53 EDT · Opus 5.5 (main): build of selected row, pill and callout · Fable 5.1 subagent: code review (revert probes, behaviour walk, screenshots)
 - 18 Oct 23:56 EDT · Opus 5.5 (main): plan for Checks as items · Fable 5.1 subagent: plan review against the code
 - 19 Oct 00:26 EDT · Opus 5.5 (main): build of Checks items · Fable 5.1 subagent: code review and UI walkthrough on a local production build (probes, 15 screenshots)
+- 19 Oct 01:03 EDT · Opus 5.5 (main): overlap measurement and plan for the Engine pill · Fable 5.1 subagent: plan review
+- 19 Oct 01:16 EDT · Opus 5.5 (main): build of the Engine warning pill · Fable 5.1 subagent: code review (revert probes on both join arms, 8 screenshots)

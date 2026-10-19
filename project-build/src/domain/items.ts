@@ -3,6 +3,7 @@
 // names, else it makes (or joins) an AI-only item keyed by its own first claim. The join is by claim only: sharing a line
 // does not mean the AI raised the same problem.
 import type { Finding, Severity } from './contracts';
+import type { PacketIndex } from './packet/load';
 
 const ORDER: Severity[] = ['blocker', 'check', 'judgment', 'info'];
 
@@ -35,4 +36,22 @@ export function checkItems<T extends { f: Finding }>(checks: Finding[], ai: T[])
     aiOnly.set(key, it);
   }
   return [...items.values(), ...aiOnly.values()];
+}
+
+type Diagnostic = PacketIndex['latest']['diagnostics'][number];
+
+/** The engine's own v3 diagnostics that name each item, by reference only: a ref that is a line key the item claims or
+ *  a source of such a line (the drawer's predicate), or an evidence ref of the item's findings or suggestions. A
+ *  diagnostic about the same subject that names nothing on the item does not join. */
+export function engineOn<T extends { f: Finding }>(ix: PacketIndex, items: Item<T>[]): Map<string, Diagnostic[]> {
+  const out = new Map<string, Diagnostic[]>();
+  for (const it of items) {
+    const all = [...it.checks, ...it.ai.map((x) => x.f)];
+    const lines = [...new Set([it.key, ...all.flatMap((f) => f.claims)])].filter((c) => c.startsWith('line:')).map((c) => c.slice(5));
+    const sources = new Set(lines.flatMap((k) => (ix.line(ix.latest.version, k)?.sources ?? []) as string[]));
+    const evidence = new Set(all.flatMap((f) => f.evidence));
+    const hits = ix.latest.diagnostics.filter((d) => d.refs.some((r) => lines.includes(r) || sources.has(r) || evidence.has(r)));
+    if (hits.length) out.set(it.key, hits);
+  }
+  return out;
 }

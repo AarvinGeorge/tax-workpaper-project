@@ -15,7 +15,7 @@ import { AI_FOUND, AI_READER } from '../info/aiUse';
 import { signatures } from '@/components/client/signing';
 import { openAtFiling } from '@/components/overview/blockers';
 import { confidentRange } from '@/components/drawer/lib';
-import { checkItems, type Item } from '@/domain/items';
+import { checkItems, engineOn, type Item } from '@/domain/items';
 import { Term } from '../term/Term';
 import Link from 'next/link';
 import { EventButton, GroupSelect, RevealDrawerOnPhone, RowSelect, SignoffNote, SignoffScope, TextAction } from './actions';
@@ -83,6 +83,7 @@ export function ChecksScreen(p: WorkProps) {
   const held = aiOn ? p.ai!.held : [];
   // One row per item: our findings and the AI's suggestions on the same line or document share a row (src/domain/items.ts).
   const items = checkItems(visible, aiOn ? ai : []);
+  const engine = engineOn(ix, items); // the engine's own warnings that name an item, by reference only
   const shownItems = items.filter((it) => !sev || (sev === 'ai' ? it.ai.length > 0 : it.severity === sev));
   const shown = shownItems.flatMap((it) => it.checks);
   const counts = Object.fromEntries(SEVERITY_ORDER.map((k) => [k, items.filter((it) => it.severity === k).length]));
@@ -144,9 +145,10 @@ export function ChecksScreen(p: WorkProps) {
           <RevealDrawerOnPhone claim={current ?? null} />
           <h2 className={s.h2} id="chk-ours" tabIndex={-1}>Items <span className={s.note}>({shownItems.length})</span><Term k="blocker" /></h2>
           <p className={`${s.note} ${s.row}`} style={{ margin: 0, gap: 6 }} data-testid="pill-key">
-            <Tag tone="blk">Blocker</Tag><Tag tone="wrn">Check</Tag><Tag tone="acc">Judgment</Tag><Tag tone="neu">Info</Tag><span>our rule checks;</span>
-            <Tag tone="neu"><AiMark label="" />AI</Tag><span>the AI reader flagged this item, a person decides;</span>
-            <Tag tone="neu">Confident mistake</Tag><span>flagged by our checks, though every value behind it was read at 0.95 or above.</span>
+            <span className={s.row} style={{ gap: 6 }}><Tag tone="blk">Blocker</Tag><Tag tone="wrn">Check</Tag><Tag tone="acc">Judgment</Tag><Tag tone="neu">Info</Tag><span>our rule checks;</span></span>
+            <span className={s.row} style={{ gap: 6 }}><Tag tone="neu"><AiMark label="" />AI</Tag><span>the AI reader flagged this item, a person decides;</span></span>
+            <span className={s.row} style={{ gap: 6 }}><Tag tone="wrn">Engine warning</Tag><span>the engine&apos;s own note names this item;</span></span>
+            <span className={s.row} style={{ gap: 6 }}><Tag tone="neu">Confident mistake</Tag><span>flagged by our checks, though every value behind it was read at 0.95 or above.</span></span>
           </p>
           <SignoffScope ws={ws} role={role.key} level={level ?? 'preparer'} items={signable} blockers={blockerIds}>
           <div className={s.box}>
@@ -184,6 +186,7 @@ export function ChecksScreen(p: WorkProps) {
                     <span className={s.tags}>
                       {st ? <Tag tone={st.tone}>{st.word}</Tag> : <Tag tone={aiOpen ? 'wrn' : 'pas'}>{aiOpen ? 'Needs review' : 'Accepted'}</Tag>}
                       {it.ai.length ? <Tag tone="neu" title="The AI reader flagged this item; a person accepts or dismisses each suggestion"><AiMark label="" />AI</Tag> : null}
+                      {engine.has(it.key) ? <span className={s.hideSm}><Tag tone="wrn" title="The engine's own diagnostic names this item; shown as it wrote it, not one of our checks">Engine warning</Tag></span> : null}
                       {sure ? <span className={s.hideSm}><Tag tone="neu" title="Flagged by our checks, though every value behind it was read at 0.95 or above; confidence gave no warning">Confident mistake</Tag></span> : null}
                     </span>
                     <details className={s.peek} open={on || holds || undefined}>
@@ -196,6 +199,14 @@ export function ChecksScreen(p: WorkProps) {
                       <div className={s.peekBody}>
                         {it.checks.map((f) => <CheckEntry key={f.id} p={p} f={f} titled={it.checks.length > 1} level={level} block={block} />)}
                         {groupAiRows(it.ai, (f) => aiTitleOf(f)).map((row) => <AiEntry key={row.items[0].f.id} p={p} row={row} titled={it.checks.length > 0} />)}
+                        {(engine.get(it.key) ?? []).map((d) => (
+                          <div key={d.code} className={s.row} style={{ gap: 6 }} data-engine-note={d.code}>
+                            <span className={s.note}>The engine&apos;s own note on this item</span>
+                            <Tag tone={d.severity === 'error' ? 'blk' : d.severity === 'warning' ? 'wrn' : 'neu'}>{d.severity}</Tag>
+                            <span className={s.mono}>{d.code}</span>
+                            <span style={{ fontSize: 13, flex: '1 1 100%' }}>{m(d.message)}</span>
+                          </div>
+                        ))}
                       </div>
                     </details>
                     <span className={s.right}>{amountClaim ? <Link scroll={false} prefetch={false} className={s.amt} href={claimHref(p.sp, amountClaim)} aria-label={`Where ${fmt(claimValue(p, amountClaim))} came from`}>{m(claimValue(p, amountClaim))}</Link> : null}</span>
