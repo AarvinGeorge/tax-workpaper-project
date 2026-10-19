@@ -33,6 +33,7 @@ test('All counts items; the filters keep their meaning', async ({ page }) => {
   const all = Number(await page.getByRole('link', { name: /^All/ }).locator('span').textContent());
   await expect(page.locator('[data-item]')).toHaveCount(all);
   await expect(page.getByTestId('pill-key')).toContainText('Confident mistake');
+  await expect(page.getByTestId('pill-key')).toContainText('The checks were built from the mistakes our external investigation found.');
   await page.goto(`/w/${w}/daniel/checks?sev=blocker`);
   const blk = page.locator('[data-item]');
   expect(await blk.count()).toBeGreaterThan(0);

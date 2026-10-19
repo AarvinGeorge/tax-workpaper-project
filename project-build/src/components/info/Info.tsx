@@ -26,7 +26,7 @@ export function Info({ ix, state, role, ws }: { ix: PacketIndex; state: Workspac
   return (
     <InfoDialog>
       <Sec id="info-demo" title="Demo" open><Demo {...p} /></Sec>
-      <Sec id="info-legends" title="Legends"><Legends /></Sec>
+      <Sec id="info-legends" title="Legends"><Legends checks={staff} /></Sec>
       <Sec id="firm-dl" title="Deadlines on the story clock"><Deadlines {...p} /></Sec>
       {staff ? <>
         <Sec id="firm-std" title="Firm standards"><FirmStandards {...p} /></Sec>

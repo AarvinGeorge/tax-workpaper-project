@@ -148,7 +148,7 @@ export function ChecksScreen(p: WorkProps) {
             <span className={s.row} style={{ gap: 6 }}><Tag tone="blk">Blocker</Tag><Tag tone="wrn">Check</Tag><Tag tone="acc">Judgment</Tag><Tag tone="neu">Info</Tag><span>our rule checks;</span></span>
             <span className={s.row} style={{ gap: 6 }}><Tag tone="neu"><AiMark label="" />AI</Tag><span>the AI reader flagged this item, a person decides;</span></span>
             <span className={s.row} style={{ gap: 6 }}><Tag tone="wrn">Engine warning</Tag><span>the engine&apos;s own note names this item;</span></span>
-            <span className={s.row} style={{ gap: 6 }}><Tag tone="neu">Confident mistake</Tag><span>flagged by our checks, though every value behind it was read at 0.95 or above.</span></span>
+            <span style={{ flexBasis: '100%', lineHeight: 1.7 }}><Tag tone="neu">Confident mistake</Tag> <span>flagged by our checks, though every value behind it was read at 0.95 or above. The checks were built from the mistakes our external investigation found.</span></span>
           </p>
           <SignoffScope ws={ws} role={role.key} level={level ?? 'preparer'} items={signable} blockers={blockerIds}>
           <div className={s.box}>

@@ -43,7 +43,8 @@ test('the "?" dialog: legends for staff with the firm reference, Esc closes it; 
   await expect(pills).toBeVisible();
   for (const t of ['Blocker', 'Check', 'Judgment', 'Info', 'AI', 'Needs review', 'Engine warning', 'Confident mistake', 'Cleared', 'Signed off', 'Open'])
     await expect(pills, t).toContainText(t);
-  await expect(pills).toContainText('a check outside the reading software caught it');
+  await expect(pills).toContainText('The checks were built from the mistakes our external investigation found.');
+  await expect(pills).not.toContainText('outside the reading software');
   await page.keyboard.press('Escape');
   await expect(dlg).toBeHidden();
   await infoButton(page).click();
@@ -58,6 +59,11 @@ test('a client sees only Demo, Legends and Deadlines in the "?" dialog', async (
   await expect(dlg).toContainText('Legends');
   await expect(dlg).toContainText('Deadlines on the story clock');
   for (const t of ['Firm standards', 'People and clearance', 'Time against budget']) await expect(dlg, t).not.toContainText(t);
+  // Only staff have Checks, so only staff get its pill key (it names AI suggestions, which clients and the examiner never see).
+  await expect(dlg).not.toContainText('Pills on Checks');
+  await page.goto(`/w/${ws()}/irs`);
+  await infoButton(page).click();
+  await expect(page.getByRole('dialog')).not.toContainText('Pills on Checks');
 });
 
 test('old addresses: /firm opens the dialog, /changes lands on Review Changes with its filter, staff /filing lands on the overview', async ({ page }) => {
