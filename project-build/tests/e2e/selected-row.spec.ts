@@ -1,5 +1,5 @@
 // A deep link lands on its item: the open row (on Checks, the item holding the finding) is marked (aria-current) and brought into view in the centre pane, on
-// Checks, Forms and Documents. Checks rows carry "Confident read"; the panel note is a callout. Ids may appear in tests.
+// Checks, Forms and Documents. Checks rows carry "Confident mistake"; the panel note is a callout. Ids may appear in tests.
 import { readFileSync } from 'node:fs';
 import path from 'node:path';
 import { expect, test, type Locator, type Page } from '@playwright/test';
@@ -59,14 +59,14 @@ test('Documents: a deep link to a document lands in view, marked', async ({ page
   await inPane(page, row);
 });
 
-test('Checks rows carry "Confident read" by the same rule as the note', async ({ page }) => {
+test('Checks rows carry "Confident mistake" by the same rule as the note', async ({ page }) => {
   const w = ws();
   await page.goto(`/w/${w}/daniel/checks`);
-  await expect(page.locator('[data-item="line:F540NR.72"]')).toContainText('Confident read');
-  await expect(page.locator('[data-item="doc:D07"]')).not.toContainText('Confident read');
+  await expect(page.locator('[data-item="line:F540NR.72"]')).toContainText('Confident mistake');
+  await expect(page.locator('[data-item="doc:D07"]')).not.toContainText('Confident mistake');
   expect((await page.request.post(`/api/w/${w}/events`, { data: { role: 'jo', type: 'clock_moved', payload: { to: lastAt() } } })).ok()).toBeTruthy();
   await page.goto(`/w/${w}/daniel/checks`);
-  await expect(page.locator('[data-item="line:F8949.H.C6"]')).not.toContainText('Confident read');
+  await expect(page.locator('[data-item="line:F8949.H.C6"]')).not.toContainText('Confident mistake');
 });
 
 test('Checks: a deep link to a line opens and brings in the row that sits on it', async ({ page }) => {
@@ -81,7 +81,7 @@ test('Checks: a deep link to a line opens and brings in the row that sits on it'
 test('at phone width the pill gives way to the title (the panel note still says it)', async ({ page }) => {
   await page.setViewportSize({ width: 390, height: 844 });
   await page.goto(`/w/${ws()}/daniel/checks`);
-  await expect(page.locator('[data-item="line:F540NR.72"]').getByText('Confident read')).toBeHidden();
+  await expect(page.locator('[data-item="line:F540NR.72"]').getByText('Confident mistake')).toBeHidden();
 });
 
 test('the confident note is a callout with its own background', async ({ page }) => {

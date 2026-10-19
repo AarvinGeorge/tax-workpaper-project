@@ -42,8 +42,8 @@ All links start with `https://taxmark-workpaper.vercel.app/w/video-take1`. Tabs:
 4. Click the first source row, "FTB record, Payment 3 amount · 3,500". The panel shows the document and "Lands on: SchA.5a, F540NR.72".
 
 **1:20-2:05 · Checks**
-1. Open `/daniel/checks`. Point at the "10 blockers" chip, then the pill key above the list: our rule checks, ✦ AI, Confident read.
-2. Under "Items", the 3rd blocker row is F540NR.72: two blockers, ✦ AI and Confident read on one row. Click it: it expands to both checks; the second says the 15 Sep payment of 3,500 was for tax year 2024.
+1. Open `/daniel/checks`. Point at the "10 blockers" chip, then the pill key above the list: our rule checks, ✦ AI, Confident mistake.
+2. Under "Items", the 3rd blocker row is F540NR.72: two blockers, ✦ AI and Confident mistake on one row. Click it: it expands to both checks; the second says the 15 Sep payment of 3,500 was for tax year 2024.
 
 **2:05-2:50 · Adjust, then Priya sees it**
 1. Open `/daniel/checks?claim=line:F540NR.72`. In the right panel, under Actions, click **Adjust**.

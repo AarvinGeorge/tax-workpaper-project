@@ -50,7 +50,7 @@
 .grp{padding:10px 16px 6px;border-top:1px solid var(--line);background:var(--bg);display:flex;gap:8px;align-items:center}
 /* Checks: the sign-off checkbox column, and evidence links that say which one is open on the right */
 .chkSel{grid-template-columns:20px 116px minmax(0,1fr) 120px 140px}
-/* the row whose item is open on the right; its status cell stacks the status tag over "Confident read" */
+/* the row whose item is open on the right; its status cell stacks the status tag over "Confident mistake" */
 .rowOn{background:var(--accsoft)}
 .chkRow{scroll-margin-top:12px}
 .tags{display:flex;flex-direction:column;align-items:flex-start;gap:4px}

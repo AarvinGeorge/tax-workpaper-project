@@ -12,7 +12,7 @@ test('two checks on one line are one item, with both titles and both entries', a
   await expect(row.locator('summary')).toContainText('includes a payment designated for another tax year');
   await expect(row.locator('summary')).toContainText('10,500 on the FTB');
   await expect(row).toContainText('Blocker');
-  await expect(row).toContainText('Confident read');
+  await expect(row).toContainText('Confident mistake');
   await expect(row.locator('[data-finding]:not([data-ai])')).toHaveCount(2); // the two checks; AI entries vary with the run
 });
 
@@ -32,7 +32,7 @@ test('All counts items; the filters keep their meaning', async ({ page }) => {
   await page.goto(`/w/${w}/daniel/checks`);
   const all = Number(await page.getByRole('link', { name: /^All/ }).locator('span').textContent());
   await expect(page.locator('[data-item]')).toHaveCount(all);
-  await expect(page.getByTestId('pill-key')).toContainText('Confident read');
+  await expect(page.getByTestId('pill-key')).toContainText('Confident mistake');
   await page.goto(`/w/${w}/daniel/checks?sev=blocker`);
   const blk = page.locator('[data-item]');
   expect(await blk.count()).toBeGreaterThan(0);
@@ -76,4 +76,14 @@ test('a deep link to either finding on the item marks the item and opens it', as
   await expect(row).toHaveAttribute('aria-current', 'true');
   await expect(row.locator('details')).toHaveAttribute('open', '');
   await expect(page.locator('[data-item][aria-current="true"]')).toHaveCount(1);
+});
+
+test('the "Confident mistake" pill fits inside its status cell on a wide screen', async ({ page }) => {
+  await page.setViewportSize({ width: 1440, height: 900 });
+  await page.goto(`/w/${ws()}/daniel/checks`);
+  const row = page.locator(item('line:F540NR.72'));
+  const pill = row.getByText('Confident mistake', { exact: true });
+  const title = row.locator('summary');
+  const a = await pill.boundingBox(); const b = await title.boundingBox();
+  expect(a!.x + a!.width).toBeLessThanOrEqual(b!.x - 4);
 });

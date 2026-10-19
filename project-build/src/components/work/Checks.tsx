@@ -146,7 +146,7 @@ export function ChecksScreen(p: WorkProps) {
           <p className={`${s.note} ${s.row}`} style={{ margin: 0, gap: 6 }} data-testid="pill-key">
             <Tag tone="blk">Blocker</Tag><Tag tone="wrn">Check</Tag><Tag tone="acc">Judgment</Tag><Tag tone="neu">Info</Tag><span>our rule checks;</span>
             <Tag tone="neu"><AiMark label="" />AI</Tag><span>the AI reader flagged this item, a person decides;</span>
-            <Tag tone="neu">Confident read</Tag><span>every value behind it was read at 0.95 or above.</span>
+            <Tag tone="neu">Confident mistake</Tag><span>flagged by our checks, though every value behind it was read at 0.95 or above.</span>
           </p>
           <SignoffScope ws={ws} role={role.key} level={level ?? 'preparer'} items={signable} blockers={blockerIds}>
           <div className={s.box}>
@@ -184,7 +184,7 @@ export function ChecksScreen(p: WorkProps) {
                     <span className={s.tags}>
                       {st ? <Tag tone={st.tone}>{st.word}</Tag> : <Tag tone={aiOpen ? 'wrn' : 'pas'}>{aiOpen ? 'Needs review' : 'Accepted'}</Tag>}
                       {it.ai.length ? <Tag tone="neu" title="The AI reader flagged this item; a person accepts or dismisses each suggestion"><AiMark label="" />AI</Tag> : null}
-                      {sure ? <span className={s.hideSm}><Tag tone="neu" title="Every value behind this was read at 0.95 or above; confidence gave no warning">Confident read</Tag></span> : null}
+                      {sure ? <span className={s.hideSm}><Tag tone="neu" title="Flagged by our checks, though every value behind it was read at 0.95 or above; confidence gave no warning">Confident mistake</Tag></span> : null}
                     </span>
                     <details className={s.peek} open={on || holds || undefined}>
                       <summary>
