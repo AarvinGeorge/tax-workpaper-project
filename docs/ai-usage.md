@@ -107,3 +107,4 @@ From here on, entries are written at the time again.
 - 19 Oct 00:26 EDT · Opus 5.5 (main): build of Checks items · Fable 5.1 subagent: code review and UI walkthrough on a local production build (probes, 15 screenshots)
 - 19 Oct 01:03 EDT · Opus 5.5 (main): overlap measurement and plan for the Engine pill · Fable 5.1 subagent: plan review
 - 19 Oct 01:16 EDT · Opus 5.5 (main): build of the Engine warning pill · Fable 5.1 subagent: code review (revert probes on both join arms, 8 screenshots)
+- 19 Oct 01:52 EDT · Opus 5.5 (main): video script rewrite and live rehearsal (Playwright, 30 checkpoints) · Fable 5.1 subagent: evaluator and CPA review of the script, walking it on live
