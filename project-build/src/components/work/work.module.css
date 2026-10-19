@@ -49,7 +49,11 @@
 .chkHead{font-size:11.5px;font-weight:600;color:var(--ink2);text-transform:uppercase;letter-spacing:.04em;background:var(--bg);border-top:0}
 .grp{padding:10px 16px 6px;border-top:1px solid var(--line);background:var(--bg);display:flex;gap:8px;align-items:center}
 /* Checks: the sign-off checkbox column, and evidence links that say which one is open on the right */
-.chkSel{grid-template-columns:20px 104px minmax(0,1fr) 120px 140px}
+.chkSel{grid-template-columns:20px 116px minmax(0,1fr) 120px 140px}
+/* the row whose item is open on the right; its status cell stacks the status tag over "Confident read" */
+.rowOn{background:var(--accsoft)}
+.chkRow{scroll-margin-top:12px}
+.tags{display:flex;flex-direction:column;align-items:flex-start;gap:4px}
 .pick{width:16px;height:16px;margin:2px 0 0;accent-color:var(--acc);cursor:pointer}
 .evLink:visited{color:var(--ink2)}
 .evOn,.evOn:visited{color:var(--acc);font-weight:600;text-decoration:none;background:var(--accsoft);border-radius:4px;padding:1px 4px;-webkit-box-decoration-break:clone;box-decoration-break:clone}

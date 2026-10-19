@@ -113,7 +113,7 @@ export async function FormsTab({ ws, role, sp, screen }: { ws: string; role: str
                       const cm = cmpMap.get(l.key);
                       const cell = cmpCells(l.value, cs, cmp, cm?.other);
                       return (
-                        <tr key={l.key} className={`${l.key === selKey ? 'sel' : ''}${cm && cm.change !== 'same' ? ' chg' : ''}`}>
+                        <tr key={l.key} className={`${l.key === selKey ? 'sel' : ''}${cm && cm.change !== 'same' ? ' chg' : ''}`} aria-current={l.key === selKey ? 'true' : undefined}>
                           <td><span style={{ display: 'flex', flexDirection: 'column' }}><span>{l.label}</span><span className="mono muted">{l.key}</span></span></td>
                           <td className="r num"><Link className="valbtn num" scroll={false} href={claimHref(id, keep)} aria-label={`${l.label}: ${fmtValue(cell.latest)}. Show where it came from`} data-line={l.key}>{fmtValue(cell.latest)}</Link>
                             {cell.wasNote && <div className="small muted num">was <span className="del">{fmtValue(l.value)}</span></div>}</td>

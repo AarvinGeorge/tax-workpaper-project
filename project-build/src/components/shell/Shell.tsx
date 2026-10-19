@@ -13,6 +13,7 @@ import { Bell } from './Bell';
 import { notificationsFor } from '@/domain/notify';
 import { LiveRefresh } from './LiveRefresh';
 import { ScrollHint } from './ScrollHint';
+import { RevealSelected } from './RevealSelected';
 import { claimHref, fmtStory, fmtValue, notYetText, roleLabel, screenLabel, screenPath, searchPacket } from './lib';
 import { NoAccess } from '../work/ui';
 import { Term } from '../term/Term';
@@ -199,6 +200,7 @@ export async function Shell({ ws, role, screen, claim, q, children, ...given }: 
         </aside>
       </div>
       <ScrollHint />
+      <RevealSelected claim={claim ?? null} />
       <LiveRefresh ws={ws} role={role} storyAt={state.storyAt} lastSeq={state.events.reduce((m, e) => Math.max(m, e.seq), 0)} />
     </div>
   );

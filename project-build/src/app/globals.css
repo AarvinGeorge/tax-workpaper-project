@@ -147,6 +147,8 @@ p { margin: 0; }
 .drw { padding: 18px 20px; display: flex; flex-direction: column; gap: 14px; min-height: 100%; }
 .drw-sec { display: flex; flex-direction: column; gap: 6px; padding-top: 12px; border-top: 1px solid var(--line); }
 .drw-big { font-size: 26px; font-weight: 600; letter-spacing: -.02em; }
+.confident-note { max-width: 60ch; margin: 2px 0 0; padding: 10px 12px; background: var(--accsoft); border: 1px solid color-mix(in oklch, var(--acc) 35%, transparent); border-radius: 8px; }
+.confident-note strong { display: block; font-weight: 600; color: var(--acc); margin-bottom: 2px; }
 .drw-kind { display: flex; flex-wrap: wrap; align-items: baseline; gap: 6px 10px; padding: 10px 12px; background: var(--surface); border: 1px solid var(--line); border-radius: 8px; }
 .page { font-family: var(--f-serif); font-size: 15px; line-height: 1.65; background: var(--paper); border: 1px solid var(--line); border-radius: 6px; padding: 18px 20px; color: var(--ink); white-space: pre-wrap; overflow-wrap: anywhere; }
 .page mark { background: var(--hl); color: inherit; padding: 1px 2px; border-radius: 2px; box-shadow: 0 0 0 2px var(--hl); }

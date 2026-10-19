@@ -75,7 +75,7 @@ export default async function Documents({ params, searchParams }: P) {
         <section aria-label="Document list" data-testid="doc-list">
           {rows.length === 0 && <p className="small muted">No document matches this filter.</p>}
           {rows.map((d) => (
-            <Link key={d.docId} className={`docrow${d.docId === selDoc ? ' sel' : ''}`} href={claimHref('doc:' + d.docId, { status: sp.status })} scroll={false} data-doc={d.docId}>
+            <Link key={d.docId} className={`docrow${d.docId === selDoc ? ' sel' : ''}`} href={claimHref('doc:' + d.docId, { status: sp.status })} scroll={false} data-doc={d.docId} aria-current={d.docId === selDoc ? 'true' : undefined}>
               <span style={{ display: 'flex', flexDirection: 'column', gap: 3, minWidth: 0 }}>
                 <span><span className="mono muted">{d.docId}</span> <span style={{ fontWeight: 500 }}>{mask(d.title)}</span></span>
                 <span className="small muted row" style={{ gap: 6 }}><span className="kind">{d.type.replace(/_/g, ' ')}</span>{d.issuer ?? ''}</span>

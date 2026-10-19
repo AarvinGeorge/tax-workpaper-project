@@ -101,3 +101,5 @@ From here on, entries are written at the time again.
 - 18 Oct 20:53 EDT · Opus 5.5 (main): hand-in documents updated for the flow-through, the fix round and the review memo; submission PDF rebuilt (12 pages) from the recovered build script · Fable 5.1 subagent: fact-check of the edits against code, tests and the live app
 - 18 Oct 22:08 EDT · Opus 5.5 (main): evaluation (runChecks over the 27 ledger findings) and plan for the confident-mistake note · Fable 5.1 subagent: plan review
 - 18 Oct 22:17 EDT · Opus 5.5 (main): build of the confident-mistake note · Fable 5.1 subagent: code review with runChecks probe and screenshots
+- 18 Oct 22:31 EDT · Opus 5.5 (main): root-cause analysis and plan for selected row, pill and callout · Fable 5.1 subagent: plan review
+- 18 Oct 22:53 EDT · Opus 5.5 (main): build of selected row, pill and callout · Fable 5.1 subagent: code review (revert probes, behaviour walk, screenshots)

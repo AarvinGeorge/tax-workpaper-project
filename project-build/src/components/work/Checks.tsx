@@ -13,6 +13,7 @@ import { lineLabel, personName } from './lib';
 import { AI_FOUND, AI_READER } from '../info/aiUse';
 import { signatures } from '@/components/client/signing';
 import { openAtFiling } from '@/components/overview/blockers';
+import { confidentRange } from '@/components/drawer/lib';
 import { Term } from '../term/Term';
 import Link from 'next/link';
 import { EventButton, GroupSelect, RevealDrawerOnPhone, RowSelect, SignoffNote, SignoffScope, TextAction } from './actions';
@@ -102,7 +103,7 @@ export function ChecksScreen(p: WorkProps) {
   const signable = canSign ? shown.filter((f) => !findingStatus(f, state).cleared && !findingStatus(f, state).signed).map((f) => 'finding:' + f.id) : [];
   const blockerIds = shown.filter((f) => f.severity === 'blocker').map((f) => 'finding:' + f.id);
   const current = one(p.sp.claim);
-  const holdsCurrent = (f: Finding) => !!current && (current === 'finding:' + f.id || f.evidence.some((r) => refClaim(ix, r) === current));
+  const holdsCurrent = (f: Finding) => !!current && (current === 'finding:' + f.id || f.claims.includes(current) || f.evidence.some((r) => refClaim(ix, r) === current));
 
   let lastGroup: Severity | null = null;
   return (
@@ -139,7 +140,7 @@ export function ChecksScreen(p: WorkProps) {
           <div className={s.box}>
             <div className={`${s.chkRow} ${s.chkSel} ${s.chkHead}`}><span>{canSign ? <Term k="sign-off" /> : null}</span><span>Status</span><span>What</span><span className={s.right}>Amount</span><span className={s.hideSm}>Tax effect</span></div>
             {(!sev || sev === 'blocker') && engineBlockers.map((b) => (
-              <div key={b.claimId} className={`${s.chkRow} ${s.chkSel}`} data-engine-blocker={b.claimId}>
+              <div key={b.claimId} className={`${s.chkRow} ${s.chkSel}${current === b.claimId ? ` ${s.rowOn}` : ''}`} data-engine-blocker={b.claimId} aria-current={current === b.claimId ? 'true' : undefined}>
                 <span />
                 <span><Tag tone={closed ? 'neu' : 'blk'}>{closed ? 'Open' : 'Blocker'}</Tag></span>
                 <span><Link scroll={false} prefetch={false} className={s.title} href={claimHref(p.sp, b.claimId)}>{m(b.title)}</Link>
@@ -154,12 +155,13 @@ export function ChecksScreen(p: WorkProps) {
               const showGrp = f.severity !== lastGroup;
               lastGroup = f.severity;
               const c0 = f.claims[0];
+              const on = current === 'finding:' + f.id;
               return (
                 <div key={f.id}>
                   {showGrp ? <div className={s.grp}><GroupSelect word={SEVERITY_WORD[f.severity]} ids={shown.filter((x) => x.severity === f.severity).map((x) => 'finding:' + x.id)}><span className={s.lbl}>{SEVERITY_WORD[f.severity]}</span>{f.severity === 'judgment' ? <Term k="judgment" /> : null}</GroupSelect></div> : null}
-                  <div className={`${s.chkRow} ${s.chkSel}`} data-finding={f.id} data-severity={f.severity}>
+                  <div className={`${s.chkRow} ${s.chkSel}${on ? ` ${s.rowOn}` : ''}`} data-finding={f.id} data-severity={f.severity} aria-current={on ? 'true' : undefined} data-holds={!on && holdsCurrent(f) ? '' : undefined}>
                     <RowSelect id={'finding:' + f.id} title={m(f.title)} />
-                    <span><Tag tone={st.tone}>{st.word}</Tag></span>
+                    <span className={s.tags}><Tag tone={st.tone}>{st.word}</Tag>{confidentRange(f.evidence.map((r) => resolveRef(ix, r, ix.latest.version))) ? <span className={s.hideSm}><Tag tone="neu" title="Every value behind this was read at 0.95 or above; confidence gave no warning">Confident read</Tag></span> : null}</span>
                     <details className={s.peek} open={holdsCurrent(f) || undefined}>
                       <summary>
                         <span className={s.title}>{m(f.title)}</span>
