@@ -24,11 +24,14 @@ Three inputs, one log, and views computed per person.
                           ▼                                    ▼
                 CHECKS (deterministic)               PROJECTION for one role at one story time
                 re-derive what should agree    ──►   claims, findings, blockers, sign-offs (fresh or stale),
+                                                     adjustments carried through the totals,
                                                      finalized return, notifications, masking
                                                                        │
                                                                        ▼
-                                                     SCREENS: Home, Return, Documents, Checks, Review,
-                                                     Changes, Filing, Firm, Areas, Findings
+                                                     SCREENS: Return overview (Forms, Areas, Documents,
+                                                     What-ifs), Checks, Review (Changes, sign-offs,
+                                                     review memo); clients: Home, Your documents,
+                                                     Approve and sign; examiner: the filed return
 ```
 
 - **Claim:** anything that can carry evidence and actions: a return line (`line:F540NR.72`), a document
@@ -40,6 +43,9 @@ Three inputs, one log, and views computed per person.
   and the time it becomes visible in the story.
 - **Role:** from the packet's firm staff and client users, with clearance and the screens it may open; the server
   enforces every action and masks identifiers before anything reaches the browser.
+- **Flow-through:** each packet line names its rule and inputs, so the packet is its own dependency graph. An
+  adjustment is carried through every line that is a plain sum or difference of its inputs; a line that needs a tax
+  computation is marked "needs engine re-run" and stops approval.
 - **Story clock:** one per workspace; everything after it is hidden, and the return freezes at federal acceptance.
   The workspace also records the latest point it has reached: earlier points can be viewed but not written to.
 

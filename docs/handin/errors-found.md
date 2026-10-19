@@ -1,7 +1,7 @@
 # Taxmark: the errors we found, and how the design surfaced them
 
-Generated from the app's own catalogue of checks and their output on the real packet, so every row here is what the app
-shows on its Findings page. Ids starting GT- are our ledger numbers for each mistake.
+Generated from the app's own catalogue of checks and their output on the real packet, so every mistake here is one the
+app flags on Checks; the per-mistake sentences are the catalogue's own notes. Ids starting GT- are our ledger numbers for each mistake.
 
 ## How they were found
 
@@ -70,9 +70,10 @@ Five design choices do the work, in this order of importance:
 4. **The story clock.** A finding appears only once its evidence has arrived (a late K-1, a client message after the
    last computation), so the inbox at any date shows what a reviewer could know then.
 5. **Findings stop the return.** A blocker or a blocking review note disables approval; an adjustment that clears it
-   keeps the original value, the reason and the tax effect, and needs the partner when the effect is over 1,000.
+   keeps the original value, the reason and the tax effect, carries through the totals it feeds, and needs the partner
+   when the effect is over 1,000.
 
-Per mistake, as the Findings page states it:
+Per mistake, in the catalogue's own notes:
 
 - **GT-A01.** Blank broker basis read as 0.00 matched to the supplement lot with the same acquisition date; the unused supplement value is shown beside each lot.
 - **GT-A02.** State wages rebuilt per employer from W-2 box 16, or the paystub split at the move date where one exists, against the residency dates.

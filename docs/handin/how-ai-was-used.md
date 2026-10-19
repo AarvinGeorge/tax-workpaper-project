@@ -18,7 +18,7 @@ improvement. That is the one job given to AI.
 - **How it is checked.** Code treats the output as untrusted. A suggestion is held back if its quote is not on the page
   it names, if the quote carries no content, if it rests only on a document that was later replaced, if it cites a
   source outside the vetted list, or if it contains anything shaped like an SSN.
-- **What a person sees.** What passes appears in the inbox of findings, marked with a star (✦) and "needs review". It never blocks filing; a reviewer
+- **What a person sees.** What passes appears on Checks under AI suggestions, marked with a star (✦) and "needs review". It never blocks filing; a reviewer
   accepts or dismisses it.
 
 **How well it works, measured before trusting it.** A harness ran the reader blind (no known answer in any prompt,
@@ -43,7 +43,8 @@ baseline, or if the prompt changes without a new scored run.
   wherever a test could catch the bug, the fix started from a failing test.
 - **Claude Fable 5.1, a different model, reviewed each major round**, mostly by running probes against the running app. Its findings changed the product: a sign-off refused by the server used to erase the reviewer's
   notes; the story clock let the filed return be rewritten by moving back in time; evidence links were merged too
-  aggressively. Each became a test before it was fixed.
+  aggressively; a client could sign figures the firm had changed after approval. Each became a test before it was
+  fixed.
 - **Research and the mistake hunt.** Four AI researchers read the packet area by area before the build; reviewers, including a
   second model, raised and checked doubtful items before the ledger was settled.
 - **What I decided.** The core idea, the scope, what AI may and may not do in the product, and every trade-off. Each

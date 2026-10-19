@@ -50,9 +50,16 @@ move the clock back to look, but you can only act at the latest point the story 
 cannot be rewritten through the past.
 *Trade-off:* one clock per workspace, so two people cannot sit at different moments of the story at once.
 
-**6. The finalized return is v3 plus our applied adjustments, not a recomputation.** Each change shows its tax effect
-estimated from the packet's own rates, marked as an estimate. *Trade-off:* totals do not cascade; a real product would
-send the adjusted inputs back to the engine.
+**6. An adjustment flows through the arithmetic, and stops where tax is computed.** Every line in the packet names
+its rule and inputs, so the packet is its own dependency graph. A change is carried through each line that is a plain
+sum or difference of its inputs, proven against the engine's own numbers in all three versions (129 of the 221
+derived lines). Cutting California estimated payments from 14,000 to 10,500 moves total payments from 27,130 to
+23,630 and the refund from 8,256 to 4,756, on every screen and on the page the clients sign. A line that needs a
+tax computation (brackets, self-employment tax, QBI, AMT) is marked "Needs engine re-run" and blocks approval, and
+clients cannot sign a return that changed after the partner approved it. *Trade-off:* the app does not re-implement
+the engine, since a second engine could disagree with the first; a change to wages carries to adjusted gross income
+and stops at the first line that is not plain arithmetic (the SALT cap, the credit phase-outs, the California wage
+split), so federal and California tax wait for the engine. Tax effects shown beside a change are estimates from the packet's own rates.
 
 **7. Simulated source pages, built to be replaced.** Each page is rendered from the packet's printed text with every
 extracted field highlighted at its recorded position. Every trace already points to a document, page and position,
@@ -65,8 +72,17 @@ before every build goes live.
 
 **9. One place per action, one word per meaning.** A late review of the whole app removed repeated screens and
 actions: the separate sign-off list became a checkbox column in the Checks table, Home stopped repeating the bell,
-each row has one link per destination, and the right panel names what its actions act on. The note that can block
-approval is a "review note"; the note on a sign-off is "what you checked".
+each row has one link per destination, and the right panel names what its actions act on. A second pass cut further:
+blockers are listed once, on Checks (other screens say how many and link there); the change log became a tab of
+Review; the getting-started card and the firm's rules moved behind the "?" button; intro paragraphs and the "Saved"
+badge went; the right panel shows the evidence before the actions. The note that can block approval is a "review
+note"; the note on a sign-off is "what you checked".
+
+**10. Approval produces a review memo.** Once the partner approves, Review offers a printable memo (two pages for this
+return): the figures as approved, who approved and when, each spouse's signature date, every change with the lines it moved and
+who signed it off, how each blocker was resolved, and what was still open. It is built from the same projection as the
+screens, staff only, and printed by the browser. *Trade-off:* no evidence appendix yet; its caption says the full
+review record, ready to hand over when an examiner asks for documents, is planned.
 
 ## Designed, not built
 
@@ -76,7 +92,7 @@ items under examination and the return as filed), the penalty and interest estim
 
 ## How it was tested
 
-515 unit tests run in continuous integration on every push, with a typecheck, a scan for full SSNs and the AI
-scorecard gate; 79 browser tests run before every push; and a 36-step walk through the brief's requirements runs
+548 unit tests run in continuous integration on every push, with a typecheck, a scan for full SSNs and the AI
+scorecard gate; 126 browser tests run before every push; and a 36-step walk through the brief's requirements runs
 against the live site after each deploy (36 of 36 at the last deploy). Each known mistake has a test that fails if the
 app stops flagging it.
