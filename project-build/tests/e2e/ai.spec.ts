@@ -7,11 +7,14 @@ import { AI_FIXTURE_IDS } from '../fixtures/ai-payload';
 const ws = () => `e2e-ai-${Date.now().toString(36)}${Math.random().toString(36).slice(2, 6)}`;
 const ID = AI_FIXTURE_IDS.grounded;
 
-test('Checks shows the AI group after our checks: marked, needs review, filter chip, held-back note', async ({ page }) => {
+test('Checks shows the AI suggestion inside the item it flags: marked, needs review, filter chip, held-back note', async ({ page }) => {
   await page.goto(`/w/${ws()}/daniel/checks`);
-  const group = page.getByTestId('ai-suggestions');
-  await expect(group.getByRole('heading', { name: /AI suggestions/ })).toBeVisible();
-  const row = group.locator(`[data-finding="${ID}"]`);
+  // The suggestion joins the item our check already sits on (SchE.14A): one row, both pills.
+  const itemRow = page.locator('[data-item]').filter({ has: page.locator(`[data-finding="${ID}"]`) });
+  await expect(itemRow).toHaveCount(1);
+  await expect(itemRow).toContainText('Blocker');
+  await itemRow.locator('summary').click();
+  const row = itemRow.locator(`[data-finding="${ID}"]`);
   await expect(row).toBeVisible();
   await expect(row.getByRole('img', { name: 'Suggested by AI' })).toBeVisible();
   await expect(row).toContainText(/needs review/i);
@@ -21,13 +24,11 @@ test('Checks shows the AI group after our checks: marked, needs review, filter c
   await held.locator('summary').click();
   await expect(held).toContainText(/quote not found/i);
   await expect(held).toContainText(/Authority not in the vetted list/);
-  // Group comes after our checks in reading order.
-  const ours = page.locator('#chk-ours');
-  expect(await ours.evaluate((a, b) => !!(a.compareDocumentPosition(b as Node) & Node.DOCUMENT_POSITION_FOLLOWING), await page.locator('#chk-ai').elementHandle())).toBe(true);
-  // The AI chip shows only the AI group.
-  await page.getByRole('link', { name: /^AI suggestions\s*1$/ }).click();
-  await expect(page.locator('#chk-ours')).toHaveCount(0);
-  await expect(page.getByTestId('ai-suggestions').locator(`[data-finding="${ID}"]`)).toBeVisible();
+  // The AI chip lists only the items the AI flagged.
+  await page.getByRole('link', { name: /^AI\s*1$/ }).click();
+  await expect(page.getByTestId('ai-count')).toContainText('1 AI suggestion on 1 item');
+  await expect(page.locator('[data-item]')).toHaveCount(1);
+  await expect(page.locator('[data-item]').locator(`[data-finding="${ID}"]`)).toHaveCount(1);
 });
 
 test('the side panel shows rationale, quote, authority and provenance; accept labels it', async ({ page }) => {
@@ -43,7 +44,7 @@ test('the side panel shows rationale, quote, authority and provenance; accept la
   await drawer.getByRole('button', { name: 'Accept' }).click();
   await expect(drawer.getByTestId('ai-accepted')).toContainText(/Suggested by AI, accepted by \w+/);
   await page.reload();
-  const row = page.getByTestId('ai-suggestions').locator(`[data-finding="${ID}"]`);
+  const row = page.locator(`[data-finding="${ID}"]`);
   await expect(row).toContainText('Accepted');
   await expect(row).not.toContainText(/needs review/i);
 });
@@ -56,7 +57,7 @@ test('a dismissed suggestion leaves the inbox; dismiss needs a reason; clients a
   expect((await post('priya', 'suggestion_dismissed', {})).ok()).toBe(false);
   expect((await post('priya', 'suggestion_dismissed', { reason: 'Our repair check already covers it' })).ok()).toBe(true);
   await page.goto(`/w/${w}/daniel/checks`);
-  await expect(page.getByTestId('ai-suggestions').locator(`[data-finding="${ID}"]`)).toHaveCount(0);
+  await expect(page.locator(`[data-finding="${ID}"]`)).toHaveCount(0);
 });
 
 test('clients and the examiner see no AI suggestions anywhere', async ({ page }) => {
@@ -82,8 +83,8 @@ test('A7: Checks and the "?" dialog say how AI was used: what it read, the final
   await expect(group).toContainText(/AI reader read/);
   await expect(group).toContainText(/final computed version/);
   await expect(group).toContainText(/a person accepts or dismisses each/);
-  // B7: titles name the line, never a raw snake_case kind; one row per title and line.
-  const titles = await group.locator('[data-finding] summary').allInnerTexts();
+  // B7: titles name the line, never a raw snake_case kind; one entry per title and line.
+  const titles = await page.locator('[data-finding][data-ai] strong').allTextContents();
   expect(titles.length).toBeGreaterThan(0);
   for (const t of titles) expect(t).not.toMatch(/[A-Za-z]_[A-Za-z]/);
   expect(new Set(titles).size).toBe(titles.length);

@@ -110,7 +110,7 @@ export function SignoffScope({ ws, role, level, items, blockers, children }: {
     if (missing.length) {
       setAsk(true);
       const row = rowEl(missing[0]);
-      const det = row?.querySelector('details');
+      const det = row?.closest('details') ?? row?.querySelector('details'); // the entry sits inside its item's row
       if (det) det.open = true;
       row?.scrollIntoView({ block: 'center' });
       requestAnimationFrame(() => row?.querySelector<HTMLInputElement>('[data-signoff-note]')?.focus());
@@ -168,12 +168,15 @@ export function SignoffNote({ id, level }: { id: string; level: string }) {
   );
 }
 
-export function RowSelect({ id, title }: { id: string; title: string }) {
+/** One item's checkbox: selects every finding on it that can still be signed (some selected shows as mixed). */
+export function RowSelect({ ids, title }: { ids: string[]; title: string }) {
   const c = useContext(SignoffCtx);
-  if (!c || !c.signable.has(id)) return <span />;
-  const on = c.sel.includes(id);
-  return <input type="checkbox" className={s.pick} checked={on} aria-label={`Select ${title}`}
-    onChange={() => c.set(on ? c.sel.filter((x) => x !== id) : [...c.sel, id])} />;
+  const can = c ? ids.filter((id) => c.signable.has(id)) : [];
+  if (!c || !can.length) return <span />;
+  const on = can.filter((id) => c.sel.includes(id)).length;
+  return <input type="checkbox" className={s.pick} checked={on === can.length} aria-label={`Select ${title}`}
+    ref={(el) => { if (el) el.indeterminate = on > 0 && on < can.length; }}
+    onChange={() => c.set(on === can.length ? c.sel.filter((x) => !can.includes(x)) : [...c.sel.filter((x) => !can.includes(x)), ...can])} />;
 }
 
 /** Select-all for one group (Blocker, Check, Judgment, Info): only the rows that can still be signed. */

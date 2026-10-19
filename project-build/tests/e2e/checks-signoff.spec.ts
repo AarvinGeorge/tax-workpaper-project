@@ -1,15 +1,15 @@
 import { expect, test, type Page } from '@playwright/test';
 
-// Checks: sign-off lives in the "Our checks" table (a checkbox per row, a select-all per group, a bar that appears
+// Checks: sign-off lives in the one table of items (a checkbox per item, selecting each of its findings; a select-all per group, a bar that appears
 // only when something is ticked; every ticked row needs its own review note), and evidence links open on the right without reloading the
 // page, so the open row and the scroll position stay where they were.
 const ws = () => `e2e-chk-${Date.now().toString(36)}${Math.floor(Math.random() * 1e4)}`;
 const ours = (page: Page) => page.locator('section[aria-labelledby="chk-ours"]');
-const rowBoxes = (page: Page) => ours(page).locator('[data-finding] input[type="checkbox"]');
+const rowBoxes = (page: Page) => ours(page).locator('[data-item] input[type="checkbox"]');
 
 test('one table: a checkbox in each row, no separate sign-off list, bar only once something is ticked', async ({ page }) => {
   await page.goto(`/w/${ws()}/daniel/checks`);
-  const rows = ours(page).locator('[data-finding]');
+  const rows = ours(page).locator('[data-item]');
   expect(await rows.count()).toBeGreaterThan(2);
   expect(await rowBoxes(page).count()).toBe(await rows.count());
   await expect(page.getByText('Select for sign-off')).toHaveCount(0);
@@ -32,9 +32,9 @@ test('no sign-off without a review note: the first row missing one opens, then e
   const blockerChip = page.getByText(/^\d+ blockers$/);
   const before = await blockerChip.innerText();
   const all = ours(page).getByRole('checkbox', { name: 'Select all Blocker rows' });
-  const blockers = ours(page).locator('[data-finding][data-severity="blocker"]');
-  const n = await blockers.count();
-  expect(n).toBeGreaterThan(2);
+  const blockers = ours(page).locator('[data-item][data-severity="blocker"]');
+  expect(await blockers.count()).toBeGreaterThan(2);
+  const n = await blockers.locator('[data-finding]:not([data-ai])').count(); // an item can hold two blocker findings; each is signed
   await all.check();
   const bar = page.getByRole('toolbar', { name: 'Sign off the selected rows' });
   await expect(bar).toContainText(`${n} selected`);
@@ -53,12 +53,12 @@ test('no sign-off without a review note: the first row missing one opens, then e
   await expect(first.locator('details')).toHaveAttribute('open', '');
   const firstNote = first.getByRole('textbox', { name: /What you checked/ });
   await expect(firstNote).toBeFocused();
-  await expect(ours(page).locator('[data-finding]').filter({ hasText: 'Signed off' })).toHaveCount(0);
+  await expect(ours(page).locator('[data-item]').filter({ hasText: 'Signed off' })).toHaveCount(0);
   await firstNote.fill('Proration agreed to the closing statement');
   await bar.getByRole('button', { name: 'Sign off selected (2)' }).click();
   const toast = page.getByRole('status').filter({ hasText: 'sign-offs saved together' });
   await expect(toast).toContainText('2 sign-offs saved together');
-  await expect(ours(page).locator('[data-finding]').filter({ hasText: 'Signed off' })).toHaveCount(2);
+  await expect(ours(page).locator('[data-item]').filter({ hasText: 'Signed off' })).toHaveCount(2);
   await expect(blockerChip).toHaveText(before);
   await page.goto(`/w/${w}/daniel/review?tab=log`);
   await expect(page.getByRole('main')).toContainText('Proration agreed to the closing statement');
@@ -66,14 +66,14 @@ test('no sign-off without a review note: the first row missing one opens, then e
   await page.goto(`/w/${w}/daniel/checks`);
   await page.getByRole('status').filter({ hasText: 'sign-offs saved together' }).getByRole('button', { name: 'Undo' }).click();
   await expect(page.getByRole('status').filter({ hasText: 'sign-offs saved together' })).toHaveCount(0);
-  await expect(ours(page).locator('[data-finding]').filter({ hasText: 'Signed off' })).toHaveCount(0);
+  await expect(ours(page).locator('[data-item]').filter({ hasText: 'Signed off' })).toHaveCount(0);
 });
 
 test('roles that do not sign off get no checkboxes', async ({ page }) => {
   const w = ws();
   // Jo (firm administrator) sees Checks but signs nothing; Sam (quality reviewer) joins later in the story.
   await page.goto(`/w/${w}/jo/checks`);
-  await expect(ours(page).locator('[data-finding]').first()).toBeVisible();
+  await expect(ours(page).locator('[data-item]').first()).toBeVisible();
   await expect(rowBoxes(page)).toHaveCount(0);
   await expect(page.getByRole('checkbox')).toHaveCount(0);
 });
@@ -81,7 +81,7 @@ test('roles that do not sign off get no checkboxes', async ({ page }) => {
 test('an evidence link opens on the right without a reload: the row stays open, the list stays put, the link is marked', async ({ page }) => {
   await page.setViewportSize({ width: 1440, height: 900 });
   await page.goto(`/w/${ws()}/daniel/checks`);
-  const row = ours(page).locator('[data-finding]').filter({ has: page.locator('a[data-ref]') }).nth(3);
+  const row = ours(page).locator('[data-item]').filter({ has: page.locator('a[data-ref]') }).nth(3);
   await row.locator('summary').click();
   const pane = page.locator('main.sh-pane-c');
   await row.scrollIntoViewIfNeeded();
@@ -113,7 +113,7 @@ test('the drawer sign-off needs a review note too, and the note shows in its Sig
 
 test('a refused sign-off says why and keeps the selection and the notes', async ({ page }) => {
   await page.goto(`/w/${ws()}/daniel/checks`);
-  const row = ours(page).locator('[data-finding]').filter({ has: page.locator('input[type="checkbox"]') }).first();
+  const row = ours(page).locator('[data-item]').filter({ has: page.locator('input[type="checkbox"]') }).first();
   await row.locator('summary').click();
   const note = row.locator('[data-signoff-note]');
   await note.fill('x'.repeat(8100)); // over the server's payload limit, so the write is refused
@@ -126,7 +126,7 @@ test('a refused sign-off says why and keeps the selection and the notes', async 
 test('on a phone, opening evidence brings the document into view', async ({ page }) => {
   await page.setViewportSize({ width: 390, height: 844 });
   await page.goto(`/w/${ws()}/daniel/checks`);
-  const row = ours(page).locator('[data-finding]').filter({ has: page.locator('a[data-ref]') }).nth(2);
+  const row = ours(page).locator('[data-item]').filter({ has: page.locator('a[data-ref]') }).nth(2);
   await row.locator('summary').click();
   await row.locator('a[data-ref]').first().click();
   await expect(page).toHaveURL(/claim=/);

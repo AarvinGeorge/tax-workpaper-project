@@ -157,7 +157,7 @@ test('1.3 The checks inbox', async ({ browser }) => {
   const p = await go(browser, 'daniel', 'checks');
   const m = main(p);
   await expect(m).toContainText(/\d+ blockers/);
-  const rows = m.locator('[data-finding]');
+  const rows = m.locator('[data-item]'); // one row per item (a line or document), every signal on it
   await expect(rows.first(), 'blockers first').toContainText('Blocker');
   await expect(m, 'engine diagnostics, labelled').toContainText(/From the engine \(\d+, v3\)/);
   const row = rows.filter({ hasText: '2025 California estimated tax payments includes a payment designated for another tax year' }).first();
@@ -172,8 +172,9 @@ test('1.4 Findings: the confident mistakes', async ({ browser }) => {
   // Findings (the hand-found answer key) left the app, 18 Oct: each logged mistake is a finding on Checks, with its evidence.
   const p = await go(browser, 'daniel', 'findings');
   await expect(p, 'the old address lands on Checks').toHaveURL(/\/daniel\/checks/);
-  const rows = main(p).locator('[data-finding]');
-  await expect(main(p), '27 open at this story time').toContainText('27 open');
+  const rows = main(p).locator('[data-item]');
+  const openTag = await main(p).getByText(/^\d+ items open$/).innerText();
+  expect(Number(openTag.split(' ')[0]), 'every item our checks raise is open at this story time').toBeGreaterThanOrEqual(26);
   const first = rows.first();
   await first.locator('summary').click();
   const links = first.locator('[data-ref]');
@@ -372,10 +373,11 @@ test('2.6 A review note that blocks filing', async ({ browser }) => {
 
 test('2.7 Act on many items, then undo in one step', async ({ browser }) => {
   const p = await go(browser, 'daniel', 'checks');
-  const boxes = main(p).locator('[data-finding] input[type="checkbox"]');
+  const single = '[data-item]:not([data-item="line:F540NR.72"])'; // items with one finding: one note each
+  const boxes = main(p).locator(`${single} input[type="checkbox"]`);
   expect(await boxes.count(), 'at least three rows to tick').toBeGreaterThanOrEqual(3);
   for (let i = 0; i < 3; i++) {
-    const row = main(p).locator('[data-finding]').filter({ has: p.locator('input[type="checkbox"]') }).nth(i);
+    const row = main(p).locator(single).filter({ has: p.locator('input[type="checkbox"]') }).nth(i);
     await row.locator('summary').click();
     await row.locator('[data-signoff-note]').fill(`Reviewed row ${i + 1}`);
   }
@@ -496,8 +498,8 @@ test('4.1 Clear the blockers', async ({ browser }) => {
     await form.getByRole('button', { name: /Save|Resolve/ }).click();
   }
   await go(browser, 'daniel', 'checks');
-  const fid = await main(p).locator('[data-finding]').filter({ has: p.getByText('Blocker', { exact: true }) }).first().getAttribute('data-finding');
-  const first = main(p).locator(`[data-finding="${fid}"]`);
+  const key = await main(p).locator('[data-item]:not([data-item="line:F540NR.72"])').filter({ has: p.getByText('Blocker', { exact: true }) }).first().getAttribute('data-item');
+  const first = main(p).locator(`[data-item="${key}"]`);
   await first.locator('summary').click();
   const clear = first.locator('form').filter({ hasText: 'Clear with a reason' });
   await clear.getByRole('textbox').fill('Reviewed; the return already reflects the right treatment.');

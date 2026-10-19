@@ -16,7 +16,7 @@ test('/findings left the app: it lands on Checks with the open claim', async ({ 
   await page.goto(`/w/${w}/daniel/findings?claim=${encodeURIComponent('finding:' + id)}`);
   await expect(page).toHaveURL(new RegExp(`/daniel/checks\\?claim=`));
   await expect(page.getByTestId('drawer')).not.toContainText('Pick any number');
-  await expect(page.getByRole('group', { name: 'Filter by severity' }).getByRole('link', { name: /AI suggestions/ })).toBeVisible();
+  await expect(page.getByRole('group', { name: 'Filter by severity' }).getByRole('link', { name: /^AI\s*\d+$/ })).toBeVisible();
 });
 
 test('staff nav has exactly three entries: Return overview, Checks, Review', async ({ page }) => {

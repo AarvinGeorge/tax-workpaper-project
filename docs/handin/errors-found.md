@@ -63,7 +63,7 @@ Five design choices do the work, in this order of importance:
    FTB account records, two documents against each other, this year against last, a field the engine ignored (a
    payment's tax year, an exchange rate's year), a client's answer against the line it should change. A wrong value
    read at 0.99 confidence is still caught, because confidence is never the test.
-2. **One inbox, blockers first.** Checks lists every finding by severity with its amount and tax effect; the engine's
+2. **One inbox, blockers first.** Checks lists one row per item (a line or document) by severity, with its amount and tax effect and pills for who flagged it (our rule checks, the AI reader) and whether every value behind it was read confidently; the engine's
    own diagnostics sit beside ours under their own label, never mixed in.
 3. **Trace in one click.** Every finding links to the claim it sits on; the side panel shows the source page with the
    field highlighted, the rule that built the number, who checked it and what is open.

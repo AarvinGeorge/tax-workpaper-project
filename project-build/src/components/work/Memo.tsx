@@ -49,7 +49,7 @@ export function MemoScreen(p: WorkProps) {
             <div data-testid="memo-signatures"><dt>Signatures</dt><dd>{d.signatures.length
               ? d.signatures.map((x) => `${x.name} signed ${day(x.at)}${x.record ? ' (firm’s record)' : ''}${x.stale ? ', before a later change' : ''}`).join('; ') + '.'
               : 'Neither spouse has signed yet.'}</dd></div>
-            <div><dt>Counts</dt><dd>{d.changes.length} change{d.changes.length === 1 ? '' : 's'}, {resolved} blocker{resolved === 1 ? '' : 's'} resolved, {d.open.total} item{d.open.total === 1 ? '' : 's'} open.</dd></div>
+            <div><dt>Counts</dt><dd>{d.changes.length} change{d.changes.length === 1 ? '' : 's'}, {resolved} blocker{resolved === 1 ? '' : 's'} resolved, {d.open.total} check{d.open.total === 1 ? '' : 's'} open.</dd></div>
           </dl>
         </section>
 

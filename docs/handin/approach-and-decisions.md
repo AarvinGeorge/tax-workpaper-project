@@ -75,7 +75,7 @@ actions: the separate sign-off list became a checkbox column in the Checks table
 each row has one link per destination, and the right panel names what its actions act on. A second pass cut further:
 blockers are listed once, on Checks (other screens say how many and link there); the change log became a tab of
 Review; the getting-started card and the firm's rules moved behind the "?" button; intro paragraphs and the "Saved"
-badge went; the right panel shows the evidence before the actions. The note that can block approval is a "review
+badge went; the right panel shows the evidence before the actions. Checks lists one row per item (a line or document), with pills for who flagged it (our rule checks, the AI reader) and whether its values were read confidently, so one issue no longer shows as several rows. The note that can block approval is a "review
 note"; the note on a sign-off is "what you checked".
 
 **10. Approval produces a review memo.** Once the partner approves, Review offers a printable memo (two pages for this
@@ -92,7 +92,7 @@ items under examination and the return as filed), the penalty and interest estim
 
 ## How it was tested
 
-548 unit tests run in continuous integration on every push, with a typecheck, a scan for full SSNs and the AI
-scorecard gate; 126 browser tests run before every push; and a 36-step walk through the brief's requirements runs
+554 unit tests run in continuous integration on every push, with a typecheck, a scan for full SSNs and the AI
+scorecard gate; 142 browser tests run before every push; and a 36-step walk through the brief's requirements runs
 against the live site after each deploy (36 of 36 at the last deploy). Each known mistake has a test that fails if the
 app stops flagging it.

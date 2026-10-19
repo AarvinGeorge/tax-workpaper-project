@@ -18,7 +18,7 @@ improvement. That is the one job given to AI.
 - **How it is checked.** Code treats the output as untrusted. A suggestion is held back if its quote is not on the page
   it names, if the quote carries no content, if it rests only on a document that was later replaced, if it cites a
   source outside the vetted list, or if it contains anything shaped like an SSN.
-- **What a person sees.** What passes appears on Checks under AI suggestions, marked with a star (✦) and "needs review". It never blocks filing; a reviewer
+- **What a person sees.** What passes appears on Checks inside the row of the line it concerns, marked with a star (✦) and "needs review" (a row only the AI flagged is listed too). It never blocks filing; a reviewer
   accepts or dismisses it.
 
 **How well it works, measured before trusting it.** A harness ran the reader blind (no known answer in any prompt,

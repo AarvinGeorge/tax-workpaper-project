@@ -42,8 +42,8 @@ All links start with `https://taxmark-workpaper.vercel.app/w/video-take1`. Tabs:
 4. Click the first source row, "FTB record, Payment 3 amount · 3,500". The panel shows the document and "Lands on: SchA.5a, F540NR.72".
 
 **1:20-2:05 · Checks**
-1. Open `/daniel/checks`. Point at the "10 blockers" and "27 open" chips.
-2. Under "Our checks (27)", click the 5th blocker: "2025 California estimated tax payments includes a payment designated for another tax year". It expands: the 15 Sep payment of 3,500 was for tax year 2024.
+1. Open `/daniel/checks`. Point at the "10 blockers" chip, then the pill key above the list: our rule checks, ✦ AI, Confident read.
+2. Under "Items", the 3rd blocker row is F540NR.72: two blockers, ✦ AI and Confident read on one row. Click it: it expands to both checks; the second says the 15 Sep payment of 3,500 was for tax year 2024.
 
 **2:05-2:50 · Adjust, then Priya sees it**
 1. Open `/daniel/checks?claim=line:F540NR.72`. In the right panel, under Actions, click **Adjust**.
@@ -59,7 +59,7 @@ All links start with `https://taxmark-workpaper.vercel.app/w/video-take1`. Tabs:
 4. Switch to Ngozi's tab (not the dropdown, which would keep you on Documents). Point at "What we need from you · 3".
 
 **3:20-4:25 · AI**
-1. Open `/daniel/checks?claim=finding%3Aai-repair_vs_improvement-3`. If it does not open the heat-pump suggestion, scroll to "AI suggestions" and click the first row, "✦ A repair that may be an improvement" (SchE.14A, 13,300, the one whose text mentions a new heat pump).
+1. Open `/daniel/checks?claim=finding%3Aai-repair_vs_improvement-3`. It opens the heat-pump suggestion on the right and marks its row: SchE.14A, 13,300, where our repair check and the ✦ AI both flagged the same item.
 2. Click **Review the suggestion**. Point at the quote "Installed new 3-ton heat pump system…", then at "Each quote was found word for word on its page before this suggestion was shown."
 3. Point at the ✦ and at **Accept** / **Dismiss**. Don't click either. Don't read the confidence column aloud (the list and the panel use different words).
 
