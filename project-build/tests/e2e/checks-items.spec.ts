@@ -13,7 +13,7 @@ test('two checks on one line are one item, with both titles and both entries', a
   await expect(row.locator('summary')).toContainText('10,500 on the FTB');
   await expect(row).toContainText('Blocker');
   await expect(row).toContainText('Confident read');
-  await expect(row.locator('[data-finding]')).toHaveCount(2);
+  await expect(row.locator('[data-finding]:not([data-ai])')).toHaveCount(2); // the two checks; AI entries vary with the run
 });
 
 test('an item our check and the AI both flagged carries both pills', async ({ page }) => {
@@ -23,7 +23,7 @@ test('an item our check and the AI both flagged carries both pills', async ({ pa
   await expect(row.locator('[data-ai-mark], [aria-hidden="true"]').first()).toBeAttached();
   await expect(row).toContainText(/AI/);
   await row.locator('summary').click();
-  await expect(row.locator('[data-finding][data-ai]')).toHaveCount(1);
+  expect(await row.locator('[data-finding][data-ai]').count()).toBeGreaterThanOrEqual(1);
   await expect(row.locator('[data-finding][data-severity]')).toHaveCount(1);
 });
 
