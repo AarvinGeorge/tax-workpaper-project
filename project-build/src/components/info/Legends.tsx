@@ -1,4 +1,6 @@
-// Every status tag the app uses, each with its one-line meaning and term link. The Forms tab's status key moved here.
+// Every status tag the app uses, each with its one-line meaning and term link. The Forms tab's status key moved here,
+// and the Checks pill key is repeated here in full, so the dialog answers what any pill means.
+import type { ReactNode } from 'react';
 import { Term } from '../term/Term';
 
 const TAGS: { tag: string; tone: string; text: string; term?: string }[] = [
@@ -17,13 +19,36 @@ const TAGS: { tag: string; tone: string; text: string; term?: string }[] = [
   { tag: 'As filed, locked', tone: 't-acc', text: 'accepted by the agency; later work attaches on top', term: 'as-filed-locked' },
 ];
 
+// The pills on a Checks item, in the order the item stacks them.
+const PILLS: { key: string; tag: ReactNode; tone: string; text: string; term?: string }[] = [
+  { key: 'Blocker', tag: 'Blocker', tone: 't-blk', text: 'an open item that stops partner approval: a problem our check found, or a line waiting for the engine to re-run', term: 'blocker' },
+  { key: 'Open', tag: 'Open', tone: 't-mut', text: 'a blocker still open when the return was signed or filed' },
+  { key: 'Check', tag: 'Check', tone: 't-wrn', text: 'our check disagrees; it does not stop approval' },
+  { key: 'Judgment', tag: 'Judgment', tone: 't-acc', text: 'our check needs a recorded decision', term: 'judgment' },
+  { key: 'Info', tag: 'Info', tone: 't-mut', text: 'our check notes it; nothing to act on' },
+  { key: 'AI', tag: <><span aria-hidden="true">✦ </span>AI</>, tone: 't-mut', text: 'the AI reader flagged this item; a person accepts or dismisses each suggestion', term: 'ai-suggestion' },
+  { key: 'Needs review', tag: 'Needs review', tone: 't-wrn', text: 'an AI suggestion no one has decided yet (Accepted once someone has)' },
+  { key: 'Engine warning', tag: 'Engine warning', tone: 't-wrn', text: 'the engine’s own warning names this item, quoted as it wrote it; not one of our checks', term: 'engine-diagnostics' },
+  { key: 'Confident mistake', tag: 'Confident mistake', tone: 't-mut', text: 'every value behind it was read at 0.95 or above, so confidence gave no warning; a check outside the reading software caught it', term: 'read-confidence' },
+  { key: 'Cleared', tag: 'Cleared', tone: 't-pas', text: 'closed with a reason, or by an adjustment (Adjusted)' },
+  { key: 'Signed off', tag: 'Signed off', tone: 't-pas', text: 'a sign-off covers this finding', term: 'sign-off' },
+];
+
 export function Legends() {
   return (
-    <ul className="legend" aria-label="Status tags">
-      {TAGS.map((t) => (
-        <li key={t.tag}><span className={`tag ${t.tone}`}>{t.tag}</span><span>{t.text}{t.term ? <Term k={t.term} /> : null}</span></li>
-      ))}
-      <li><span><span className="ex">Example</span></span><span>not in the packet: an illustration<Term k="example-tag" /></span></li>
-    </ul>
+    <>
+      <ul className="legend" aria-label="Status tags">
+        {TAGS.map((t) => (
+          <li key={t.tag}><span className={`tag ${t.tone}`}>{t.tag}</span><span>{t.text}{t.term ? <Term k={t.term} /> : null}</span></li>
+        ))}
+        <li><span><span className="ex">Example</span></span><span>not in the packet: an illustration<Term k="example-tag" /></span></li>
+      </ul>
+      <h4 className="legend-cap" id="legend-checks">Pills on Checks</h4>
+      <ul className="legend" aria-labelledby="legend-checks">
+        {PILLS.map((t) => (
+          <li key={t.key}><span className={`tag ${t.tone}`}>{t.tag}</span><span>{t.text}{t.term ? <Term k={t.term} /> : null}</span></li>
+        ))}
+      </ul>
+    </>
   );
 }

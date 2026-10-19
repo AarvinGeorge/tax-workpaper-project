@@ -37,6 +37,13 @@ test('the "?" dialog: legends for staff with the firm reference, Esc closes it; 
   for (const t of ['Legends', 'Check failed', 'Engine warning', 'New this year', 'No open checks', 'Stale', 'Proposed', 'As filed, locked',
     'Deadlines on the story clock', 'Firm standards', 'People and clearance', 'Time against budget']) await expect(dlg, t).toContainText(t);
   await expect(dlg).not.toContainText('Known packet mistakes');
+  // The Checks pills have their own key in the legends, each with its meaning.
+  await dlg.locator('summary', { hasText: 'Legends' }).click();
+  const pills = dlg.getByRole('list', { name: 'Pills on Checks' });
+  await expect(pills).toBeVisible();
+  for (const t of ['Blocker', 'Check', 'Judgment', 'Info', 'AI', 'Needs review', 'Engine warning', 'Confident mistake', 'Cleared', 'Signed off', 'Open'])
+    await expect(pills, t).toContainText(t);
+  await expect(pills).toContainText('a check outside the reading software caught it');
   await page.keyboard.press('Escape');
   await expect(dlg).toBeHidden();
   await infoButton(page).click();
