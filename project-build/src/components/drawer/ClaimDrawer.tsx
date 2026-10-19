@@ -6,7 +6,7 @@ import { can, maskText, maskValue, partnerThreshold, sensitiveTypeOf, signoffLev
 import { documentLanding, REASON_LABEL, simulatedPage } from '@/domain/docs';
 import { refText, resolveRef } from '@/domain/refs';
 import { claimHref, examinedLines, fmtDay, fmtStory, fmtValue, isRevealed, parseClaim } from '../shell/lib';
-import { highlightSegments, revealReason } from './lib';
+import { confidentRange, highlightSegments, readRange, revealReason } from './lib';
 import { refClaim } from '../work/lib';
 import { DrawerActions, type ActionSpec } from './DrawerActions';
 import { retractedSeqs } from '@/domain/events';
@@ -108,9 +108,9 @@ function SourceItem({ c, r }: { c: Ctx; r: ResolvedRef }) {
 
 /** How surely the pipeline read the cited values, once per panel: one number, or the range when they differ. */
 function ReadConfidence({ refs }: { refs: ResolvedRef[] }) {
-  const n = refs.map((r) => r.confidence).filter((x): x is number => typeof x === 'number');
-  if (!n.length) return null;
-  const lo = Math.min(...n).toFixed(2), hi = Math.max(...n).toFixed(2);
+  const r = readRange(refs);
+  if (!r) return null;
+  const { lo, hi } = r;
   return <span className="small muted num">Pipeline read {lo === hi ? lo : `${lo} to ${hi}`}<Term k="read-confidence" />: how surely the text was read, not how far to trust the source.</span>;
 }
 
@@ -405,12 +405,14 @@ function FindingClaim({ c, id }: { c: Ctx; id: string }) {
   if (f.firstVisibleAt && f.firstVisibleAt > c.state.storyAt) return <Empty text="Not yet in the story" sub={`This check fires once its evidence arrives, on ${fmtDay(f.firstVisibleAt)}.`} />;
   if (f.source === 'ai') return <AiFindingClaim c={c} f={f} />;
   const evidence = f.evidence.map((r) => resolveRef(c.ix, r, c.ix.latest.version));
+  const sure = c.me.kind === 'staff' ? confidentRange(evidence) : null;
   return (
     <>
       <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
         <div className="row"><span className={`tag ${SEV[f.severity][1]}`}>{SEV[f.severity][0]}</span><span className="mono muted">{f.checkId} · {f.family}</span></div>
         <h2 style={{ fontSize: 19, lineHeight: 1.3 }}>{f.title}</h2>
         <p style={{ maxWidth: '60ch' }}>{maskText(c.me.kind === 'client' ? f.plain! : f.explanation, c.me, false)}</p>
+        {sure && <p className="small" data-testid="confident-note" style={{ maxWidth: '60ch' }}><strong style={{ fontWeight: 600 }}>Confidence gave no warning.</strong> Every value behind this was read at {sure.lo === sure.hi ? sure.lo : `${sure.lo} to ${sure.hi}`}; a score says how surely the text was read, not whether the return is right. This check is what caught it.</p>}
         {f.effect && <span className="small num">Tax effect estimate: {f.effect.federal !== undefined ? `federal ${fmtValue(f.effect.federal)}` : ''}{f.effect.california !== undefined ? `${f.effect.federal !== undefined ? ', ' : ''}California ${fmtValue(f.effect.california)}` : ''} (estimate, from {f.effect.basis.replace(/_/g, ' ')})</span>}
       </div>
       {c.me.kind === 'staff' && <Actions c={c} claimId={'finding:' + id} current={null} title={f.title} />}

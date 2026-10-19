@@ -71,3 +71,20 @@ export function revealReason(reason: string | undefined, rule: string | undefine
   if (!r || r === rule || r.includes(rule)) return r.includes('Firm rule') ? r : quoted;
   return `${r} ${quoted}`;
 }
+
+/** The pipeline's top band of read confidence: 2,680 of the packet's 3,012 values sit at 0.95 or above (330 at 0.90-0.94, 2 lower). */
+export const CONFIDENT = 0.95;
+
+type Read = { confidence?: number };
+const reads = (refs: Read[]) => refs.map((r) => r.confidence).filter((x): x is number => typeof x === 'number');
+
+/** How surely the pipeline read the cited values, lowest to highest (two decimals); null when none carries a confidence. */
+export function readRange(refs: Read[]): { lo: string; hi: string } | null {
+  const n = reads(refs);
+  return n.length ? { lo: Math.min(...n).toFixed(2), hi: Math.max(...n).toFixed(2) } : null;
+}
+
+/** The read range of the values behind a finding when every one of them is in the top band; null otherwise. */
+export function confidentRange(refs: Read[]): { lo: string; hi: string } | null {
+  return reads(refs).some((x) => x < CONFIDENT) ? null : readRange(refs);
+}
