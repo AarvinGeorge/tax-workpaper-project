@@ -108,7 +108,7 @@ export async function Shell({ ws, role, screen, claim, q, children, ...given }: 
   return (
     <div className="wp" data-role={role} data-screen={screen}>
       <header className="sh-head">
-        <div className="sh-brand"><strong>Taxmark</strong>{me.kind === 'staff'
+        <div className="sh-brand"><span className="sh-logo"><strong>Taxmark</strong><span className="sh-logo-sub">Miraflores AI</span></span>{me.kind === 'staff'
           ? <ClientSwitcher label={clientLabel} />
           : <span className="muted">{clientLabel}</span>}</div>
         <div className="sh-meta num">

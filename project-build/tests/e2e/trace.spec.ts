@@ -104,5 +104,11 @@ test('the product is named Taxmark in the header, the tab and the "?" Demo secti
   await page.goto(`/w/${ws('brand')}/daniel`);
   await expect(page).toHaveTitle(/^Taxmark/);
   await expect(page.locator('.sh-brand strong')).toHaveText('Taxmark');
+  // The lockup: "Miraflores AI" sits under the name, left-aligned with it and smaller.
+  const name = await page.locator('.sh-brand strong').boundingBox();
+  const sub = page.locator('.sh-logo-sub');
+  await expect(sub).toHaveText('Miraflores AI');
+  const box = await sub.boundingBox();
+  expect(box && name && box.y >= name.y + name.height - 1 && Math.abs(box.x - name.x) <= 1).toBe(true);
   await expect(page.getByTestId('demo')).toContainText('Taxmark is a web-native workpaper');
 });
