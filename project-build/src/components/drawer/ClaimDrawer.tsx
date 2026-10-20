@@ -5,9 +5,9 @@ import { getWorkspace } from '../shell/load';
 import { can, maskText, maskValue, partnerThreshold, sensitiveTypeOf, signoffLevel, visibleDocIds } from '@/domain/policy';
 import { documentLanding, REASON_LABEL, simulatedPage } from '@/domain/docs';
 import { refText, resolveRef } from '@/domain/refs';
-import { claimHref, examinedLines, fmtDay, fmtStory, fmtValue, isRevealed, parseClaim } from '../shell/lib';
+import { claimHref, examinedLines, fmtDay, fmtStory, fmtValue, isRevealed, parseClaim, screenPath } from '../shell/lib';
 import { confidentRange, highlightSegments, readRange, revealReason } from './lib';
-import { refClaim } from '../work/lib';
+import { findingStatus, refClaim } from '../work/lib';
 import { DrawerActions, type ActionSpec } from './DrawerActions';
 import { retractedSeqs } from '@/domain/events';
 import { Term } from '../term/Term';
@@ -15,7 +15,7 @@ import { AiMark } from '../work/ui';
 import { AiDecision } from './AiDecision';
 import { DocNote } from './DocNote';
 import { needsPartnerSignoff } from '@/domain/project';
-import { effectEstimate } from '@/domain/versions';
+import { effectEstimate, formLabel } from '@/domain/versions';
 import { confidenceWord, suggestionStatus } from '@/domain/ai/merge';
 import { humanize } from '@/domain/labels';
 
@@ -219,12 +219,16 @@ function FindingsOn({ c, claimId }: { c: Ctx; claimId: string }) {
     <div className="drw-sec">
       <span className="lbl">{isDoc ? 'Checks that cite this document' : 'Our checks on this'} · {list.length}</span>
       {list.length === 0 && <span className="small"><span className="tag t-pas">No open checks</span> <span className="muted">{isDoc ? 'No check cites this document.' : 'No check in the library fails on this claim.'}</span></span>}
-      {list.map((f) => (
+      {list.map((f) => {
+        // Cleared or adjusted checks say so, by the same rule as Checks; open ones keep their severity.
+        const st = findingStatus(f, c.state);
+        return (
         <Link key={f.id} href={claimHref('finding:' + f.id)} className="srcitem">
-          <span className="row" style={{ gap: 6 }}><span className={`tag ${SEV[f.severity][1]}`}>{SEV[f.severity][0]}</span><strong style={{ fontWeight: 600 }}>{f.title}</strong></span>
+          <span className="row" style={{ gap: 6 }}>{st.cleared ? <span className={`tag t-${st.tone}`}>{st.word}</span> : <span className={`tag ${SEV[f.severity][1]}`}>{SEV[f.severity][0]}</span>}<strong style={{ fontWeight: 600 }}>{f.title}</strong></span>
           <span className="small">{maskText(f.explanation, c.me, false)}</span>
         </Link>
-      ))}
+        );
+      })}
     </div>
   );
 }
@@ -264,7 +268,9 @@ function LineClaim({ c, key_, claimId }: { c: Ctx; key_: string; claimId: string
     <>
       {/* Pinned while the evidence below scrolls, so the number being read never leaves view. */}
       <div className="drw-head">
-        <div className="row"><span className={`tag ${adjusted || derived ? 't-acc' : engineOnly ? 't-wrn' : 't-mut'}`}>{adjusted ? 'Adjusted' : derived ? 'Recomputed' : engineOnly ? 'Needs engine re-run' : `As computed, ${ix.latest.version}`}</span>{adjusted ? <Term k="adjustment" /> : <Term k="version" />}<span className="mono muted">{l.key} · {l.jurisdiction}</span></div>
+        <div className="row"><span className={`tag ${adjusted || derived ? 't-acc' : engineOnly ? 't-wrn' : 't-mut'}`}>{adjusted ? 'Adjusted' : derived ? 'Recomputed' : engineOnly ? 'Needs engine re-run' : `As computed, ${ix.latest.version}`}</span>{adjusted ? <Term k="adjustment" /> : <Term k="version" />}{c.me.screens.includes('return')
+          ? <Link className="mono srcref" href={screenPath(c.ws, c.role, 'return') + claimHref('line:' + l.key)} title="Show this line in its form on the Return overview">{l.key} · {formLabel(l.form)}</Link>
+          : <span className="mono muted">{l.key} · {l.jurisdiction}</span>}</div>
         <h2 style={{ fontSize: 19, lineHeight: 1.3, letterSpacing: '-.01em' }}>{l.label}</h2>
         <div className="row"><span className="drw-big num" data-testid="claim-value">{fmtValue(current)}</span>
           {(adjusted || derived) && <span className="small muted num">was <span className="del">{fmtValue(cs!.original)}</span> in {ix.latest.version}</span>}</div>

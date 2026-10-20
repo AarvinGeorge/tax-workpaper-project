@@ -8,6 +8,7 @@ import { FormTerm, Term } from '@/components/term/Term';
 import { OverviewHead } from '@/components/overview/OverviewHead';
 import { FormPicker } from '@/components/overview/FormPicker';
 import { notComputedText } from '@/domain/clock';
+import { findingStatus } from '@/components/work/lib';
 
 const SEV: Record<Finding['severity'], [string, string, number]> = { blocker: ['Blocking', 't-blk', 0], check: ['Check failed', 't-wrn', 1], judgment: ['Judgment', 't-wrn', 2], info: ['Note', 't-mut', 3] };
 
@@ -44,7 +45,9 @@ export async function FormsTab({ ws, role, sp, screen }: { ws: string; role: str
 
   const sw = new Map(swings(ix, finalized(ix, state)).map((s) => [s.key, s]));
   const swingCount = [...sw.values()].filter((s) => s.flag === 'swing').length;
-  const visible = w.findings.filter((f) => f.source !== 'ai').filter((f) => !f.firstVisibleAt || f.firstVisibleAt <= state.storyAt);
+  // Open checks only, by the same rule as Checks (a clear or an adjustment closes one), so an adjusted line reads Adjusted.
+  const visible = w.findings.filter((f) => f.source !== 'ai').filter((f) => !f.firstVisibleAt || f.firstVisibleAt <= state.storyAt)
+    .filter((f) => !findingStatus(f, state).cleared);
   const findingOn = new Map<string, Finding>();
   for (const f of visible) for (const c of f.claims) { const prev = findingOn.get(c); if (!prev || SEV[f.severity][2] < SEV[prev.severity][2]) findingOn.set(c, f); }
   const diagOn = new Set<string>();
@@ -123,8 +126,8 @@ export async function FormsTab({ ws, role, sp, screen }: { ws: string; role: str
                             {s?.flag === 'new' && <div><span className="tag t-acc">New this year</span></div>}</td>
                           <td>
                             {fnd ? <Link href={claimHref('finding:' + fnd.id, keep)} className={`tag ${SEV[fnd.severity][1]}`} style={{ textDecoration: 'none' }}>{SEV[fnd.severity][0]}</Link>
-                              : diagOn.has(l.key) ? <span className="tag t-wrn">Engine warning</span>
                               : cs?.adjusted ? <span className="tag t-acc">Adjusted</span>
+                              : diagOn.has(l.key) ? <span className="tag t-wrn">Engine warning</span>
                               : cs?.needsEngine ? <span className="tag t-wrn">Needs engine re-run</span>
                               : cs?.derived ? <span className="tag t-acc">Recomputed</span> : <span className="tag t-pas">No open checks</span>}
                           </td>
