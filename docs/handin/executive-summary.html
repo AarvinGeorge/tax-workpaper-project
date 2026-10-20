@@ -1,0 +1,48 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><title>Taxmark executive summary</title>
+<style>
+@page { size: Letter; margin: 0.5in 0.6in; }
+* { box-sizing: border-box; }
+body { font: 10pt/1.4 -apple-system, "Helvetica Neue", Arial, sans-serif; color: #1d2128; margin: 0; }
+h1 { font-size: 20pt; margin: 0; letter-spacing: -.01em; }
+.sub { color: #5a6270; font-size: 9.5pt; margin: 2px 0 14px; }
+h2 { font-size: 11pt; text-transform: uppercase; letter-spacing: .06em; color: #2c4a7a; margin: 12px 0 5px; border-bottom: 1px solid #d7dce4; padding-bottom: 3px; }
+p { margin: 0 0 6px; }
+ul { margin: 0; padding-left: 16px; }
+li { margin: 0 0 4px; }
+.idea { background: #f1f4f9; border: 1px solid #d7dce4; border-radius: 4px; padding: 8px 11px; margin: 8px 0 4px; }
+table { width: 100%; border-collapse: collapse; font-size: 10pt; }
+th, td { text-align: left; vertical-align: top; padding: 5px 7px; border-bottom: 1px solid #e3e7ee; }
+th { font-size: 9pt; text-transform: uppercase; letter-spacing: .05em; color: #5a6270; }
+td:first-child { width: 40%; font-weight: 600; }
+.foot { margin-top: 14px; font-size: 8.5pt; color: #5a6270; }
+</style></head>
+<body>
+<h1>Taxmark</h1>
+<div class="sub">Executive summary · Aarvin George, Miraflores AI · live at taxmark-workpaper.vercel.app</div>
+
+<h2>What it is</h2>
+<p>A web-native tax workpaper for one household's 2025 return. The client packet holds 74 documents, about 3,000 extracted values and three computed versions of the return, and it contains 27 confident mistakes: 25 of them were read at 95% confidence or more.</p>
+<div class="idea"><strong>Core idea: every number is a claim that carries its receipt.</strong> One click shows where it came from, what was done to it, who checked it, and what is still open. Confidence is not proof.</div>
+
+<h2>Technical decisions</h2>
+<ul>
+<li><strong>One packet, read three ways.</strong> An answer key of 27 mistakes, built by an AI-assisted investigation outside the app, only tests the checks and grades the AI; it never creates a finding. Inside the app, 15 families of deterministic checks flag all 27. An AI reader (Claude Sonnet 5.5) covers mistakes that live in wording; code verifies every quote word for word before a person accepts or dismisses it.</li>
+<li><strong>A read-only packet with an append-only event log on top.</strong> Adjustments, notes, sign-offs, questions and undos are events in Neon Postgres. History and undo come for free, and the audit trail is the data itself.</li>
+<li><strong>Checks written against the schema, never a specific document,</strong> so the same checks would run on the next client's packet.</li>
+<li><strong>Secure by default.</strong> Next.js on Vercel; the packet sealed with AES-256-GCM in a private Blob store and hash-checked on load; role policy and identifier masking enforced on the server.</li>
+<li><strong>Tested.</strong> 563 unit tests, including one per known mistake, and 150 browser tests. CI fails the build if an AI suggestion is ungrounded or its recall drops.</li>
+</ul>
+
+<h2>Trade-offs</h2>
+<table>
+<tr><th>Decision</th><th>What it cost</th></tr>
+<tr><td>Rules decide; the AI only suggests and never blocks filing</td><td>The AI alone catches about half: 13 of 27, reported instead of the more flattering 17</td></tr>
+<tr><td>Checks against the schema</td><td>5 of the 15 families still depend on how free text is worded; the AI reader is meant to cover that gap</td></tr>
+<tr><td>Event log over a read-only packet</td><td>Every request replays the whole log: fine for one return, needs snapshots across a firm. A mistake is reversed by a new event, never erased</td></tr>
+<tr><td>Fixes flow through plain sums only</td><td>A line needing a real tax computation keeps the engine's figure and blocks approval until the engine re-runs; tax effects shown are estimates</td></tr>
+<tr><td>A role switcher instead of sign-in</td><td>One link shows every view, but identity is self-declared: real sign-in comes first before a firm uses it</td></tr>
+</table>
+
+<div class="foot">Example: California estimated payments read 14,000 on the return; the FTB's record says 10,500, because the engine counted a payment by date and missed that it was marked "tax year 2024". In Taxmark it is one row on Checks; the fix carries the California refund from 8,256 to 4,756, and the partner signs off on the new number.</div>
+</body></html>

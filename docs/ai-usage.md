@@ -126,3 +126,4 @@ From here on, entries are written at the time again.
 - 19 Oct 20:15 EDT · Opus 5.5 (main): header logo lockup "Taxmark / Miraflores AI" built test-first, screenshots in four views, full suite before deploy
 - 19 Oct 20:44 EDT · Opus 5.5 (main): systematic-debugging on two symptoms (status not Adjusted on the Forms tab and panel; no way from a line id to its form): reproduced on live with a real adjustment, traced both to root causes (status rule bypassed in two readers; panel links all screen-relative), fixed test-first; Fable 5.1 reviewing the diff
 - 19 Oct 20:47 EDT · Fable 5.1: reviewed the status/place fix (SHIP WITH CHANGES); Opus 5.5 applied the findingStatus unit tests and the Adjusted-over-Engine-warning order, test first
+- 19 Oct 22:18 EDT · Opus 5.5 (main): one-page executive summary PDF (docs/handin/Taxmark-executive-summary.pdf) drawn from the final brief's facts; rendered and looked at before hand-over
