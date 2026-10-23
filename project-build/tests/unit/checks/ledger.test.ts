@@ -8,7 +8,7 @@ import { realIx, refResolves } from './helpers';
 // ledger id -> a claim the finding must sit on, and the ledger's tax effect (federal, California) or null when the
 // ledger records none. Sign: + means the return currently understates tax or balance due.
 const EXPECT: Record<string, { claim: string; fed: number | null; ca: number | null }> = {
-  'GT-A01': { claim: 'line:F8949.B.N1', fed: -15536, ca: -2765 },
+  'GT-A01': { claim: 'line:F8949.B.N1', fed: -15536, ca: -2445 }, // CA: only N1, N3 sold during CA residency (R-CA-CAPGAIN-SOURCE)
   'GT-A02': { claim: 'line:SchCA540NR.1.E', fed: null, ca: -5685 },
   'GT-A03': { claim: 'line:F540NR.72', fed: null, ca: 3500 },
   'GT-A04': { claim: 'line:F1040.26', fed: 1000, ca: null },
@@ -19,7 +19,7 @@ const EXPECT: Record<string, { claim: string; fed: number | null; ca: number | n
   'GT-B01': { claim: 'line:SchB.1.2', fed: -640, ca: -127 },
   'GT-B02': { claim: 'line:SchB.1.6', fed: 43, ca: 9 },
   'GT-B03': { claim: 'line:F8949.H.C6', fed: -1312, ca: -195 },
-  'GT-B04': { claim: 'doc:D31', fed: -21, ca: -2 },
+  'GT-B04': { claim: 'doc:D31', fed: -21, ca: 0 },     // CA: M18 sold 2025-12-15, after the move
   'GT-B05': { claim: 'doc:D07', fed: null, ca: null },
   'GT-C01': { claim: 'line:SchC.1', fed: -4402, ca: -384 },
   'GT-C02': { claim: 'line:SchC.44a', fed: 919, ca: 80 },
@@ -94,6 +94,12 @@ describe('every ledger finding is surfaced on the real packet', () => {
   it('raises nothing beyond the ledger on the real packet (no false alarms)', () => {
     const extra = findings.filter((f) => f.ledgerIds.length === 0);
     expect(extra.map((f) => `${f.checkId} ${f.claims.join(',')}`)).toEqual([]);
+  });
+
+  it('a sale dated after the move to Texas has no California effect (R-CA-CAPGAIN-SOURCE sources sales by date)', () => {
+    const eff = (id: string) => findings.find((f) => f.ledgerIds.includes(id))!.effect!;
+    expect(eff('GT-B04').california).toBe(0);                 // M18 sold 2025-12-15
+    expect(eff('GT-A01').california).toBe(-2445);             // N1, N3 in residency; N4 sold 2025-08-12 adds nothing
   });
 
   it('does not repeat engine diagnostics as findings', () => {

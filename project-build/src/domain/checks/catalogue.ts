@@ -10,10 +10,11 @@ export interface LedgerEntry {
   checkIds: string[];
   claims: string[];            // the claim(s) the finding sits on in this packet
   surfaced: string;            // how the design surfaced it
+  caveat?: string;             // what the tax-effect estimate leaves out (shown beside it in the write-up)
 }
 
 export const LEDGER: LedgerEntry[] = [
-  { id: 'GT-A01', title: 'RSU sales at zero basis; the stock-plan supplement (D11) ignored, so wage income is taxed twice', severity: 'high',
+  { id: 'GT-A01', title: 'RSU sales at zero basis; the stock-plan supplement (D11) not matched to the three RSU lots, so wage income is taxed twice', severity: 'high',
     checkIds: ['CHK-LOT-SUPPLEMENT-BASIS'], claims: ['line:F8949.B.N1', 'line:F8949.B.N3', 'line:F8949.E.N4'],
     surfaced: 'Blank broker basis read as 0.00 matched to the supplement lot with the same acquisition date; the unused supplement value is shown beside each lot.' },
   { id: 'GT-A02', title: 'California wages include Halvorsen pay earned after the move to Texas', severity: 'high',
@@ -28,7 +29,8 @@ export const LEDGER: LedgerEntry[] = [
   { id: 'GT-A05', title: 'Theo\'s SSN transposed in the organizer; caused the July e-file rejection', severity: 'medium',
     checkIds: ['CHK-IDENTITY-VS-DOCUMENTS'], claims: ['line:F8812.4'],
     surfaced: 'Every organizer SSN compared with every document that prints one for the same person (the 2024 return already had it); a mismatch blocks e-file. Last 4 only.' },
-  { id: 'GT-A06', aliases: ['GT-C03'], title: 'Self-employed health insurance deducted though Erik could join Ngozi\'s employer plan (qa-25)', severity: 'high',
+  { id: 'GT-A06', aliases: ['GT-C03'], title: 'Self-employed health insurance deducted though Erik could join Ngozi\'s employer plan (the client\'s own questionnaire answer)', severity: 'high',
+    caveat: 'before the QBI offset: removing the deduction raises the QBI deduction, so the federal increase is about +3,500 to +3,800',
     checkIds: ['CHK-ANSWER-GATES-DEDUCTION'], claims: ['line:Sch1.17'],
     surfaced: 'The questionnaire answer on eligibility is linked to the line it gates, with last year\'s treatment beside it.' },
   { id: 'GT-A07', title: 'Little Sprouts tax ID misread at 0.97 confidence', severity: 'low',
@@ -43,7 +45,7 @@ export const LEDGER: LedgerEntry[] = [
   { id: 'GT-B02', title: 'Swedish interest converted at the 2024 exchange rate, not 2025', severity: 'low',
     checkIds: ['CHK-FX-RATE-YEAR'], claims: ['line:SchB.1.6'],
     surfaced: 'Every foreign amount shows its rate and the rate\'s year; income must use the tax year\'s average.' },
-  { id: 'GT-B03', title: 'Crypto lot C6 at zero basis after the client sent the real cost (msg-07, after v3)', severity: 'medium',
+  { id: 'GT-B03', title: 'Crypto lot C6 at zero basis and short-term after the client sent the real cost and its 2021 purchase date (in a message that arrived after the last computed version, v3)', severity: 'medium',
     checkIds: ['CHK-ANSWER-AFTER-COMPUTATION'], claims: ['line:F8949.H.C6'],
     surfaced: 'A message after the last computation that supplies a missing fact is shown as "answered, not applied" on the line, and it appears in the story when it arrives.' },
   { id: 'GT-B04', title: 'Meridian lot M18 (page 32) never read in either 1099; the cause of the engine\'s own mismatch warning', severity: 'low',
@@ -67,13 +69,14 @@ export const LEDGER: LedgerEntry[] = [
   { id: 'GT-C06', title: 'Section 179 not elected for the equipment; saves California tax at no federal cost', severity: 'medium',
     checkIds: ['CHK-CHEAPER-ELECTION'], claims: ['line:F4562-C.12'],
     surfaced: 'Engine what-ifs that lower tax with no cost anywhere are presented as elections to decide.' },
-  { id: 'GT-C07', title: 'SEP contribution over the limit; the excess was carried and never flagged', severity: 'medium',
+  { id: 'GT-C07', title: 'SEP contribution over the limit: the deduction is right, but the excess was carried forward with no decision and never flagged', severity: 'medium',
     checkIds: ['CHK-SEP-LIMIT'], claims: ['line:Sch1.16'],
     surfaced: 'The contribution document is set beside the deductible limit; the excess becomes a decision item.' },
   { id: 'GT-C08', title: 'Home-office simplified method blended across two homes', severity: 'low',
+    caveat: 'if the office is taken in the Austin home only; the actual-expense method could lower tax instead',
     checkIds: ['CHK-HOME-OFFICE-ONE-HOME'], claims: ['line:SchC.30'],
     surfaced: 'A simplified home office with two areas in a year with two homes asks for a method per home.' },
-  { id: 'GT-C10', title: '2024 return claimed a 300 sq ft office; the room measures 220', severity: 'low',
+  { id: 'GT-C10', title: '2024 return claimed a 300 sq ft office; the room measures 220 (a client question: the prior preparer asked whether two rooms were combined)', severity: 'low',
     checkIds: ['CHK-PRIOR-YEAR-FIGURE'], claims: ['doc:D06'],
     surfaced: 'Prior-year figures are compared with this year\'s source documents, saying which year looks wrong.' },
   { id: 'GT-D01', title: 'Lonestar payoff interest counted twice (the 1098 already includes it)', severity: 'medium',

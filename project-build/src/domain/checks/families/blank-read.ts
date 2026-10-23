@@ -1,7 +1,7 @@
 // Family: blank read used as zero. A field the issuer left blank, or a page the pipeline never read, treated as if
 // it said zero or nothing.
 import type { ExtractedValue } from '../../packet/types';
-import { type Check, type Draft, docClaim, fmt, fmt2, inStateResidency, lineClaim, lotField, num, round } from '../util';
+import { type Check, type Draft, caGainRate, docClaim, fmt, fmt2, lineClaim, lotField, num, round } from '../util';
 
 const FAMILY = 'Blank read used as zero';
 
@@ -34,13 +34,12 @@ export const lotSupplementBasis: Check = {
       const term = String(lotField(ix, line, 'term')?.value ?? '');
       const cat = /long/i.test(term) ? 'ltcg' : 'stcg';
       const sold = lotField(ix, line, 'sold');
-      const caCat = inStateResidency(ix, typeof sold?.value === 'string' ? sold.value : null) ? 'ca_source_income' : cat;
-      const r = rates[cat]; const c = rates[caCat];
+      const r = rates[cat];
       const acc = byDoc.get(match.basis.document_id) ?? { lines: [], ev: [], fed: 0, ca: 0, parts: [] };
       acc.lines.push(line.key);
       acc.ev.push(basis.id, match.basis.id, match.acquired.id);
       if (r) acc.fed += -b * r.federal_per_dollar;
-      if (c) acc.ca += -b * c.california_per_dollar;
+      acc.ca += -b * caGainRate(ix, typeof sold?.value === 'string' ? sold.value : null, cat);
       acc.parts.push(`${line.line}: basis read blank (0.00), ${fmt2(b)} on the supplement`);
       byDoc.set(match.basis.document_id, acc);
     }
@@ -85,9 +84,8 @@ export const unreadPage: Check = {
           const gain = num(m[2])! - num(m[3])!;
           proceedsUnread += num(m[2])!;
           const cat = m[4] === 'long' ? 'ltcg' : 'stcg';
-          const caCat = inStateResidency(ix, m[1]) ? 'ca_source_income' : cat;
           if (rates[cat]) fed += gain * rates[cat].federal_per_dollar;
-          if (rates[caCat]) ca += gain * rates[caCat].california_per_dollar;
+          ca += gain * caGainRate(ix, m[1], cat);
           lots++;
         }
       }

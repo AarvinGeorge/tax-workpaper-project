@@ -101,6 +101,14 @@ export function inStateResidency(ix: PacketIndex, date: string | null): boolean 
   return d >= r.from && d <= r.to;
 }
 
+/** California's rate on a sale's gain (R-CA-CAPGAIN-SOURCE: sales dated during California residency): fully
+ *  California-source during residency, nothing after it; the README's prorated gain rate when the date is unknown. */
+export function caGainRate(ix: PacketIndex, sold: string | null, cat: RateCategory): number {
+  const rates = ix.latest.tax_effect_rates;
+  if (sold && /^\d{4}-\d{2}-\d{2}/.test(sold) && stateResidency(ix)) return inStateResidency(ix, sold) ? (rates.ca_source_income?.california_per_dollar ?? 0) : 0;
+  return rates[cat]?.california_per_dollar ?? 0;
+}
+
 export function valuesOf(ix: PacketIndex, line: ReturnLine): ExtractedValue[] {
   return (line.sources || []).map((s) => ix.valueById.get(s)).filter((v): v is ExtractedValue => !!v);
 }

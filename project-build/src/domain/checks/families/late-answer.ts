@@ -1,6 +1,6 @@
 // Family: answer after the last computation. A client message, sent after the latest engine run, that supplies a
 // fact the return lacks: the return still carries the old figure ("answered, not applied").
-import { type Check, type Draft, amountsIn, days, fmt, inStateResidency, lineClaim, lotField, num, round, valuesOf } from '../util';
+import { type Check, type Draft, amountsIn, caGainRate, days, fmt, lineClaim, lotField, num, round, valuesOf } from '../util';
 
 const FAMILY = 'Answer after the last computation';
 const MONTHS = ['january', 'february', 'march', 'april', 'may', 'june', 'july', 'august', 'september', 'october', 'november', 'december'];
@@ -38,9 +38,7 @@ export const answerAfterComputation: Check = {
       let effect;
       if (ro && rn) {
         const fed = -proceeds * ro.federal_per_dollar + (proceeds - basis) * rn.federal_per_dollar;
-        const ca = inStateResidency(ix, sold)
-          ? -basis * (rates.ca_source_income?.california_per_dollar ?? 0)
-          : -proceeds * ro.california_per_dollar + (proceeds - basis) * rn.california_per_dollar;
+        const ca = -proceeds * caGainRate(ix, sold || null, oldCat) + (proceeds - basis) * caGainRate(ix, sold || null, newCat);
         effect = { federal: round(fed), california: round(ca), basis: 'tax_effect_rates' as const };
       }
       out.push({
