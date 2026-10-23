@@ -6,7 +6,7 @@ Tax software reads documents and grades its own confidence, and a number read wi
 
 **[Try the live app →](https://taxmark-workpaper.vercel.app)**  ·  **[Watch the walkthrough →](https://youtu.be/zmIw8VWhetk?si=EzImnV-pkf5X-I1B)**
 
-[![Taxmark video walkthrough](https://img.youtube.com/vi/zmIw8VWhetk/maxresdefault.jpg)](https://youtu.be/zmIw8VWhetk?si=EzImnV-pkf5X-I1B)
+[![Taxmark video walkthrough](docs/screenshots/video-thumbnail.png)](https://youtu.be/zmIw8VWhetk?si=EzImnV-pkf5X-I1B)
 
 > Built as a case study: redesign the tax workpaper for one invented household's 2025 return, from a packet of documents, extracted values and three computed versions of the return. The packet hides confident mistakes, and finding them was part of the job.
 
