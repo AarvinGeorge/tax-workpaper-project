@@ -83,6 +83,23 @@ export interface Score {
   /** Rows rejected only because the rationale ran over the word limit, scored strictly as what they would add. */
   formatRejected: FormatRejected[]; formatAdds: string[];
   perKind: Record<string, number>;
+  /** The agent's bar: ledger mistakes no deterministic check reaches, scored strictly. Recall null when there are none. */
+  beyondChecks: BeyondChecks;
+}
+
+export interface BeyondChecks { total: number; ids: string[]; found: string[]; recall: number | null }
+
+/** Ledger entries that no finding of runChecks reaches (by the finding's ledger ids, aliases included). A reader that
+ *  only echoes our checks scores nothing here. */
+export function uncheckedLedger(ix: PacketIndex): string[] {
+  const reached = new Set(runChecks(ix).flatMap((f) => f.ledgerIds));
+  return LEDGER.filter((e) => !reached.has(e.id) && !(e.aliases ?? []).some((a) => reached.has(a))).map((e) => e.id);
+}
+
+/** Strict recall over the given unreached entries only. */
+export function beyondChecksTier(s: Pick<Score, 'ledgerFound'>, unchecked: string[]): BeyondChecks {
+  const found = unchecked.filter((id) => s.ledgerFound.includes(id));
+  return { total: unchecked.length, ids: [...unchecked], found, recall: unchecked.length ? found.length / unchecked.length : null };
 }
 
 const ratio = (a: number, b: number) => (b ? a / b : 0);
@@ -149,6 +166,7 @@ export function scorePayload(ix: PacketIndex, payload: AiPayload): Score {
     ungrounded: payload.suggestions.filter((s) => !grounded.includes(s)).map((s) => s.id),
     claimsNotInPacket: payload.suggestions.reduce((n, s) => n + s.claims.filter((c) => !ix.line(ix.latest.version, key(c))).length, 0),
     rejected: payload.rejected.length, rejectedReasons, formatRejected, formatAdds, perKind,
+    beyondChecks: beyondChecksTier({ ledgerFound: strict.found }, uncheckedLedger(ix)),
   };
 }
 
@@ -379,4 +397,94 @@ export function evalGate(ix: PacketIndex, payload: AiPayload, codePromptVersion:
   const realSsns = [...new Set(JSON.stringify(ix.packet).match(/\b\d{3}-\d{2}-\d{4}\b/g) ?? [])].map((s) => s.replace(/-/g, ''));
   if (SSN_DASHED.test(text) || realSsns.some((s) => text.includes(s))) failures.push('the payload holds an SSN-shaped string');
   return { failures, strictFound: found, ledgerTotal: shown.score.ledgerTotal, rawGrounding: raw.groundingRate, produced: raw.suggestions, shown: shown.shown, heldBack: shown.heldBack };
+}
+
+export interface AgentRunFigures { costUsd?: number | null; seconds?: number; calls?: number; turns?: number; toolCalls?: number; servedModels?: string[] }
+export interface ScoredRun { label: string; score: Score; shown: ShownView; meta: AgentRunFigures; adjudication?: Adjudication }
+/** An agent run with its measurement mode and the ledger ids of the tier that mode is scored on (computed by the
+ *  harness from the real checks and the ledger: never from the agent's output). */
+export interface ModeRun extends ScoredRun { mode: 'default' | 'blind' | 'hide-checks'; seed?: number; tier: string[] }
+
+/** Ledger entries that some finding reaches and that only hidden checks reach: the hide-checks mode's tier. */
+export function hiddenOnlyLedger(ix: PacketIndex, hidden: string[]): string[] {
+  const h = new Set(hidden);
+  const findings = runChecks(ix);
+  return LEDGER.filter((e) => {
+    const ids = [e.id, ...(e.aliases ?? [])];
+    const by = findings.filter((f) => f.ledgerIds.some((x) => ids.includes(x)));
+    return by.length > 0 && by.every((f) => h.has(f.checkId));
+  }).map((e) => e.id);
+}
+
+export interface TierFigures { total: number; strict: string[]; same: string[] | null; grounded: number; suggestions: number }
+/** Strict and same-issue (adjudicated; null without verdicts) recall on exactly the given ledger ids, with grounding. */
+export function tierFigures(s: Score, ids: string[], adj: Adjudication | undefined, gold: Pick<Gold, 'id' | 'textTier'>[]): TierFigures {
+  const same = adj ? adjudicatedFigures(s, adj, gold).same : null;
+  return {
+    total: ids.length, strict: ids.filter((id) => s.ledgerFound.includes(id)), same: same ? ids.filter((id) => same.includes(id)) : null,
+    grounded: s.grounded, suggestions: s.suggestions,
+  };
+}
+
+/** The agent-vs-reader scorecard (ai/eval/agent-scorecard.md), kept apart from the handed-in docs/handin/ai-scorecard.md.
+ *  One section per agent run, each scored on its mode's tier, so recall cannot be bought by echoing our checks. */
+export function agentScorecardMarkdown(reader: ScoredRun, agents: ModeRun[], altered: ScoredRun[], gold: Pick<Gold, 'id' | 'textTier'>[], today = new Date().toISOString().slice(0, 10)): string {
+  const L: string[] = [];
+  const frac = (n: number, d: number) => (d ? `${n} of ${d} (${pct(n / d)})` : 'none to score');
+  const head = (rs: ScoredRun[]) => [`| Measure | ${rs.map((r) => r.label).join(' | ')} |`, `|---|${rs.map(() => '---|').join('')}`];
+  const row = (name: string, rs: ScoredRun[], f: (r: ScoredRun) => string) => `| ${name} | ${rs.map(f).join(' | ')} |`;
+  const nr = 'not recorded';
+  L.push('# AI agent vs reader scorecard', '', `Scored ${today}. Same harness, same ledger, same strict match as docs/handin/ai-scorecard.md (whose figures are not changed).`,
+    'Each agent run is scored on the tier its mode allows, beside the reader on the same tier. Same issue counts a second',
+    'model\'s SAME verdicts (ai/adjudication-<version>.json); a run without verdicts shows "not adjudicated".', '');
+  for (const a of agents) {
+    const pair = [reader, a];
+    if (a.mode === 'default') {
+      L.push('## Mode default: ledger mistakes no deterministic check reaches', '',
+        'Only ledger mistakes no deterministic check reaches are scored, so a suggestion that repeats one of our checks earns nothing.', '');
+      if (!a.tier.length) {
+        L.push(`On this packet every ledger mistake is reached by a deterministic check (${gold.length} of ${gold.length}), so this tier has no entries`,
+          'and cannot rank the runs. Use the blind and hide-checks modes below, grounded suggestions beyond the ledger (read by a person),', 'and cost and time.', '');
+        continue;
+      }
+    } else if (a.mode === 'blind') {
+      L.push(`## Mode blind: all ${gold.length} ledger mistakes (no run_checks, no find_fact_copies)`, '',
+        'The agent sees none of our checks\' results, so recall on every ledger mistake is a fair comparison.',
+        'The reader-v2 figures are those of docs/handin/ai-scorecard.md (same payload, same strict rule, same verdicts).', '');
+    } else {
+      L.push(`## Mode hide-checks, seed ${a.seed}: ledger entries reached only by hidden checks (${a.tier.length})`, '',
+        'A seeded half of the check ids was hidden from the agent\'s tools; these are the ledger entries only those checks reach.', '');
+    }
+    if (a.mode !== 'blind') L.push(`Entries: ${a.tier.join(', ') || 'none'}.`, '');
+    const fig = pair.map((r) => tierFigures(r.score, a.tier, r.adjudication, gold));
+    L.push(...head(pair));
+    L.push(`| Recall, strict | ${fig.map((f) => frac(f.strict.length, f.total)).join(' | ')} |`);
+    L.push(`| Recall, same issue (adjudicated) | ${fig.map((f) => (f.same ? frac(f.same.length, f.total) : 'not adjudicated')).join(' | ')} |`);
+    L.push(`| Grounding rate | ${fig.map((f) => frac(f.grounded, f.suggestions)).join(' | ')} |`);
+    L.push(`| Found, strict | ${fig.map((f) => f.strict.join(', ') || 'none').join(' | ')} |`, '');
+  }
+  const runs: ScoredRun[] = [reader, ...agents];
+  L.push('## All tiers', '', ...head(runs));
+  L.push(row('Recall, strict', runs, (r) => frac(r.score.ledgerFound.length, r.score.ledgerTotal)));
+  L.push(row('Recall, strict, text tier', runs, (r) => frac(r.score.textTierFound.length, r.score.textTierTotal)));
+  L.push(row('Recall, strict, as shown', runs, (r) => frac(r.shown.score.ledgerFound.length, r.shown.score.ledgerTotal)));
+  L.push(row('Precision, strict', runs, (r) => frac(r.score.matchedGrounded, r.score.grounded)));
+  L.push(row('Grounding rate', runs, (r) => frac(r.score.grounded, r.score.suggestions)));
+  L.push(row('Held back by the verifier', runs, (r) => String(r.shown.heldBack)));
+  L.push(row('Grounded suggestions on no ledger line', runs, (r) => String(r.score.unmatched.length)));
+  L.push(row('Rejected', runs, (r) => String(r.score.rejected)), '');
+  L.push('## Run', '', ...head(runs));
+  L.push(row('Approximate cost', runs, (r) => (r.meta.costUsd == null ? nr : `$${r.meta.costUsd.toFixed(2)}`)));
+  L.push(row('Seconds', runs, (r) => (r.meta.seconds == null ? nr : String(r.meta.seconds))));
+  L.push(row('Turns / tool calls', runs, (r) => `${r.meta.turns ?? nr} / ${r.meta.toolCalls ?? nr}`));
+  L.push(row('HTTP calls', runs, (r) => (r.meta.calls == null ? nr : String(r.meta.calls))));
+  L.push(row('Served model', runs, (r) => r.meta.servedModels?.join(', ') || nr), '');
+  if (altered.length) {
+    L.push('## Altered packet', '', ...head(altered));
+    L.push(row('No-check tier, strict', altered, (r) => `${frac(r.score.beyondChecks.found.length, r.score.beyondChecks.total)}${r.score.beyondChecks.total ? ` (entries ${r.score.beyondChecks.ids.join(', ')})` : ''}`));
+    L.push(row('Recall, strict', altered, (r) => frac(r.score.ledgerFound.length, r.score.ledgerTotal)));
+    L.push(row('Claims on lines not in this packet', altered, (r) => String(r.score.claimsNotInPacket)));
+    L.push(row('Grounding rate', altered, (r) => frac(r.score.grounded, r.score.suggestions)), '');
+  }
+  return L.join('\n') + '\n';
 }

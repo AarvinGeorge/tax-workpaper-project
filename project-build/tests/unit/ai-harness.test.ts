@@ -3,8 +3,10 @@ import { describe, expect, it } from 'vitest';
 import { indexPacket, loadPacket } from '@/domain/packet/load';
 import type { AiPayload, AiSuggestion } from '@/domain/ai/contract';
 import { supersession } from '@/domain/ai/verify';
-import { adjudicatedFigures, goldSet, isGrounded, matches, matchesStrict, scorePayload, scorecardMarkdown, shownView, type Adjudication } from '../../ai/lib/harness-core';
+import { adjudicatedFigures, agentScorecardMarkdown, beyondChecksTier, goldSet, hiddenOnlyLedger, tierFigures, uncheckedLedger, isGrounded, matches, matchesStrict, scorePayload, scorecardMarkdown, shownView, type Adjudication } from '../../ai/lib/harness-core';
 import { personNames, redactNames } from '../../ai/lib/reader-core';
+import { hiddenCheckIds } from '../../ai/lib/modes';
+import { runChecks } from '@/domain/checks/index';
 
 const ix = indexPacket(loadPacket());
 const gold = goldSet(ix);
@@ -239,6 +241,75 @@ describe('AI harness: scoring', () => {
     expect(md).toContain('| Recall, strict (shared claim line) | 0 of 27 (0%)');
     expect(md).toContain('| Recall, loose (shared line or document) | 0 of 27 (0%)');
     expect(md).toContain('No payload for the altered packet yet');
+    expect(md).not.toContain('—');
+  });
+});
+
+describe('AI harness: the tier no deterministic check reaches (agent bar)', () => {
+  it('computes which ledger entries no finding reaches; none on the real packet, some on the altered one', async () => {
+    const { alteredPacket } = await import('../fixtures/altered');
+    expect(uncheckedLedger(ix)).toEqual([]);
+    expect(uncheckedLedger(indexPacket(alteredPacket())).length).toBeGreaterThan(0); // the measurement can be non-zero
+  });
+
+  it('scores only the unreached entries', () => {
+    const g = gold.find((x) => x.claimLines.size)!;
+    const s = scorePayload(ix, payload([sug('b1', [[...g.claimLines][0]], [quoteFrom(ix.packet.documents[0].id)])]));
+    expect(s.beyondChecks).toEqual({ total: 0, ids: [], found: [], recall: null });
+    expect(beyondChecksTier(s, [g.id])).toEqual({ total: 1, ids: [g.id], found: [g.id], recall: 1 });
+    const other = gold.find((x) => x.id !== g.id)!;
+    expect(beyondChecksTier(s, [other.id])).toEqual({ total: 1, ids: [other.id], found: [], recall: 0 });
+  });
+
+  it('the handed-in scorecard is unchanged by the new tier', () => {
+    expect(scorecardMarkdown(scorePayload(ix, payload([])), null, {}, '2026-10-17')).not.toMatch(/no deterministic check reaches/);
+  });
+
+  it('ledger entries reached only by hidden checks: computed from the real checks and the ledger', () => {
+    const findings = runChecks(ix);
+    const reachers = (id: string) => findings.filter((f) => f.ledgerIds.includes(id)).map((f) => f.checkId);
+    const hidden = hiddenCheckIds(7);
+    const only = hiddenOnlyLedger(ix, hidden);
+    expect(only.length).toBeGreaterThan(0); // the seed hides the only checks of some entries, so this measures something
+    for (const id of only) expect(reachers(id).every((c) => hidden.includes(c)), id).toBe(true);
+    for (const g of gold.filter((x) => !only.includes(x.id))) expect(reachers(g.id).some((c) => !hidden.includes(c)) || !reachers(g.id).length, g.id).toBe(true);
+    expect(hiddenOnlyLedger(ix, [])).toEqual([]);
+  });
+
+  it('tier figures: strict and same-issue recall on exactly the tier, with grounding', () => {
+    const [a, b] = gold.filter((x) => x.claimLines.size);
+    const s = scorePayload(ix, payload([sug('t1', [[...a.claimLines][0]], [quoteFrom(ix.packet.documents[0].id)]), sug('t2', [[...b.claimLines][0]], [quoteFrom(ix.packet.documents[0].id)])]));
+    const adj: Adjudication = { promptVersion: 'reader-v1', reviewer: 'x', file: 'x', beyond: [], matches: [
+      { suggestionId: 't1', ledgerId: a.id, verdict: 'SAME', reason: 'r' }, { suggestionId: 't2', ledgerId: b.id, verdict: 'DIFFERENT', reason: 'r' }] };
+    expect(tierFigures(s, [a.id, b.id], adj, gold)).toEqual({ total: 2, strict: [a.id, b.id], same: [a.id], grounded: 2, suggestions: 2 });
+    expect(tierFigures(s, [b.id], undefined, gold)).toEqual({ total: 1, strict: [b.id], same: null, grounded: 2, suggestions: 2 });
+  });
+
+  it('the agent scorecard prints, per mode, strict and same-issue recall on that mode\'s tier with grounding', () => {
+    const g = gold.find((x) => x.claimLines.size)!;
+    const reader = scorePayload(ix, payload([sug('r1', [[...g.claimLines][0]], [quoteFrom(ix.packet.documents[0].id)])]));
+    const empty = (v: string) => scorePayload(ix, { ...payload([]), promptVersion: v, model: 'claude-opus-5-5' });
+    const shown = shownView(ix, payload([]));
+    const adj: Adjudication = { promptVersion: 'reader-v1', reviewer: 'x', file: 'x', beyond: [], matches: [{ suggestionId: 'r1', ledgerId: g.id, verdict: 'SAME', reason: 'r' }] };
+    const hiddenTier = hiddenOnlyLedger(ix, hiddenCheckIds(7));
+    const md = agentScorecardMarkdown({ label: 'reader-v2', score: reader, shown, meta: { costUsd: 1.5, seconds: 110, calls: 74 }, adjudication: adj }, [
+      { label: 'agent-v1', score: empty('agent-v1'), shown, meta: { costUsd: 4.2, seconds: 600, turns: 22, toolCalls: 80, servedModels: ['claude-opus-5-5'] }, mode: 'default', tier: [] },
+      { label: 'agent-v1-blind', score: empty('agent-v1-blind'), shown, meta: {}, mode: 'blind', tier: gold.map((x) => x.id) },
+      { label: 'agent-v1-hide-7', score: empty('agent-v1-hide-7'), shown, meta: {}, mode: 'hide-checks', seed: 7, tier: hiddenTier },
+    ], [], gold, '2026-10-24');
+    expect(md).toContain('# AI agent vs reader scorecard');
+    expect(md).toMatch(/## Mode default: ledger mistakes no deterministic check reaches/);
+    expect(md).toMatch(/every ledger mistake is reached by a deterministic check/);
+    expect(md).toContain('## Mode blind: all 27 ledger mistakes (no run_checks, no find_fact_copies)');
+    expect(md).toContain('| Measure | reader-v2 | agent-v1-blind |');
+    expect(md).toContain(`| Recall, strict | 1 of 27 (4%) | 0 of 27 (0%) |`);
+    expect(md).toContain(`| Recall, same issue (adjudicated) | 1 of 27 (4%) | not adjudicated |`);
+    expect(md).toMatch(/reader-v2 figures are those of docs\/handin\/ai-scorecard\.md/);
+    expect(md).toContain(`## Mode hide-checks, seed 7: ledger entries reached only by hidden checks (${hiddenTier.length})`);
+    expect(md).toContain(`Entries: ${hiddenTier.join(', ')}.`);
+    expect(md).toMatch(/\| Grounding rate \| 1 of 1 \(100%\) \| none to score \|/);
+    expect(md).toContain('| Approximate cost | $1.50 | $4.20 | not recorded | not recorded |');
+    expect(md).toContain('| Served model | not recorded | claude-opus-5-5 | not recorded | not recorded |');
     expect(md).not.toContain('—');
   });
 });

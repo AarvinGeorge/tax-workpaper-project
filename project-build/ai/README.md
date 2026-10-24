@@ -17,6 +17,11 @@ known mistakes before anyone trusts it.
 | `ai/lib/reader-core.ts` | Context building, masking, request, schema, row validation, retry, the run loop (pure apart from an injected fetch) |
 | `ai/lib/harness-core.ts` | Gold set, grounding, matching, scoring, the scorecard text (pure) |
 | `src/server/ai-reader.ts`, `src/app/api/internal/ai-reader/route.ts` | The reader in the cloud (see below) |
+| `ai/agent.ts` | CLI: the agent (one investigation over the whole packet with the deterministic tools); writes `ai/eval/agent-suggestions.json` and its run meta. Never run without an approved budget |
+| `ai/lib/agent-core.ts` | The agent loop on the Anthropic SDK tool runner: context, guards (iteration cap, wall-clock abort, cost budget, refusal and max_tokens stops), final-answer validation, proposals, writing only a finished run |
+| `ai/lib/agent-tools.ts` | The seven read-only tools (`get_line`, `get_page`, `search_values`, `find_fact_copies`, `proofs_for_line`, `run_checks`, `list_open_leftovers`): masked, labelled as data, bounded, SSN-scanned; findings leave without ledger, finding or check ids |
+| `ai/lib/domain-digest.md` | The short review-method digest in the agent's context (from `docs/research`; no ledger content) |
+| `ai/lib/producer.ts` | The active producer and its prompt version, read by the CI gate and the cron's idempotency (today: the reader) |
 | `ai/eval/` | The measured eval payloads (`ai-suggestions.json` is reader-v2; `.v1` and `.altered` kept for comparison) and their run-meta files |
 | `tests/unit/ai-reader.test.ts`, `tests/unit/ai-harness.test.ts`, `tests/unit/ai-reader-route.test.ts`, `tests/unit/eval-gate.test.ts` | Unit tests; no network (a fake fetch is injected) |
 
@@ -108,7 +113,7 @@ The CI eval gate (no key, no model call; scores the committed eval payload throu
 ```
 npx tsx ai/harness.ts --check                  # exit 1 if any produced suggestion is ungrounded, the verifier holds
                                                # back more than 1 (the baseline), strict recall as shown < 16 of 27,
-                                               # the payload's promptVersion differs from PROMPT_VERSION, or any
+                                               # the payload's promptVersion differs from ACTIVE_PROMPT_VERSION, or any
                                                # SSN-shaped string is in the payload
 ```
 
@@ -130,10 +135,10 @@ files share that prefix.
 
 ## The reader in the cloud
 
-`/api/internal/ai-reader` (GET from the daily Vercel Cron at 06:00 UTC, POST for a manual run) requires
+`/api/internal/ai-reader` (GET or POST, run on demand; the daily Vercel Cron schedule was removed on 24 Oct 2026 because the demo packet never changes) requires
 `Authorization: Bearer <CRON_SECRET>` (compared timing-safe; 401 otherwise) and answers 503
 "ANTHROPIC_API_KEY not configured" without the key. It is idempotent: when the stored payload was made for this
-packet (`packetSha` equals `RETURN_ID`) and this `PROMPT_VERSION`, it returns `{skipped: true}` without a model call;
+packet (`packetSha` equals `RETURN_ID`) and `ACTIVE_PROMPT_VERSION` (ai/lib/producer.ts; today the reader's `PROMPT_VERSION`), it returns `{skipped: true}` without a model call;
 `?force=1` reruns. Otherwise it runs the same reader core over the decrypted vault packet (same masking, model
 `claude-sonnet-5-5`, same row validation), encrypts the payload into `returns/<sha>/ai-suggestions.json.enc`, and
 returns counts, rejected, seconds and a cost estimate; never suggestion content. A full run took 108 to 119 seconds on
@@ -147,6 +152,41 @@ A manual run: `curl -X POST -H "Authorization: Bearer $CRON_SECRET" https://taxm
 A dry run proves the cloud path in production without touching the stored payload: `?dryRun=1&limit=N` (N from 1 to
 5, default 3) runs the reader over the first N documents of the vault packet, stores nothing, and returns
 `{dryRun, documents, suggestions, rejected, grounded, calls, failedCalls, seconds, costUsdEstimate}`, counts only. It needs the same bearer and key.
+
+## The agent (Step 2, CLI only)
+
+Plan: `docs/superpowers/plans/2026-10-24-ai-agent.md`. The same safety model as the reader (runs at intake, output
+re-checked by the backend, a person accepts each suggestion, never blocks), but one investigation over the whole packet.
+
+- **SDK**: `@anthropic-ai/sdk` 1.3.0, `client.beta.messages.toolRunner` with `betaTool` (JSON Schema, `strict: true`,
+  no Zod). The client gets the `fetch` option (tests inject one returning real `Response` objects), `maxRetries` 2 and
+  `timeout` 15 minutes per request. `thread: false`: the full history is sent each turn (no server-held thread), with
+  top-level `cache_control` caching the growing transcript and a breakpoint on the shared context.
+- **Packet** (`ai/lib/agent-packet.ts`): in vault mode (production) the same path as the cloud reader:
+  `ensureReturnData()` fetches the sealed packet, decrypts it and refuses it unless its SHA-256 equals `RETURN_ID`;
+  `data/packet.json` is never read and nothing is written to the Blob store. File mode (`data/packet.json`, or
+  `--packet altered`) is for laptop measurement only. A partial vault configuration fails loudly. The run meta records
+  `source: 'vault' | 'file'`.
+- **Model**: `claude-opus-5-5` by default (`--model` to measure another), adaptive thinking, `output_config.effort`
+  `high`, the server-side refusal fallback (`betas: ['server-side-fallback-2026-07-01']`, `fallbacks: 'default'`),
+  `tool_choice` left at auto (forced is refused). The served model of every turn is recorded.
+- **Context (cached)**: the packet README, firm standards, `docs/brief.txt`, `ai/lib/domain-digest.md`, the reader's
+  shared context (latest lines, client text, prior-year notes, masked) and a document index.
+- **Output**: the `AiPayload` (`promptVersion` `agent-v1`, `model` = the served model) plus optional `proposals`
+  (rule, fields compared, where it fires, where it stays silent, refs; words only, never code). Rows are validated as the
+  reader's.
+- **Measurement modes** (`ai/lib/modes.ts`): `--blind` drops `run_checks` and `find_fact_copies` and computes leftovers
+  with no findings (scored on all 27 beside reader-v2); `--hide-checks <seed>` hides a seeded half of the check ids from
+  `run_checks`, the leftovers and the fact copies (scored on the ledger entries only those checks reach, recomputed by the
+  harness from the seed and the real checks). Default is production. Each mode writes its own file
+  (`agent-suggestions[.blind|.hide-<seed>].json`); the run meta records the mode, seed and hidden check ids.
+- **Suggestions on a finding's exact claims are kept** (a new issue can sit on a checked line) and counted in the run meta
+  as `onFindingClaims`; the scoring tiers, not a filter, stop echoes from scoring.
+- **Guards**: `--max-iterations` (40), `--max-minutes` (40), `--max-cost` (12 USD). A partial, failed or over-budget run
+  writes nothing.
+- **Scoring**: `npx tsx ai/harness.ts --agent` writes `ai/eval/agent-scorecard.md`: per agent run, strict and same-issue
+  recall with grounding on its mode's tier beside reader-v2 (default: mistakes no check reaches, empty on the delivered
+  packet; blind: all 27; hide-checks: entries only the hidden checks reach, 11 for seed 7).
 
 ## What the scorecard means
 

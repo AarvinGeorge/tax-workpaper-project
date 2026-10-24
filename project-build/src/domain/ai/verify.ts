@@ -7,8 +7,8 @@ import { isSupersededDoc } from '../docs';
 import { AI_AUTHORITIES, type AiEvidence, type AiPayload, type VerifiedSuggestion } from './contract';
 
 const norm = (s: string) => s.replace(/\s+/g, ' ').trim();
-/** 123-45-6789, 123 45 6789 or nine digits in a row. */
-const SSN_SHAPED = /(?<![\d-])\d{3}[- ]?\d{2}[- ]?\d{4}(?![\d-])/;
+/** 123-45-6789, 123 45 6789 or nine digits in a row. Exported for the agent's tool-result scan (ai/lib/agent-tools.ts). */
+export const SSN_SHAPED = /(?<![\d-])\d{3}[- ]?\d{2}[- ]?\d{4}(?![\d-])/;
 const MAX_WORDS = 30;
 /** A quote proves something when it carries content: at least 8 characters, and either 3 words or more or a digit (a
  *  line item with its amount is evidence; a bare label such as "Tax ID" is on every form). */

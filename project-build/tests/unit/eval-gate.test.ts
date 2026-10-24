@@ -6,7 +6,7 @@ import { describe, expect, it } from 'vitest';
 import { indexPacket, loadPacket } from '@/domain/packet/load';
 import type { AiPayload } from '@/domain/ai/contract';
 import { evalGate, MAX_HELD_BACK, MIN_STRICT_RECALL } from '../../ai/lib/harness-core';
-import { PROMPT_VERSION } from '../../ai/lib/reader-core';
+import { ACTIVE_PROMPT_VERSION as PROMPT_VERSION } from '../../ai/lib/producer';
 
 const ix = indexPacket(loadPacket());
 const payload = JSON.parse(readFileSync(path.join(process.cwd(), 'ai', 'eval', 'ai-suggestions.json'), 'utf8')) as AiPayload;

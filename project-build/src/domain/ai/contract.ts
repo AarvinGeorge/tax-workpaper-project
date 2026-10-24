@@ -48,6 +48,16 @@ export const AI_AUTHORITIES = [
 
 export interface AiRejected { raw: unknown; reason: string }
 
+/** A new deterministic check proposed in words by the agent (ai/agent.ts): never code, shown nowhere in the app,
+ *  reviewed offline and, if accepted, coded and tested like any check. Optional; the app's loader ignores it. */
+export interface AiProposal {
+  rule: string;                  // the rule in plain words
+  compares: string[];            // the fact keys or fields compared, e.g. 'line:SchE.14A', 'W-2 box 16'
+  firesWhen: string;             // where it should fire
+  silentWhen: string;            // where it must stay silent
+  refs: string[];                // packet refs that motivated it (line keys, value ids, doc ids)
+}
+
 export interface AiPayload {
   schemaVersion: 1;
   packetSha: string;             // SHA-256 of the packet it read; the backend refuses a payload for another packet
@@ -56,6 +66,7 @@ export interface AiPayload {
   runAt: string;                 // ISO time of the run
   suggestions: AiSuggestion[];
   rejected: AiRejected[];        // rows the reader's own pipeline already refused (schema), kept for the scorecard
+  proposals?: AiProposal[];      // agent only: new checks proposed in words (never code); ignored by the app
 }
 
 /** What the backend adds after verification (lane U): grounded or quarantined, with the reason. */
