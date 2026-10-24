@@ -27,4 +27,14 @@ describe('AI rows', () => {
     const keys = rows.map((r) => `${r.title}|${r.claims}|${r.status}`);
     expect(new Set(keys).size).toBe(keys.length);
   });
+  it('one entry per title within an item, even when one suggestion also names other lines (live: SchE.14A, SchCA540NR.1.E)', () => {
+    const items = [
+      item(f('r1', 'A repair that may be an improvement', ['line:SchE.14A', 'line:SchE.18A'])),
+      item(f('r2', 'A repair that may be an improvement', ['line:SchE.14A', 'line:SchE.18A', 'line:SchE.20A', 'line:SchE.21A'])),
+      item(f('r3', 'A repair that may be an improvement', ['line:SchE.14A']), 'accepted'),
+    ];
+    const rows = groupAiRows(items, (x) => `Repairs - property A: ${x.title}`);
+    expect(rows.map((r) => [r.items.map((x) => x.f.id), r.status])).toEqual([[['r1', 'r2'], 'needs_review'], [['r3'], 'accepted']]);
+    expect(new Set(rows.map((r) => `${r.title}|${r.status}`)).size).toBe(rows.length);
+  });
 });

@@ -30,14 +30,15 @@ export function aiTitle(kind: string, otherKind: string | null): string {
 
 export interface AiRow<T> { title: string; claims: string; status: string; items: T[] }
 
-/** Checks' AI rows: suggestions with the same shown title, the same lines and the same review status are one row with
- *  a count, in first-seen order; the first item keeps the row (its id, its link). Other statuses stay separate rows. */
+/** Checks' AI rows, within one item: suggestions with the same shown title and the same review status are one row with
+ *  a count, in first-seen order, even when one of them also names other lines (each keeps its own link, which shows
+ *  its lines); the first item keeps the row (its id, its link, its claims). Other statuses stay separate rows. */
 export function groupAiRows<T extends { f: Finding; st: { status: string } }>(items: T[], title: (f: Finding) => string): AiRow<T>[] {
   const rows = new Map<string, AiRow<T>>();
   for (const x of items) {
     const t = title(x.f);
     const claims = x.f.claims.join(',');
-    const key = `${t}|${claims}|${x.st.status}`;
+    const key = `${t}|${x.st.status}`;
     const row = rows.get(key);
     if (row) row.items.push(x); else rows.set(key, { title: t, claims, status: x.st.status, items: [x] });
   }

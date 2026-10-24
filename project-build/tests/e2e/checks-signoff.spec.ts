@@ -11,7 +11,11 @@ test('one table: a checkbox in each row, no separate sign-off list, bar only onc
   await page.goto(`/w/${ws()}/daniel/checks`);
   const rows = ours(page).locator('[data-item]');
   expect(await rows.count()).toBeGreaterThan(2);
-  expect(await rowBoxes(page).count()).toBe(await rows.count());
+  // Every row holding one of our checks has a checkbox; a row the AI alone flagged is decided by accept or dismiss, not
+  // signed off, so it has none (the deployed payload has such rows; the local fixture has none).
+  const checked = ours(page).locator('[data-item]:not([data-severity="ai"])');
+  expect(await rowBoxes(page).count()).toBe(await checked.count());
+  expect(await ours(page).locator('[data-item][data-severity="ai"] input[type="checkbox"]').count()).toBe(0);
   await expect(page.getByText('Select for sign-off')).toHaveCount(0);
   const bar = page.getByRole('toolbar', { name: 'Sign off the selected rows' });
   await expect(bar).toHaveCount(0);

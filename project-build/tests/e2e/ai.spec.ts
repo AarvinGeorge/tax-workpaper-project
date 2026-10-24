@@ -4,10 +4,14 @@
 import { expect, test } from '@playwright/test';
 import { AI_FIXTURE_IDS } from '../fixtures/ai-payload';
 
+// Against a deployed app (E2E_BASE_URL) the server holds the measured AI payload, not this fixture: the tests that look for
+// the fixture's suggestion are skipped there rather than passing on nothing.
+const fixtureOnly = () => test.skip(!!process.env.E2E_BASE_URL, 'needs the local AI fixture payload');
 const ws = () => `e2e-ai-${Date.now().toString(36)}${Math.random().toString(36).slice(2, 6)}`;
 const ID = AI_FIXTURE_IDS.grounded;
 
 test('Checks shows the AI suggestion inside the item it flags: marked, needs review, filter chip, held-back note', async ({ page }) => {
+  fixtureOnly();
   await page.goto(`/w/${ws()}/daniel/checks`);
   // The suggestion joins the item our check already sits on (SchE.14A): one row, both pills.
   const itemRow = page.locator('[data-item]').filter({ has: page.locator(`[data-finding="${ID}"]`) });
@@ -32,6 +36,7 @@ test('Checks shows the AI suggestion inside the item it flags: marked, needs rev
 });
 
 test('the side panel shows rationale, quote, authority and provenance; accept labels it', async ({ page }) => {
+  fixtureOnly();
   const w = ws();
   await page.goto(`/w/${w}/daniel/checks?claim=finding:${ID}`);
   const drawer = page.getByTestId('drawer');
@@ -50,6 +55,7 @@ test('the side panel shows rationale, quote, authority and provenance; accept la
 });
 
 test('a dismissed suggestion leaves the inbox; dismiss needs a reason; clients and the examiner are refused', async ({ page }) => {
+  fixtureOnly();
   const w = ws();
   const post = (role: string, type: string, payload: Record<string, unknown>) =>
     page.request.post(`/api/w/${w}/events`, { data: { role, type, claimId: `finding:${ID}`, payload } });
