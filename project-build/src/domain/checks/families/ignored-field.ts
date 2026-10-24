@@ -145,4 +145,34 @@ export const penaltyWithholding: Check = {
   },
 };
 
-export const ignoredFieldChecks: Check[] = [paymentTaxYear, fxRateYear, penaltyWithholding];
+const NOT_COMPUTED = /\b(?:does not|did not|never) compute|\bnot computed\b/i;
+
+/** A line whose rule the engine does not compute, held at its placeholder while an input carries an amount. */
+export const lineNotComputed: Check = {
+  id: 'CHK-LINE-NOT-COMPUTED',
+  family: FAMILY,
+  run(ix) {
+    const rules = ix.packet.engine_reference.rules;
+    const out: Draft[] = [];
+    for (const line of ix.latest.lines) {
+      const text = rules[line.rule ?? ''] ?? '';
+      if (!NOT_COMPUTED.test(text)) continue;
+      const live = (line.inputs || []).map((k) => ix.line(ix.latest.version, k)).filter((l): l is NonNullable<typeof l> => !!l && (num(l.value) ?? 0) !== 0);
+      if (!live.length) continue;
+      const open = ix.versions.filter((v) => v.diagnostics.some((d) => NOT_COMPUTED.test(d.message) && d.refs.some((r) => live.some((l) => l.key === r)))).map((v) => v.version);
+      out.push({
+        title: `${line.label}: never computed, though its input carries an amount`,
+        claims: [lineClaim(line.key)],
+        evidence: live.flatMap((l) => (l.sources || []).filter((s) => ix.valueById.has(s))),
+        explanation: `${line.key} shows ${fmt(num(line.value) ?? 0)}, but its rule ${line.rule} says "${text}" `
+          + `Its input ${live.map((l) => `${l.key} (${l.label}, ${fmt(num(l.value)!)})`).join(', ')} is not zero, so the figure is a placeholder, not a result`
+          + (open.length ? `; the engine's own warning on it stayed open in ${open.join(', ')}` : '')
+          + `. Compute it outside the engine, or record why it is zero, before approval.`,
+        stopsEfile: true,
+      });
+    }
+    return out;
+  },
+};
+
+export const ignoredFieldChecks: Check[] = [paymentTaxYear, fxRateYear, penaltyWithholding, lineNotComputed];

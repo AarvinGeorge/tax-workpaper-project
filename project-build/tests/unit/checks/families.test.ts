@@ -70,6 +70,7 @@ const SILENCE: [string, string, (p: Packet) => void][] = [
   ['CHK-CLIENT-VALUE-VS-DOCUMENT', 'line:F8283.A1.vehicle', (p) => { value(p, 'ev-1054').value = 6000; }],
   ['CHK-OTHER-STATE-CREDIT-LIMIT', 'line:ScheduleS.credit', (p) => { latestLine(p, 'ScheduleS.credit').value = 600; }],
   ['CHK-PENALTY-WITHHOLDING', 'line:F2210.19', (p) => { latestLine(p, 'Sch3.11').value = 0; }],
+  ['CHK-LINE-NOT-COMPUTED', 'line:F540NR.61', (p) => { latestLine(p, 'F6251.2i').value = 0; }],
   ['CHK-INPUTS-DO-NOT-SUM', 'line:SchCA540NR.1.D', (p) => {
     for (const l of latest(p).lines) {
       if (/^SchCA540NR\.\d+\.D$/.test(l.key)) {
@@ -151,6 +152,27 @@ describe('checks fire on new cases they were not written for', () => {
   it('trace: a sum line whose inputs do not add up fires', () => {
     const p = altered((x) => { latestLine(x, 'SchA.5d').value = 41291; });
     expect(byCheck(run(p), 'CHK-INPUTS-DO-NOT-SUM').some((f) => f.claims.includes('line:SchA.5d'))).toBe(true);
+  });
+});
+
+// Found by the blind re-investigation (24 Oct), after hand-in: kept out of the ledger catalogue for now (Aarvin's call).
+describe('a line the engine never computed', () => {
+  it('blocks approval, cites its nonzero input, and carries no ledger id', () => {
+    const f = byCheck(run(altered(() => {})), 'CHK-LINE-NOT-COMPUTED').find((x) => x.claims.includes('line:F540NR.61'))!;
+    expect(f).toBeDefined();
+    expect(f.severity).toBe('blocker');
+    expect(f.ledgerIds).toEqual([]);
+    expect(f.explanation).toMatch(/F6251\.2i/);
+    expect(f.evidence.length).toBeGreaterThan(0);
+  });
+
+  it('fires on any line whose rule the engine does not compute, not only California AMT', () => {
+    const p = altered((x) => {
+      x.engine_reference.rules['R-TEST-NOT-COMPUTED'] = 'The engine does not compute this figure.';
+      const l = latestLine(x, 'F1040.26');
+      l.rule = 'R-TEST-NOT-COMPUTED'; l.value = 0; l.inputs = ['F6251.2i'];
+    });
+    expect(byCheck(run(p), 'CHK-LINE-NOT-COMPUTED').some((f) => f.claims.includes('line:F1040.26'))).toBe(true);
   });
 });
 

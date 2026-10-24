@@ -1,5 +1,6 @@
 // The check library: deterministic checks over the packet's schema that do not trust the engine. Engine diagnostics
-// are not findings (the UI shows them beside, labelled "From the engine").
+// are not findings (the UI shows them beside, labelled "From the engine"); a line the engine says it did not compute is
+// checked from its rule and inputs (CHK-LINE-NOT-COMPUTED), never from the diagnostic.
 import type { PacketIndex } from '../packet/load';
 import type { Finding, Severity } from '../contracts';
 import { LEDGER } from './catalogue';

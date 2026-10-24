@@ -14,7 +14,7 @@ export interface Draft {
   /** Refs whose arrival makes the finding knowable (sets firstVisibleAt). Defaults to the evidence. */
   trigger?: string[];
   judgment?: boolean;
-  /** The finding stops e-file (an identity mismatch), so it blocks regardless of amount. */
+  /** The finding stops e-file or approval (an identity mismatch, a figure never computed), so it blocks regardless of amount. */
   stopsEfile?: boolean;
 }
 

@@ -14,12 +14,12 @@ test('an adjusted line reads Adjusted on the Forms tab, and its form no longer c
   const form = page.getByRole('group', { name: 'Form 540NR' });
   const row = form.getByRole('row', { name: /F540NR\.72/ });
   await expect(row).toContainText('Blocking');
-  await expect(form).toContainText('2 with open checks');
+  await expect(form).toContainText('3 with open checks'); // F540NR.39, .61 (CA AMT never computed), .72
   expect((await adjustCa(page.request, w)).ok()).toBeTruthy();
   await page.reload();
   await expect(row).toContainText('Adjusted');
   await expect(row).not.toContainText('Blocking');
-  await expect(form).toContainText('1 with open checks');
+  await expect(form).toContainText('2 with open checks');
 });
 
 test('the side panel says the checks on an adjusted line are Adjusted, as Checks does', async ({ page }) => {

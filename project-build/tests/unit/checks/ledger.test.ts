@@ -92,8 +92,11 @@ describe('every ledger finding is surfaced on the real packet', () => {
   });
 
   it('raises nothing beyond the ledger on the real packet (no false alarms)', () => {
+    // Found after hand-in by the blind re-investigation (24 Oct), confirmed against reconciliation-queue rows 17 and 24;
+    // kept out of the catalogue so the handed-in counts stay true (Aarvin's call, docs/decisions.md).
+    const BEYOND_LEDGER = ['CHK-LINE-NOT-COMPUTED line:F540NR.61'];
     const extra = findings.filter((f) => f.ledgerIds.length === 0);
-    expect(extra.map((f) => `${f.checkId} ${f.claims.join(',')}`)).toEqual([]);
+    expect(extra.map((f) => `${f.checkId} ${f.claims.join(',')}`)).toEqual(BEYOND_LEDGER);
   });
 
   it('a sale dated after the move to Texas has no California effect (R-CA-CAPGAIN-SOURCE sources sales by date)', () => {
