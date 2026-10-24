@@ -2,5 +2,5 @@
   "$schema": "https://openapi.vercel.sh/vercel.json",
   "framework": "nextjs",
   "buildCommand": "npm test && npx tsx scripts/ingest.ts && npm run build",
-  "ignoreCommand": "[ -z \"$VERCEL_GIT_PREVIOUS_SHA\" ] || git diff --quiet \"$VERCEL_GIT_PREVIOUS_SHA\" HEAD -- ."
+  "ignoreCommand": "[ -n \"$VERCEL_GIT_PREVIOUS_SHA\" ] && git diff --quiet \"$VERCEL_GIT_PREVIOUS_SHA\" HEAD -- ."
 }
