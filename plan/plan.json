@@ -3,8 +3,8 @@
     "project": "Tax workpaper case study",
     "subtitle": "A web-native workpaper for the invented Okafor-Lindqvist household's 2025 return: every number traced to its source, every packet mistake surfaced. Due Fri 16 Oct 2026, 21:00 EDT.",
     "mode": "light",
-    "plan_version": "0.4.0",
-    "updated": "2026-10-17T23:26:37Z",
+    "plan_version": "0.5.0",
+    "updated": "2026-10-24T18:46:33Z",
     "changelog": [
       {
         "version": "0.1.0",
@@ -25,6 +25,11 @@
         "version": "0.4.0",
         "date": "2026-10-17",
         "note": "Build started: spec, plan, five lanes."
+      },
+      {
+        "version": "0.5.0",
+        "date": "2026-10-24",
+        "note": "Plan caught up after a week unrecorded: build and hand-in done; new active item for unlisted mistakes and the AI agent."
       }
     ]
   },
@@ -64,20 +69,30 @@
       "name": "Thin deployed slice",
       "short": "App",
       "what": "Load the packet as delivered, trace any number to a simulated source document and field, surface every logged mistake, role switcher, saving, live link.",
-      "build": "active",
+      "build": "done",
       "plan": "planned",
       "where": "project-build/ (plan: docs/superpowers/plans/2026-10-17-workpaper-build.md)",
-      "evidence": "project-build/: scaffold, packet hash test and loader (3 tests pass, 17 Oct 00:00)"
+      "evidence": "Live at taxmark-workpaper.vercel.app; unit and browser suites green in CI"
     },
     {
       "id": 5,
       "name": "Hand-in documents and video",
       "short": "Hand-in",
       "what": "One page on the core idea and data model, the errors write-up, the AI-usage note, the walkthrough video.",
-      "build": "not-started",
+      "build": "done",
       "plan": "none",
       "where": "No plan yet",
-      "evidence": ""
+      "evidence": "docs/final handin (brief, appendix, confident mistakes, video)"
+    },
+    {
+      "id": 6,
+      "name": "Catching mistakes nobody listed (after hand-in)",
+      "short": "Unlisted mistakes",
+      "what": "Deterministic accounting the tool does itself (proofs, same-fact engine, a check for lines the engine never computed) and an AI agent that investigates what rules cannot settle, all fitted to the existing architecture.",
+      "build": "active",
+      "plan": "planned",
+      "where": "project-build/src/domain (checks, facts.ts, proofs.ts), project-build/ai (agent)",
+      "evidence": "Live: 444d27a (line never computed), f72782c (proofs, variance net, engine coverage), 970c81d (same-fact engine). Agent built offline, 671 unit tests, not yet run or deployed."
     }
   ],
   "plans": {
@@ -253,14 +268,12 @@
         "updated": "2026-10-15T22:35:02Z",
         "period": "15 Oct 2026",
         "outcome": "27 distinct mistakes (6 high) with evidence; engine arithmetic verified sound"
-      }
-    ],
-    "now": [
+      },
       {
         "name": "Build and deploy the thin, honest workpaper",
         "why": "Hand-in 1: a working web app from a link; items 2-4 depend on it.",
         "unblocks": "The errors write-up, the one-page, the AI-usage note and the video.",
-        "stage": "verified",
+        "stage": "recorded",
         "capability": 4,
         "plan_file": "docs/superpowers/plans/2026-10-17-workpaper-build.md",
         "tasks": [
@@ -316,24 +329,99 @@
           }
         ],
         "status": "Live at taxmark-workpaper.vercel.app (b1213be): client data sealed in a private Blob store and loaded by pointer, AI reader as a cloud function, CI eval gate green; acceptance walk 36/36 on live. Hand-in documents drafted; video next.",
-        "updated": "2026-10-17T03:56:32Z"
-      }
-    ],
-    "next": [
+        "updated": "2026-10-24T18:37:20Z",
+        "period": "16-19 Oct 2026",
+        "outcome": "Live at taxmark-workpaper.vercel.app; acceptance walk passed; the base every later change builds on."
+      },
       {
         "name": "Decide the core idea, data model and round scope with Aarvin",
         "why": "No code before the idea is agreed (project rule).",
         "unblocks": "The plan for the thin slice.",
-        "stage": "intent",
-        "capability": 3
+        "stage": "recorded",
+        "capability": 3,
+        "period": "16 Oct 2026",
+        "outcome": "Core idea and data model decided (docs/handin/core-idea-and-data-model.md).",
+        "updated": "2026-10-24T18:37:20Z"
       },
       {
         "name": "Write the hand-in documents and record the video",
         "why": "Deliverables 2 to 4.",
         "unblocks": "Submission.",
-        "stage": "intent",
-        "capability": 5
+        "stage": "recorded",
+        "capability": 5,
+        "period": "17-20 Oct 2026",
+        "outcome": "Brief, appendix, confident-mistakes write-up and video in docs/final handin; submitted.",
+        "updated": "2026-10-24T18:37:20Z"
       }
-    ]
+    ],
+    "now": [
+      {
+        "name": "Deterministic accounting and the AI agent",
+        "why": "A blind re-investigation found CA AMT, which no check named; the tool must catch mistakes nobody listed without adding reviewer work.",
+        "unblocks": "Measuring the agent and deciding whether it replaces the per-document reader.",
+        "stage": "building",
+        "capability": 6,
+        "plan_file": "docs/superpowers/plans/2026-10-24-same-fact-and-agent.md",
+        "status": "Deterministic layer live; agent built and tested offline; store access and agent design being corrected before any paid run.",
+        "updated": "2026-10-24T18:46:33Z",
+        "tasks": [
+          {
+            "name": "Blind re-investigation of the raw packet",
+            "state": "done",
+            "note": "22 of 27 found plus CA AMT"
+          },
+          {
+            "name": "Check: a line the engine never computed blocks approval",
+            "state": "done",
+            "note": "444d27a, live"
+          },
+          {
+            "name": "Firm-steps review gate",
+            "state": "done",
+            "note": "built 834d79d, then rolled back (e24af9e, 60f2c88): it handed the reviewer work the tool can do"
+          },
+          {
+            "name": "Tool proofs, unexplained-variance net, engine-warning coverage",
+            "state": "done",
+            "note": "f72782c, live"
+          },
+          {
+            "name": "Same-fact engine (five generic rules)",
+            "state": "done",
+            "note": "970c81d, live; reaches 9 of 27 with no noise, then yields"
+          },
+          {
+            "name": "AI agent built offline (SDK tool runner, vault loader, modes)",
+            "state": "done",
+            "note": "uncommitted; 671 unit tests; no API spend"
+          },
+          {
+            "name": "One door to the store: only the data module touches Blob; AI output verified before it is sealed",
+            "state": "done",
+            "note": "built test-first, Fable SHIP WITH CHANGES (2 fixes applied); unit 675/675; uncommitted, waits for preview-first deploy"
+          },
+          {
+            "name": "Behaviour contract test and preview-first deploys (no breaking changes)",
+            "state": "todo",
+            "note": "proposed to Aarvin 24 Oct 14:45"
+          },
+          {
+            "name": "Drop the nightly reader schedule, keep the route (demo packet never changes)",
+            "state": "todo",
+            "note": "proposed; needs Aarvin yes"
+          },
+          {
+            "name": "Redesign the agent on the research: processed packet in, established pattern",
+            "state": "todo"
+          },
+          {
+            "name": "Measure the agent (blind, hide-checks, default) and decide on a switch",
+            "state": "todo",
+            "note": "paid runs, after the redesign"
+          }
+        ]
+      }
+    ],
+    "next": []
   }
 }
