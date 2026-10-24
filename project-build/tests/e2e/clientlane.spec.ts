@@ -1,5 +1,6 @@
 // Lane C: questions to the client that become evidence, per-spouse 8879 signing, the client's copy, assignments.
 import { readFileSync } from 'node:fs';
+import { explainFirmSteps } from './steps-helper';
 import path from 'node:path';
 import { expect, test, type APIRequestContext, type Page } from '@playwright/test';
 
@@ -36,6 +37,7 @@ async function noSecrets(page: Page) {
 /** Clear every finding blocker (as the reviewer, with a reason), then the partner approves the return. */
 async function approve(rq: APIRequestContext, w: string) {
   const st = await (await rq.get(`/api/w/${w}/state?role=helen`)).json() as { state: { blockers: { claimId: string }[] } };
+  await explainFirmSteps(rq, w); // every firm step item explained (src/domain/steps.ts)
   for (const b of st.state.blockers) {
     if (b.claimId.startsWith('finding:')) expect((await post(rq, w, 'daniel', { type: 'finding_cleared', claimId: b.claimId, payload: { reason: 'Reviewed for this test.' } })).ok()).toBeTruthy();
   }

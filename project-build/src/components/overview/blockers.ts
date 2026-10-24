@@ -9,8 +9,11 @@ export function blockerLine(ws: string, role: string, blockers: WorkspaceState['
   if (!blockers.length) return null;
   const first = blockers.find((b) => b.claimId !== 'return');
   const n = blockers.length;
+  const text = closed ? openAtFiling(n) : `${n} item${n === 1 ? '' : 's'} stop${n === 1 ? 's' : ''} filing`;
+  // A firm step (src/domain/steps.ts) is explained item by item on Review's Firm steps tab.
+  if (first?.claimId.startsWith('step:')) return { text, where: 'Review', href: screenPath(ws, role, 'review') + '?tab=steps' };
   return {
-    text: closed ? openAtFiling(n) : `${n} item${n === 1 ? '' : 's'} stop${n === 1 ? 's' : ''} filing`,
+    text,
     where: first ? 'Checks' : 'Review',
     href: first ? screenPath(ws, role, 'checks') + claimHref(first.claimId) : screenPath(ws, role, 'review') + '?tab=notes',
   };

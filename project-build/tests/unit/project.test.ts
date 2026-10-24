@@ -14,6 +14,8 @@ let seq = 0;
 const ev = (role: RoleKey, type: NewEvent['type'], extra: Partial<WorkEvent> = {}): WorkEvent =>
   ({ seq: ++seq, ws: 'ws-pr', at: '2026-10-17T00:00:00Z', storyAt: AT, role, type, payload: {}, ...extra });
 const project = (events: WorkEvent[], role: RoleKey = 'daniel', findings: Finding[] = []) => projectWorkspace(ix, events, role, findings);
+// Blockers other than the firm's gated steps (src/domain/steps.ts), which every fresh workspace has.
+const own = (s: { blockers: { claimId: string }[] }) => s.blockers.filter((b) => !b.claimId.startsWith('step:'));
 
 describe('projection', () => {
   it('an applied adjustment keeps the original and sets current; a proposal does not change current', () => {
@@ -62,7 +64,7 @@ describe('projection', () => {
     expect(s.blockers.some((b) => b.claimId === claimId && /Tie to D68/.test(b.title))).toBe(true);
     s = project([note, ev('priya', 'note_resolved', { claimId, payload: { noteSeq: note.seq } })]);
     expect(s.claims[claimId].openNotes).toHaveLength(0);
-    expect(s.blockers).toHaveLength(0);
+    expect(own(s)).toHaveLength(0);
   });
 
   const blocker: Finding = {
@@ -70,13 +72,13 @@ describe('projection', () => {
     claims: [claimId], evidence: [], explanation: 'e', ledgerIds: [],
   };
   it('a visible blocker finding blocks until its claim is adjusted or it is cleared', () => {
-    expect(project([], 'daniel', [blocker]).blockers.map((b) => b.claimId)).toEqual(['finding:F-1']);
+    expect(own(project([], 'daniel', [blocker])).map((b) => b.claimId)).toEqual(['finding:F-1']);
     const later = { ...blocker, firstVisibleAt: '2027-01-01T00:00:00Z' };
-    expect(project([], 'daniel', [later]).blockers).toHaveLength(0);
+    expect(own(project([], 'daniel', [later]))).toHaveLength(0);
     const adj = ev('daniel', 'adjustment', { claimId, payload: { value: line.value as number - 1, status: 'applied' } });
     expect(project([adj], 'daniel', [blocker]).blockers.some((b) => b.claimId === 'finding:F-1')).toBe(false);
     const cl = ev('daniel', 'finding_cleared', { claimId: 'finding:F-1', payload: { reason: 'explained' } });
-    expect(project([cl], 'daniel', [blocker]).blockers).toHaveLength(0);
+    expect(own(project([cl], 'daniel', [blocker]))).toHaveLength(0);
   });
 
   it('an adjustment over the partner threshold needs a partner sign-off', () => {

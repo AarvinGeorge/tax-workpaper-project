@@ -10,7 +10,8 @@ import {
 } from './lib';
 import { Est, NoAccess, Page, Tag } from './ui';
 import { Term } from '../term/Term';
-import { EventButton, TextAction } from './actions';
+import { EventButton, ExplainAction, TextAction } from './actions';
+import { firmSteps } from '@/domain/steps';
 import { ChangeLog } from './ChangeLog';
 import { StaffSigning } from '@/components/client/ClientFiling';
 import { signatures } from '@/components/client/signing';
@@ -62,7 +63,18 @@ export function ReviewScreen(p: WorkProps) {
   const partnerOpen = partnerItems.filter((c) => !c.signoffs.some((so) => so.level === 'partner' && !so.stale));
 
   const approval = [...liveEvents(state.events)].reverse().find((e) => e.type === 'signoff' && e.payload.scope === 'return');
+  // The firm's gated required steps (src/domain/steps.ts): every item explained before approval.
+  const liveSet = new Set(liveEvents(state.events));
+  const steps = firmSteps(ix, [...liveSet]);
+  // What an item points at (a diagnostic's refs): a line, or the document behind an extracted value; else plain text.
+  const refClaims = (refs: string[]) => [...new Map(refs.map((r) => {
+    if (ix.line(ix.latest.version, r)) return [`line:${r}`, r] as const;
+    const v = ix.valueById.get(r);
+    return v ? [`doc:${v.document_id}`, v.document_id] as const : [r, r] as const;
+  })).entries()];
+  const methods = (ix.packet.firm.starter_standards.verification_types as string[]) ?? [];
   const tabs = [
+    { key: 'steps', name: 'Firm steps', count: steps.reduce((n, st) => n + st.open, 0) },
     { key: 'changes', name: 'Adjustments', count: adjusted.length },
     { key: 'notes', name: 'Review notes', count: notes.length },
     { key: 'signoffs', name: 'Sign-offs', count: signoffs.length },
@@ -218,6 +230,40 @@ export function ReviewScreen(p: WorkProps) {
               </div>
             );
           })}
+        </section>
+      ) : null}
+
+      {tab === 'steps' ? (
+        <section className={s.box} aria-label="Firm steps">
+          <div className={s.boxRow}><span className={s.note} style={{ maxWidth: '75ch' }}>The firm&apos;s required steps that cover a whole population: every engine diagnostic, every document and the money on it, every prior-year variance. Each item needs an explanation before the partner can approve, so nothing in them goes unaccounted for.</span></div>
+          {steps.length === 0 ? <div className={s.boxRow}><span className={s.note}>The firm lists none of these steps.</span></div> : null}
+          {steps.map((st) => (
+            <div key={st.step} role="group" aria-label={st.step}>
+              <div className={s.boxRow} style={{ justifyContent: 'space-between' }}>
+                <strong>{st.step}</strong>
+                <Tag tone={st.open ? 'blk' : 'pas'}>{st.open ? `${st.open} of ${st.items.length} unexplained` : `All ${st.items.length} explained`}</Tag>
+              </div>
+              {st.items.length === 0 ? <div className={s.boxRow}><span className={s.note}>Nothing to account for at this story time.</span></div> : null}
+              {st.items.map((it) => {
+                const linkable = it.claimId.startsWith('line:') || it.claimId.startsWith('doc:');
+                const last = [...(state.claims[it.claimId]?.history ?? [])].reverse().find((e) => e.type === 'verification' && e.payload.step === st.step && liveSet.has(e));
+                const refs = it.kind === 'diagnostic' ? refClaims(it.refs) : [];
+                return (
+                  <div key={it.claimId} className={s.boxRow} data-step-item={it.claimId} style={{ flexDirection: 'column', alignItems: 'stretch', gap: 6 }}>
+                    <span>
+                      {linkable ? <a className={s.link} href={claimHref(p.sp, it.claimId)}>{m(it.title)}</a> : <strong style={{ fontWeight: 600 }}>{m(it.title)}</strong>}
+                      <span className={s.mono} style={{ marginLeft: 8 }}>{it.claimId.replace(/^(line|doc|diag|form):/, '')}</span>
+                    </span>
+                    <span className={s.note}>{m(it.detail)}</span>
+                    {refs.length ? <span className={s.note}>Points at: {refs.map(([c, label], i) => <span key={c}>{i ? ', ' : ''}{/^(line|doc):/.test(c) ? <a className={s.link} href={claimHref(p.sp, c)}>{label}</a> : label}</span>)}</span> : null}
+                    {it.explained && last ? (
+                      <span><Tag tone="pas">Explained</Tag> <span className={s.note}>{String(last.payload.method ?? '').replace(/_/g, ' ')}: “{m(String(last.payload.note ?? ''))}” · {byline(ix, last).text}</span></span>
+                    ) : <ExplainAction ws={ws} role={role.key} claimId={it.claimId} step={st.step} methods={methods} disabledReason={block ?? (closed ? 'Open at filing; the record stays as it was.' : null)} />}
+                  </div>
+                );
+              })}
+            </div>
+          ))}
         </section>
       ) : null}
 

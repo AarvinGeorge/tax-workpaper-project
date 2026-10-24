@@ -211,7 +211,9 @@ export function can(ix: PacketIndex, roleArg: RoleKey | RoleInfo, action: Action
     case 'verification': {
       if (!target.claimId) return no('Verification needs an item.');
       const types = verificationTypes(ix);
-      return types.includes(str(payload.method)) ? yes : no(`Method must be one of: ${types.join(', ')}.`);
+      if (!types.includes(str(payload.method))) return no(`Method must be one of: ${types.join(', ')}.`);
+      // Like a sign-off, a verification says what was checked (it is how an item of a firm step is explained).
+      return str(payload.note) ? yes : no('A verification needs a note on what you checked.');
     }
     case 'decision':
       if (!(DECISION_KINDS as readonly string[]).includes(str(payload.kind))) return no(`Decision kind is one of: ${DECISION_KINDS.join(', ')}.`);

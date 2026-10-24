@@ -14,6 +14,7 @@ import { lineLabel, personName } from './lib';
 import { AI_FOUND, AI_READER } from '../info/aiUse';
 import { signatures } from '@/components/client/signing';
 import { openAtFiling } from '@/components/overview/blockers';
+import { screenPath } from '@/components/shell/lib';
 import { confidentRange } from '@/components/drawer/lib';
 import { checkItems, engineOn, type Item } from '@/domain/items';
 import { Term } from '../term/Term';
@@ -93,7 +94,9 @@ export function ChecksScreen(p: WorkProps) {
   // Lines an adjustment reaches through a computation only the engine can redo block approval too (src/domain/flow.ts):
   // listed here as blocker rows so this count agrees with the overview and Review.
   const engineBlockers = state.blockers.filter((b) => /^Needs engine re-run: /.test(b.title));
-  const openBlockers = open.filter((f) => f.severity === 'blocker').length + engineBlockers.length; // same cleared rule as the rows
+  // The firm's gated steps (src/domain/steps.ts) block approval too: one row each, explained on Review.
+  const stepBlockers = state.blockers.filter((b) => b.claimId.startsWith('step:'));
+  const openBlockers = open.filter((f) => f.severity === 'blocker').length + engineBlockers.length + stepBlockers.length; // same cleared rule as the rows
   // Approved by the firm's record or filed: the blockers no longer stop anything; they were open at filing.
   const closed = state.frozen || signatures(ix, state).byRecord;
   const block = writeBlock(role, state);
@@ -163,7 +166,17 @@ export function ChecksScreen(p: WorkProps) {
                 <span className={`${s.note} ${s.hideSm}`}>Clears when the engine re-runs</span>
               </div>
             ))}
-            {shownItems.length === 0 && !engineBlockers.length ? <div className={s.boxRow}><span className={s.note}>No items at this story time for this filter.</span></div> : null}
+            {(!sev || sev === 'blocker') && stepBlockers.map((b) => (
+              <div key={b.claimId} className={`${s.chkRow} ${s.chkSel}`} data-step-blocker={b.claimId}>
+                <span />
+                <span><Tag tone={closed ? 'neu' : 'blk'}>{closed ? 'Open' : 'Blocker'}</Tag></span>
+                <span><Link prefetch={false} className={s.title} href={`${screenPath(ws, role.key, 'review')}?tab=steps`}>{b.title}</Link>
+                  <span className={s.note} style={{ display: 'block' }}>A firm required step: every item needs an explanation</span></span>
+                <span />
+                <span className={`${s.note} ${s.hideSm}`}>Clears when every item is explained</span>
+              </div>
+            ))}
+            {shownItems.length === 0 && !engineBlockers.length && !stepBlockers.length ? <div className={s.boxRow}><span className={s.note}>No items at this story time for this filter.</span></div> : null}
             {shownItems.map((it) => {
               const grp = it.severity ?? 'ai';
               const showGrp = grp !== lastGroup;

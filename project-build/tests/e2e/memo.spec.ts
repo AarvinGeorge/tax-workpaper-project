@@ -1,5 +1,6 @@
 // Review memo: a printable snapshot on Review once the partner approves (staff only), from the projected state.
 import { readFileSync } from 'node:fs';
+import { explainFirmSteps } from './steps-helper';
 import path from 'node:path';
 import { expect, test, type APIRequestContext, type Page } from '@playwright/test';
 
@@ -27,6 +28,7 @@ async function dryRun(rq: APIRequestContext, w: string, approve = true) {
   expect((await post(rq, w, 'daniel', { type: 'adjustment', claimId: 'line:F540NR.72', payload: { value: 10500, reason: REASON } })).ok()).toBeTruthy();
   expect((await post(rq, w, 'helen', { type: 'signoff', claimId: 'line:F540NR.72', payload: { level: 'partner', note: 'Checked D68: the September payment is for 2024.' } })).ok()).toBeTruthy();
   const st = await (await rq.get(`/api/w/${w}/state?role=helen`)).json() as { state: { blockers: { claimId: string }[] } };
+  await explainFirmSteps(rq, w); // every firm step item explained (src/domain/steps.ts)
   for (const b of st.state.blockers) {
     if (b.claimId.startsWith('finding:')) expect((await post(rq, w, 'daniel', { type: 'finding_cleared', claimId: b.claimId, payload: { reason: 'Reviewed for this test.' } })).ok()).toBeTruthy();
   }

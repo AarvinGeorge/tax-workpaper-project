@@ -9,6 +9,7 @@
 // step does not skip the rest. The workspace id is pinned per run (keyed by the runner pid) so a worker restart after a
 // failure keeps walking the same workspace.
 import { existsSync, mkdirSync, readFileSync, writeFileSync } from 'node:fs';
+import { explainFirmSteps } from './steps-helper';
 import { tmpdir } from 'node:os';
 import path from 'node:path';
 import { expect, test, type Browser, type BrowserContext, type Page } from '@playwright/test';
@@ -506,6 +507,7 @@ test('4.1 Clear the blockers', async ({ browser }) => {
   await clear.getByRole('button', { name: 'Save' }).click();
   await expect(first.locator('form').filter({ hasText: 'Clear with a reason' })).toHaveCount(0, { timeout: 15_000 });
   const st = await state(p, 'helen');
+  await explainFirmSteps(p.request, W); // every firm step item explained (src/domain/steps.ts)
   for (const b of st.state.blockers) {
     if (b.claimId.startsWith('finding:')) expect((await post(p, 'daniel', { type: 'finding_cleared', claimId: b.claimId, payload: { reason: 'Cleared in the acceptance walk (API setup).' } })).ok()).toBeTruthy();
   }

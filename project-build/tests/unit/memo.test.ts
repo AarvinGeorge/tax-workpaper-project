@@ -4,7 +4,8 @@ import { describe, expect, it } from 'vitest';
 import { loadPacket, indexPacket } from '@/domain/packet/load';
 import { projectWorkspace } from '@/domain/project';
 import { runChecks } from '@/domain/checks/index';
-import { DEFAULT_STORY_AT } from '@/domain/clock';
+import { DEFAULT_STORY_AT, indexAt } from '@/domain/clock';
+import { firmSteps } from '@/domain/steps';
 import { SIGN_FORMS } from '@/domain/policy';
 import { returnFingerprint } from '@/components/client/signing';
 import { memoBlock, memoData } from '@/components/work/memoData';
@@ -29,6 +30,10 @@ function dryRun() {
   events.push(note, ev('priya', 'note_resolved', { claimId: 'return', payload: { noteSeq: note.seq } }));
   const open = project(events).blockers.filter((b) => b.claimId.startsWith('finding:'));
   for (const b of open) events.push(ev('daniel', 'finding_cleared', { claimId: b.claimId, payload: { reason: 'Reviewed for this test.' } }));
+  // Every item of the firm's gated steps explained (src/domain/steps.ts).
+  for (const st of firmSteps(indexAt(ix, AT), [])) for (const i of st.items) {
+    events.push(ev('daniel', 'verification', { claimId: i.claimId, payload: { method: 'agreed_to_source_document', note: 'Explained for this test.', step: st.step } }));
+  }
   expect(project(events).blockers).toEqual([]);
   events.push(ev('helen', 'signoff', { claimId: 'return', payload: { scope: 'return', level: 'partner', value: ix.latest.version } }));
   const fp = returnFingerprint(ix, project(events));
