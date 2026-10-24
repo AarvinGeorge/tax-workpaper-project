@@ -1,7 +1,7 @@
 // The cloud AI reader route: bearer CRON_SECRET (timing-safe), 503 without an Anthropic key, idempotent, and a summary
 // only (never suggestion content). @vercel/blob and the Messages API are fakes: no network, no model call.
 import { createHash, randomBytes } from 'node:crypto';
-import { readFileSync } from 'node:fs';
+import { readdirSync, readFileSync, statSync } from 'node:fs';
 import path from 'node:path';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { blobs, resetBlobs } from '../fixtures/blob-mock';
@@ -171,5 +171,63 @@ describe('ai-reader route', () => {
     const res = await handleAiReader(req(`Bearer ${SECRET}`), env(), fakeFetch);
     expect(await res.json()).toMatchObject({ skipped: false });
     expect(fetchCalls).toBeGreaterThan(0);
+  });
+});
+
+describe('one door to the store', () => {
+  it('no AI code touches the store directly: only the data module (and the deploy-time ingest) imports the vault', () => {
+    const walk = (d: string): string[] => readdirSync(d).flatMap((n) => { const f = path.join(d, n); return statSync(f).isDirectory() ? walk(f) : /\.tsx?$/.test(n) ? [f] : []; });
+    const files = [...walk(path.join(process.cwd(), 'src')), ...walk(path.join(process.cwd(), 'ai'))];
+    const importers = files.filter((f) => /(?:from|import\()\s*['"][^'"]*\/vault(?:\.ts)?['"]/.test(readFileSync(f, 'utf8')))
+      .map((f) => path.relative(process.cwd(), f)).sort();
+    expect(importers).toEqual(['src/server/data.ts']);
+  });
+
+  it('saveAiPayload refuses a payload made for another packet, and one carrying SSN-shaped text', async () => {
+    await setup();
+    const { saveAiPayload } = await import('@/server/data');
+    const { indexPacket } = await import('@/domain/packet/load');
+    const ix = indexPacket(JSON.parse(bytes.toString('utf8')));
+    const base = { schemaVersion: 1 as const, packetSha: SHA, model: 'm', promptVersion: 'reader-v2', runAt: '2026-10-24T00:00:00Z', suggestions: [], rejected: [] };
+    await expect(saveAiPayload(ix, { ...base, packetSha: 'f'.repeat(64) }, env())).rejects.toThrow(/another packet/);
+    await expect(saveAiPayload(ix, { ...base, rejected: [{ raw: 'ssn 123-45-6789', reason: 'x' }] }, env())).rejects.toThrow(/SSN/);
+    expect(blobs.has((await import('@/server/vault')).aiBlobPath(SHA))).toBe(false);
+  });
+
+  it('saveAiPayload verifies before sealing: a quote not on its page moves to rejected, a grounded one is kept', async () => {
+    const { vault } = await setup();
+    const { saveAiPayload } = await import('@/server/data');
+    const { indexPacket } = await import('@/domain/packet/load');
+    const ix = indexPacket(JSON.parse(bytes.toString('utf8')));
+    const d = ix.packet.documents.find((x) => x.pages.some((pg) => /\d/.test(pg.printed_content)))!;
+    const pg = d.pages.find((x) => /\d/.test(x.printed_content))!;
+    const line = pg.printed_content.split('\n').map((l) => l.trim()).find((l) => l.length > 12 && /\d/.test(l))!;
+    const sug = (id: string, quote: string) => ({ id, kind: 'other' as const, otherKind: 'Test', claims: [], evidence: [{ doc: d.id, page: pg.page, quote }], rationale: 'A short reason.', authority: null, confidence: 0.5 });
+    const payload = { schemaVersion: 1 as const, packetSha: SHA, model: 'm', promptVersion: 'reader-v2', runAt: '2026-10-24T00:00:00Z',
+      suggestions: [sug('AI-1', line), sug('AI-2', 'A sentence that is printed on no page at all 42')], rejected: [] };
+    const saved = await saveAiPayload(ix, payload, env());
+    expect(saved).toEqual({ suggestions: 1, rejected: 1 });
+    const ap = vault.aiBlobPath(SHA);
+    const stored = JSON.parse(vault.unseal(blobs.get(ap)!, vault.vaultKey(env()), ap).toString('utf8'));
+    expect(stored.suggestions.map((x: { id: string }) => x.id)).toEqual(['AI-1']);
+    expect(stored.rejected[0].reason).toMatch(/failed verification before storing: Quote 1: quote not found/);
+  });
+
+  it('a rejected row quoting an SSN never blocks the good rows: rejected rows keep only their id and reasons', async () => {
+    const { vault } = await setup();
+    const { saveAiPayload } = await import('@/server/data');
+    const { indexPacket } = await import('@/domain/packet/load');
+    const ix = indexPacket(JSON.parse(bytes.toString('utf8')));
+    const d = ix.packet.documents.find((x) => x.pages.some((pg) => /\d/.test(pg.printed_content)))!;
+    const pg = d.pages.find((x) => /\d/.test(x.printed_content))!;
+    const line = pg.printed_content.split('\n').map((l) => l.trim()).find((l) => l.length > 12 && /\d/.test(l))!;
+    const sug = (id: string, quote: string) => ({ id, kind: 'other' as const, otherKind: 'Test', claims: [], evidence: [{ doc: d.id, page: pg.page, quote }], rationale: 'A short reason.', authority: null, confidence: 0.5 });
+    const payload = { schemaVersion: 1 as const, packetSha: SHA, model: 'm', promptVersion: 'reader-v2', runAt: '2026-10-24T00:00:00Z',
+      suggestions: [sug('AI-1', line), sug('AI-2', 'Employee SSN 123-45-6789 printed nowhere')], rejected: [] };
+    expect(await saveAiPayload(ix, payload, env())).toEqual({ suggestions: 1, rejected: 1 });
+    const ap = vault.aiBlobPath(SHA);
+    const text = vault.unseal(blobs.get(ap)!, vault.vaultKey(env()), ap).toString('utf8');
+    expect(text).not.toMatch(/123-45-6789/);
+    expect(JSON.parse(text).rejected[0].raw).toEqual({ id: 'AI-2' });
   });
 });
