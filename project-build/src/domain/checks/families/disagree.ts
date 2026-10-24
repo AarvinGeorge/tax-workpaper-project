@@ -1,5 +1,7 @@
 // Family: two sources disagree. What is printed against what was read; a line's wording against its document; a
-// client's estimate against a third-party form; a closing-statement fact no line uses.
+// client's estimate against a third-party form; a closing-statement fact no line uses. And the same-fact safety nets
+// (src/domain/facts.ts): every copy of one fact compared, each yielding to a specific check on the same claim.
+import { sameFacts, type SameFactRule } from '../../facts';
 import { type Check, type Draft, amountsIn, categoryOf, digits, docClaim, fmt, lineClaim, linesCiting, num, pageText, valuesOf } from '../util';
 
 const FAMILY = 'Two sources disagree';
@@ -150,4 +152,18 @@ export const prorationCreditUnused: Check = {
   },
 };
 
-export const disagreeChecks: Check[] = [printedVsRead, labelVsDocument, clientValueVsDocument, prorationCreditUnused];
+/** A same-fact rule's disagreements as findings. A safety net: a specific check on the same claim wins. */
+const sameFact = (id: string, rule: SameFactRule): Check => ({
+  id, family: FAMILY, yields: true,
+  run: (ix) => sameFacts(ix).filter((c) => c.rule === rule && !c.agree && c.claims.length).map((c) => ({
+    title: c.title, claims: c.claims, evidence: c.copies.map((x) => x.ref).filter((r): r is string => !!r),
+    trigger: c.trigger, explanation: c.explanation, effect: c.effect, stopsEfile: c.stopsEfile,
+  })),
+});
+
+export const sameFactChecks: Check[] = [
+  sameFact('CHK-SAME-FACT-ADDED-TWICE', 'added-twice'), sameFact('CHK-SAME-FACT-BOX-TO-LINE', 'box-to-line'),
+  sameFact('CHK-SAME-FACT-PAYMENTS', 'payments'), sameFact('CHK-SAME-FACT-LOT', 'lot'), sameFact('CHK-SAME-FACT-IDENTIFIER', 'identifier'),
+];
+
+export const disagreeChecks: Check[] = [printedVsRead, labelVsDocument, clientValueVsDocument, prorationCreditUnused, ...sameFactChecks];

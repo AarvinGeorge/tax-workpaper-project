@@ -12,6 +12,30 @@ test('a carryover line shows the tool’s proof under Who checked it', async ({ 
   await expect(proofs).toContainText('3,200');
 });
 
+test('a payment line confirmed by the agency record shows an independent receipt', async ({ page }) => {
+  // The agency record behind it is dated 3 Aug 2026: move the story there first.
+  const w = ws('third');
+  expect((await page.request.post(`/api/w/${w}/events`, { data: { role: 'daniel', type: 'clock_moved', payload: { to: '2026-08-10T00:00:00Z' } } })).ok()).toBeTruthy();
+  await page.goto(`/w/${w}/daniel/return?claim=line:Sch3.10`);
+  const proofs = page.getByTestId('drawer').getByTestId('tool-proofs');
+  await expect(proofs).toContainText('Confirmed by an independent source');
+  await expect(proofs).toContainText('IRS account transcript');
+  await expect(proofs).toContainText('36,000');
+});
+
+test('before that record is in the story, no receipt rests on it', async ({ page }) => {
+  await page.goto(`/w/${ws('third-early')}/daniel/return?claim=line:Sch3.10`);
+  await expect(page.getByTestId('drawer')).toBeVisible();
+  await expect(page.getByTestId('drawer')).not.toContainText('Confirmed by an independent source');
+});
+
+test('a line whose copies disagree shows no independent receipt', async ({ page }) => {
+  await page.goto(`/w/${ws('third-dis')}/daniel/return?claim=line:F1040.26`);
+  const drawer = page.getByTestId('drawer');
+  await expect(drawer).toBeVisible();
+  await expect(drawer).not.toContainText('Confirmed by an independent source');
+});
+
 test('a line our checks dispute shows no proof, only that its sources match and a check disputes it', async ({ page }) => {
   await page.goto(`/w/${ws('dispute')}/daniel/return?claim=line:SchC.44a`);
   const proofs = page.getByTestId('drawer').getByTestId('tool-proofs');

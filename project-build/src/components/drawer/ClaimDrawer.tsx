@@ -148,7 +148,7 @@ function actionsFor(c: Ctx, claimId: string, current: unknown): ActionSpec[] {
 /** Who checked it, the tool's part: the proofs Taxmark ran on this line itself (src/domain/proofs.ts). A proof states an
  *  agreement, never that the number is right, so while one of our checks disputes the line its proofs stand aside. */
 function ToolProofs({ c, claimId }: { c: Ctx; claimId: string }) {
-  const proofs = proofsFor(c.ix, claimId.slice(5));
+  const proofs = proofsFor(c.ix, claimId.slice(5), c.state.storyAt);
   if (!proofs.length) return null;
   if (c.state.claims[claimId]?.adjusted) return (
     <div className="drw-sec" data-testid="tool-proofs"><span className="lbl">Checked by Taxmark<Term k="verification" /></span>

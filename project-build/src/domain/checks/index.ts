@@ -4,6 +4,7 @@
 import type { PacketIndex } from '../packet/load';
 import type { Finding, Severity } from '../contracts';
 import { LEDGER } from './catalogue';
+import { asIso, refTime } from './reftime';
 import { type Check, type Draft, partnerThreshold } from './util';
 import { agencyChecks } from './families/agency';
 import { blankReadChecks } from './families/blank-read';
@@ -30,42 +31,6 @@ export const CHECKS: Check[] = [
 /** Checks whose findings are about the trace, not the tax: shown as info. */
 const INFO_FAMILIES = new Set(['Trace gap']);
 const ORDER: Record<Severity, number> = { blocker: 0, judgment: 1, check: 2, info: 3 };
-
-const asIso = (s: string) => (/^\d{4}-\d{2}-\d{2}$/.test(s) ? `${s}T00:00:00Z` : s);
-
-function pointer(root: unknown, ptr: string): unknown[] {
-  const chain: unknown[] = [root];
-  let cur: unknown = root;
-  for (const raw of ptr.split('/').slice(1)) {
-    const k = raw.replace(/~1/g, '/').replace(/~0/g, '~');
-    if (cur === null || typeof cur !== 'object') return chain;
-    cur = (cur as Record<string, unknown>)[k];
-    chain.push(cur);
-  }
-  return chain;
-}
-
-/** When a referenced fact entered the story (document received, answer given, message sent, record pulled). */
-export function refTime(ix: PacketIndex, ref: string): string | null {
-  const p = ix.packet;
-  if (ref.startsWith('ev-')) {
-    const v = ix.valueById.get(ref);
-    return v ? ix.docById.get(v.document_id)?.received_at ?? null : null;
-  }
-  if (ref.startsWith('doc:')) return ix.docById.get(ref.slice(4).split('#')[0])?.received_at ?? null;
-  if (ref.startsWith('qa-')) return p.client.questionnaire.find((q) => q.id === ref)?.answered_at ?? null;
-  if (ref.startsWith('msg-')) return p.client.messages.find((m) => m.id === ref)?.sent_at ?? null;
-  if (ref.startsWith('call-')) return (p.client.call_notes.find((c) => c.id === ref)?.date as string | undefined) ?? null;
-  if (ref.startsWith('timeline:')) return p.timeline.find((t) => t.id === ref.slice(9))?.at ?? null;
-  if (ref.startsWith('agency:')) {
-    const chain = pointer(p.tax_agency_records, ref.slice(7)).reverse();
-    for (const node of chain) {
-      const asOf = node && typeof node === 'object' ? (node as Record<string, unknown>).as_of : undefined;
-      if (typeof asOf === 'string') return asIso(asOf);
-    }
-  }
-  return null;
-}
 
 /** The computation at which a line first carried its current value (unchanged through to the latest). */
 function lineSince(ix: PacketIndex, key: string): string | null {
@@ -123,4 +88,4 @@ export function runChecks(ix: PacketIndex, asOf?: string): Finding[] {
   return visible.sort((a, b) => ORDER[a.severity] - ORDER[b.severity]);
 }
 
-export { LEDGER };
+export { LEDGER, refTime };

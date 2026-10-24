@@ -4,6 +4,8 @@
 // source. That is why our checks test numbers against other sources. Read from the packet's schema; no ids named here.
 import type { PacketIndex } from './packet/load';
 import { fmt, isSumRule, num, reachable, valuesOf } from './checks/util';
+import { sameFacts } from './facts';
+import { asIso, refTime } from './checks/reftime';
 
 export interface Proof { method: string; text: string; refs: string[] }
 
@@ -11,7 +13,8 @@ const pointer = (root: unknown, ptr: string): unknown =>
   ptr.split('/').slice(1).reduce<unknown>((o, k) => (o && typeof o === 'object' ? (o as Record<string, unknown>)[k.replace(/~1/g, '/').replace(/~0/g, '~')] : undefined), root);
 const near = (a: number, b: number) => Math.abs(a - b) < 1;
 
-export function proofsFor(ix: PacketIndex, key: string): Proof[] {
+/** `storyAt`, when given, keeps only receipts whose every record is in the story by then. */
+export function proofsFor(ix: PacketIndex, key: string, storyAt?: string): Proof[] {
   const line = ix.line(ix.latest.version, key);
   const value = num(line?.value);
   if (!line || value === null) return [];
@@ -54,6 +57,18 @@ export function proofsFor(ix: PacketIndex, key: string): Proof[] {
     const sum = prior.reduce<number>((s, x) => s + (x ?? 0), 0);
     if (prior.every((x) => x !== null) && near(Math.abs(sum), Math.abs(value))) {
       out.push({ method: 'agreed_to_prior_year', text: `Equals last year’s carryover record: ${prior.length > 1 ? `${prior.map((x) => fmt(x!)).join(' + ')} = ` : ''}${fmt(Math.abs(sum))}`, refs: py });
+    }
+  }
+
+  // Agreed to a third-party record: an independent copy of the same fact agrees (facts.ts), and no copy disagrees.
+  if (types.has('agreed_to_third_party_record')) {
+    const facts = sameFacts(ix).filter((c) => c.claims.includes(`line:${key}`));
+    if (!facts.some((c) => !c.agree)) {
+      const inStory = (r: string) => { const t = refTime(ix, r); return !storyAt || !t || Date.parse(asIso(t)) <= Date.parse(storyAt); };
+      for (const c of facts) {
+        const refs = c.copies.map((x) => x.ref).filter((r): r is string => !!r);
+        if (c.receipt && refs.every(inStory)) out.push({ method: 'agreed_to_third_party_record', text: `Confirmed by an independent source: ${c.receipt}`, refs });
+      }
     }
   }
   return out;

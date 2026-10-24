@@ -66,3 +66,43 @@ describe('each proof goes silent when its agreement breaks', () => {
     expect(proofsFor(ix, 'SchB.8')).toEqual([]);
   });
 });
+
+describe('agreed to a third-party record: an independent copy of the same fact agrees', () => {
+  it('a payment line agreeing with the agency record', () => {
+    const pr = proofsFor(ix, 'Sch3.10').find((q) => q.method === 'agreed_to_third_party_record')!;
+    expect(pr).toBeDefined();
+    expect(pr.text).toMatch(/^Confirmed by an independent source: /);
+    expect(pr.text).toMatch(/36,000/);
+    expect(pr.refs.some((r) => r.startsWith('agency:'))).toBe(true);
+  });
+  it('an information-return box agreeing with its line, though the line does not cite it', () => {
+    const q = altered((x) => { line(x, 'F8283.A1.vehicle').value = 2900; });
+    const pr = proofsFor(q, 'F8283.A1.vehicle').find((r) => r.method === 'agreed_to_third_party_record')!;
+    expect(pr).toBeDefined();
+    expect(pr.text).toMatch(/2,900/);
+  });
+  it('a dependent whose number agrees with last year’s return (last 4 only)', () => {
+    const pr = proofsFor(ix, 'F8812.6').find((q) => q.method === 'agreed_to_third_party_record')!;
+    expect(pr).toBeDefined();
+    expect(pr.text).toMatch(/ending \d{4}/);
+    expect(pr.text).not.toMatch(/\d{3}-\d{2}-\d{4}/);
+  });
+  it('never on a line whose copies disagree', () => {
+    for (const k of ['F1040.26', 'F540NR.72', 'SchB.1.2', 'SchB.1.6', 'F8283.A1.vehicle', 'F8949.B.N1', 'F8812.4', 'F540NR.39']) {
+      expect(methods(k), k).not.toContain('agreed_to_third_party_record');
+    }
+  });
+  it('only an exact match with a copy the line does not cite is independent; never an inequality', () => {
+    const got = ix.latest.lines.filter((l) => methods(l.key).includes('agreed_to_third_party_record')).map((l) => l.key).sort();
+    expect(got).toEqual(['F2441.12', 'F8812.6', 'Sch3.10']);   // SchC.1 (at least the 1099s, a double count) is not one
+  });
+  it('rests only on records in the story by then: no receipt from a record dated later', () => {
+    const at = (t: string) => proofsFor(ix, 'Sch3.10', t).map((q) => q.method);
+    expect(at('2026-06-23T06:05:00Z')).not.toContain('agreed_to_third_party_record');   // agency snapshot dated 3 Aug 2026
+    expect(at('2026-08-10T00:00:00Z')).toContain('agreed_to_third_party_record');
+  });
+  it('goes silent when the agency record no longer agrees', () => {
+    const q = altered((x) => { line(x, 'Sch3.10').value = 35000; });
+    expect(methods('Sch3.10', q)).not.toContain('agreed_to_third_party_record');
+  });
+});
