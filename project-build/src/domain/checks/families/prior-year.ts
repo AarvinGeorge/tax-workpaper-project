@@ -1,6 +1,8 @@
 // Family: identity vs prior year (figures). A prior-year figure for the same thing this year's documents measure,
 // saying which year looks wrong rather than only that they differ.
-import { type Check, type Draft, docClaim, fmt, num, taxYear } from '../util';
+import { type Check, type Draft, docClaim, fmt, lineClaim, num, taxYear } from '../util';
+import { swings } from '../../versions';
+import { proofsFor } from '../../proofs';
 
 const FAMILY = 'Prior year vs documents';
 
@@ -40,4 +42,29 @@ export const priorYearFigure: Check = {
   },
 };
 
-export const priorYearChecks: Check[] = [priorYearFigure];
+/** A line on both returns that moved past the firm's variance rule while nothing the tool can prove explains its new
+ *  figure: its documents do not add up to it and no carryover record agrees. Totals (lines with inputs) are explained
+ *  by the lines they add up, so only lines with no inputs are judged. A safety net: it yields to a specific check. */
+export const unexplainedVariance: Check = {
+  id: 'CHK-UNEXPLAINED-VARIANCE',
+  family: FAMILY,
+  yields: true,
+  run(ix) {
+    const out: Draft[] = [];
+    for (const s of swings(ix)) {
+      if (s.flag !== 'swing' || s.prior === null) continue;
+      const line = ix.line(ix.latest.version, s.key);
+      if (!line || (line.inputs || []).length) continue;
+      if (proofsFor(ix, s.key).some((p) => p.method === 'agreed_to_source_document' || p.method === 'agreed_to_prior_year')) continue;
+      out.push({
+        title: `${line.label} moved from ${fmt(s.prior)} to ${fmt(s.current)} and nothing on file explains the new figure`,
+        claims: [lineClaim(s.key)],
+        evidence: [...(line.sources || []).filter((r) => ix.valueById.has(r)), ...(s.priorRef ? [s.priorRef] : [])],
+        explanation: `${s.key} was ${fmt(s.prior)} last year and is ${fmt(s.current)} now, past the firm's variance rule. Its sources do not add up to the new figure and no carryover record agrees, so the change has no receipt. Find the document behind it or correct the line.`,
+      });
+    }
+    return out;
+  },
+};
+
+export const priorYearChecks: Check[] = [priorYearFigure, unexplainedVariance];

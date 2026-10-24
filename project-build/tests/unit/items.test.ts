@@ -58,7 +58,11 @@ describe('engineOn', () => {
     expect(codes(on, 'line:SchC.30')).toEqual(['HOME_OFFICE_AREA_CHANGE']);
     expect(codes(on, 'line:SchA.11')).toEqual(['LOW_CONFIDENCE_READ']);
     expect(codes(on, 'line:F540NR.72')).toEqual([]);
-    expect([...on.values()].flat().length).toBe(3);
+    // A warning on an input line joins the item whose check cites that line's sources (CA AMT: F6251.2i feeds F540NR.61).
+    expect(codes(on, 'line:F540NR.61')).toEqual(['CA_AMT_NOT_COMPUTED']);
+    // ...and the 2024 return's office-size check cites SchC.30's prior-year source, so the office warning joins it too.
+    expect(codes(on, 'doc:D06')).toEqual(['HOME_OFFICE_AREA_CHANGE']);
+    expect([...on.values()].flat().map((d) => d.code).sort()).toEqual(['BROKER_SUMMARY_DETAIL_MISMATCH', 'CA_AMT_NOT_COMPUTED', 'HOME_OFFICE_AREA_CHANGE', 'HOME_OFFICE_AREA_CHANGE', 'LOW_CONFIDENCE_READ']);
   });
 
   it('the crypto lot joins once its finding is in the story', () => {

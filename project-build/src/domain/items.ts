@@ -41,7 +41,8 @@ export function checkItems<T extends { f: Finding }>(checks: Finding[], ai: T[])
 type Diagnostic = PacketIndex['latest']['diagnostics'][number];
 
 /** The engine's own v3 diagnostics that name each item, by reference only: a ref that is a line key the item claims or
- *  a source of such a line (the drawer's predicate), or an evidence ref of the item's findings or suggestions. A
+ *  a source of such a line (the drawer's predicate), an evidence ref of the item's findings or suggestions, or a line
+ *  key whose sources are such evidence. A
  *  diagnostic about the same subject that names nothing on the item does not join. */
 export function engineOn<T extends { f: Finding }>(ix: PacketIndex, items: Item<T>[]): Map<string, Diagnostic[]> {
   const out = new Map<string, Diagnostic[]>();
@@ -50,7 +51,9 @@ export function engineOn<T extends { f: Finding }>(ix: PacketIndex, items: Item<
     const lines = [...new Set([it.key, ...all.flatMap((f) => f.claims)])].filter((c) => c.startsWith('line:')).map((c) => c.slice(5));
     const sources = new Set(lines.flatMap((k) => (ix.line(ix.latest.version, k)?.sources ?? []) as string[]));
     const evidence = new Set(all.flatMap((f) => f.evidence));
-    const hits = ix.latest.diagnostics.filter((d) => d.refs.some((r) => lines.includes(r) || sources.has(r) || evidence.has(r)));
+    // ...or a line ref whose own sources the item's checks cite (a warning on an input line the item is built from).
+    const citesLine = (r: string) => (ix.line(ix.latest.version, r)?.sources ?? []).some((s) => evidence.has(s));
+    const hits = ix.latest.diagnostics.filter((d) => d.refs.some((r) => lines.includes(r) || sources.has(r) || evidence.has(r) || citesLine(r)));
     if (hits.length) out.set(it.key, hits);
   }
   return out;

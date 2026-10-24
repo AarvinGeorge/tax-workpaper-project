@@ -1,21 +1,9 @@
 // Family: trace gap. A sum line whose listed inputs do not produce its value (the number may be right; the trace
 // a reviewer follows is not).
 import type { ReturnLine } from '../../packet/types';
-import { type Check, type Draft, fmt, lineClaim, num } from '../util';
+import { type Check, type Draft, fmt, isSumRule, lineClaim, num, reachable } from '../util';
 
 const FAMILY = 'Trace gap';
-
-/** True when some +/- combination of the values equals the target (within half a dollar). */
-function reachable(target: number, vals: number[]): boolean {
-  if (vals.length > 12) return true; // too many to search; not judged
-  const n = vals.length;
-  for (let mask = 0; mask < 1 << n; mask++) {
-    let s = 0;
-    for (let i = 0; i < n; i++) s += mask & (1 << i) ? -vals[i] : vals[i];
-    if (Math.abs(s - target) <= 0.5) return true;
-  }
-  return false;
-}
 
 export const inputsDoNotSum: Check = {
   id: 'CHK-INPUTS-DO-NOT-SUM',
@@ -25,8 +13,7 @@ export const inputsDoNotSum: Check = {
     const v = ix.latest.version;
     for (const line of ix.latest.lines) {
       // Rules the engine describes as a plain arithmetic combination of the listed input lines.
-      const rule = ix.packet.engine_reference.rules[line.rule ?? ''] ?? '';
-      if (!/^arithmetic combination of the listed input lines/i.test(rule) || !(line.inputs || []).length) continue;
+      if (!isSumRule(ix, line) || !(line.inputs || []).length) continue;
       const target = num(line.value);
       const ins = (line.inputs || []).map((k) => num(ix.line(v, k)?.value));
       if (target === null || ins.some((x) => x === null)) continue;

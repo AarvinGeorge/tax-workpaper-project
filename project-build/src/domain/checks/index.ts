@@ -115,7 +115,11 @@ export function runChecks(ix: PacketIndex, asOf?: string): Finding[] {
       out.push({ ...f, id });
     }
   }
-  const visible = asOf ? out.filter((f) => !f.firstVisibleAt || Date.parse(f.firstVisibleAt) <= Date.parse(asOf)) : out;
+  const shown = asOf ? out.filter((f) => !f.firstVisibleAt || Date.parse(f.firstVisibleAt) <= Date.parse(asOf)) : out;
+  // A safety-net check never repeats what a specific check, visible at the same time, already says about the claim.
+  const net = new Set(CHECKS.filter((c) => c.yields).map((c) => c.id));
+  const specific = new Set(shown.filter((f) => !net.has(f.checkId)).flatMap((f) => f.claims));
+  const visible = shown.filter((f) => !net.has(f.checkId) || !f.claims.some((c) => specific.has(c)));
   return visible.sort((a, b) => ORDER[a.severity] - ORDER[b.severity]);
 }
 

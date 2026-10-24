@@ -176,6 +176,37 @@ describe('a line the engine never computed', () => {
   });
 });
 
+describe('an unexplained change from last year', () => {
+  it('is silent on the real packet: every change past the firm rule is explained by documents, a carryover or a finding', () => {
+    expect(byCheck(run(altered(() => {})), 'CHK-UNEXPLAINED-VARIANCE')).toEqual([]);
+  });
+  it('fires when a line moves past the firm rule and nothing on file explains the new figure', () => {
+    const p = altered((x) => { latestLine(x, 'SchC.24a').value = 9000; }); // last year 6,100; its receipt says 4,520
+    const f = byCheck(run(p), 'CHK-UNEXPLAINED-VARIANCE').find((x) => x.claims.includes('line:SchC.24a'))!;
+    expect(f).toBeDefined();
+    expect(f.severity).toBe('check');
+    expect(f.explanation).toMatch(/6,100/);
+    expect(f.explanation).toMatch(/9,000/);
+  });
+  it('yields to a specific check only once that check is visible at the story time, never repeating it', () => {
+    const ix0 = indexPacket(structuredClone(altered(() => {})));
+    for (const at of ['2026-03-05T00:00:00Z', '2026-03-12T23:59:00Z', ix0.latest.computed_at]) {
+      const net = runChecks(ix0, at).filter((f) => f.checkId === 'CHK-UNEXPLAINED-VARIANCE');
+      const specific = new Set(runChecks(ix0, at).filter((f) => f.checkId !== 'CHK-UNEXPLAINED-VARIANCE').flatMap((f) => f.claims));
+      for (const f of net) for (const c of f.claims) expect(specific.has(c), `${at} ${c}`).toBe(false);
+    }
+    // Before the agency tie-out is in the story (12 Mar), the estimated payments change is the net's to flag.
+    const early = runChecks(ix0, '2026-03-05T00:00:00Z').filter((f) => f.checkId === 'CHK-UNEXPLAINED-VARIANCE').flatMap((f) => f.claims);
+    expect(early).toContain('line:F1040.26');
+    const late = runChecks(ix0, ix0.latest.computed_at).filter((f) => f.checkId === 'CHK-UNEXPLAINED-VARIANCE').flatMap((f) => f.claims);
+    expect(late).not.toContain('line:F1040.26');
+  });
+  it('ignores totals (lines with inputs): they are explained by the lines they add up', () => {
+    const p = altered((x) => { latestLine(x, 'SchC.28').value = 1; });
+    expect(byCheck(run(p), 'CHK-UNEXPLAINED-VARIANCE').some((f) => f.claims.includes('line:SchC.28'))).toBe(false);
+  });
+});
+
 describe('the shared altered fixture (renamed people, one form removed, extra staff)', () => {
   it('still surfaces every ledger finding that does not sit only on the removed form', () => {
     const p = alteredPacket();

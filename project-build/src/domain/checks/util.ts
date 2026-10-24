@@ -21,6 +21,8 @@ export interface Draft {
 export interface Check {
   id: string;
   family: string;
+  /** A general safety net: its finding is dropped when a more specific check already flags the same claim. */
+  yields?: boolean;
   run(ix: PacketIndex): Draft[];
 }
 
@@ -191,3 +193,20 @@ export const digits = (s: unknown) => String(s ?? '').replace(/\D/g, '');
 
 /** Last four only (BUILD-CONTEXT hard rule), for any identifier quoted in wording. */
 export const last4 = (s: unknown) => `ending ${digits(s).slice(-4)}`;
+
+/** True when some +/- combination of the values equals the target (within half a dollar). Over 12 values is not judged. */
+export function reachable(target: number, vals: number[]): boolean {
+  if (vals.length > 12) return true;
+  const n = vals.length;
+  for (let mask = 0; mask < 1 << n; mask++) {
+    let s = 0;
+    for (let i = 0; i < n; i++) s += mask & (1 << i) ? -vals[i] : vals[i];
+    if (Math.abs(s - target) <= 0.5) return true;
+  }
+  return false;
+}
+
+/** A line whose engine rule is a plain arithmetic combination of its listed input lines (the engine's own wording). */
+export function isSumRule(ix: PacketIndex, line: ReturnLine): boolean {
+  return /^arithmetic combination of the listed input lines/i.test(ix.packet.engine_reference.rules[line.rule ?? ''] ?? '');
+}

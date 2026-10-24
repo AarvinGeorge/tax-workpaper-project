@@ -18,6 +18,7 @@ import { needsPartnerSignoff } from '@/domain/project';
 import { effectEstimate, formLabel } from '@/domain/versions';
 import { confidenceWord, suggestionStatus } from '@/domain/ai/merge';
 import { humanize } from '@/domain/labels';
+import { proofsFor } from '@/domain/proofs';
 
 type Ctx = { ix: PacketIndex; me: RoleInfo; state: WorkspaceState; revealed: Set<string>; findings: Finding[]; ws: string; role: RoleKey; allRoles: RoleInfo[] };
 
@@ -142,6 +143,28 @@ function actionsFor(c: Ctx, claimId: string, current: unknown): ActionSpec[] {
   // Only a line has a value to change; a document or a finding is adjusted through its line.
   return kinds.filter(([kind]) => kind !== 'adjustment' || claimId.startsWith('line:'))
     .map(([kind, label]) => { const r = test(kind); return { kind, label, ok: r.ok, reason: r.reason, level, current }; });
+}
+
+/** Who checked it, the tool's part: the proofs Taxmark ran on this line itself (src/domain/proofs.ts). A proof states an
+ *  agreement, never that the number is right, so while one of our checks disputes the line its proofs stand aside. */
+function ToolProofs({ c, claimId }: { c: Ctx; claimId: string }) {
+  const proofs = proofsFor(c.ix, claimId.slice(5));
+  if (!proofs.length) return null;
+  if (c.state.claims[claimId]?.adjusted) return (
+    <div className="drw-sec" data-testid="tool-proofs"><span className="lbl">Checked by Taxmark<Term k="verification" /></span>
+      <span className="small muted">Adjusted in this workspace: Taxmark&apos;s proofs were of the engine&apos;s figure, so they no longer apply.</span></div>
+  );
+  const disputed = c.findings.filter((f) => f.source !== 'ai' && f.claims.includes(claimId) && (!f.firstVisibleAt || f.firstVisibleAt <= c.state.storyAt) && !findingStatus(f, c.state).cleared);
+  return (
+    <div className="drw-sec" data-testid="tool-proofs">
+      <span className="lbl">Checked by Taxmark<Term k="verification" /></span>
+      {disputed.length ? (
+        <span className="small">Taxmark&apos;s own checks of this line agree, but our check disputes it: {disputed.map((f) => f.title).join('; ')}. See Our checks on this.</span>
+      ) : proofs.map((q) => (
+        <div key={q.method + q.text} className="row small"><span className="tag t-pas">{humanize(q.method)}</span><span>{maskText(q.text, c.me, false)}</span></div>
+      ))}
+    </div>
+  );
 }
 
 function Trail({ c, claimId }: { c: Ctx; claimId: string }) {
@@ -309,6 +332,7 @@ function LineClaim({ c, key_, claimId }: { c: Ctx; key_: string; claimId: string
           <span className="small muted">Engine diagnostics are listed beside our checks, under their own label.</span>
         </div>
       )}
+      {c.me.kind === 'staff' && <ToolProofs c={c} claimId={claimId} />}
       <Trail c={c} claimId={claimId} />
       {c.me.kind !== 'staff' && <Actions c={c} claimId={claimId} current={current} title={l.label} />}
     </>

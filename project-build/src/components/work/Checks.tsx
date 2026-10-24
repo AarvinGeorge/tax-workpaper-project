@@ -234,16 +234,23 @@ export function ChecksScreen(p: WorkProps) {
           <p className={s.note} style={{ margin: 0 }}>The engine’s own diagnostics, shown as it reported them. They are not our checks and are not counted as findings.</p>
           <div className={s.box}>
             {diags.length === 0 ? <div className={s.boxRow}><span className={s.note}>The engine reported nothing.</span></div> : null}
-            {diags.map((d, i) => (
-              <div key={d.code + i} className={s.boxRow}>
+            {diags.map((d, i) => {
+              // Which of our items this warning names (engineOn, the same join as the row pills), or none.
+              const by = items.filter((it) => (engine.get(it.key) ?? []).includes(d));
+              return (
+              <div key={d.code + i} className={s.boxRow} data-diag={d.code}>
                 <Tag tone={d.severity === 'error' ? 'blk' : d.severity === 'warning' ? 'wrn' : 'neu'}>{d.severity}</Tag>
                 <span className={s.body} style={{ flex: '1 1 220px' }}>
                   <span className={s.mono}>{d.code}</span>
                   <span style={{ fontSize: 13 }}>{m(d.message)}</span>
                   <Evidence p={p} refs={d.refs} />
+                  {by.length
+                    ? <span className={s.note}>{by.some((it) => it.checks.length) ? 'Covered by our check' : 'Named by an AI suggestion (not one of our checks)'}: {by.map((it, j) => <span key={it.key}>{j ? '; ' : ''}<Link scroll={false} prefetch={false} className={s.link} href={claimHref(p.sp, it.key)}>{m(it.checks[0]?.title ?? (it.ai[0] ? aiTitleOf(it.ai[0].f) : it.key))}</Link></span>)}</span>
+                    : <span><Tag tone="neu">Not covered by our checks</Tag></span>}
                 </span>
               </div>
-            ))}
+              );
+            })}
           </div>
         </section>
       </div>
