@@ -1,0 +1,330 @@
+[
+ {
+  "id": "CHK-ANSWER-AFTER-COMPUTATION:line:F8949.H.C6",
+  "severity": "blocker",
+  "claims": [
+   "line:F8949.H.C6"
+  ],
+  "ledgerIds": [
+   "GT-B03"
+  ],
+  "firstVisibleAt": "2026-06-30T18:02:00Z"
+ },
+ {
+  "id": "CHK-ANSWER-GATES-DEDUCTION:line:Sch1.17",
+  "severity": "blocker",
+  "claims": [
+   "line:Sch1.17"
+  ],
+  "ledgerIds": [
+   "GT-A06",
+   "GT-C03"
+  ],
+  "firstVisibleAt": "2026-03-04T09:12:00Z"
+ },
+ {
+  "id": "CHK-BUSINESS-SHARE-FROM-NOTES:line:SchC.25",
+  "severity": "check",
+  "claims": [
+   "line:SchC.25",
+   "line:SchC.27a.1"
+  ],
+  "ledgerIds": [
+   "GT-C04"
+  ],
+  "firstVisibleAt": "2026-03-26T17:00:00Z"
+ },
+ {
+  "id": "CHK-CHEAPER-ELECTION:line:F4562-C.12",
+  "severity": "blocker",
+  "claims": [
+   "line:F4562-C.12",
+   "line:F4562-C.14"
+  ],
+  "ledgerIds": [
+   "GT-C06"
+  ],
+  "firstVisibleAt": "2026-03-04T09:12:00Z"
+ },
+ {
+  "id": "CHK-CLIENT-VALUE-VS-DOCUMENT:line:F8283.A1.vehicle",
+  "severity": "check",
+  "claims": [
+   "line:F8283.A1.vehicle"
+  ],
+  "ledgerIds": [
+   "GT-D03"
+  ],
+  "firstVisibleAt": "2026-03-04T09:12:00Z"
+ },
+ {
+  "id": "CHK-DUP-1099K-BOOKS:line:SchC.1",
+  "severity": "blocker",
+  "claims": [
+   "line:SchC.1"
+  ],
+  "ledgerIds": [
+   "GT-C01"
+  ],
+  "firstVisibleAt": "2026-03-04T09:12:00Z"
+ },
+ {
+  "id": "CHK-DUP-LENDER-STATEMENT:line:SchA.8a",
+  "severity": "check",
+  "claims": [
+   "line:SchA.8a"
+  ],
+  "ledgerIds": [
+   "GT-D01"
+  ],
+  "firstVisibleAt": "2026-03-04T09:12:00Z"
+ },
+ {
+  "id": "CHK-DUP-PAGE:line:SchC.44a",
+  "severity": "check",
+  "claims": [
+   "line:SchC.44a",
+   "line:SchC.9"
+  ],
+  "ledgerIds": [
+   "GT-C02"
+  ],
+  "firstVisibleAt": "2026-03-04T09:12:00Z"
+ },
+ {
+  "id": "CHK-DUP-PAYER:line:SchB.1.2",
+  "severity": "check",
+  "claims": [
+   "line:SchB.1.2"
+  ],
+  "ledgerIds": [
+   "GT-B01"
+  ],
+  "firstVisibleAt": "2026-03-04T09:12:00Z"
+ },
+ {
+  "id": "CHK-FX-RATE-YEAR:line:SchB.1.6",
+  "severity": "check",
+  "claims": [
+   "line:SchB.1.6"
+  ],
+  "ledgerIds": [
+   "GT-B02"
+  ],
+  "firstVisibleAt": "2026-03-04T09:12:00Z"
+ },
+ {
+  "id": "CHK-HOME-OFFICE-ONE-HOME:line:SchC.30",
+  "severity": "judgment",
+  "claims": [
+   "line:SchC.30"
+  ],
+  "ledgerIds": [
+   "GT-C08"
+  ],
+  "firstVisibleAt": "2026-03-04T09:12:00Z"
+ },
+ {
+  "id": "CHK-IDENTITY-VS-DOCUMENTS:line:F8812.4",
+  "severity": "blocker",
+  "claims": [
+   "line:F8812.4",
+   "line:F540NR.39"
+  ],
+  "ledgerIds": [
+   "GT-A05"
+  ],
+  "firstVisibleAt": "2026-03-04T09:12:00Z"
+ },
+ {
+  "id": "CHK-INPUTS-DO-NOT-SUM:line:SchCA540NR.1.D",
+  "severity": "info",
+  "claims": [
+   "line:SchCA540NR.1.D",
+   "line:SchCA540NR.2.D",
+   "line:SchCA540NR.12.D",
+   "line:SchCA540NR.17.D"
+  ],
+  "ledgerIds": [
+   "GT-D06"
+  ],
+  "firstVisibleAt": "2026-06-22T18:56:00Z"
+ },
+ {
+  "id": "CHK-LABEL-VS-DOCUMENT:line:F2441.1a",
+  "severity": "check",
+  "claims": [
+   "line:F2441.1a"
+  ],
+  "ledgerIds": [
+   "GT-A08"
+  ],
+  "firstVisibleAt": "2026-03-04T09:12:00Z"
+ },
+ {
+  "id": "CHK-LINE-NOT-COMPUTED:line:F540NR.61",
+  "severity": "blocker",
+  "claims": [
+   "line:F540NR.61"
+  ],
+  "ledgerIds": [],
+  "firstVisibleAt": "2026-03-04T09:12:00Z"
+ },
+ {
+  "id": "CHK-LOT-SUPPLEMENT-BASIS:line:F8949.B.N1",
+  "severity": "blocker",
+  "claims": [
+   "line:F8949.B.N1",
+   "line:F8949.B.N3",
+   "line:F8949.E.N4"
+  ],
+  "ledgerIds": [
+   "GT-A01"
+  ],
+  "firstVisibleAt": "2026-03-04T09:12:00Z"
+ },
+ {
+  "id": "CHK-OTHER-STATE-CREDIT-LIMIT:line:ScheduleS.credit",
+  "severity": "check",
+  "claims": [
+   "line:ScheduleS.credit"
+  ],
+  "ledgerIds": [
+   "GT-D04"
+  ],
+  "firstVisibleAt": "2026-03-04T09:12:00Z"
+ },
+ {
+  "id": "CHK-PAYMENT-TAX-YEAR:line:F540NR.72",
+  "severity": "blocker",
+  "claims": [
+   "line:F540NR.72"
+  ],
+  "ledgerIds": [
+   "GT-A03"
+  ],
+  "firstVisibleAt": "2026-03-04T09:12:00Z"
+ },
+ {
+  "id": "CHK-PAYMENTS-VS-AGENCY:line:F1040.26",
+  "severity": "check",
+  "claims": [
+   "line:F1040.26"
+  ],
+  "ledgerIds": [
+   "GT-A04"
+  ],
+  "firstVisibleAt": "2026-03-12T00:00:00Z"
+ },
+ {
+  "id": "CHK-PAYMENTS-VS-AGENCY:line:F540NR.72",
+  "severity": "blocker",
+  "claims": [
+   "line:F540NR.72"
+  ],
+  "ledgerIds": [
+   "GT-A03"
+  ],
+  "firstVisibleAt": "2026-03-12T00:00:00Z"
+ },
+ {
+  "id": "CHK-PENALTY-WITHHOLDING:line:F2210.19",
+  "severity": "check",
+  "claims": [
+   "line:F2210.19"
+  ],
+  "ledgerIds": [
+   "GT-D05"
+  ],
+  "firstVisibleAt": "2026-03-04T09:12:00Z"
+ },
+ {
+  "id": "CHK-PRINTED-VS-READ:line:F2441.1b",
+  "severity": "check",
+  "claims": [
+   "line:F2441.1b"
+  ],
+  "ledgerIds": [
+   "GT-A07"
+  ],
+  "firstVisibleAt": "2026-03-04T09:12:00Z"
+ },
+ {
+  "id": "CHK-PRIOR-OPEN-ITEM:doc:D07",
+  "severity": "check",
+  "claims": [
+   "doc:D07"
+  ],
+  "ledgerIds": [
+   "GT-B05",
+   "GT-C09"
+  ],
+  "firstVisibleAt": "2026-01-21T03:22:00Z"
+ },
+ {
+  "id": "CHK-PRIOR-YEAR-FIGURE:doc:D06",
+  "severity": "check",
+  "claims": [
+   "doc:D06"
+  ],
+  "ledgerIds": [
+   "GT-C10"
+  ],
+  "firstVisibleAt": "2026-02-18T04:15:00Z"
+ },
+ {
+  "id": "CHK-PRORATION-CREDIT-UNUSED:line:SchA.5b",
+  "severity": "blocker",
+  "claims": [
+   "line:SchA.5b"
+  ],
+  "ledgerIds": [
+   "GT-D02"
+  ],
+  "firstVisibleAt": "2026-03-04T09:12:00Z"
+ },
+ {
+  "id": "CHK-REPAIR-VS-IMPROVEMENT:line:SchE.14A",
+  "severity": "blocker",
+  "claims": [
+   "line:SchE.14A"
+  ],
+  "ledgerIds": [
+   "GT-C05"
+  ],
+  "firstVisibleAt": "2026-03-04T09:12:00Z"
+ },
+ {
+  "id": "CHK-SEP-LIMIT:line:Sch1.16",
+  "severity": "judgment",
+  "claims": [
+   "line:Sch1.16"
+  ],
+  "ledgerIds": [
+   "GT-C07"
+  ],
+  "firstVisibleAt": "2026-04-10T15:32:00Z"
+ },
+ {
+  "id": "CHK-STATE-WAGES-RESIDENCY:line:SchCA540NR.1.E",
+  "severity": "blocker",
+  "claims": [
+   "line:SchCA540NR.1.E"
+  ],
+  "ledgerIds": [
+   "GT-A02"
+  ],
+  "firstVisibleAt": "2026-03-27T16:30:00Z"
+ },
+ {
+  "id": "CHK-UNREAD-PAGE:doc:D31",
+  "severity": "check",
+  "claims": [
+   "doc:D31"
+  ],
+  "ledgerIds": [
+   "GT-B04"
+  ],
+  "firstVisibleAt": "2026-03-18T21:09:00Z"
+ }
+]

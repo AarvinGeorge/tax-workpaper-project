@@ -1,0 +1,37 @@
+{
+ "blockers": [
+  "finding:CHK-PRORATION-CREDIT-UNUSED:line:SchA.5b",
+  "finding:CHK-DUP-1099K-BOOKS:line:SchC.1",
+  "finding:CHK-IDENTITY-VS-DOCUMENTS:line:F8812.4",
+  "finding:CHK-LINE-NOT-COMPUTED:line:F540NR.61",
+  "finding:CHK-STATE-WAGES-RESIDENCY:line:SchCA540NR.1.E",
+  "finding:CHK-CHEAPER-ELECTION:line:F4562-C.12",
+  "finding:CHK-LOT-SUPPLEMENT-BASIS:line:F8949.B.N1",
+  "finding:CHK-REPAIR-VS-IMPROVEMENT:line:SchE.14A",
+  "finding:CHK-ANSWER-GATES-DEDUCTION:line:Sch1.17",
+  "line:F540NR.72"
+ ],
+ "moved": [
+  {
+   "claim": "line:F540NR.72",
+   "current": 10500,
+   "adjusted": true,
+   "derived": false,
+   "needsEngine": false
+  },
+  {
+   "claim": "line:F540NR.78",
+   "current": 23630,
+   "adjusted": false,
+   "derived": true,
+   "needsEngine": false
+  },
+  {
+   "claim": "line:F540NR.97",
+   "current": 4756,
+   "adjusted": false,
+   "derived": true,
+   "needsEngine": false
+  }
+ ]
+}

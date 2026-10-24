@@ -1,0 +1,1211 @@
+[
+ {
+  "line": "F1040.1a",
+  "proofs": [
+   "agreed_to_source_document: Equals its 2 source amounts added: 104,600 + 107,800 = 212,400"
+  ]
+ },
+ {
+  "line": "F1040.1z",
+  "proofs": [
+   "recalculated: Carried from F1040.1a: 212,400"
+  ]
+ },
+ {
+  "line": "SchB.1.1",
+  "proofs": [
+   "agreed_to_source_document: Agrees with 1099-INT box 1 interest (Northlake Bank sweep) on Northlake Securities 2025 consolidated Form 1099 (Ngozi Okafor): 1,840"
+  ]
+ },
+ {
+  "line": "SchB.1.2",
+  "proofs": [
+   "agreed_to_source_document: Agrees with Box 1 interest income on 2025 Form 1099-INT - Northlake Bank: 1,840"
+  ]
+ },
+ {
+  "line": "SchB.1.3",
+  "proofs": [
+   "agreed_to_source_document: Agrees with 1099-INT 3 U.S. Treasury interest on Meridian Brokerage 2025 consolidated Form 1099 - CORRECTED (joint): 410"
+  ]
+ },
+ {
+  "line": "SchB.1.4",
+  "proofs": [
+   "agreed_to_source_document: Agrees with Box 1 interest income on 2025 Form 1099-INT - Austin Community Credit Union: 312"
+  ]
+ },
+ {
+  "line": "SchB.1.5",
+  "proofs": [
+   "agreed_to_source_document: Agrees with Box 1 interest income on 2025 Form 1099-INT - Sacramento Valley Bank: 96"
+  ]
+ },
+ {
+  "line": "SchB.1.7",
+  "proofs": [
+   "agreed_to_source_document: Agrees with Box 4 interest income on 2025 Schedule K-1 (Form 1120-S) - Lindqvist Family Woodworks, Inc.: 85"
+  ]
+ },
+ {
+  "line": "SchB.1.8",
+  "proofs": [
+   "agreed_to_source_document: Agrees with Box 5 interest income on 2025 Schedule K-1 (Form 1065) - Ridgeline Real Estate Fund III LP: 120"
+  ]
+ },
+ {
+  "line": "SchB.2",
+  "proofs": [
+   "recalculated: Recalculated from its 8 input lines (SchB.1.1, SchB.1.2, SchB.1.3, SchB.1.4, SchB.1.5, SchB.1.6, SchB.1.7, SchB.1.8): 6,450"
+  ]
+ },
+ {
+  "line": "SchB.4",
+  "proofs": [
+   "recalculated: Carried from SchB.2: 6,450"
+  ]
+ },
+ {
+  "line": "F1040.2b",
+  "proofs": [
+   "recalculated: Carried from SchB.4: 6,450"
+  ]
+ },
+ {
+  "line": "SchB.6",
+  "proofs": [
+   "recalculated: Recalculated from its 2 input lines (SchB.5.1, SchB.5.2): 7,060"
+  ]
+ },
+ {
+  "line": "F1040.3a",
+  "proofs": [
+   "agreed_to_source_document: Equals its 2 source amounts added: 2,410 + 3,560 = 5,970"
+  ]
+ },
+ {
+  "line": "F1040.3b",
+  "proofs": [
+   "recalculated: Carried from SchB.6: 7,060"
+  ]
+ },
+ {
+  "line": "F8606.1",
+  "proofs": [
+   "agreed_to_source_document: Agrees with Box 1 IRA contributions on Form 5498 for 2025 - Northlake Securities IRA (Ngozi Okafor): 7,000"
+  ]
+ },
+ {
+  "line": "F8606.2",
+  "proofs": [
+   "agreed_to_source_document: Agrees with Box 1 IRA contributions (for 2024) on Form 5498 for 2024 - Northlake Securities IRA (Ngozi Okafor): 7,000",
+   "agreed_to_prior_year: Equals last year’s carryover record: 7,000"
+  ]
+ },
+ {
+  "line": "F8606.3",
+  "proofs": [
+   "recalculated: Recalculated from its 2 input lines (F8606.1, F8606.2): 14,000"
+  ]
+ },
+ {
+  "line": "F8606.5",
+  "proofs": [
+   "recalculated: Carried from F8606.3: 14,000"
+  ]
+ },
+ {
+  "line": "F8606.8",
+  "proofs": [
+   "agreed_to_source_document: Agrees with Box 1 gross distribution on 2025 Form 1099-R - Northlake Securities IRA (Ngozi Okafor): 14,026"
+  ]
+ },
+ {
+  "line": "F8606.9",
+  "proofs": [
+   "recalculated: Recalculated from its 2 input lines (F8606.6, F8606.8): 14,026"
+  ]
+ },
+ {
+  "line": "F8606.13",
+  "proofs": [
+   "recalculated: Carried from F8606.11: 14,000"
+  ]
+ },
+ {
+  "line": "F8606.16",
+  "proofs": [
+   "recalculated: Carried from F8606.8: 14,026"
+  ]
+ },
+ {
+  "line": "F8606.17",
+  "proofs": [
+   "recalculated: Carried from F8606.11: 14,000"
+  ]
+ },
+ {
+  "line": "F1040.4a",
+  "proofs": [
+   "agreed_to_source_document: Agrees with Box 1 gross distribution on 2025 Form 1099-R - Northlake Securities IRA (Ngozi Okafor): 14,026",
+   "recalculated: Carried from F8606.16: 14,026"
+  ]
+ },
+ {
+  "line": "F1040.4b",
+  "proofs": [
+   "recalculated: Carried from F8606.18: 26"
+  ]
+ },
+ {
+  "line": "SchC.5",
+  "proofs": [
+   "recalculated: Carried from SchC.1: 163,700"
+  ]
+ },
+ {
+  "line": "SchC.7",
+  "proofs": [
+   "recalculated: Carried from SchC.5: 163,700"
+  ]
+ },
+ {
+  "line": "SchC.8",
+  "proofs": [
+   "agreed_to_source_document: Agrees with Advertising on Lindqvist Studio - Profit and Loss, January-December 2025 (QuickBooks, cash basis): 2,100"
+  ]
+ },
+ {
+  "line": "SchC.44a",
+  "proofs": [
+   "agreed_to_source_document: Equals its 4 source amounts added: 2,600 + 3,700 + 1,800 + 3,700 = 11,800"
+  ]
+ },
+ {
+  "line": "SchC.11",
+  "proofs": [
+   "agreed_to_source_document: Agrees with Contract labor on Lindqvist Studio - Profit and Loss, January-December 2025 (QuickBooks, cash basis): 7,400"
+  ]
+ },
+ {
+  "line": "F4562-C.22",
+  "proofs": [
+   "recalculated: Recalculated from its 3 input lines (F4562-C.12, F4562-C.14, F4562-C.19a): 38,000"
+  ]
+ },
+ {
+  "line": "SchC.13",
+  "proofs": [
+   "recalculated: Carried from F4562-C.22: 38,000"
+  ]
+ },
+ {
+  "line": "SchC.15",
+  "proofs": [
+   "agreed_to_source_document: Agrees with Insurance - business liability on Lindqvist Studio - Profit and Loss, January-December 2025 (QuickBooks, cash basis): 1,450"
+  ]
+ },
+ {
+  "line": "SchC.17",
+  "proofs": [
+   "agreed_to_source_document: Agrees with Legal and professional on Lindqvist Studio - Profit and Loss, January-December 2025 (QuickBooks, cash basis): 1,800"
+  ]
+ },
+ {
+  "line": "SchC.18",
+  "proofs": [
+   "agreed_to_source_document: Agrees with Office expenses on Lindqvist Studio - Profit and Loss, January-December 2025 (QuickBooks, cash basis): 1,180"
+  ]
+ },
+ {
+  "line": "SchC.22",
+  "proofs": [
+   "agreed_to_source_document: Agrees with Supplies on Lindqvist Studio - Profit and Loss, January-December 2025 (QuickBooks, cash basis): 3,240"
+  ]
+ },
+ {
+  "line": "SchC.24a",
+  "proofs": [
+   "agreed_to_source_document: Agrees with Travel on Lindqvist Studio - Profit and Loss, January-December 2025 (QuickBooks, cash basis): 4,520"
+  ]
+ },
+ {
+  "line": "SchC.27a.1",
+  "proofs": [
+   "agreed_to_source_document: Agrees with Software and subscriptions on Lindqvist Studio - Profit and Loss, January-December 2025 (QuickBooks, cash basis): 6,850"
+  ]
+ },
+ {
+  "line": "SchC.27a.2",
+  "proofs": [
+   "agreed_to_source_document: Agrees with Bank and merchant fees on Lindqvist Studio - Profit and Loss, January-December 2025 (QuickBooks, cash basis): 386"
+  ]
+ },
+ {
+  "line": "SchC.29",
+  "proofs": [
+   "recalculated: Recalculated from its 2 input lines (SchC.7, SchC.28): 83,054"
+  ]
+ },
+ {
+  "line": "SchC.31",
+  "proofs": [
+   "recalculated: Recalculated from its 2 input lines (SchC.29, SchC.30): 81,854"
+  ]
+ },
+ {
+  "line": "SchSE.2",
+  "proofs": [
+   "recalculated: Carried from SchC.31: 81,854"
+  ]
+ },
+ {
+  "line": "SchSE.6",
+  "proofs": [
+   "recalculated: Carried from SchSE.4a: 75,592"
+  ]
+ },
+ {
+  "line": "SchSE.12",
+  "proofs": [
+   "recalculated: Recalculated from its 2 input lines (SchSE.10, SchSE.11): 11,565"
+  ]
+ },
+ {
+  "line": "Sch1.17",
+  "proofs": [
+   "agreed_to_source_document: Agrees with Total premiums paid 2025 on Health insurance premium statement 2025 - Erik Lindqvist (individual plan): 14,400"
+  ]
+ },
+ {
+  "line": "Sch1.15",
+  "proofs": [
+   "recalculated: Carried from SchSE.13: 5,783"
+  ]
+ },
+ {
+  "line": "F8889.9",
+  "proofs": [
+   "agreed_to_source_document: Agrees with Box 2 total contributions on 2025 Form 5498-SA - HSA (Ngozi Okafor): 6,000"
+  ]
+ },
+ {
+  "line": "F8889.14a",
+  "proofs": [
+   "agreed_to_source_document: Agrees with Box 1 gross distribution on 2025 Form 1099-SA - HSA (Ngozi Okafor): 2,150"
+  ]
+ },
+ {
+  "line": "Sch1.13",
+  "proofs": [
+   "recalculated: Carried from F8889.13: 0"
+  ]
+ },
+ {
+  "line": "SchE.11A",
+  "proofs": [
+   "agreed_to_source_document: Agrees with Management fees on Capitol Keys Property Management - 2025 owner statement (1450 Fremont Way): 2,976"
+  ]
+ },
+ {
+  "line": "SchE.12A",
+  "proofs": [
+   "agreed_to_source_document: Agrees with Box 1 mortgage interest on 2025 Form 1098 - Golden Bear Home Loans (1450 Fremont Way): 14,900"
+  ]
+ },
+ {
+  "line": "SchE.14A",
+  "proofs": [
+   "agreed_to_source_document: Agrees with Repairs and maintenance on Capitol Keys Property Management - 2025 owner statement (1450 Fremont Way): 13,300"
+  ]
+ },
+ {
+  "line": "SchE.16A",
+  "proofs": [
+   "agreed_to_source_document: Agrees with Box 10 real estate taxes on 2025 Form 1098 - Golden Bear Home Loans (1450 Fremont Way): 6,240"
+  ]
+ },
+ {
+  "line": "SchE.18A",
+  "proofs": [
+   "recalculated: Carried from F4562-E.total-A: 13,891"
+  ]
+ },
+ {
+  "line": "SchE.20A",
+  "proofs": [
+   "recalculated: Recalculated from its 6 input lines (SchE.9A, SchE.11A, SchE.12A, SchE.14A, SchE.16A, SchE.18A): 53,157"
+  ]
+ },
+ {
+  "line": "SchE.21A",
+  "proofs": [
+   "recalculated: Recalculated from its 2 input lines (SchE.3A, SchE.20A): -15,957"
+  ]
+ },
+ {
+  "line": "SchE.3B",
+  "proofs": [
+   "agreed_to_source_document: Agrees with Rent received on Austin condo - rent ledger and HOA statement 2025 (Unit 4C, 1200 Barton Hills Dr): 20,250"
+  ]
+ },
+ {
+  "line": "SchE.9B",
+  "proofs": [
+   "agreed_to_source_document: Agrees with Insurance on Austin condo - rent ledger and HOA statement 2025 (Unit 4C, 1200 Barton Hills Dr): 1,100"
+  ]
+ },
+ {
+  "line": "SchE.12B",
+  "proofs": [
+   "agreed_to_source_document: Agrees with Box 1 mortgage interest on 2025 Form 1098 - Hill Country Bank (condo loan, paid off): 6,900"
+  ]
+ },
+ {
+  "line": "SchE.14B",
+  "proofs": [
+   "agreed_to_source_document: Agrees with Repairs (make-ready) on Austin condo - rent ledger and HOA statement 2025 (Unit 4C, 1200 Barton Hills Dr): 1,800"
+  ]
+ },
+ {
+  "line": "SchE.16B",
+  "proofs": [
+   "agreed_to_source_document: Agrees with Tax proration credit to buyer on Seller closing statement - 1200 Barton Hills Dr Unit 4C (sale 10/15/2025): 5,544"
+  ]
+ },
+ {
+  "line": "SchE.18B",
+  "proofs": [
+   "recalculated: Carried from F4562-E.total-B: 7,329"
+  ]
+ },
+ {
+  "line": "SchE.19B",
+  "proofs": [
+   "agreed_to_source_document: Agrees with HOA dues on Austin condo - rent ledger and HOA statement 2025 (Unit 4C, 1200 Barton Hills Dr): 4,100"
+  ]
+ },
+ {
+  "line": "SchE.20B",
+  "proofs": [
+   "recalculated: Recalculated from its 6 input lines (SchE.9B, SchE.12B, SchE.14B, SchE.16B, SchE.18B, SchE.19B): 26,773"
+  ]
+ },
+ {
+  "line": "SchE.21B",
+  "proofs": [
+   "recalculated: Recalculated from its 2 input lines (SchE.3B, SchE.20B): -6,523"
+  ]
+ },
+ {
+  "line": "F4797.21",
+  "proofs": [
+   "agreed_to_source_document: Agrees with Box 2 gross proceeds on 2025 Form 1099-S - Hill Country Title Co.: 395,000"
+  ]
+ },
+ {
+  "line": "F4797.32",
+  "proofs": [
+   "recalculated: Carried from F4797.25: 105,040"
+  ]
+ },
+ {
+  "line": "F4797.7",
+  "proofs": [
+   "recalculated: Carried from F4797.32: 105,040"
+  ]
+ },
+ {
+  "line": "F4797.8",
+  "proofs": [
+   "agreed_to_prior_year: Equals last year’s carryover record: 0"
+  ]
+ },
+ {
+  "line": "F7203.3a",
+  "proofs": [
+   "agreed_to_source_document: Agrees with Box 1 ordinary business income on 2025 Schedule K-1 (Form 1120-S) - Lindqvist Family Woodworks, Inc.: 18,400"
+  ]
+ },
+ {
+  "line": "F7203.3c",
+  "proofs": [
+   "agreed_to_source_document: Agrees with Box 4 interest income on 2025 Schedule K-1 (Form 1120-S) - Lindqvist Family Woodworks, Inc.: 85"
+  ]
+ },
+ {
+  "line": "F7203.4",
+  "proofs": [
+   "recalculated: Recalculated from its 2 input lines (F7203.3a, F7203.3c): 18,485"
+  ]
+ },
+ {
+  "line": "F7203.5",
+  "proofs": [
+   "recalculated: Recalculated from its 2 input lines (F7203.1, F7203.4): 20,785"
+  ]
+ },
+ {
+  "line": "F7203.6",
+  "proofs": [
+   "agreed_to_source_document: Agrees with Box 16D distributions on 2025 Schedule K-1 (Form 1120-S) - Lindqvist Family Woodworks, Inc.: 42,000"
+  ]
+ },
+ {
+  "line": "F7203.15",
+  "proofs": [
+   "recalculated: Carried from F7203.7: 0"
+  ]
+ },
+ {
+  "line": "F8949.H.C6",
+  "proofs": [
+   "agreed_to_source_document: Agrees with C6 gross proceeds on 2025 Form 1099-DA - Coinhaven: 5,325"
+  ]
+ },
+ {
+  "line": "F8949.F.SCORP",
+  "proofs": [
+   "recalculated: Carried from F7203.excess: 21,215"
+  ]
+ },
+ {
+  "line": "F8949.B.total",
+  "proofs": [
+   "recalculated: Recalculated from its 2 input lines (F8949.B.N1, F8949.B.N3): 37,720"
+  ]
+ },
+ {
+  "line": "F8949.E.total",
+  "proofs": [
+   "recalculated: Carried from F8949.E.N4: 15,300"
+  ]
+ },
+ {
+  "line": "F8949.F.total",
+  "proofs": [
+   "recalculated: Carried from F8949.F.SCORP: 21,215"
+  ]
+ },
+ {
+  "line": "F8949.H.total",
+  "proofs": [
+   "recalculated: Recalculated from its 7 input lines (F8949.H.C2, F8949.H.C3, F8949.H.C5, F8949.H.C6, F8949.H.C8, F8949.H.C10, F8949.H.C12): 3,414"
+  ]
+ },
+ {
+  "line": "F8949.K.total",
+  "proofs": [
+   "recalculated: Recalculated from its 5 input lines (F8949.K.C1, F8949.K.C4, F8949.K.C7, F8949.K.C9, F8949.K.C11): 5,847"
+  ]
+ },
+ {
+  "line": "SchD.1b",
+  "proofs": [
+   "recalculated: Carried from F8949.A.total: 212"
+  ]
+ },
+ {
+  "line": "SchD.2",
+  "proofs": [
+   "recalculated: Carried from F8949.B.total: 37,720"
+  ]
+ },
+ {
+  "line": "SchD.3",
+  "proofs": [
+   "recalculated: Carried from F8949.H.total: 3,414"
+  ]
+ },
+ {
+  "line": "SchD.6",
+  "proofs": [
+   "agreed_to_prior_year: Equals last year’s carryover record: 3,200"
+  ]
+ },
+ {
+  "line": "SchD.7",
+  "proofs": [
+   "recalculated: Recalculated from its 4 input lines (SchD.1b, SchD.2, SchD.3, SchD.6): 38,146"
+  ]
+ },
+ {
+  "line": "SchD.8b",
+  "proofs": [
+   "recalculated: Carried from F8949.D.total: 7,309"
+  ]
+ },
+ {
+  "line": "SchD.9",
+  "proofs": [
+   "recalculated: Carried from F8949.E.total: 15,300"
+  ]
+ },
+ {
+  "line": "SchD.11",
+  "proofs": [
+   "recalculated: Carried from F4797.9: 105,040"
+  ]
+ },
+ {
+  "line": "SchD.12",
+  "proofs": [
+   "agreed_to_source_document: Agrees with Box 9a net long-term capital gain on 2025 Schedule K-1 (Form 1065) - Ridgeline Real Estate Fund III LP: 1,350"
+  ]
+ },
+ {
+  "line": "SchD.13",
+  "proofs": [
+   "agreed_to_source_document: Equals its 2 source amounts added: 1,180 + 640 = 1,820"
+  ]
+ },
+ {
+  "line": "SchD.14",
+  "proofs": [
+   "agreed_to_prior_year: Equals last year’s carryover record: 11,000"
+  ]
+ },
+ {
+  "line": "SchD.15",
+  "proofs": [
+   "recalculated: Recalculated from its 7 input lines (SchD.8b, SchD.9, SchD.10, SchD.11, SchD.12, SchD.13, SchD.14): 146,881"
+  ]
+ },
+ {
+  "line": "SchD.16",
+  "proofs": [
+   "recalculated: Recalculated from its 2 input lines (SchD.7, SchD.15): 185,027"
+  ]
+ },
+ {
+  "line": "F1040.7",
+  "proofs": [
+   "recalculated: Carried from SchD.16: 185,027"
+  ]
+ },
+ {
+  "line": "SchE.28A",
+  "proofs": [
+   "agreed_to_source_document: Agrees with Box 1 ordinary business income on 2025 Schedule K-1 (Form 1120-S) - Lindqvist Family Woodworks, Inc.: 18,400"
+  ]
+ },
+ {
+  "line": "SchE.28B",
+  "proofs": [
+   "agreed_to_source_document: Agrees with Box 2 net rental real estate income on 2025 Schedule K-1 (Form 1065) - Ridgeline Real Estate Fund III LP: 8,400"
+  ]
+ },
+ {
+  "line": "SchE.32",
+  "proofs": [
+   "recalculated: Recalculated from its 2 input lines (SchE.28A, SchE.28B): 26,800"
+  ]
+ },
+ {
+  "line": "F8582.1c",
+  "proofs": [
+   "agreed_to_prior_year: Equals last year’s carryover record: 6,300 + 9,850 = 16,150"
+  ]
+ },
+ {
+  "line": "F8582.3a",
+  "proofs": [
+   "recalculated: Carried from SchE.32: 26,800"
+  ]
+ },
+ {
+  "line": "SchE.26",
+  "proofs": [
+   "recalculated: Recalculated from its 2 input lines (SchE.22A, SchE.22B): -38,630"
+  ]
+ },
+ {
+  "line": "SchE.41",
+  "proofs": [
+   "recalculated: Recalculated from its 2 input lines (SchE.26, SchE.32): -11,830"
+  ]
+ },
+ {
+  "line": "Sch1.3",
+  "proofs": [
+   "recalculated: Carried from SchC.31: 81,854"
+  ]
+ },
+ {
+  "line": "Sch1.5",
+  "proofs": [
+   "recalculated: Carried from SchE.41: -11,830"
+  ]
+ },
+ {
+  "line": "Sch1.10",
+  "proofs": [
+   "recalculated: Recalculated from its 2 input lines (Sch1.3, Sch1.5): 70,024"
+  ]
+ },
+ {
+  "line": "Sch1.26",
+  "proofs": [
+   "recalculated: Recalculated from its 4 input lines (Sch1.13, Sch1.15, Sch1.16, Sch1.17): 35,397"
+  ]
+ },
+ {
+  "line": "F1040.8",
+  "proofs": [
+   "recalculated: Carried from Sch1.10: 70,024"
+  ]
+ },
+ {
+  "line": "F1040.9",
+  "proofs": [
+   "recalculated: Recalculated from its 6 input lines (F1040.1z, F1040.2b, F1040.3b, F1040.4b, F1040.7, F1040.8): 480,987"
+  ]
+ },
+ {
+  "line": "F1040.10",
+  "proofs": [
+   "recalculated: Carried from Sch1.26: 35,397"
+  ]
+ },
+ {
+  "line": "F1040.11",
+  "proofs": [
+   "recalculated: Recalculated from its 2 input lines (F1040.9, F1040.10): 445,590"
+  ]
+ },
+ {
+  "line": "SchA.5a",
+  "proofs": [
+   "agreed_to_source_document: Equals its 7 source amounts added: 8,950 + 4,180 + 3,000 + 1,240 + 3,500 + 3,500 + 3,500 = 27,870"
+  ]
+ },
+ {
+  "line": "SchA.5b",
+  "proofs": [
+   "agreed_to_source_document: Agrees with Box 10 real estate taxes on 2025 Form 1098 - Pecan Federal Savings (home, refinance): 13,420"
+  ]
+ },
+ {
+  "line": "SchA.5d",
+  "proofs": [
+   "recalculated: Recalculated from its 2 input lines (SchA.5a, SchA.5b): 41,290"
+  ]
+ },
+ {
+  "line": "SchA.7",
+  "proofs": [
+   "recalculated: Carried from SchA.5e: 40,000"
+  ]
+ },
+ {
+  "line": "SchA.8a",
+  "proofs": [
+   "agreed_to_source_document: Equals its 4 source amounts added: 13,900 + 997 + 2,150 + 4,800 = 21,847"
+  ]
+ },
+ {
+  "line": "SchA.8e",
+  "proofs": [
+   "recalculated: Recalculated from its 2 input lines (SchA.8a, SchA.8c): 21,856"
+  ]
+ },
+ {
+  "line": "SchA.10",
+  "proofs": [
+   "recalculated: Carried from SchA.8e: 21,856"
+  ]
+ },
+ {
+  "line": "SchA.11",
+  "proofs": [
+   "agreed_to_source_document: Equals its 3 source amounts added: 600 + 1,250 + 1,500 = 3,350"
+  ]
+ },
+ {
+  "line": "SchA.12",
+  "proofs": [
+   "recalculated: Recalculated from its 2 input lines (F8283.A1.stock, F8283.A1.vehicle): 20,500"
+  ]
+ },
+ {
+  "line": "SchA.14",
+  "proofs": [
+   "recalculated: Recalculated from its 2 input lines (SchA.11, SchA.12): 23,850"
+  ]
+ },
+ {
+  "line": "SchA.17",
+  "proofs": [
+   "recalculated: Recalculated from its 3 input lines (SchA.7, SchA.10, SchA.14): 85,706"
+  ]
+ },
+ {
+  "line": "F1040.12",
+  "proofs": [
+   "recalculated: Carried from SchA.17: 85,706"
+  ]
+ },
+ {
+  "line": "F8995.27",
+  "proofs": [
+   "recalculated: Recalculated from its 2 input lines (F8995.15.1, F8995.15.2): 12,971"
+  ]
+ },
+ {
+  "line": "F1040.13",
+  "proofs": [
+   "recalculated: Carried from F8995.39: 12,971"
+  ]
+ },
+ {
+  "line": "F1040.14",
+  "proofs": [
+   "recalculated: Recalculated from its 2 input lines (F1040.12, F1040.13): 98,677"
+  ]
+ },
+ {
+  "line": "F1040.15",
+  "proofs": [
+   "recalculated: Recalculated from its 2 input lines (F1040.11, F1040.14): 346,913"
+  ]
+ },
+ {
+  "line": "Sch3.1",
+  "proofs": [
+   "agreed_to_source_document: Equals its 2 source amounts added: 186 + 210 = 396"
+  ]
+ },
+ {
+  "line": "F6251.1",
+  "proofs": [
+   "recalculated: Carried from F1040.15: 346,913"
+  ]
+ },
+ {
+  "line": "F6251.2a",
+  "proofs": [
+   "recalculated: Carried from SchA.7: 40,000"
+  ]
+ },
+ {
+  "line": "F6251.4",
+  "proofs": [
+   "recalculated: Recalculated from its 3 input lines (F6251.1, F6251.2a, F6251.2i): 426,913"
+  ]
+ },
+ {
+  "line": "F6251.6",
+  "proofs": [
+   "recalculated: Recalculated from its 2 input lines (F6251.4, F6251.5): 289,913"
+  ]
+ },
+ {
+  "line": "F6251.8",
+  "proofs": [
+   "recalculated: Carried from Sch3.1: 396"
+  ]
+ },
+ {
+  "line": "F6251.9",
+  "proofs": [
+   "recalculated: Recalculated from its 2 input lines (F6251.7, F6251.8): 63,202"
+  ]
+ },
+ {
+  "line": "F6251.10",
+  "proofs": [
+   "recalculated: Recalculated from its 2 input lines (F1040.16, Sch3.1): 59,331"
+  ]
+ },
+ {
+  "line": "F6251.11",
+  "proofs": [
+   "recalculated: Recalculated from its 2 input lines (F6251.9, F6251.10): 3,871"
+  ]
+ },
+ {
+  "line": "Sch2.1",
+  "proofs": [
+   "recalculated: Carried from F6251.11: 3,871"
+  ]
+ },
+ {
+  "line": "Sch2.3",
+  "proofs": [
+   "recalculated: Carried from Sch2.1: 3,871"
+  ]
+ },
+ {
+  "line": "F1040.17",
+  "proofs": [
+   "recalculated: Carried from Sch2.3: 3,871"
+  ]
+ },
+ {
+  "line": "F1040.18",
+  "proofs": [
+   "recalculated: Recalculated from its 2 input lines (F1040.16, F1040.17): 63,598"
+  ]
+ },
+ {
+  "line": "F8812.1",
+  "proofs": [
+   "recalculated: Carried from F1040.11: 445,590"
+  ]
+ },
+ {
+  "line": "F8812.6",
+  "proofs": [
+   "agreed_to_third_party_record: Confirmed by an independent source: Ada Lindqvist-Okafor's SSN (ending 1106) matches last year's return (dependent Ada Lindqvist-Okafor)"
+  ]
+ },
+ {
+  "line": "F8812.8",
+  "proofs": [
+   "recalculated: Recalculated from its 2 input lines (F8812.5, F8812.7): 2,700"
+  ]
+ },
+ {
+  "line": "F8812.12",
+  "proofs": [
+   "recalculated: Recalculated from its 2 input lines (F8812.8, F8812.11): 400"
+  ]
+ },
+ {
+  "line": "F2441.1a",
+  "proofs": [
+   "agreed_to_source_document: Agrees with Total paid on Bright Oak Kids Club - 2025 statement (Theo): 5,400"
+  ]
+ },
+ {
+  "line": "F2441.1b",
+  "proofs": [
+   "agreed_to_source_document: Agrees with Total paid on Little Sprouts Learning Center - 2025 statement (Theo): 4,200"
+  ]
+ },
+ {
+  "line": "F2441.2",
+  "proofs": [
+   "recalculated: Recalculated from its 2 input lines (F2441.1a, F2441.1b): 9,600"
+  ]
+ },
+ {
+  "line": "F2441.12",
+  "proofs": [
+   "agreed_to_source_document: Agrees with Box 10 dependent care benefits on 2025 Form W-2 - Halvorsen Data LLC (Ngozi Okafor): 5,000",
+   "agreed_to_third_party_record: Confirmed by an independent source: every 2025 Form W-2 box 10 added (2 forms): 5,000"
+  ]
+ },
+ {
+  "line": "Sch3.8",
+  "proofs": [
+   "recalculated: Carried from Sch3.1: 396"
+  ]
+ },
+ {
+  "line": "F1040.19",
+  "proofs": [
+   "recalculated: Carried from F8812.12: 400"
+  ]
+ },
+ {
+  "line": "F1040.20",
+  "proofs": [
+   "recalculated: Carried from Sch3.8: 396"
+  ]
+ },
+ {
+  "line": "F1040.22",
+  "proofs": [
+   "recalculated: Recalculated from its 3 input lines (F1040.18, F1040.19, F1040.20): 62,802"
+  ]
+ },
+ {
+  "line": "Sch2.4",
+  "proofs": [
+   "recalculated: Carried from SchSE.12: 11,565"
+  ]
+ },
+ {
+  "line": "F8959.1",
+  "proofs": [
+   "agreed_to_source_document: Equals its 2 source amounts added: 112,000 + 118,000 = 230,000"
+  ]
+ },
+ {
+  "line": "F8959.8",
+  "proofs": [
+   "recalculated: Carried from SchSE.6: 75,592"
+  ]
+ },
+ {
+  "line": "F8959.18",
+  "proofs": [
+   "recalculated: Recalculated from its 2 input lines (F8959.7, F8959.13): 500"
+  ]
+ },
+ {
+  "line": "Sch2.11",
+  "proofs": [
+   "recalculated: Carried from F8959.18: 500"
+  ]
+ },
+ {
+  "line": "F8960.1",
+  "proofs": [
+   "recalculated: Carried from F1040.2b: 6,450"
+  ]
+ },
+ {
+  "line": "F8960.2",
+  "proofs": [
+   "recalculated: Carried from F1040.3b: 7,060"
+  ]
+ },
+ {
+  "line": "F8960.4a",
+  "proofs": [
+   "recalculated: Carried from SchE.41: -11,830"
+  ]
+ },
+ {
+  "line": "F8960.5a",
+  "proofs": [
+   "recalculated: Carried from F1040.7: 185,027"
+  ]
+ },
+ {
+  "line": "F8960.8",
+  "proofs": [
+   "recalculated: Recalculated from its 4 input lines (F8960.1, F8960.2, F8960.4a, F8960.5a): 186,707"
+  ]
+ },
+ {
+  "line": "F8960.12",
+  "proofs": [
+   "recalculated: Carried from F8960.8: 186,707"
+  ]
+ },
+ {
+  "line": "F8960.13",
+  "proofs": [
+   "recalculated: Carried from F1040.11: 445,590"
+  ]
+ },
+ {
+  "line": "Sch2.12",
+  "proofs": [
+   "recalculated: Carried from F8960.17: 7,095"
+  ]
+ },
+ {
+  "line": "Sch2.21",
+  "proofs": [
+   "recalculated: Recalculated from its 3 input lines (Sch2.4, Sch2.11, Sch2.12): 19,160"
+  ]
+ },
+ {
+  "line": "F1040.23",
+  "proofs": [
+   "recalculated: Carried from Sch2.21: 19,160"
+  ]
+ },
+ {
+  "line": "F1040.24",
+  "proofs": [
+   "recalculated: Recalculated from its 2 input lines (F1040.22, F1040.23): 81,962"
+  ]
+ },
+ {
+  "line": "F1040.25a",
+  "proofs": [
+   "agreed_to_source_document: Equals its 2 source amounts added: 15,800 + 9,600 = 25,400"
+  ]
+ },
+ {
+  "line": "F1040.25d",
+  "proofs": [
+   "recalculated: Carried from F1040.25a: 25,400"
+  ]
+ },
+ {
+  "line": "Sch3.10",
+  "proofs": [
+   "agreed_to_third_party_record: Confirmed by an independent source: the IRS account transcript shows 36,000 paid with the extension (1 payment)"
+  ]
+ },
+ {
+  "line": "Sch3.15",
+  "proofs": [
+   "recalculated: Recalculated from its 2 input lines (Sch3.10, Sch3.11): 39,342"
+  ]
+ },
+ {
+  "line": "F1040.31",
+  "proofs": [
+   "recalculated: Carried from Sch3.15: 39,342"
+  ]
+ },
+ {
+  "line": "F1040.33",
+  "proofs": [
+   "recalculated: Recalculated from its 3 input lines (F1040.25d, F1040.26, F1040.31): 77,742"
+  ]
+ },
+ {
+  "line": "F1040.37",
+  "proofs": [
+   "recalculated: Recalculated from its 2 input lines (F1040.24, F1040.33): 4,220"
+  ]
+ },
+ {
+  "line": "SchCA540NR.1.A",
+  "proofs": [
+   "recalculated: Carried from F1040.1z: 212,400"
+  ]
+ },
+ {
+  "line": "SchCA540NR.1.E",
+  "proofs": [
+   "recalculated: Carried from SchCA540NR.1.D: 218,400"
+  ]
+ },
+ {
+  "line": "SchCA540NR.2.A",
+  "proofs": [
+   "recalculated: Carried from F1040.2b: 6,450"
+  ]
+ },
+ {
+  "line": "SchCA540NR.2.B",
+  "proofs": [
+   "agreed_to_source_document: Agrees with 1099-INT 3 U.S. Treasury interest on Meridian Brokerage 2025 consolidated Form 1099 - CORRECTED (joint): 410"
+  ]
+ },
+ {
+  "line": "SchCA540NR.3.A",
+  "proofs": [
+   "recalculated: Carried from F1040.3b: 7,060"
+  ]
+ },
+ {
+  "line": "SchCA540NR.3.D",
+  "proofs": [
+   "recalculated: Carried from SchCA540NR.3.A: 7,060"
+  ]
+ },
+ {
+  "line": "SchCA540NR.4.A",
+  "proofs": [
+   "recalculated: Carried from F1040.4b: 26"
+  ]
+ },
+ {
+  "line": "SchCA540NR.4.D",
+  "proofs": [
+   "recalculated: Carried from SchCA540NR.4.A: 26"
+  ]
+ },
+ {
+  "line": "SchCA540NR.4.E",
+  "proofs": [
+   "recalculated: Carried from SchCA540NR.4.D: 26"
+  ]
+ },
+ {
+  "line": "SchCA540NR.7.A",
+  "proofs": [
+   "recalculated: Carried from F1040.7: 185,027"
+  ]
+ },
+ {
+  "line": "SchCA540NR.7.D",
+  "proofs": [
+   "recalculated: Carried from SchCA540NR.7.A: 185,027"
+  ]
+ },
+ {
+  "line": "SchCA540NR.17.A",
+  "proofs": [
+   "recalculated: Carried from SchE.41: -11,830"
+  ]
+ },
+ {
+  "line": "SchCA540NR.22.D",
+  "proofs": [
+   "recalculated: Recalculated from its 7 input lines (SchCA540NR.1.D, SchCA540NR.2.D, SchCA540NR.3.D, SchCA540NR.4.D, SchCA540NR.7.D, SchCA540NR.12.D, SchCA540NR.17.D): 516,493"
+  ]
+ },
+ {
+  "line": "SchCA540NR.22.E",
+  "proofs": [
+   "recalculated: Recalculated from its 7 input lines (SchCA540NR.1.E, SchCA540NR.2.E, SchCA540NR.3.E, SchCA540NR.4.E, SchCA540NR.7.E, SchCA540NR.12.E, SchCA540NR.17.E): 324,260"
+  ]
+ },
+ {
+  "line": "SchCA540NR.26.D",
+  "proofs": [
+   "recalculated: Carried from Sch1.26: 35,397"
+  ]
+ },
+ {
+  "line": "F540NR.13",
+  "proofs": [
+   "recalculated: Carried from F1040.11: 445,590"
+  ]
+ },
+ {
+  "line": "F540NR.17",
+  "proofs": [
+   "recalculated: Recalculated from its 2 input lines (SchCA540NR.22.D, SchCA540NR.26.D): 481,096"
+  ]
+ },
+ {
+  "line": "F540NR.18",
+  "proofs": [
+   "recalculated: Carried from SchCA540NR.A.itemized: 59,126"
+  ]
+ },
+ {
+  "line": "F540NR.19",
+  "proofs": [
+   "recalculated: Recalculated from its 2 input lines (F540NR.17, F540NR.18): 421,970"
+  ]
+ },
+ {
+  "line": "F540NR.32",
+  "proofs": [
+   "recalculated: Recalculated from its 2 input lines (SchCA540NR.22.E, SchCA540NR.26.E): 305,349"
+  ]
+ },
+ {
+  "line": "F540NR.40",
+  "proofs": [
+   "recalculated: Recalculated from its 2 input lines (F540NR.37, F540NR.39): 19,718"
+  ]
+ },
+ {
+  "line": "F540NR.64",
+  "proofs": [
+   "recalculated: Recalculated from its 3 input lines (F540NR.40, ScheduleS.credit, F540NR.61): 18,874"
+  ]
+ },
+ {
+  "line": "F540NR.71",
+  "proofs": [
+   "agreed_to_source_document: Equals its 2 source amounts added: 8,950 + 4,180 = 13,130"
+  ]
+ },
+ {
+  "line": "F540NR.78",
+  "proofs": [
+   "recalculated: Recalculated from its 3 input lines (F540NR.71, F540NR.72, F540NR.73): 27,130"
+  ]
+ },
+ {
+  "line": "F540NR.97",
+  "proofs": [
+   "recalculated: Recalculated from its 2 input lines (F540NR.64, F540NR.78): 8,256"
+  ]
+ }
+]

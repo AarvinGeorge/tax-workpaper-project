@@ -1,0 +1,58 @@
+{
+ "priya": {
+  "stage": "Review",
+  "blockers": [
+   "finding:CHK-PRORATION-CREDIT-UNUSED:line:SchA.5b | Real estate taxes (home) includes the other party's share credited at closing",
+   "finding:CHK-DUP-1099K-BOOKS:line:SchC.1 | Gross receipts counts the Paywell Payments, Inc. card money twice",
+   "finding:CHK-PAYMENTS-VS-AGENCY:line:F540NR.72 | 2025 California estimated tax payments: 14,000 on the return, 10,500 on the FTB account",
+   "finding:CHK-IDENTITY-VS-DOCUMENTS:line:F8812.4 | Theo Lindqvist-Okafor: SSN in the organizer does not match the documents",
+   "finding:CHK-PAYMENT-TAX-YEAR:line:F540NR.72 | 2025 California estimated tax payments includes a payment designated for another tax year",
+   "finding:CHK-LINE-NOT-COMPUTED:line:F540NR.61 | Alternative minimum tax (Schedule P): never computed, though its input carries an amount",
+   "finding:CHK-STATE-WAGES-RESIDENCY:line:SchCA540NR.1.E | Wages - California amount includes wages earned after the move",
+   "finding:CHK-CHEAPER-ELECTION:line:F4562-C.12 | Election available: Studio equipment (38,000): elect section 179 instead of 100% special depreciation",
+   "finding:CHK-LOT-SUPPLEMENT-BASIS:line:F8949.B.N1 | Sales at zero basis while Corvane stock plan supplemental tax statement 2025 gives the basis",
+   "finding:CHK-REPAIR-VS-IMPROVEMENT:line:SchE.14A | Repairs - property A: the 11,000 invoice reads as a replacement, possibly an improvement to depreciate",
+   "finding:CHK-ANSWER-GATES-DEDUCTION:line:Sch1.17 | Self-employed health insurance deduction taken although the client says employer coverage was available"
+  ]
+ },
+ "daniel": {
+  "stage": "Review",
+  "blockers": [
+   "finding:CHK-PRORATION-CREDIT-UNUSED:line:SchA.5b | Real estate taxes (home) includes the other party's share credited at closing",
+   "finding:CHK-DUP-1099K-BOOKS:line:SchC.1 | Gross receipts counts the Paywell Payments, Inc. card money twice",
+   "finding:CHK-PAYMENTS-VS-AGENCY:line:F540NR.72 | 2025 California estimated tax payments: 14,000 on the return, 10,500 on the FTB account",
+   "finding:CHK-IDENTITY-VS-DOCUMENTS:line:F8812.4 | Theo Lindqvist-Okafor: SSN in the organizer does not match the documents",
+   "finding:CHK-PAYMENT-TAX-YEAR:line:F540NR.72 | 2025 California estimated tax payments includes a payment designated for another tax year",
+   "finding:CHK-LINE-NOT-COMPUTED:line:F540NR.61 | Alternative minimum tax (Schedule P): never computed, though its input carries an amount",
+   "finding:CHK-STATE-WAGES-RESIDENCY:line:SchCA540NR.1.E | Wages - California amount includes wages earned after the move",
+   "finding:CHK-CHEAPER-ELECTION:line:F4562-C.12 | Election available: Studio equipment (38,000): elect section 179 instead of 100% special depreciation",
+   "finding:CHK-LOT-SUPPLEMENT-BASIS:line:F8949.B.N1 | Sales at zero basis while Corvane stock plan supplemental tax statement 2025 gives the basis",
+   "finding:CHK-REPAIR-VS-IMPROVEMENT:line:SchE.14A | Repairs - property A: the 11,000 invoice reads as a replacement, possibly an improvement to depreciate",
+   "finding:CHK-ANSWER-GATES-DEDUCTION:line:Sch1.17 | Self-employed health insurance deduction taken although the client says employer coverage was available"
+  ]
+ },
+ "helen": {
+  "stage": "Review",
+  "blockers": [
+   "finding:CHK-PRORATION-CREDIT-UNUSED:line:SchA.5b | Real estate taxes (home) includes the other party's share credited at closing",
+   "finding:CHK-DUP-1099K-BOOKS:line:SchC.1 | Gross receipts counts the Paywell Payments, Inc. card money twice",
+   "finding:CHK-PAYMENTS-VS-AGENCY:line:F540NR.72 | 2025 California estimated tax payments: 14,000 on the return, 10,500 on the FTB account",
+   "finding:CHK-IDENTITY-VS-DOCUMENTS:line:F8812.4 | Theo Lindqvist-Okafor: SSN in the organizer does not match the documents",
+   "finding:CHK-PAYMENT-TAX-YEAR:line:F540NR.72 | 2025 California estimated tax payments includes a payment designated for another tax year",
+   "finding:CHK-LINE-NOT-COMPUTED:line:F540NR.61 | Alternative minimum tax (Schedule P): never computed, though its input carries an amount",
+   "finding:CHK-STATE-WAGES-RESIDENCY:line:SchCA540NR.1.E | Wages - California amount includes wages earned after the move",
+   "finding:CHK-CHEAPER-ELECTION:line:F4562-C.12 | Election available: Studio equipment (38,000): elect section 179 instead of 100% special depreciation",
+   "finding:CHK-LOT-SUPPLEMENT-BASIS:line:F8949.B.N1 | Sales at zero basis while Corvane stock plan supplemental tax statement 2025 gives the basis",
+   "finding:CHK-REPAIR-VS-IMPROVEMENT:line:SchE.14A | Repairs - property A: the 11,000 invoice reads as a replacement, possibly an improvement to depreciate",
+   "finding:CHK-ANSWER-GATES-DEDUCTION:line:Sch1.17 | Self-employed health insurance deduction taken although the client says employer coverage was available"
+  ]
+ },
+ "ngozi": {
+  "stage": "Review",
+  "blockers": []
+ },
+ "irs": {
+  "stage": "Review",
+  "blockers": []
+ }
+}
