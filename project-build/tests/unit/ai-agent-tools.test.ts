@@ -17,7 +17,7 @@ const lineWithSources = ix.latest.lines.find((l) => (l.sources ?? []).some((s) =
 /** Every result any tool can give on the real packet: each line, each page, each list read to its end. */
 function everyResult(): string[] {
   const out: string[] = [];
-  for (const l of ix.latest.lines) { out.push(runTool(ix, 'get_line', { key: l.key })); out.push(runTool(ix, 'proofs_for_line', { key: l.key })); }
+  for (const l of ix.latest.lines) { out.push(runTool(ix, 'get_line', { key: l.key })); out.push(runTool(ix, 'verify', { method: 'recompute_line', ids: [l.key], target: null })); out.push(runTool(ix, 'verify', { method: 'prior_year', ids: [l.key], target: null })); }
   for (const d of ix.packet.documents) for (const p of d.pages) out.push(runTool(ix, 'get_page', { doc: d.id, page: p.page }));
   const drain = (name: string, extra: Record<string, unknown>) => {
     let cursor: number | null = 0;
@@ -31,15 +31,15 @@ function everyResult(): string[] {
   drain('list_open_leftovers', { kind: null });
   drain('search_values', { text: 'ssn' });
   drain('search_values', { text: 'account' });
-  for (const d of ix.packet.documents.slice(0, 20)) drain('find_fact_copies', { line_or_doc: d.id });
+  for (const d of ix.packet.documents.slice(0, 20)) drain('verify', { method: 'fact_copies', ids: [d.id], target: null });
   return out;
 }
 
 describe('agent tools: the tool set', () => {
-  it('has the seven planned tools, each strict with a closed input schema', () => {
+  it('has the six planned tools, each strict with a closed input schema', () => {
     const tools = agentTools(ix, { onHit: () => {} });
     expect(tools.map((t) => t.name).sort()).toEqual([...AGENT_TOOL_NAMES].sort());
-    expect(AGENT_TOOL_NAMES).toEqual(['get_line', 'get_page', 'search_values', 'find_fact_copies', 'proofs_for_line', 'run_checks', 'list_open_leftovers']);
+    expect(AGENT_TOOL_NAMES).toEqual(['get_line', 'get_page', 'search_values', 'verify', 'run_checks', 'list_open_leftovers']);
     for (const t of tools) {
       const tool = t as unknown as { strict?: boolean; input_schema: { additionalProperties: boolean; required: string[]; properties: Record<string, unknown> } };
       expect(tool.strict, t.name).toBe(true);
@@ -68,7 +68,7 @@ describe('agent tools: results', () => {
   it('an unknown key or page is an error result, not a thrown error', () => {
     expect(call('get_line', { key: 'NOT.A.LINE' }).data.error).toMatch(/No line/);
     expect(call('get_page', { doc: docWithPages.id, page: 999 }).data.error).toMatch(/no page/);
-    expect(call('proofs_for_line', { key: 'NOT.A.LINE' }).data.error).toMatch(/No line/);
+    expect(call('verify', { method: 'recompute_line', ids: ['NOT.A.LINE'], target: null }).data.error).toMatch(/No line/);
   });
 
   it('get_page returns the printed page text', () => {
@@ -89,16 +89,11 @@ describe('agent tools: results', () => {
     for (const e of LEDGER) expect(text.includes(e.title), e.id).toBe(false);
   });
 
-  it('find_fact_copies returns the copies of facts on a line', () => {
-    const line = ix.latest.lines.find((l) => call('find_fact_copies', { line_or_doc: l.key, limit: 5, cursor: 0 }).data.total as number > 0);
+  it('verify fact_copies returns the copies of facts on a line (the calculator\'s own tests: ai-agent-calculator)', () => {
+    const line = ix.latest.lines.find((l) => call('verify', { method: 'fact_copies', ids: [l.key], target: null, limit: 5, cursor: 0 }).data.total as number > 0);
     expect(line).toBeDefined();
-    const d = call('find_fact_copies', { line_or_doc: line!.key, limit: 5, cursor: 0 }).data as { items: { copies: unknown[]; agree: boolean }[] };
+    const d = call('verify', { method: 'fact_copies', ids: [line!.key], target: null, limit: 5, cursor: 0 }).data as { items: { copies: unknown[]; agree: boolean }[] };
     expect(d.items[0].copies.length).toBeGreaterThan(0);
-  });
-
-  it('proofs_for_line returns the tool\'s own receipts for a line', () => {
-    const line = ix.latest.lines.find((l) => ((call('proofs_for_line', { key: l.key }).data.proofs as unknown[]) ?? []).length > 0);
-    expect(line).toBeDefined();
   });
 
   it('list_open_leftovers lists unproven lines, uncovered engine warnings and uncited money, filterable by kind', () => {
@@ -190,10 +185,10 @@ describe('agent tools: measurement modes', () => {
     expect(hiddenCheckIds(8)).not.toEqual(a);
   });
 
-  it('blind: no run_checks, no find_fact_copies, and leftovers computed with no findings', () => {
+  it('blind: no run_checks, and leftovers computed with no findings', () => {
     const blind: AgentMode = { kind: 'blind' };
     const names = agentTools(ix, { onHit: () => {} }, { mode: blind }).map((t) => t.name);
-    expect(names.sort()).toEqual(['get_line', 'get_page', 'list_open_leftovers', 'proofs_for_line', 'search_values']);
+    expect(names.sort()).toEqual(['get_line', 'get_page', 'list_open_leftovers', 'search_values', 'verify']);
     expect(() => runTool(ix, 'run_checks', { limit: 5, cursor: 0 }, { mode: blind })).toThrow(/not available/);
     const d = (m?: AgentMode) => (JSON.parse(runTool(ix, 'list_open_leftovers', { kind: null, limit: 1, cursor: 0 }, { mode: m })) as { data: { byKind: Record<string, number> } }).data.byKind;
     expect(d(blind).uncovered_engine_warning).toBe(ix.latest.diagnostics.length);
@@ -211,7 +206,7 @@ describe('agent tools: measurement modes', () => {
     expect((JSON.parse(rc) as { data: { total: number } }).data.total).toBe(kept.length);
     expect(titles(rc).sort()).toEqual(kept.map((f) => f.title).slice(0, 50).sort());
     const texts: string[] = [rc];
-    for (const l of ix.latest.lines) texts.push(runTool(ix, 'find_fact_copies', { line_or_doc: l.key, limit: 50, cursor: 0 }, { mode }));
+    for (const l of ix.latest.lines) texts.push(runTool(ix, 'verify', { method: 'fact_copies', ids: [l.key], target: null, limit: 50, cursor: 0 }, { mode }));
     for (let c: number | null = 0; c !== null;) {
       const r = runTool(ix, 'list_open_leftovers', { kind: null, limit: 50, cursor: c }, { mode });
       texts.push(r); c = (JSON.parse(r) as { data: { nextCursor: number | null } }).data.nextCursor;

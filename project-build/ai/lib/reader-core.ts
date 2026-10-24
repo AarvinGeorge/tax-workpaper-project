@@ -97,12 +97,23 @@ const fmt = (v: unknown) => (v === null || v === undefined ? '' : typeof v === '
 
 /** Shared by every call (cached): latest return lines, client text, prior-year notes. */
 export function sharedContext(ix: PacketIndex): string {
+  return `${returnLinesContext(ix)}\n\n${clientContext(ix)}`;
+}
+
+/** The latest return's lines (key | label | value). */
+export function returnLinesContext(ix: PacketIndex): string {
+  const m = masker(ix);
+  const out = [`## Latest return version ${ix.latest.version}: lines (key | label | value)`];
+  for (const l of ix.latest.lines) out.push(m(`${l.key} | ${l.label} | ${fmt(l.value)}`));
+  return out.join('\n');
+}
+
+/** The client's answers, messages and call notes, and the prior-year notes (the free text a rule cannot read). */
+export function clientContext(ix: PacketIndex): string {
   const m = masker(ix);
   const p = ix.packet;
   const out: string[] = [];
-  out.push(`## Latest return version ${ix.latest.version}: lines (key | label | value)`);
-  for (const l of ix.latest.lines) out.push(m(`${l.key} | ${l.label} | ${fmt(l.value)}`));
-  out.push('', '## Client questionnaire answers');
+  out.push('## Client questionnaire answers');
   for (const q of p.client.questionnaire) out.push(m(`[${q.id}] Q: ${q.question} A: ${q.answer} (answered ${q.answered_at})`));
   out.push('', '## Client messages');
   for (const msg of p.client.messages) out.push(m(`[${msg.id}] ${msg.sent_at}: ${msg.text}`));

@@ -94,3 +94,20 @@ hide-checks (12 of 12 on finding lines); removed, statuses only from `findingsFo
 The verifier feedback loop inside the run (rejections returned with reasons); multi-run measurement (5 to compare,
 10 to report; union, intersection, agent-only finds); planted-injection test documents; any route, store write or
 switch of the live AI output; caps, limits or tax computations in the calculator.
+
+## Measured (Task 3), 24 Oct 18:25 EDT, offline, chars/4
+| Section | agent-v1 (old) | agent-v2 (case file) |
+|---|---|---|
+| Packet README | 2,254 | 0 (schema card 364; glossary on demand) |
+| Firm standards (raw JSON) | 387 | review steps + digest 1,147 |
+| Case brief | 1,317 | 0 (dropped: it describes our deliverable) |
+| Digest | 731 | (in the line above) |
+| Return lines | 12,719 (with labels) | state map 5,658 (no labels, P/F/O/E) |
+| Work list | 0 (tool only) | 795 (blind 962): counts, every uncovered warning, top 40 |
+| Document index | 2,948 | 1,412 (no titles, owners, dates, pages) |
+| Client text and prior-year notes | 2,534 | 2,534 (kept: free text is the agent's main target; ~$0.02 a run cached) |
+| **Total** | **22,890** | **11,912** (blind 12,079) |
+System prompt 787 → 848 (blind 804). State map statuses: P 190, F 34, O 337, E 66 (default mode), matching Fable's probe.
+Deviation: every uncovered engine warning is listed (7 default, 11 blind) besides the top 40, since warnings carry no
+amount and would sort last. Tools: 7 → 6 (verify replaces proofs_for_line and find_fact_copies); blind keeps verify
+with agreements-only fact copies (5 tools). Unit 682 → 710, contract snapshots unchanged.

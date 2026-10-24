@@ -11,17 +11,18 @@ import type { BetaRunnableTool } from '@anthropic-ai/sdk/lib/tools/BetaRunnableT
 import type { PacketIndex } from '../../src/domain/packet/load';
 import type { ExtractedValue } from '../../src/domain/packet/types';
 import type { Finding } from '../../src/domain/contracts';
-import { runChecks } from '../../src/domain/checks/index';
 import { proofsFor } from '../../src/domain/proofs';
-import { sameFacts } from '../../src/domain/facts';
 import { documentLanding } from '../../src/domain/docs';
 import { checkItems, engineOn } from '../../src/domain/items';
 import { maskRecord, maskValue, sensitiveTypeOf } from '../../src/domain/policy';
 import { SSN_SHAPED, supersession } from '../../src/domain/ai/verify';
 import { masker, maskingRole } from './reader-core';
-import { DEFAULT_MODE, hiddenCheckIds, modeLabel, type AgentMode } from './modes';
+import { DEFAULT_MODE, findingsFor, modeLabel, type AgentMode } from './modes';
+import { VERIFY_METHODS, verify } from './calculator';
 
-export const AGENT_TOOL_NAMES = ['get_line', 'get_page', 'search_values', 'find_fact_copies', 'proofs_for_line', 'run_checks', 'list_open_leftovers'] as const;
+export { findingsFor };
+
+export const AGENT_TOOL_NAMES = ['get_line', 'get_page', 'search_values', 'verify', 'run_checks', 'list_open_leftovers'] as const;
 export type AgentToolName = (typeof AGENT_TOOL_NAMES)[number];
 export const TOOL_RESULT_MAX_BYTES = 16_000;
 export const MAX_LIMIT = 50;
@@ -46,31 +47,9 @@ function cached<T>(store: WeakMap<PacketIndex, Map<string, T>>, ix: PacketIndex,
   if (!m.has(key)) m.set(key, make());
   return m.get(key)!;
 }
-const findingsCache = new WeakMap<PacketIndex, Map<string, Finding[]>>();
-const allFindingsCache = new WeakMap<PacketIndex, Finding[]>();
-const allFindings = (ix: PacketIndex) => {
-  let f = allFindingsCache.get(ix);
-  if (!f) { f = runChecks(ix); allFindingsCache.set(ix, f); }
-  return f;
-};
-/** The findings a mode lets the agent's tools use: all (default), none (blind), or those of the checks not hidden. */
-export function findingsFor(ix: PacketIndex, mode: AgentMode = DEFAULT_MODE): Finding[] {
-  return cached(findingsCache, ix, modeLabel(mode), () => {
-    if (mode.kind === 'blind') return [];
-    if (mode.kind === 'default') return allFindings(ix);
-    const hidden = new Set(hiddenCheckIds(mode.seed));
-    return allFindings(ix).filter((f) => !hidden.has(f.checkId));
-  });
-}
-/** The hidden checks' findings (empty outside hide-checks): what must not leak through any other tool. */
-function hiddenFindings(ix: PacketIndex, mode: AgentMode): Finding[] {
-  if (mode.kind !== 'hide-checks') return [];
-  const hidden = new Set(hiddenCheckIds(mode.seed));
-  return allFindings(ix).filter((f) => hidden.has(f.checkId));
-}
-/** Tools a mode offers: blind takes away the two that hand over our checks' results. */
+/** Tools a mode offers: blind takes away run_checks (the calculator's fact_copies gives agreements only there). */
 export function toolNamesFor(mode: AgentMode = DEFAULT_MODE): AgentToolName[] {
-  return AGENT_TOOL_NAMES.filter((n) => mode.kind !== 'blind' || (n !== 'run_checks' && n !== 'find_fact_copies'));
+  return AGENT_TOOL_NAMES.filter((n) => mode.kind !== 'blind' || n !== 'run_checks');
 }
 
 function maskedValue(ix: PacketIndex, v: ExtractedValue): Obj {
@@ -136,30 +115,6 @@ function searchItems(ix: PacketIndex, text: string): Obj[] {
     if (at >= 0) out.push({ kind: 'page', doc: d.id, page: p.page, title: d.title, snippet: t.slice(Math.max(0, at - 80), at + q.length + 80) });
   }
   return out;
-}
-
-function refDoc(ix: PacketIndex, ref: string): string | null {
-  if (ix.valueById.has(ref)) return ix.valueById.get(ref)!.document_id;
-  if (ref.startsWith('doc:')) return ref.slice(4).split('#')[0] || null;
-  return null;
-}
-
-function factItems(ix: PacketIndex, target: string, mode: AgentMode): Obj[] | null {
-  const isLine = !!ix.line(ix.latest.version, target);
-  const isDoc = ix.docById.has(target);
-  if (!isLine && !isDoc) return null;
-  // A disagreement that a hidden check reports (same title or same claims) is hidden with it.
-  const hid = hiddenFindings(ix, mode);
-  const hiddenBy = (c: { title: string; claims: string[] }) => hid.some((f) => f.title === c.title || f.claims.join('|') === c.claims.join('|'));
-  return sameFacts(ix)
-    .filter((c) => c.agree || !hiddenBy(c))
-    .filter((c) => (isLine ? c.claims.includes(`line:${target}`) : c.claims.includes(`doc:${target}`) || c.copies.some((x) => x.ref && refDoc(ix, x.ref) === target)))
-    .map((c) => ({ rule: c.rule, agree: c.agree, claims: c.claims, title: c.title, explanation: c.explanation, receipt: c.receipt ?? null, copies: c.copies }));
-}
-
-function proofsForLine(ix: PacketIndex, i: { key: string }): Obj {
-  if (!ix.line(ix.latest.version, i.key)) return { error: `No line ${i.key} on the latest return.` };
-  return { key: i.key, proofs: proofsFor(ix, i.key) };
 }
 
 /** Findings as a reviewer reads them, numbered in order; no ledger ids, no finding ids, no check ids. */
@@ -258,17 +213,18 @@ export function runTool(ix: PacketIndex, name: string, input: Obj, opts: ToolOpt
   switch (name) {
     case 'get_line': text = shrink(name, mask(getLine(ix, input as { key: string }))); break;
     case 'get_page': text = shrink(name, mask(getPage(ix, input as { doc: string; page: number }))); break;
-    case 'proofs_for_line': text = shrink(name, mask(proofsForLine(ix, input as { key: string }))); break;
     case 'search_values': {
       const q = String(input.text ?? '');
       const found = searchItems(ix, q);
       text = page(name, found.map(mask), input, mask({ query: q }));
       break;
     }
-    case 'find_fact_copies': {
-      const target = String(input.line_or_doc ?? '');
-      const found = factItems(ix, target, mode);
-      text = found ? page(name, found.map(mask), input, { target }) : shrink(name, { error: `No line or document ${target}.` });
+    case 'verify': {
+      const r = verify(ix, { method: String(input.method ?? ''), ids: (input.ids as unknown[]) ?? [], target: input.target ?? null }, mode);
+      // fact_copies is a list: paged like the other lists; every other method is one result.
+      text = Array.isArray(r.items) && input.method === 'fact_copies'
+        ? page(name, (r.items as Obj[]).map(mask), input, { method: 'fact_copies', target: r.target })
+        : shrink(name, mask({ method: input.method, ...r }));
       break;
     }
     case 'run_checks': text = page(name, checkRows(ix, mode).map(mask), input); break;
@@ -294,7 +250,7 @@ const listProps = {
   cursor: { ...nullableInt, description: 'Where to start: 0 or null for the first page, else the nextCursor of the previous page.' },
 } as const;
 
-/** The seven tools. `guard.onHit` is told when a result is withheld for an SSN shape. */
+/** The six tools. `guard.onHit` is told when a result is withheld for an SSN shape. */
 export function agentTools(ix: PacketIndex, guard: ToolGuard, opts: ToolOptions = {}): BetaRunnableTool[] {
   const run = (name: AgentToolName) => (input: unknown) => {
     try { return runTool(ix, name, input as Obj, opts); } catch (e) { if (e instanceof SsnInToolResult) guard.onHit(name); throw e; }
@@ -317,14 +273,17 @@ export function agentTools(ix: PacketIndex, guard: ToolGuard, opts: ToolOptions 
       inputSchema: { type: 'object', additionalProperties: false, required: ['text', 'limit', 'cursor'], properties: { text: { type: 'string', description: 'At least 2 characters.' }, ...listProps } },
     }),
     betaTool({
-      name: 'find_fact_copies', strict: true, run: run('find_fact_copies'),
-      description: 'Every copy of the same fact across sources (two forms, a form and a statement, the return and an agency record) for a line key or a document id, and whether the copies agree. Paged.',
-      inputSchema: { type: 'object', additionalProperties: false, required: ['line_or_doc', 'limit', 'cursor'], properties: { line_or_doc: { type: 'string', description: 'A line key or a document id.' }, ...listProps } },
-    }),
-    betaTool({
-      name: 'proofs_for_line', strict: true, run: run('proofs_for_line'),
-      description: 'The receipts the tool itself proved for a line (agreed to its source document, recalculated from its inputs, agreed to prior year, confirmed by an independent record). A receipt shows agreement, not that the number is right.',
-      inputSchema: { type: 'object', additionalProperties: false, required: ['key'], properties: { key: { type: 'string', description: 'The line key.' } } },
+      name: 'verify', strict: true, run: run('verify'),
+      description: 'The calculator: our code does the arithmetic; you choose the check and pass ids (line keys like F1040.11, value ids like ev-0123), never numbers. Methods: recompute_line (ids: [line]; carries or adds its listed input lines, gives the difference and which signs reach the value, or says the rule needs the engine); sum_to (ids: lines or values, target: a line or value; their total against the target, the difference); prior_year (ids: [line]; last year\'s return and cited prior-year records, the change against the firm\'s variance rule); fact_copies (ids: [line or document]; every copy of the same fact across sources and whether they agree; paged); glossary (ids: [term]; what a packet field or id format means).',
+      inputSchema: {
+        type: 'object', additionalProperties: false, required: ['method', 'ids', 'target', 'limit', 'cursor'],
+        properties: {
+          method: { type: 'string', enum: [...VERIFY_METHODS] },
+          ids: { type: 'array', items: { type: 'string' }, description: 'Ids only: line keys, value ids, a document id, or the glossary term.' },
+          target: { type: ['string', 'null'], description: 'sum_to only: the line key or value id to compare with; else null.' },
+          ...listProps,
+        },
+      },
     }),
     betaTool({
       name: 'run_checks', strict: true, run: run('run_checks'),

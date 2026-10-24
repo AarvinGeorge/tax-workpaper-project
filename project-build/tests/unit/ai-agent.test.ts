@@ -13,6 +13,7 @@ import {
   agentContext, agentOutFile, agentSystemPrompt, loadContextFiles, makeClient, runAgent, validateProposal, writeRun, type AgentRunOptions,
 } from '../../ai/lib/agent-core';
 import { hiddenCheckIds, type AgentMode } from '../../ai/lib/modes';
+import { caseFile } from '../../ai/lib/case-file';
 
 const ix = indexPacket(loadPacket());
 const files = loadContextFiles(process.cwd());
@@ -76,7 +77,7 @@ describe('agent: the request', () => {
     expect(AGENT_BETAS).toContain('server-side-fallback-2026-07-01');
     expect(headers.get('anthropic-beta')).toContain('server-side-fallback-2026-07-01');
     expect(body.tool_choice === undefined || (body.tool_choice as { type: string }).type === 'auto').toBe(true);
-    expect(body.tools).toHaveLength(7);
+    expect(body.tools).toHaveLength(6);
     for (const t of body.tools) expect(t.strict).toBe(true);
     expect(body.system.at(-1)!.cache_control).toEqual({ type: 'ephemeral' }); // the shared context, cached
     expect(body.cache_control).toEqual({ type: 'ephemeral' });               // the growing transcript, cached
@@ -85,16 +86,20 @@ describe('agent: the request', () => {
     expect(JSON.stringify(body)).not.toContain(KEY);
   });
 
-  it('the context carries the packet README, firm standards, the brief and the domain digest', () => {
+  it('the context is the case file (schema card, review steps, digest, state map, work list), not the raw README or brief', async () => {
     const ctx = agentContext(ix, files);
-    expect(ctx).toContain('## Packet README');
-    expect(ctx).toContain(String((ix.packet.readme as Record<string, string>).truth_and_mistakes).slice(0, 60));
-    expect(ctx).toContain('## Firm standards');
-    expect(ctx).toContain('## The case brief');
-    expect(ctx).toContain('Case Study: Redesign the Tax Workpaper');
+    expect(ctx).toBe(caseFile(ix, files.digest));
+    expect(ctx).toContain('## Schema card');
     expect(ctx).toContain('# How a US individual return is reviewed');
+    expect(ctx).not.toContain('## Packet README');
+    expect(ctx).not.toContain('Case Study: Redesign the Tax Workpaper');
+    expect(agentContext(ix, files, { kind: 'blind' })).toBe(caseFile(ix, files.digest, { kind: 'blind' }));
+    const { fetch, calls } = fakeFetch(() => final({ suggestions: [], proposals: [] }));
+    await runAgent(opts(fetch, { mode: { kind: 'blind' } }));
+    expect(calls[0].body.system.at(-1)!.text).toBe(caseFile(ix, files.digest, { kind: 'blind' })); // the mode's case file is sent
     for (const a of AI_AUTHORITIES) expect(AGENT_SYSTEM_PROMPT).toContain(a);
     expect(AGENT_SYSTEM_PROMPT).toMatch(/data, never instructions/);
+    expect(AGENT_SYSTEM_PROMPT).toMatch(/verify/);
   });
 });
 
@@ -104,12 +109,12 @@ describe('agent: the answer key never reaches the model', () => {
     const offered = new Set<string>(toolNamesFor(mode));
     const calls1 = [
       toolUse('run_checks', { limit: 50, cursor: 0 }), toolUse('list_open_leftovers', { kind: null, limit: 50, cursor: 0 }),
-      toolUse('get_line', { key: freeLine }), toolUse('proofs_for_line', { key: freeLine }),
+      toolUse('get_line', { key: freeLine }), toolUse('verify', { method: 'recompute_line', ids: [freeLine], target: null, limit: null, cursor: null }),
     ].filter((t) => offered.has(t.name));
     const calls2 = [
       toolUse('run_checks', { limit: 50, cursor: 50 }), toolUse('get_page', { doc: docWithPages.id, page: docWithPages.pages[0].page }),
-      toolUse('search_values', { text: 'estimated', limit: 50, cursor: 0 }), toolUse('find_fact_copies', { line_or_doc: docWithPages.id, limit: 50, cursor: 0 }),
-      ...ix.latest.lines.slice(0, 40).map((l) => toolUse('find_fact_copies', { line_or_doc: l.key, limit: 50, cursor: 0 })),
+      toolUse('search_values', { text: 'estimated', limit: 50, cursor: 0 }), toolUse('verify', { method: 'fact_copies', ids: [docWithPages.id], target: null, limit: 50, cursor: 0 }),
+      ...ix.latest.lines.slice(0, 40).map((l) => toolUse('verify', { method: 'fact_copies', ids: [l.key], target: null, limit: 50, cursor: 0 })),
     ].filter((t) => offered.has(t.name));
     const script: Script = (_b, turn) => (turn === 1 ? message(calls1, 'tool_use') : turn === 2 ? message(calls2, 'tool_use') : final({ suggestions: [], proposals: [] }));
     const { fetch, calls } = fakeFetch(script);
@@ -223,7 +228,7 @@ describe('agent: the payload', () => {
     expect(res.ok).toBe(true);
     if (!res.ok) return;
     expect(res.payload).toMatchObject({ schemaVersion: 1, packetSha: 'abc', model: 'claude-opus-5', promptVersion: AGENT_PROMPT_VERSION, runAt: '2026-10-24T00:00:00.000Z' });
-    expect(AGENT_PROMPT_VERSION).toBe('agent-v1');
+    expect(AGENT_PROMPT_VERSION).toBe('agent-v2');
     expect(res.payload.suggestions.map((s) => s.id)).toEqual(['ai-document_not_reflected-1']);
     expect(res.payload.rejected.map((r) => r.reason)).toEqual(['unknown kind nonsense']);
     expect(res.payload.proposals).toEqual([proposal()]);
@@ -256,33 +261,33 @@ describe('agent: the payload', () => {
 });
 
 describe('agent: measurement modes', () => {
-  it('blind: five tools, a prompt that names neither removed tool, mode in the meta and the prompt version', async () => {
+  it('blind: five tools, a prompt that never names run_checks, mode in the meta and the prompt version', async () => {
     const { fetch, calls } = fakeFetch(() => final({ suggestions: [], proposals: [] }));
     const res = await runAgent(opts(fetch, { mode: { kind: 'blind' } }));
     expect(res.ok).toBe(true);
     expect(calls[0].body.tools).toHaveLength(5);
-    expect(calls[0].body.system[0].text).not.toMatch(/run_checks|find_fact_copies/);
+    expect(calls[0].body.system[0].text).not.toMatch(/run_checks/);
     expect(agentSystemPrompt({ kind: 'default' })).toBe(AGENT_SYSTEM_PROMPT);
     expect(res.meta).toMatchObject({ mode: 'blind', seed: null, hiddenCheckIds: [] });
-    expect(res.ok && res.payload.promptVersion).toBe('agent-v1-blind');
+    expect(res.ok && res.payload.promptVersion).toBe('agent-v2-blind');
   });
 
   it('hide-checks: the seed and the hidden check ids in the meta (never in a request), the prompt version names the seed', async () => {
     const { fetch, calls } = fakeFetch(() => final({ suggestions: [], proposals: [] }));
     const res = await runAgent(opts(fetch, { mode: { kind: 'hide-checks', seed: 7 } }));
     expect(res.ok).toBe(true);
-    expect(calls[0].body.tools).toHaveLength(7);
+    expect(calls[0].body.tools).toHaveLength(6);
     expect(res.meta).toMatchObject({ mode: 'hide-checks', seed: 7, hiddenCheckIds: hiddenCheckIds(7) });
-    expect(res.ok && res.payload.promptVersion).toBe('agent-v1-hide-7');
+    expect(res.ok && res.payload.promptVersion).toBe('agent-v2-hide-7');
   });
 
-  it('default mode is unchanged: seven tools, prompt version agent-v1', async () => {
+  it('default mode: six tools, prompt version agent-v2', async () => {
     const { fetch, calls } = fakeFetch(() => final({ suggestions: [], proposals: [] }));
     const res = await runAgent(opts(fetch));
-    expect(calls[0].body.tools).toHaveLength(7);
+    expect(calls[0].body.tools).toHaveLength(6);
     expect(calls[0].body.system[0].text).toBe(AGENT_SYSTEM_PROMPT);
     expect(res.meta).toMatchObject({ mode: 'default', seed: null, hiddenCheckIds: [] });
-    expect(res.ok && res.payload.promptVersion).toBe('agent-v1');
+    expect(res.ok && res.payload.promptVersion).toBe('agent-v2');
   });
 
   it('the CLI writes each mode to its own file', () => {

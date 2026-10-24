@@ -12,15 +12,15 @@ import type { BetaRunnableTool } from '@anthropic-ai/sdk/lib/tools/BetaRunnableT
 import { AI_AUTHORITIES, AI_KINDS, type AiPayload, type AiProposal, type AiRejected } from '../../src/domain/ai/contract';
 import { SSN_SHAPED, isShown, verifySuggestions } from '../../src/domain/ai/verify';
 import type { PacketIndex } from '../../src/domain/packet/load';
-import { documentLanding } from '../../src/domain/docs';
 import { agentTools, findingsFor, type ToolGuard } from './agent-tools';
+import { caseFile } from './case-file';
 import { DEFAULT_MODE, hiddenCheckIds, modeLabel, type AgentMode } from './modes';
 import {
-  OUTPUT_SCHEMA, PRICES, addUsage, assignIds, masker, namesAPerson, sanitizeRejected, sharedContext, validateRow, zeroUsage,
+  OUTPUT_SCHEMA, PRICES, addUsage, assignIds, namesAPerson, sanitizeRejected, validateRow, zeroUsage,
   type Row, type Usage,
 } from './reader-core';
 
-export const AGENT_PROMPT_VERSION = 'agent-v1';
+export const AGENT_PROMPT_VERSION = 'agent-v2';
 export const AGENT_DEFAULT_MODEL = 'claude-opus-5-5';
 /** Per turn. Non-streaming; with an explicit client timeout the SDK accepts it (its 10-minute guard applies only to
  *  the default timeout). Thinking counts toward it. */
@@ -37,20 +37,22 @@ export const DEFAULT_LIMITS: AgentLimits = { maxIterations: 40, wallClockMs: 40 
 export const MAX_PROPOSALS = 12;
 const PROPOSAL_MAX_WORDS = 80;
 
-/** The system prompt for a mode. Blind mode names neither run_checks nor find_fact_copies (it does not have them). */
+/** The system prompt for a mode. Blind mode never names run_checks (it does not have it). */
 export function agentSystemPrompt(mode: AgentMode = DEFAULT_MODE): string {
   const blind = mode.kind === 'blind';
   return [
   'You are a careful senior tax reviewer investigating one household\'s 2025 US and California return before it is approved.',
-  'The cached context gives the packet\'s README (what each field means), the firm\'s standards, the case brief, a short',
-  'digest of how US returns are reviewed, the latest return lines, the client\'s answers, messages and call notes,',
-  'prior-year notes and a document index.',
-  blind ? 'Tools give you the exact data: lines, pages, values, the receipts the tool proved, and what nothing has settled.'
-    : 'Tools give you the exact data: lines, pages, values, copies of the same fact, the receipts the tool proved, the findings the deterministic checks already raise, and what nothing has settled.',
+  'The cached context is a case file our code prepared from the packet: a schema card, the firm\'s review steps, a',
+  'digest of how US returns are reviewed, a state map of every return line with its status (P proved, F already',
+  'raised by a check, O open, E engine-only), the work list of what nothing has settled, the documents, and the',
+  'client\'s answers, messages, call notes and prior-year notes.',
+  blind ? 'Tools give you the exact data: lines, pages and values by id, the work list, and the verify calculator.'
+    : 'Tools give you the exact data: lines, pages and values by id, the findings the deterministic checks already raise, the work list, and the verify calculator.',
+  'verify does every number: recompute_line, sum_to, prior_year, fact_copies, glossary. Pass ids, never numbers;',
+  'never add, subtract or recompute a figure yourself.',
   'Your job: find what a mechanical tie-out cannot settle, mainly meaning in free text (pages, client answers,',
-  'notes) and amounts no source or rule explains. Decide where to look; prefer list_open_leftovers, client text and',
-  'pages over re-deriving totals.',
-  ...(blind ? [] : ['Call run_checks early: anything it already raises is known; spend your effort on what it does not say.']),
+  'notes) and amounts no source or rule explains. Start from the open (O) lines and the work list; F lines are known.',
+  ...(blind ? [] : ['Call run_checks when you need a finding\'s detail: anything it raises is known; spend your effort on what it does not say.']),
   'Work efficiently: batch independent tool calls in one turn, and finish within about 30 turns.',
   'When you are done, answer with JSON only, matching the output schema: suggestions and proposals.',
   'Suggestions (each one an issue where the return as computed may be wrong):',
@@ -88,42 +90,23 @@ export const AGENT_OUTPUT_SCHEMA = {
 } as const;
 
 // ---------- Context ----------
-export interface ContextFiles { brief: string; digest: string }
+export interface ContextFiles { digest: string }
 
-/** The case brief (docs/brief.txt) and the domain digest beside this file. `root` is project-build. */
+/** The domain digest beside this file (the case brief is no longer sent: it describes our deliverable, not the
+ *  agent's job). `root` is project-build. */
 export function loadContextFiles(root: string): ContextFiles {
-  return {
-    brief: readFileSync(path.join(root, '..', 'docs', 'brief.txt'), 'utf8'),
-    digest: readFileSync(path.join(root, 'ai', 'lib', 'domain-digest.md'), 'utf8'),
-  };
+  return { digest: readFileSync(path.join(root, 'ai', 'lib', 'domain-digest.md'), 'utf8') };
 }
 
-const fmt = (v: unknown) => (v === null || v === undefined ? '' : typeof v === 'string' ? v : JSON.stringify(v));
-
-/** Shared by every turn and cached: README, standards, brief, digest, the reader's shared context, a document index. */
-export function agentContext(ix: PacketIndex, files: ContextFiles): string {
-  const m = masker(ix);
-  const p = ix.packet;
-  const out: string[] = ['## Packet README'];
-  for (const [k, v] of Object.entries(p.readme)) out.push(m(`${k}: ${fmt(v)}`));
-  out.push('', '## Firm standards', m(JSON.stringify(p.firm.starter_standards, null, 1)));
-  out.push('', '## The case brief', m(files.brief.trim()));
-  out.push('', m(files.digest.trim()));
-  out.push('', sharedContext(ix));
-  out.push('', '## Document index (id | title | type | issuer | belongs to | tax year | received | pages | on the return)');
-  const landing = new Map(documentLanding(ix, '9999-12-31T00:00:00Z').map((d) => [d.docId, d]));
-  for (const d of p.documents) {
-    const l = landing.get(d.id);
-    const where = !l ? '' : l.status === 'landed' ? `landed on ${l.landedLines.length} line(s)` : `not landed: ${l.reason?.code ?? ''}`;
-    out.push(m(`${d.id} | ${d.title} | ${d.document_type} | ${fmt(d.issuer)} | ${fmt(d.belongs_to)} | ${fmt(d.tax_year)} | ${d.received_at.slice(0, 10)} | ${d.page_count} | ${where}`));
-  }
-  return out.join('\n');
+/** Shared by every turn and cached: the case file for the mode (case-file.ts). */
+export function agentContext(ix: PacketIndex, files: ContextFiles, mode: AgentMode = DEFAULT_MODE): string {
+  return caseFile(ix, files.digest, mode);
 }
 
 export function agentSystem(ix: PacketIndex, files: ContextFiles, mode: AgentMode = DEFAULT_MODE): BetaTextBlockParam[] {
   return [
     { type: 'text', text: agentSystemPrompt(mode) },
-    { type: 'text', text: agentContext(ix, files), cache_control: { type: 'ephemeral' } },
+    { type: 'text', text: agentContext(ix, files, mode), cache_control: { type: 'ephemeral' } },
   ];
 }
 

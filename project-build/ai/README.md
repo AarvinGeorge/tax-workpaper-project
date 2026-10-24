@@ -19,7 +19,9 @@ known mistakes before anyone trusts it.
 | `src/server/ai-reader.ts`, `src/app/api/internal/ai-reader/route.ts` | The reader in the cloud (see below) |
 | `ai/agent.ts` | CLI: the agent (one investigation over the whole packet with the deterministic tools); writes `ai/eval/agent-suggestions.json` and its run meta. Never run without an approved budget |
 | `ai/lib/agent-core.ts` | The agent loop on the Anthropic SDK tool runner: context, guards (iteration cap, wall-clock abort, cost budget, refusal and max_tokens stops), final-answer validation, proposals, writing only a finished run |
-| `ai/lib/agent-tools.ts` | The seven read-only tools (`get_line`, `get_page`, `search_values`, `find_fact_copies`, `proofs_for_line`, `run_checks`, `list_open_leftovers`): masked, labelled as data, bounded, SSN-scanned; findings leave without ledger, finding or check ids |
+| `ai/lib/agent-tools.ts` | The six read-only tools (`get_line`, `get_page`, `search_values`, `verify`, `run_checks`, `list_open_leftovers`): masked, labelled as data, bounded, SSN-scanned; findings leave without ledger, finding or check ids |
+| `ai/lib/calculator.ts` | The `verify` tool's methods (`recompute_line`, `sum_to`, `prior_year`, `fact_copies`, `glossary`): ids in, numbers computed by our code |
+| `ai/lib/case-file.ts` | The agent's cached context: schema card, review steps, digest, state map (P/F/O/E), work list, documents, client text |
 | `ai/lib/domain-digest.md` | The short review-method digest in the agent's context (from `docs/research`; no ledger content) |
 | `ai/lib/producer.ts` | The active producer and its prompt version, read by the CI gate and the cron's idempotency (today: the reader) |
 | `ai/eval/` | The measured eval payloads (`ai-suggestions.json` is reader-v2; `.v1` and `.altered` kept for comparison) and their run-meta files |
@@ -170,12 +172,14 @@ re-checked by the backend, a person accepts each suggestion, never blocks), but 
 - **Model**: `claude-opus-5-5` by default (`--model` to measure another), adaptive thinking, `output_config.effort`
   `high`, the server-side refusal fallback (`betas: ['server-side-fallback-2026-07-01']`, `fallbacks: 'default'`),
   `tool_choice` left at auto (forced is refused). The served model of every turn is recorded.
-- **Context (cached)**: the packet README, firm standards, `docs/brief.txt`, `ai/lib/domain-digest.md`, the reader's
-  shared context (latest lines, client text, prior-year notes, masked) and a document index.
-- **Output**: the `AiPayload` (`promptVersion` `agent-v1`, `model` = the served model) plus optional `proposals`
+- **Context (cached)**: the case file (`ai/lib/case-file.ts`, agent-v2): a schema card, the firm's standards as review
+  steps, `ai/lib/domain-digest.md`, a state map of every line (key, value, rule, P/F/O/E status from the mode's findings
+  and our proofs), the work list (counts, every uncovered engine warning, the 40 largest other items), a compact
+  document index and the client's text, masked. About 11,900 tokens (the agent-v1 context was about 22,900).
+- **Output**: the `AiPayload` (`promptVersion` `agent-v2`, `model` = the served model) plus optional `proposals`
   (rule, fields compared, where it fires, where it stays silent, refs; words only, never code). Rows are validated as the
   reader's.
-- **Measurement modes** (`ai/lib/modes.ts`): `--blind` drops `run_checks` and `find_fact_copies` and computes leftovers
+- **Measurement modes** (`ai/lib/modes.ts`): `--blind` drops `run_checks`, gives agreements only from `verify` `fact_copies`, and computes leftovers
   with no findings (scored on all 27 beside reader-v2); `--hide-checks <seed>` hides a seeded half of the check ids from
   `run_checks`, the leftovers and the fact copies (scored on the ledger entries only those checks reach, recomputed by the
   harness from the seed and the real checks). Default is production. Each mode writes its own file

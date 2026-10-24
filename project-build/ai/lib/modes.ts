@@ -3,7 +3,9 @@
 // mistakes is a fair comparison with the reader. 'hide-checks' hides a seeded half of the check ids, so the harness can
 // score the agent on exactly the ledger entries only those checks reach. The harness recomputes the hidden set from the
 // seed (hiddenCheckIds) and the real checks; it never takes it from the agent's output.
-import { CHECKS } from '../../src/domain/checks/index';
+import { CHECKS, runChecks } from '../../src/domain/checks/index';
+import type { PacketIndex } from '../../src/domain/packet/load';
+import type { Finding } from '../../src/domain/contracts';
 
 export type AgentMode = { kind: 'default' } | { kind: 'blind' } | { kind: 'hide-checks'; seed: number };
 export const DEFAULT_MODE: AgentMode = { kind: 'default' };
@@ -30,3 +32,30 @@ export function hiddenCheckIds(seed: number): string[] {
 
 /** 'default', 'blind' or 'hide-<seed>': used in file names and prompt versions. */
 export const modeLabel = (m: AgentMode) => (m.kind === 'hide-checks' ? `hide-${m.seed}` : m.kind);
+
+// ---------- The findings a mode lets the agent see (shared by the tools, the calculator and the case file) ----------
+const allFindingsCache = new WeakMap<PacketIndex, Finding[]>();
+const modeCache = new WeakMap<PacketIndex, Map<string, Finding[]>>();
+function allFindings(ix: PacketIndex): Finding[] {
+  let f = allFindingsCache.get(ix);
+  if (!f) { f = runChecks(ix); allFindingsCache.set(ix, f); }
+  return f;
+}
+/** The findings a mode lets the agent use: all (default), none (blind), or those of the checks not hidden. */
+export function findingsFor(ix: PacketIndex, mode: AgentMode = DEFAULT_MODE): Finding[] {
+  let m = modeCache.get(ix);
+  if (!m) { m = new Map(); modeCache.set(ix, m); }
+  const key = modeLabel(mode);
+  if (!m.has(key)) {
+    if (mode.kind === 'blind') m.set(key, []);
+    else if (mode.kind === 'default') m.set(key, allFindings(ix));
+    else { const hidden = new Set(hiddenCheckIds(mode.seed)); m.set(key, allFindings(ix).filter((f) => !hidden.has(f.checkId))); }
+  }
+  return m.get(key)!;
+}
+/** The hidden checks' findings (empty outside hide-checks): what must not leak through any tool. */
+export function hiddenFindings(ix: PacketIndex, mode: AgentMode): Finding[] {
+  if (mode.kind !== 'hide-checks') return [];
+  const hidden = new Set(hiddenCheckIds(mode.seed));
+  return allFindings(ix).filter((f) => hidden.has(f.checkId));
+}
