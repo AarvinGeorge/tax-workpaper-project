@@ -295,7 +295,7 @@ export function agentTools(ix: PacketIndex, guard: ToolGuard, opts: ToolOptions 
       description: 'What nothing deterministic has settled: numeric lines with no receipt and no finding (unproven_line), engine warnings no check names (uncovered_engine_warning), money on landed documents that no line cites (uncited_money). Paged; byKind gives the counts.',
       inputSchema: {
         type: 'object', additionalProperties: false, required: ['kind', 'limit', 'cursor'],
-        properties: { kind: { type: ['string', 'null'], enum: [...LEFTOVER_KINDS, null], description: 'One kind, or null for all.' }, ...listProps },
+        properties: { kind: { type: 'string', enum: [...LEFTOVER_KINDS, 'all'], description: 'One kind, or all.' }, ...listProps },
       },
     }),
   ] as BetaRunnableTool[]).filter((t) => offered.has(t.name));

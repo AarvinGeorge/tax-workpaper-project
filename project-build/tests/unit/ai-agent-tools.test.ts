@@ -47,6 +47,18 @@ describe('agent tools: the tool set', () => {
       expect([...tool.input_schema.required].sort(), t.name).toEqual(Object.keys(tool.input_schema.properties).sort());
     }
   });
+  it('no property declares an enum together with a list of types (the API refused it: "Enum value ... does not match declared type", 24 Oct)', () => {
+    const tools = agentTools(ix, { onHit: () => {} });
+    const bad: string[] = [];
+    const walk = (s: unknown, at: string) => {
+      if (!s || typeof s !== 'object') return;
+      const o = s as Record<string, unknown>;
+      if (Array.isArray(o.type) && Array.isArray(o.enum)) bad.push(at);
+      for (const [k, v] of Object.entries(o)) walk(v, `${at}.${k}`);
+    };
+    for (const t of tools) walk((t as unknown as { input_schema: unknown }).input_schema, t.name);
+    expect(bad).toEqual([]);
+  });
 });
 
 describe('agent tools: results', () => {
