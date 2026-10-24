@@ -1,7 +1,6 @@
 // Flow-through: an adjustment moves the totals that depend on it, so the client signs the figures the firm changed;
 // a change past a tax computation says "Needs engine re-run" and the partner cannot approve until the engine re-runs.
 import { expect, test, type APIRequestContext } from '@playwright/test';
-import { explainFirmSteps } from './steps-helper';
 
 const ws = (n: string) => `e2e-flow-${n}-${Date.now().toString(36)}${Math.floor(Math.random() * 1e4)}`;
 const post = (rq: APIRequestContext, w: string, role: string, data: Record<string, unknown>) =>
@@ -14,7 +13,6 @@ test('the dry-run path: California payments cut to 10,500 reach the client signi
   expect((await post(rq, w, 'helen', { type: 'signoff', claimId: 'line:F540NR.72', payload: { level: 'partner', note: 'Checked D68: the September payment is for 2024.' } })).ok()).toBeTruthy();
   const st = await (await rq.get(`/api/w/${w}/state?role=helen`)).json() as { state: { blockers: { claimId: string; title: string }[] } };
   expect(st.state.blockers.some((b) => /engine/i.test(b.title))).toBe(false);
-  await explainFirmSteps(rq, w); // every firm step item explained (src/domain/steps.ts)
   for (const b of st.state.blockers) {
     if (b.claimId.startsWith('finding:')) expect((await post(rq, w, 'daniel', { type: 'finding_cleared', claimId: b.claimId, payload: { reason: 'Reviewed for this test.' } })).ok()).toBeTruthy();
   }
@@ -66,7 +64,6 @@ test('a wage change: the federal tax card says "Needs engine re-run" and the par
 
 async function clearFindings(rq: APIRequestContext, w: string) {
   const st = await (await rq.get(`/api/w/${w}/state?role=helen`)).json() as { state: { blockers: { claimId: string }[] } };
-  await explainFirmSteps(rq, w); // every firm step item explained (src/domain/steps.ts)
   for (const b of st.state.blockers) {
     if (b.claimId.startsWith('finding:')) expect((await post(rq, w, 'daniel', { type: 'finding_cleared', claimId: b.claimId, payload: { reason: 'Reviewed for this test.' } })).ok()).toBeTruthy();
   }

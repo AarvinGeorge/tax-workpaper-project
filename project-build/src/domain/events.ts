@@ -16,9 +16,8 @@ export function sinceLastReset(sorted: WorkEvent[]): WorkEvent[] {
   return from ? sorted.slice(from) : sorted;
 }
 
-/** 'line:<KEY>', 'doc:<ID>', 'finding:<ID>' (plus 'question:<seq>' and 'return' for whole-return items), and the firm
- *  step items that live on no line or document: 'diag:<code>' (an engine diagnostic) and 'form:<code>' (a form's lines). */
-export const CLAIM_ID = /^(?:(?:line|doc|finding|question|diag|form):[A-Za-z0-9._#:/-]{1,100}|return)$/;
+/** 'line:<KEY>', 'doc:<ID>', 'finding:<ID>' (plus 'question:<seq>' and 'return' for whole-return items). */
+export const CLAIM_ID = /^(?:(?:line|doc|finding|question):[A-Za-z0-9._#:/-]{1,100}|return)$/;
 
 /** What the client sends: the server adds ws, role (from the path) and storyAt (from the workspace clock). */
 export type EventInput = Pick<NewEvent, 'type' | 'payload'> & Partial<Pick<NewEvent, 'claimId' | 'baseVersion' | 'groupId' | 'retracts'>>;

@@ -1,7 +1,6 @@
 // Gaps the acceptance walk found (G1-G5): decision authority and adjustment reasons shown; undo of a bulk group from
 // Review's Changes tab; Checks header counts exclude cleared findings; notes on documents; the partner sign-off flag in the panel.
 import { readFileSync } from 'node:fs';
-import { explainFirmSteps } from './steps-helper';
 import path from 'node:path';
 import { expect, test, type Page } from '@playwright/test';
 
@@ -42,7 +41,6 @@ test('G3: the Checks header counts no cleared blockers', async ({ page }) => {
   await page.goto(`/w/${w}/daniel/checks`);
   await expect(page.locator('main')).not.toContainText(/\b0 blockers/);
   const st = await state(page, w, 'helen');
-  await explainFirmSteps(page.request, w); // every firm step item explained (src/domain/steps.ts)
   for (const b of st.state.blockers as { claimId: string }[]) {
     if (b.claimId.startsWith('finding:')) expect((await post(page, w, 'daniel', { type: 'finding_cleared', claimId: b.claimId, payload: { reason: 'gap test' } })).ok()).toBe(true);
   }

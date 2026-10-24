@@ -3,8 +3,7 @@ import { loadPacket, indexPacket } from '@/domain/packet/load';
 import { roles, roleInfo, can, maskValue, maskText, maskRecord, redactText, partnerThreshold } from '@/domain/policy';
 import { projectWorkspace } from '@/domain/project';
 import type { NewEvent, RoleKey, WorkEvent } from '@/domain/contracts';
-import { DEFAULT_STORY_AT, indexAt } from '@/domain/clock';
-import { firmSteps } from '@/domain/steps';
+import { DEFAULT_STORY_AT } from '@/domain/clock';
 
 const p = loadPacket();
 const ix = indexPacket(p);
@@ -15,9 +14,6 @@ let seq = 0;
 const ev = (role: RoleKey, type: NewEvent['type'], extra: Partial<WorkEvent> = {}): WorkEvent =>
   ({ seq: ++seq, ws: 'ws-p', at: '2026-10-17T00:00:00Z', storyAt: AT, role, type, payload: {}, ...extra });
 const stateOf = (events: WorkEvent[], role: RoleKey = 'daniel') => projectWorkspace(ix, events, role, []);
-// Every item of the firm's gated steps explained, so approval turns only on what a test adds.
-const explainedAll = (): WorkEvent[] => firmSteps(indexAt(ix, AT), []).flatMap((st) => st.items.map((i) =>
-  ev('daniel', 'verification', { claimId: i.claimId, payload: { method: 'agreed_to_source_document', note: 'explained', step: st.step } })));
 const R = (k: RoleKey) => roleInfo(ix, k)!;
 
 describe('roles', () => {
@@ -150,28 +146,25 @@ describe('can', () => {
     expect(can(ix, 'daniel', 'review_note', { claimId, payload: { text: 'x' } }, reset).ok).toBe(true);
   });
   it('approval is refused while blockers stand, with the list', () => {
-    const s = stateOf([...explainedAll(), ev('daniel', 'review_note', { claimId, payload: { text: 'fix', blocking: true } })]);
+    const s = stateOf([ev('daniel', 'review_note', { claimId, payload: { text: 'fix', blocking: true } })]);
     const r = can(ix, 'helen', 'approve', {}, s);
     expect(r.ok).toBe(false);
     expect(r.reason).toMatch(/fix/);
-    expect(can(ix, 'helen', 'approve', {}, stateOf([])).ok).toBe(false); // the firm steps are open
-    expect(can(ix, 'helen', 'approve', {}, stateOf(explainedAll())).ok).toBe(true);
+    expect(can(ix, 'helen', 'approve', {}, stateOf([])).ok).toBe(true);
     expect(can(ix, 'daniel', 'approve', {}, stateOf([])).ok).toBe(false);
   });
   it('approval (a partner sign-off on the return) is refused while blockers stand, and for anyone but the partner', () => {
-    const blocked = stateOf([...explainedAll(), ev('daniel', 'review_note', { claimId, payload: { text: 'fix first', blocking: true } })]);
+    const blocked = stateOf([ev('daniel', 'review_note', { claimId, payload: { text: 'fix first', blocking: true } })]);
     const r = can(ix, 'helen', 'signoff', { claimId: 'return', payload: { level: 'partner' } }, blocked);
     expect(r.ok).toBe(false);
     expect(r.reason).toMatch(/fix first/);
-    expect(can(ix, 'helen', 'signoff', { claimId: 'return', payload: { level: 'partner' } }, stateOf(explainedAll())).ok).toBe(true);
+    expect(can(ix, 'helen', 'signoff', { claimId: 'return', payload: { level: 'partner' } }, stateOf([])).ok).toBe(true);
     expect(can(ix, 'daniel', 'signoff', { claimId: 'return', payload: { level: 'reviewer' } }, stateOf([])).ok).toBe(false);
   });
   it('verification method must be one of the firm verification types', () => {
     const types = p.firm.starter_standards.verification_types as string[];
-    expect(can(ix, 'priya', 'verification', { claimId, payload: { method: types[0], note: 'Agreed to the W-2.' } }, empty).ok).toBe(true);
-    expect(can(ix, 'priya', 'verification', { claimId, payload: { method: 'vibes', note: 'x' } }, empty).ok).toBe(false);
-    // Every verification says what was checked (it explains an item of a firm step), as a sign-off does.
-    expect(can(ix, 'priya', 'verification', { claimId, payload: { method: types[0] } }, empty).ok).toBe(false);
+    expect(can(ix, 'priya', 'verification', { claimId, payload: { method: types[0] } }, empty).ok).toBe(true);
+    expect(can(ix, 'priya', 'verification', { claimId, payload: { method: 'vibes' } }, empty).ok).toBe(false);
   });
   it('a decision needs a known kind and an authority', () => {
     expect(can(ix, 'daniel', 'decision', { claimId, payload: { kind: 'election', authority: 'IRC 1(h)' } }, empty).ok).toBe(true);

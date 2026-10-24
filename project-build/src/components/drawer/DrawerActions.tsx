@@ -46,7 +46,6 @@ export function DrawerActions(p: Props) {
         return send('adjustment', { value, reason: f.reason, authority: f.authority ?? '' }, spec.level === 'preparer' ? 'Adjustment proposed and saved; a reviewer applies it. The original value is kept.' : 'Adjustment applied and saved. The original value is kept.');
       }
       case 'verification':
-        if (!need('note', 'A note on what you checked')) return;
         return send('verification', { method: f.method || p.methods[0], note: f.note ?? '' }, 'Verification recorded.');
       case 'signoff':
         if (!need('note', 'What you checked')) return;
@@ -92,7 +91,7 @@ export function DrawerActions(p: Props) {
           {spec.kind === 'verification' && <>
             <span><label className="lbl" htmlFor="ver-m">Method (the firm&apos;s verification types)</label><Term k="verification" /></span>
             <select id="ver-m" className="field" value={f.method ?? p.methods[0] ?? ''} onChange={set('method')}>{p.methods.map((m) => <option key={m} value={m}>{m.replace(/_/g, ' ')}</option>)}</select>
-            <label className="lbl" htmlFor="ver-n">Note (required)</label><input id="ver-n" className="field" value={f.note ?? ''} onChange={set('note')} />
+            <label className="lbl" htmlFor="ver-n">Note</label><input id="ver-n" className="field" value={f.note ?? ''} onChange={set('note')} />
           </>}
           {spec.kind === 'signoff' && <>
             <label className="lbl" htmlFor="so-n">What you checked (required)</label><textarea id="so-n" className="field" rows={2} value={f.note ?? ''} onChange={set('note')} placeholder="What you checked before signing off" />

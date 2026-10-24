@@ -78,34 +78,6 @@ export function TextAction({ ws, role, label, placeholder, build, disabledReason
   );
 }
 
-/** Explains one item of a firm step (src/domain/steps.ts): a verification with the firm's method, a required note and
- *  the step it answers, on the item's own claim. Undo reverses it like any event. */
-export function ExplainAction({ ws, role, claimId, step, methods, disabledReason }: {
-  ws: string; role: RoleKey; claimId: string; step: string; methods: string[]; disabledReason?: string | null;
-}) {
-  const { send, pending, err } = useSend(ws, role);
-  const [method, setMethod] = useState(methods[0] ?? '');
-  const [note, setNote] = useState('');
-  if (disabledReason) return <span className={s.note}>{disabledReason}</span>;
-  const id = claimId.replace(/[^A-Za-z0-9]/g, '-');
-  return (
-    <form className={s.row} style={{ gap: 8 }} onSubmit={(e) => {
-      e.preventDefault();
-      if (!note.trim()) return;
-      send([{ type: 'verification', claimId, payload: { method, note: note.trim(), step } }], () => setNote(''));
-    }}>
-      <label className={s.note} htmlFor={`ex-m-${id}`}>Method</label>
-      <select id={`ex-m-${id}`} className={s.input} value={method} onChange={(e) => setMethod(e.target.value)}>
-        {methods.map((m) => <option key={m} value={m}>{m.replace(/_/g, ' ')}</option>)}
-      </select>
-      <label className={s.note} htmlFor={`ex-n-${id}`}>Explanation</label>
-      <input id={`ex-n-${id}`} className={s.input} style={{ flex: '1 1 220px' }} value={note} placeholder="Why this is right, or what you did about it" onChange={(e) => setNote(e.target.value)} />
-      <button className={`${s.btn} ${s.small}`} type="submit" disabled={pending || !note.trim()}>{pending ? 'Saving' : 'Explain'}</button>
-      <Refusal err={err} />
-    </form>
-  );
-}
-
 /**
  * Sign-off inside the Checks table: one selection shared by the row checkboxes, the per-group select-all and the bar.
  * Every selected row needs its own note on what was checked (written in the row, kept here until sent). Signing with a note missing

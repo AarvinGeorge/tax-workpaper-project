@@ -5,7 +5,6 @@ import { DEFAULT_STORY_AT, frozenAt, indexAt, stageAt, visibleAt } from './clock
 import { isApplied, retractedSeqs, sinceLastReset } from './events';
 import { maskText, partnerThreshold, roleInfo, signoffLevel } from './policy';
 import { flowThrough, type FlowLine } from './flow';
-import { firmSteps } from './steps';
 
 type Effect = NonNullable<ClaimState['effect']>;
 /** Values compare as text with null as '' and numbers without thousands separators ('10,500' equals 10500). */
@@ -185,11 +184,6 @@ export function projectWorkspace(ix: PacketIndex, events: WorkEvent[], role: Rol
     if (f.severity !== 'blocker' || !visibleAt(f.firstVisibleAt, storyAt)) continue;
     if (cleared.has(`finding:${f.id}`) || f.claims.some((id) => claims[id]?.adjusted)) continue;
     blockers.push({ claimId: `finding:${f.id}`, title: f.title });
-  }
-  // The firm's required steps that are whole populations (diagnostics, documents, prior-year variances): one blocker
-  // per step while any of its items is unexplained (src/domain/steps.ts).
-  for (const st of firmSteps(pix, live)) {
-    if (st.open) blockers.push({ claimId: `step:${st.step}`, title: `Firm step open: ${st.step} (${st.open} of ${st.items.length} unexplained)` });
   }
   const threshold = partnerThreshold(ix);
   for (const c of Object.values(claims)) {
