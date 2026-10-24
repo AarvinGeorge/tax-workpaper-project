@@ -4,7 +4,7 @@
   "subtitle": "A web-native workpaper for the invented Okafor-Lindqvist household's 2025 return: every number traced to its source, every packet mistake surfaced. Due Fri 16 Oct 2026, 21:00 EDT.",
   "mode": "light",
   "plan_version": "0.5.0",
-  "updated": "2026-10-24T22:14:01Z",
+  "updated": "2026-10-24T22:37:37Z",
   "changelog": [
    {
     "version": "0.1.0",
@@ -362,8 +362,8 @@
     "stage": "building",
     "capability": 6,
     "plan_file": "docs/superpowers/plans/2026-10-24-same-fact-and-agent.md",
-    "status": "Live 5dc026f: deterministic layer, one door, contract test, duplicate AI rows merged. Agent redesign planned (case file + calculator), offline, build next.",
-    "updated": "2026-10-24T22:14:01Z",
+    "status": "Live 5dc026f. Agent v2 (case file + calculator) built and reviewed offline on a branch; first paid run awaits Aarvin budget.",
+    "updated": "2026-10-24T22:37:37Z",
     "tasks": [
      {
       "name": "Blind re-investigation of the raw packet",
@@ -412,8 +412,8 @@
      },
      {
       "name": "Redesign the agent on the research: processed packet in, established pattern",
-      "state": "active",
-      "note": "plan approved by Fable with 5 changes (applied): case file + calculator; build next, offline"
+      "state": "done",
+      "note": "branch agent-case-file 2bb64a7 (offline): case file 22,890 -> 11,912 tokens, verify calculator; Fable SHIP after 4 fixes; unit 714/714; not merged"
      },
      {
       "name": "Make 4 browser specs runnable against live (they assume the local AI fixture)",
