@@ -53,7 +53,8 @@ export const TERMS: Record<string, TermEntry> = {
   // Review concepts
   'sign-off': { label: 'sign-off', text: 'A preparer, reviewer or partner records that they checked a value, with a note on what they checked. It covers that value; if the value changes, the sign-off goes stale.' },
   'stale-signoff': { label: 'stale sign-off', text: 'The value changed after it was signed. The old sign-off stays in the record but no longer counts, so someone checks and signs again.' },
-  'blocker': { label: 'blocker', text: 'An open item that stops partner approval, such as a failed check marked blocking or a blocking review note. Approval opens once all clear.' },
+  'blocker': { label: 'blocker', text: 'An open item that stops partner approval: a failed check, an engine re-run, a blocking review note, a partner sign-off still needed, or an unexplained firm step item.' },
+  'firm-step': { label: 'firm step', text: 'A firm required step covering a whole population: engine warnings, documents and their money, prior-year variances. Every item in it needs an explanation before approval.' },
   'review-note': { label: 'review note', text: 'A reviewer’s question or instruction on a number. A note marked blocking stops approval until someone resolves it.' },
   'judgment': { label: 'judgment', text: 'An item the rules leave open to a professional call. It needs a recorded decision with the authority relied on.' },
   'adjustment': { label: 'adjustment', text: 'Our change to a computed value, saved with the original, the reason and the authority. It stays proposed until a reviewer applies it.' },

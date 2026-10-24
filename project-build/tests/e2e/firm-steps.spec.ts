@@ -44,6 +44,8 @@ test('approval waits on the open steps, and Checks counts them with the other bl
   await expect(page.getByRole('main')).toContainText(`${st.state.blockers.length} blockers`);
   const row = page.locator('[data-step-blocker="step:Diagnostics resolved"]');
   await expect(row).toContainText('Firm step open: Diagnostics resolved');
+  await expect(row.getByText('Firm step', { exact: true })).toBeVisible(); // its source, as Engine warning and AI are
+  await expect(page.getByRole('main')).toContainText('the firm’s own required step');   // in the Checks pill key
   await expect(row.getByRole('link').first()).toHaveAttribute('href', `/w/${w}/daniel/review?tab=steps`);
 });
 

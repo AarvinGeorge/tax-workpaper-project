@@ -151,6 +151,7 @@ export function ChecksScreen(p: WorkProps) {
             <span className={s.row} style={{ gap: 6 }}><Tag tone="blk">Blocker</Tag><Tag tone="wrn">Check</Tag><Tag tone="acc">Judgment</Tag><Tag tone="neu">Info</Tag><span>our rule checks;</span></span>
             <span className={s.row} style={{ gap: 6 }}><Tag tone="neu"><AiMark label="" />AI</Tag><span>the AI reader flagged this item, a person decides;</span></span>
             <span className={s.row} style={{ gap: 6 }}><Tag tone="wrn">Engine warning</Tag><span>the engine&apos;s own note names this item;</span></span>
+            <span className={s.row} style={{ gap: 6 }}><Tag tone="neu">Firm step</Tag><span>the firm’s own required step: every item in it needs an explanation;</span></span>
             <span style={{ flexBasis: '100%', lineHeight: 1.7 }}><Tag tone="neu">Confident mistake</Tag> <span>flagged by our checks, though every value behind it was read at 0.95 or above. The checks were built from the mistakes our external investigation found.</span></span>
           </p>
           <SignoffScope ws={ws} role={role.key} level={level ?? 'preparer'} items={signable} blockers={blockerIds}>
@@ -171,7 +172,7 @@ export function ChecksScreen(p: WorkProps) {
                 <span />
                 <span><Tag tone={closed ? 'neu' : 'blk'}>{closed ? 'Open' : 'Blocker'}</Tag></span>
                 <span><Link prefetch={false} className={s.title} href={`${screenPath(ws, role.key, 'review')}?tab=steps`}>{b.title}</Link>
-                  <span className={s.note} style={{ display: 'block' }}>A firm required step: every item needs an explanation</span></span>
+                  <span style={{ display: 'block' }}><Tag tone="neu">Firm step</Tag><Term k="firm-step" /></span></span>
                 <span />
                 <span className={`${s.note} ${s.hideSm}`}>Clears when every item is explained</span>
               </div>
