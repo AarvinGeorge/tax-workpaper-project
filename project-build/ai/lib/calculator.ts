@@ -10,7 +10,7 @@ import type { ReturnLine } from '../../src/domain/packet/types';
 import { FLOW_RULES } from '../../src/domain/flow';
 import { sameFacts } from '../../src/domain/facts';
 import { masker } from './reader-core';
-import { DEFAULT_MODE, hiddenFindings, type AgentMode } from './modes';
+import { DEFAULT_MODE, findingsFor, hiddenFindings, type AgentMode } from './modes';
 
 export const VERIFY_METHODS = ['recompute_line', 'sum_to', 'prior_year', 'fact_copies', 'glossary'] as const;
 export type VerifyMethod = (typeof VERIFY_METHODS)[number];
@@ -70,7 +70,8 @@ function recomputeLine(ix: PacketIndex, key: string): Obj {
   const keys = l.inputs ?? [];
   if (!keys.length) return { ...head, arithmetic: true, note: 'No input lines are listed; its figures come from source values. Use sum_to with the line\'s sources (get_line lists them).' };
   const vals = keys.map((k) => lineOf(ix, k)?.value);
-  const inputs = keys.map((k, i) => ({ key: k, value: vals[i] ?? null }));
+  // Compact (KEY = value): a total over many lots lists every input without a large result.
+  const inputs = keys.map((k, i) => `${k} = ${vals[i] === undefined || vals[i] === null ? 'none' : String(vals[i])}`);
   if (!isNum(l.value) || !vals.every(isNum)) return { ...head, arithmetic: true, inputs, note: 'The line or an input is not a number; nothing to add.' };
   const operation = keys.length === 1 ? 'carry' : 'sum';
   const result = round2((vals as number[]).reduce((s, v) => s + v, 0));
@@ -78,7 +79,7 @@ function recomputeLine(ix: PacketIndex, key: string): Obj {
   const agrees = Math.abs(difference) < NEAR;
   return {
     ...head, arithmetic: true, operation, inputs, result, difference, agrees,
-    signsReaching: agrees ? keys.map((k) => `+${k}`) : signsReaching(keys, vals as number[], l.value),
+    signsReaching: agrees ? 'all +' : signsReaching(keys, vals as number[], l.value),
   };
 }
 
@@ -131,7 +132,10 @@ function priorYear(ix: PacketIndex, key: string): Obj {
   if (isNum(l.value) && nums.length === records.length && nums.length) {
     const sum = round2(nums.reduce((s, v) => s + v, 0));
     out.priorRecordsTotal = sum;
-    out.agreesWithPriorRecords = Math.abs(Math.abs(sum) - Math.abs(l.value)) < NEAR;
+    // Reported apart, so a sign error shows: a loss carried as a positive figure agrees in amount, not in sign.
+    out.amountAgreesWithPriorRecords = Math.abs(Math.abs(sum) - Math.abs(l.value)) < NEAR;
+    out.signAgreesWithPriorRecords = Math.sign(sum) === Math.sign(l.value) || sum === 0 || l.value === 0;
+    out.agreesWithPriorRecords = Math.abs(sum - l.value) < NEAR;
   }
   if (prior === undefined && !records.length) out.note = 'Not on last year\'s return and no prior-year record is cited for it.';
   return out;
@@ -145,12 +149,17 @@ function refDoc(ix: PacketIndex, ref: string): string | null {
 }
 
 /** Every copy of the facts on a line or document. Blind: agreements only (every disagreement is a check's finding).
- *  Hide-checks: a disagreement a hidden check reports (same title or same claims) is hidden with it. */
+ *  Hide-checks: a disagreement is hidden when a hidden check reports it (same title or same claims) or when any of its
+ *  claims is claimed by a hidden finding and by no visible one (a check's one finding can span several per-item
+ *  disagreements with other titles, e.g. a lot-basis check over three lots). */
 function factCopies(ix: PacketIndex, target: string, mode: AgentMode): Obj {
   const isLine = !!lineOf(ix, target);
   if (!isLine && !ix.docById.has(target)) return { error: `No line or document ${target}.` };
   const hid = hiddenFindings(ix, mode);
-  const hiddenBy = (c: { title: string; claims: string[] }) => hid.some((f) => f.title === c.title || f.claims.join('|') === c.claims.join('|'));
+  const visible = new Set(findingsFor(ix, mode).flatMap((f) => f.claims));
+  const hiddenOnly = new Set(hid.flatMap((f) => f.claims).filter((c) => !visible.has(c)));
+  const hiddenBy = (c: { title: string; claims: string[] }) =>
+    c.claims.some((x) => hiddenOnly.has(x)) || hid.some((f) => f.title === c.title || f.claims.join('|') === c.claims.join('|'));
   const items = sameFacts(ix)
     .filter((c) => c.agree || (mode.kind !== 'blind' && !hiddenBy(c)))
     .filter((c) => (isLine ? c.claims.includes(`line:${target}`) : c.claims.includes(`doc:${target}`) || c.copies.some((x) => x.ref && refDoc(ix, x.ref) === target)))
@@ -169,5 +178,5 @@ function glossary(ix: PacketIndex, term: string): Obj {
     else entries.push({ term: k, text: String(v) });
   }
   const hits = entries.filter((e) => e.term.toLowerCase().includes(q) || e.text.toLowerCase().includes(q));
-  return { term, total: hits.length, entries: hits.slice(0, 8) };
+  return { term, items: hits };
 }

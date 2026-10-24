@@ -221,9 +221,9 @@ export function runTool(ix: PacketIndex, name: string, input: Obj, opts: ToolOpt
     }
     case 'verify': {
       const r = verify(ix, { method: String(input.method ?? ''), ids: (input.ids as unknown[]) ?? [], target: input.target ?? null }, mode);
-      // fact_copies is a list: paged like the other lists; every other method is one result.
-      text = Array.isArray(r.items) && input.method === 'fact_copies'
-        ? page(name, (r.items as Obj[]).map(mask), input, { method: 'fact_copies', target: r.target })
+      // fact_copies and glossary are lists: paged like the other lists; every other method is one result.
+      text = Array.isArray(r.items) && (input.method === 'fact_copies' || input.method === 'glossary')
+        ? page(name, (r.items as Obj[]).map(mask), input, { method: input.method, ...(r.target ? { target: r.target } : { term: r.term }) })
         : shrink(name, mask({ method: input.method, ...r }));
       break;
     }
@@ -274,7 +274,7 @@ export function agentTools(ix: PacketIndex, guard: ToolGuard, opts: ToolOptions 
     }),
     betaTool({
       name: 'verify', strict: true, run: run('verify'),
-      description: 'The calculator: our code does the arithmetic; you choose the check and pass ids (line keys like F1040.11, value ids like ev-0123), never numbers. Methods: recompute_line (ids: [line]; carries or adds its listed input lines, gives the difference and which signs reach the value, or says the rule needs the engine); sum_to (ids: lines or values, target: a line or value; their total against the target, the difference); prior_year (ids: [line]; last year\'s return and cited prior-year records, the change against the firm\'s variance rule); fact_copies (ids: [line or document]; every copy of the same fact across sources and whether they agree; paged); glossary (ids: [term]; what a packet field or id format means).',
+      description: 'The calculator: our code does the arithmetic; you choose the check and pass ids (line keys like F1040.11, value ids like ev-0123), never numbers. Methods: recompute_line (ids: [line]; carries or adds its listed input lines, gives the difference and which signs reach the value, or says the rule needs the engine); sum_to (ids: lines or values, target: a line or value; their total against the target, the difference); prior_year (ids: [line]; last year\'s return and cited prior-year records, the change against the firm\'s variance rule); fact_copies (ids: [line or document]; every copy of the same fact across sources and whether they agree; paged); glossary (ids: [term]; what a packet field or id format means; paged).',
       inputSchema: {
         type: 'object', additionalProperties: false, required: ['method', 'ids', 'target', 'limit', 'cursor'],
         properties: {

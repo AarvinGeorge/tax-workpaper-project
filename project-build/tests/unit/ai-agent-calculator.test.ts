@@ -96,8 +96,8 @@ describe('calculator: the methods', () => {
   });
 
   it('glossary: the README entry for a term', () => {
-    const d = verify('glossary', ['extracted_values']).data as { entries: { term: string; text: string }[] };
-    expect(d.entries.some((e) => /value_type/.test(e.text))).toBe(true);
+    const d = verify('glossary', ['extracted_values']).data as { items: { term: string; text: string }[] };
+    expect(d.items.some((e) => /value_type/.test(e.text))).toBe(true);
   });
 });
 
@@ -148,5 +148,65 @@ describe('calculator: modes and bounds', () => {
       expect(SSN_SHAPED.test(r)).toBe(false);
       expect(r).not.toMatch(/CHK-[A-Z]|GT-[A-Z]\d\d/);
     }
+  });
+});
+
+describe('calculator: review fixes (Fable, 9f014cc)', () => {
+  it('hide-checks, several seeds: no fact_copies disagreement has a claim only hidden findings claim', () => {
+    const all = runChecks(ix);
+    let measured = 0;
+    for (const seed of [1, 3, 7, 11, 13]) {
+      const mode: AgentMode = { kind: 'hide-checks', seed };
+      const hidden = new Set(hiddenCheckIds(seed));
+      const hiddenClaims = new Set(all.filter((f) => hidden.has(f.checkId)).flatMap((f) => f.claims));
+      const visibleClaims = new Set(all.filter((f) => !hidden.has(f.checkId)).flatMap((f) => f.claims));
+      const hiddenOnly = (c: string) => hiddenClaims.has(c) && !visibleClaims.has(c);
+      measured += [...hiddenClaims].filter(hiddenOnly).length;
+      const targets = [...lines.map((l) => l.key), ...ix.packet.documents.map((d) => d.id)];
+      for (const t of targets) {
+        for (let c: number | null = 0; c !== null;) {
+          const r = JSON.parse(runTool(ix, 'verify', { method: 'fact_copies', ids: [t], target: null, limit: 50, cursor: c }, { mode })) as { data: { items?: { agree: boolean; claims: string[] }[]; nextCursor?: number | null } };
+          for (const i of r.data.items ?? []) if (!i.agree) expect(i.claims.some(hiddenOnly), `seed ${seed} ${t} ${i.claims.join(',')}`).toBe(false);
+          c = r.data.nextCursor ?? null;
+        }
+      }
+    }
+    expect(measured).toBeGreaterThan(0); // the seeds really hide claims no visible finding makes
+  });
+
+  it('prior_year: a sign error is visible (amount agrees, sign does not)', () => {
+    const l = lines.find((x) => {
+      const d = verify('prior_year', [x.key]).data;
+      return typeof d.priorRecordsTotal === 'number' && typeof x.value === 'number' && x.value !== 0 && Math.abs(Math.abs(d.priorRecordsTotal) - Math.abs(x.value)) < 1 && Math.sign(d.priorRecordsTotal) !== Math.sign(x.value);
+    });
+    expect(l).toBeDefined(); // the packet has carryover lines stored with the opposite sign to last year's record
+    const d = verify('prior_year', [l!.key]).data;
+    expect(d).toMatchObject({ amountAgreesWithPriorRecords: true, signAgreesWithPriorRecords: false, agreesWithPriorRecords: false });
+  });
+
+  it('recompute_line: an agreeing line says "all +" instead of listing every input again; results stay small', () => {
+    let agreeing = 0;
+    for (const l of lines) {
+      const r = runTool(ix, 'verify', { method: 'recompute_line', ids: [l.key], target: null });
+      expect(Buffer.byteLength(r), l.key).toBeLessThanOrEqual(6_000);
+      const d = (JSON.parse(r) as Res).data;
+      if (d.agrees === true) { agreeing++; expect(d.signsReaching, l.key).toBe('all +'); }
+    }
+    expect(agreeing).toBeGreaterThan(0);
+  });
+
+  it('glossary: paged with limit and cursor, the total given', () => {
+    const page1 = verify('glossary', ['value']).data as { total: number; items: unknown[]; nextCursor: number | null };
+    const total = page1.total;
+    expect(total).toBeGreaterThan(3);
+    const a = JSON.parse(runTool(ix, 'verify', { method: 'glossary', ids: ['value'], target: null, limit: 3, cursor: 0 })) as { data: { items: unknown[]; nextCursor: number | null; total: number } };
+    expect(a.data.items).toHaveLength(3);
+    expect(a.data.nextCursor).toBe(3);
+    const seen = [...a.data.items];
+    for (let c: number | null = 3; c !== null;) {
+      const r = JSON.parse(runTool(ix, 'verify', { method: 'glossary', ids: ['value'], target: null, limit: 3, cursor: c })) as { data: { items: unknown[]; nextCursor: number | null } };
+      seen.push(...r.data.items); c = r.data.nextCursor;
+    }
+    expect(seen).toHaveLength(total);
   });
 });
