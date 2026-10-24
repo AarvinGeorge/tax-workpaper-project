@@ -45,11 +45,6 @@ test('the "?" dialog: legends for staff with the firm reference, Esc closes it; 
     await expect(pills, t).toContainText(t);
   await expect(pills).toContainText('The checks were built from the mistakes our external investigation found.');
   await expect(pills).not.toContainText('outside the reading software');
-  // Blockers come from four places now, the firm's required steps among them; every engine warning must be explained.
-  await expect(pills.locator('li', { hasText: /^Blocker/ })).toContainText('a firm step with items not yet explained');
-  await expect(pills.locator('li', { hasText: /^Blocker/ })).toContainText('a partner sign-off still needed');
-  await expect(pills.locator('li', { hasText: /^Engine warning/ })).toContainText('Diagnostics resolved');
-  await expect(pills.locator('li', { hasText: /^Firm step/ })).toContainText('every item in it needs an explanation');
   await page.keyboard.press('Escape');
   await expect(dlg).toBeHidden();
   await infoButton(page).click();

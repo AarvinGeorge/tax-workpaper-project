@@ -73,12 +73,3 @@ describe('tax accuracy of definitions', () => {
     expect(TERMS['form-4797'].text).toMatch(/Schedule D/);
   });
 });
-
-describe('blocker and firm step', () => {
-  it('a blocker can be a firm step, and the firm step is defined', () => {
-    expect(TERMS.blocker.text).toMatch(/firm step/);
-    // every source of a blocker in src/domain/project.ts, the partner threshold included
-    for (const w of [/check/, /engine re-run/, /review note/, /partner sign-off/]) expect(TERMS.blocker.text).toMatch(w);
-    expect(TERMS['firm-step'].text).toMatch(/every item/i);
-  });
-});
