@@ -372,7 +372,7 @@ export function agentTools(ix: PacketIndex, guard: ToolGuard, opts: ToolOptions 
     betaTool({
       // Not strict (grammar budget): verifyAll refuses a bad kind, limit or cursor with { error } and coerces nothing.
       name: 'verify_all', strict: false, run: run('verify_all'),
-      description: 'One sweep of every deterministic comparison, disagreements only, hardest first: lines no sign combination of their cited values reaches (receipted ones say so), prior-year records that differ, copies of one fact that disagree, one amount cited from two or more pages, near-duplicate pages. Gives coverage (what was compared, what needs the engine, what is not comparable) and counts by kind. Start here, then use verify and get_page on the items. Input: kind (differs, all, or one kind; default differs), limit (integer 1 to 50), cursor (integer 0 or more). Paged.',
+      description: 'One sweep of every deterministic comparison, disagreements only, hardest first: lines no sign combination of their cited values reaches (receipted ones say so), prior-year records that differ, copies of one fact that disagree, one amount cited from two or more pages, near-duplicate pages. Gives coverage (what was compared, what needs the engine, what is not comparable) and counts by kind. Input: kind (differs, all, or one kind; default differs), limit (integer 1 to 50), cursor (integer 0 or more). Paged.',
       inputSchema: {
         type: 'object', additionalProperties: false,
         properties: {

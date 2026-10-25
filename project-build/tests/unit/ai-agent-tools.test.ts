@@ -24,7 +24,7 @@ function everyResult(): string[] {
     while (cursor !== null) {
       const r = runTool(ix, name, { ...extra, limit: 50, cursor });
       out.push(r);
-      cursor = (JSON.parse(r) as { data: { nextCursor: number | null } }).data.nextCursor;
+      cursor = (JSON.parse(r) as { data: { nextCursor?: number | null } }).data.nextCursor ?? null; // a record (not a list) has no nextCursor
     }
   };
   drain('run_checks', {});
@@ -32,6 +32,15 @@ function everyResult(): string[] {
   drain('search_values', { text: 'ssn' });
   drain('search_values', { text: 'account' });
   for (const d of ix.packet.documents.slice(0, 20)) drain('verify', { method: 'fact_copies', ids: [d.id], target: null });
+  drain('verify_all', { kind: 'all' });
+  drain('lookup', { section: 'agency_record' });
+  for (const top of Object.keys((ix.packet as unknown as Record<string, Record<string, unknown>>).tax_agency_records ?? {})) drain('lookup', { section: 'agency_record', id: top });
+  drain('lookup', { section: 'prior_year' });
+  for (const l of ix.latest.lines) { out.push(runTool(ix, 'lookup', { section: 'prior_year', id: l.key })); out.push(runTool(ix, 'lookup', { section: 'diagnostics_for', id: l.key })); }
+  drain('lookup', { section: 'what_was_known', as_of: '2026-12-31' });
+  for (const text of ['pin', 'signed', 'account', 'refund']) drain('lookup', { section: 'client_text', text });
+  drain('lookup', { section: 'diagnostics_for' });
+  drain('lookup', { section: 'alternatives' });
   return out;
 }
 

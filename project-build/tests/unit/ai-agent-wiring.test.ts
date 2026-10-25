@@ -81,7 +81,7 @@ describe('verify_all is non-strict: bad limit or cursor is an error, never coerc
   });
 });
 
-describe('identifiers never reach the model through verify_all or lookup', () => {
+describe('identifiers never reach the model through any tool', () => {
   const packet = ix.packet as unknown as Record<string, any>;
   const tl20 = (packet.timeline as { id: string; detail?: string }[]).find((e) => e.id === 'tl-20')!;
   const pinsInDetail = [...(tl20.detail ?? '').matchAll(/PIN\s+(\d{4,})/gi)].map((m) => m[1]);
@@ -96,10 +96,15 @@ describe('identifiers never reach the model through verify_all or lookup', () =>
     expect(JSON.stringify(packet.timeline)).toContain(pinsInDetail[0]); // the raw packet does carry them
   });
 
-  // Scope: lookup and verify_all. get_page and search_values print page text through maskText, which misses the D03 "Identity Protection PIN ... is" phrasing
-  // (a gap in src/domain/policy.ts redactText that predates this task; reported, not fixed here: it is shared with the app).
-  it('no lookup or verify_all output holds them, in any mode', () => {
-    const out: string[] = [];
+  it('no tool output holds them (every tool, every mode), D03 page 1 included', () => {
+    // Each result is checked as it is produced (not kept): every tool over every mode is large.
+    let count = 0;
+    let d03Read = false;
+    const leaks: string[] = [];
+    const out = { push: (r: string) => {
+      count++;
+      for (const sec of secrets) { const at = r.indexOf(sec); if (at >= 0) leaks.push(r.slice(Math.max(0, at - 60), at).replace(/\d/g, '#') + '[SECRET]'); }
+    } };
     const drain = (name: string, input: Record<string, unknown>, mode: AgentMode) => {
       let cursor: number | null = 0;
       while (cursor !== null) {
@@ -110,8 +115,16 @@ describe('identifiers never reach the model through verify_all or lookup', () =>
         cursor = d.nextCursor ?? null;
       }
     };
+    const one = (name: string, input: Record<string, unknown>, mode: AgentMode) => out.push(run(name, input, mode));
+    const d03 = ix.packet.documents.find((d) => d.id === 'D03');
+    expect(d03, 'the probe needs D03 (the IP PIN notice)').toBeDefined();
     const dates = ['2025-07-10', '2025-07-11', '2026-12-31', (tl20 as any).at?.slice(0, 10)].filter(Boolean) as string[];
     for (const mode of MODES) {
+      for (const l of ix.latest.lines) { one('get_line', { key: l.key }, mode); one('verify', { method: 'recompute_line', ids: [l.key], target: null }, mode); one('verify', { method: 'prior_year', ids: [l.key], target: null }, mode); }
+      for (const d of ix.packet.documents) { for (const p of d.pages) { one('get_page', { doc: d.id, page: p.page }, mode); if (d.id === 'D03' && p.page === 1) d03Read = true; } drain('verify', { method: 'fact_copies', ids: [d.id], target: null }, mode); drain('verify', { method: 'duplicates', ids: [d.id], target: null }, mode); }
+      for (const q of ['PIN', 'Identity Protection', 'account', 'routing']) drain('search_values', { text: q }, mode);
+      if (toolNamesFor(mode).includes('run_checks')) drain('run_checks', {}, mode);
+      drain('list_open_leftovers', { kind: 'all' }, mode);
       for (const kind of ['all', ...VERIFY_ALL_KINDS]) drain('verify_all', { kind }, mode);
       drain('lookup', { section: 'agency_record' }, mode);
       for (const top of Object.keys(packet.tax_agency_records ?? {})) drain('lookup', { section: 'agency_record', id: top }, mode);
@@ -123,11 +136,9 @@ describe('identifiers never reach the model through verify_all or lookup', () =>
       drain('lookup', { section: 'alternatives' }, mode);
       for (const s of LOOKUP_SECTIONS) out.push(run('lookup', { section: s }, mode));
     }
-    expect(out.length).toBeGreaterThan(50);
-    const joined = out.join('\n');
-    const leaked = [...secrets].filter((s) => joined.includes(s));
-    const where = leaked.map((sec) => out.map((o, i) => (o.includes(sec) ? i : -1)).filter((i) => i >= 0).slice(0, 3).map((i) => out[i].slice(Math.max(0, out[i].indexOf(sec) - 60), out[i].indexOf(sec)).replace(/\d/g, '#') + '[SECRET]'));
-    expect(where, 'a secret reached a tool result').toEqual([]);
+    expect(count).toBeGreaterThan(500);
+    expect(d03Read, 'D03 page 1 was read').toBe(true);
+    expect(leaks.slice(0, 5), 'a secret reached a tool result').toEqual([]);
   });
 
   it('searching client_text by a secret\'s digits is refused (numbers are never inputs), and the refusal does not echo them', () => {
