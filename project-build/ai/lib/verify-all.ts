@@ -4,7 +4,7 @@
 // blocks, never becomes a Finding, and runChecks never calls it. A disagreement becomes a suggestion only after the
 // model grounds it in a quote and the verifier passes it. Pure and read-only; generic over the packet schema (no form,
 // line, document or check id is named here). Reuses the calculator (recompute_line, prior_year), the source receipt
-// (proofs.ts), sameFacts (facts.ts) and supersession (verify.ts).
+// (proofs.ts), sameFacts (facts.ts) and the duplicates definition (duplicates.ts).
 //
 // Modes hide our checks' findings, never raw comparisons: the item set is identical in every mode. Blind drops every
 // finding-derived field (onCheck; a comparison's title, explanation, receipt, effect, trigger, stopsEfile, which are the
@@ -16,10 +16,10 @@ import type { Copy } from '../../src/domain/facts';
 import { FLOW_RULES } from '../../src/domain/flow';
 import { sameFacts } from '../../src/domain/facts';
 import { sourceReceipt } from '../../src/domain/proofs';
-import { supersession } from '../../src/domain/ai/verify';
 import { masker } from './reader-core';
-import { AMOUNT_TYPES, MAX_SIGNED_INPUTS, signsReaching, verify } from './calculator';
-import { DEFAULT_MODE, comparisonPayloadHidden, findingsFor, modeLabel, type AgentMode } from './modes';
+import { MAX_SIGNED_INPUTS, signsReaching, verify } from './calculator';
+import { NEAR_WORDS, amountCopies, pagePairs } from './duplicates';
+import { DEFAULT_MODE, comparisonPayloadHidden, findingsFor, isBlind, modeLabel, type AgentMode } from './modes';
 
 /** Hardest first: the order items are listed in. The first six are `differs`; the last three are listed on `kind` only. */
 export const VERIFY_ALL_KINDS = [
@@ -53,7 +53,7 @@ export interface SweepItemFull {
   receipted?: boolean;
   signs?: string[];
   relation?: 'corroboration' | 'double_count' | 'neither';
-  likeness?: 'identical' | 'same_value_set';
+  likeness?: 'identical' | 'same_value_set' | 'near';
   superseded?: boolean[];
   agree?: boolean;
   copies?: Copy[];
@@ -78,16 +78,14 @@ export interface Sweep {
   coverage: Coverage;
   byKind: Record<VerifyAllKind, number>;
   /** Found and counted, not listed: page pairs where either document is superseded (a correction re-sends a page). */
-  countedOnly: { duplicatePagesWithSuperseded: { identical: number; sameValueSet: number } };
+  countedOnly: { duplicatePagesWithSuperseded: { identical: number; sameValueSet: number; near: number } };
   items: SweepItemFull[];
 }
 
 type Obj = Record<string, unknown>;
-const NEAR = 1;
 const isNum = (x: unknown): x is number => typeof x === 'number' && Number.isFinite(x);
 const round2 = (n: number) => Math.round(n * 100) / 100;
 const same = (a: unknown, b: unknown) => JSON.stringify(a) === JSON.stringify(b);
-const norm = (s: string) => s.replace(/\s+/g, ' ').trim();
 const ruleTextOf = (ix: PacketIndex, rule: string | null) => (rule ? (ix.packet.engine_reference.rules as Record<string, string>)[rule] ?? null : null);
 const isArithmetic = (l: ReturnLine) => !!l.rule && FLOW_RULES.includes(l.rule) && (l.inputs ?? []).length > 0;
 /** Numeric values cited from ev- sources (the source tie's terms). */
@@ -218,64 +216,34 @@ function base(ix: PacketIndex): Base {
     });
   }
 
-  // Duplicates. (a) A line citing one nonzero amount from 2+ distinct pages: what a double count leaves on the return.
-  const sup = supersession(ix);
-  const du = { definition: 'latest lines citing one nonzero amount-type value (money, integer, quantity) from 2 or more distinct (document, page) pairs; and page pairs with identical printed text (whitespace normalised) or the same set of (field, money value) pairs', applicable: 0, ran: 0, agree: 0, differ: 0, needsEngine: 0, notComparable: 0 };
+  // Duplicates (duplicates.ts, shared with the calculator's `duplicates` method so the two mirror). (a) A line citing
+  // one nonzero amount from 2+ distinct pages: what a double count leaves on the return.
+  const du = { definition: `latest lines citing one nonzero amount-type value (money, integer, quantity) from 2 or more distinct (document, page) pairs; and page pairs with identical printed text (whitespace normalised), the same set of (field, money value) pairs, or near (word-pair similarity at least ${NEAR_WORDS} and a shared nonzero amount)`, applicable: 0, ran: 0, agree: 0, differ: 0, needsEngine: 0, notComparable: 0 };
   for (const l of lines) {
-    const vs = (l.sources ?? []).map((s) => ix.valueById.get(s)).filter((x): x is ExtractedValue => !!x && AMOUNT_TYPES.has(x.value_type) && isNum(x.value) && x.value !== 0);
-    if (vs.length < 2) continue;
+    const groups = amountCopies(ix, l);
+    if (!groups) continue;
     du.applicable++; du.ran++;
-    const byAmount = new Map<number, ExtractedValue[]>();
-    for (const x of vs) byAmount.set(x.value as number, [...(byAmount.get(x.value as number) ?? []), x]);
-    let hitHere = false;
-    for (const [amount, xs] of [...byAmount].sort((a, b) => a[0] - b[0])) {
-      const pages = [...new Set(xs.map((x) => `${x.document_id}#${x.page}`))];
-      if (pages.length < 2) continue;
-      hitHere = true;
-      const added = round2(xs.reduce((s, x) => s + (x.value as number), 0));
+    if (groups.length) du.differ++; else du.agree++;
+    for (const g of groups) {
       const value = isNum(l.value) ? l.value : null;
-      const relation = value === null ? 'neither' : Math.abs(Math.abs(value) - Math.abs(amount)) < NEAR ? 'corroboration' : Math.abs(Math.abs(value) - Math.abs(added)) < NEAR ? 'double_count' : 'neither';
       items.push({
-        kind: 'duplicate_amount_cited', ...head(l), ids: xs.map((x) => x.id),
+        kind: 'duplicate_amount_cited', ...head(l), ids: g.ids,
         compared: 'one amount the line cites from two or more pages: once (corroboration), the copies added (double_count), or neither',
-        numbers: { value: l.value, amount, copies: xs.length, added, pages }, difference: value === null ? null : round2(value - amount), relation,
-        superseded: pages.map((p) => sup.has(p.split('#')[0])),
+        numbers: { value: l.value, amount: g.amount, copies: g.ids.length, added: g.added, pages: g.pages }, difference: value === null ? null : round2(value - g.amount), relation: g.relation,
+        superseded: g.superseded,
       });
     }
-    if (hitHere) du.differ++; else du.agree++;
   }
-  // (b) Page pairs: identical printed text, or the same (field, money value) set. A pair with a superseded document is
-  // only counted: a correction re-sends its pages by design.
-  const citedBy = new Map<string, Set<string>>();
-  for (const l of lines) for (const s of l.sources ?? []) {
-    const x = ix.valueById.get(s);
-    if (x) { const k = `${x.document_id}#${x.page}`; citedBy.set(k, (citedBy.get(k) ?? new Set()).add(l.key)); }
-  }
-  const byPrint = new Map<string, string[]>(); const bySet = new Map<string, string[]>();
-  for (const d of ix.packet.documents) for (const p of d.pages) {
-    const id = `${d.id}#${p.page}`;
-    const t = norm(p.printed_content ?? '');
-    if (t) byPrint.set(t, [...(byPrint.get(t) ?? []), id]);
-    const money = (ix.valuesByDoc.get(d.id) ?? []).filter((x) => x.page === p.page && x.value_type === 'money' && isNum(x.value));
-    if (money.length) { const k = money.map((x) => `${x.field}=${JSON.stringify(x.value)}`).sort().join('|'); bySet.set(k, [...(bySet.get(k) ?? []), id]); }
-  }
-  const pairs = new Map<string, 'identical' | 'same_value_set'>();
-  const addPairs = (groups: Map<string, string[]>, likeness: 'identical' | 'same_value_set') => {
-    for (const g of groups.values()) for (let i = 0; i < g.length; i++) for (let j = i + 1; j < g.length; j++) {
-      const k = [g[i], g[j]].sort().join('|');
-      if (!pairs.has(k)) pairs.set(k, likeness);
-    }
-  };
-  addPairs(byPrint, 'identical'); addPairs(bySet, 'same_value_set');
-  const countedOnly = { duplicatePagesWithSuperseded: { identical: 0, sameValueSet: 0 } };
-  for (const [k, likeness] of [...pairs].sort((a, b) => a[0].localeCompare(b[0]))) {
-    const ids = k.split('|');
-    const superseded = ids.map((x) => sup.has(x.split('#')[0]));
-    if (superseded.some(Boolean)) { countedOnly.duplicatePagesWithSuperseded[likeness === 'identical' ? 'identical' : 'sameValueSet']++; continue; }
-    const cited = [...new Set(ids.flatMap((x) => [...(citedBy.get(x) ?? [])]))].sort();
+  // (b) Page pairs: identical printed text, the same (field, money value) set, or near. A pair with a superseded
+  // document is only counted: a correction re-sends its pages by design.
+  const countedOnly = { duplicatePagesWithSuperseded: { identical: 0, sameValueSet: 0, near: 0 } };
+  const counter = { identical: 'identical', same_value_set: 'sameValueSet', near: 'near' } as const;
+  for (const p of pagePairs(ix)) {
+    if (p.superseded.some(Boolean)) { countedOnly.duplicatePagesWithSuperseded[counter[p.likeness]]++; continue; }
     items.push({
-      kind: 'duplicate_page', ids, lines: cited, compared: likeness === 'identical' ? 'two pages with identical printed text' : 'two pages with the same set of (field, money value) pairs',
-      numbers: null, difference: null, rule: null, ruleText: null, likeness, superseded,
+      kind: 'duplicate_page', ids: [...p.pages], lines: p.lines,
+      compared: p.likeness === 'identical' ? 'two pages with identical printed text' : p.likeness === 'same_value_set' ? 'two pages with the same set of (field, money value) pairs' : 'two pages with nearly the same words and a shared amount',
+      numbers: null, difference: null, rule: null, ruleText: null, likeness: p.likeness, superseded: [...p.superseded],
     });
   }
 
@@ -341,7 +309,7 @@ export function sweep(ix: PacketIndex, mode: AgentMode = DEFAULT_MODE): Sweep {
   const hit = m.get(label);
   if (hit) return hit;
   const b = base(ix);
-  const blind = mode.kind === 'blind';
+  const blind = isBlind(mode);
   const claimed = new Set(findingsFor(ix, mode).flatMap((f) => f.claims));
   const hidden = comparisonPayloadHidden(ix, mode);
   const scrub = scrubber(ix);

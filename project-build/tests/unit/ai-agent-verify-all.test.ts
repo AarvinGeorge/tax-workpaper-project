@@ -11,10 +11,11 @@ import { proofsFor, sourceReceipt } from '@/domain/proofs';
 import { SSN_SHAPED, supersession } from '@/domain/ai/verify';
 import { hiddenCheckIds, rng, type AgentMode } from '../../ai/lib/modes';
 import { verify } from '../../ai/lib/calculator';
-import { runTool } from '../../ai/lib/agent-tools';
-import { loadContextFiles } from '../../ai/lib/agent-core';
+import { runTool, toolNamesFor } from '../../ai/lib/agent-tools';
+import { agentSystemPrompt, loadContextFiles, promptVersionFor } from '../../ai/lib/agent-core';
 import { caseFile } from '../../ai/lib/case-file';
 import { DIFFERS_KINDS, VERIFY_ALL_KINDS, VERIFY_ALL_PAGE_BYTES, sweep, verifyAll, type SweepItemFull } from '../../ai/lib/verify-all';
+import { NEAR_WORDS } from '../../ai/lib/duplicates';
 import { alteredPacket } from '../fixtures/altered';
 import { perturbedPacket } from '../fixtures/perturbed';
 
@@ -143,6 +144,19 @@ describe('verify_all: real packet, default mode', () => {
     for (const i of s.items.filter((x) => x.kind === 'duplicate_page')) for (const id of i.ids!) expect(sup.has(id.split('#')[0]), id).toBe(false);
   });
 
+  it('duplicate_page (Task 2, one shared definition with the duplicates method): 1 same-value-set pair and 1 near pair listed; near pairs with a superseded document only counted (2)', () => {
+    const pages = s.items.filter((i) => i.kind === 'duplicate_page');
+    expect(pages.map((i) => i.likeness).sort()).toEqual(['near', 'same_value_set']);
+    expect(s.countedOnly.duplicatePagesWithSuperseded).toEqual({ identical: 28, sameValueSet: 2, near: 2 });
+    // near = word-pair similarity at least NEAR_WORDS and a shared nonzero amount: both halves measured on the listed pair
+    const near = pages.find((i) => i.likeness === 'near')!;
+    const amounts = (id: string) => new Set(real.extracted_values.filter((v) => `${v.document_id}#${v.page}` === id && ['money', 'integer', 'quantity'].includes(v.value_type) && typeof v.value === 'number' && v.value !== 0).map((v) => v.value));
+    const [a, b] = near.ids!.map(amounts);
+    expect([...a].some((x) => b.has(x))).toBe(true);
+    const d = verify(ix, { method: 'duplicates', ids: [near.ids![0].split('#')[0]], target: null }) as { items: { pages: string[]; wordSimilarity: number }[] };
+    expect(d.items.find((p) => p.pages.join('|') === near.ids!.join('|'))!.wordSimilarity).toBeGreaterThanOrEqual(NEAR_WORDS);
+  });
+
   it('no ledger id, finding id, check id or full name in any item; SSN-free; deterministic order', () => {
     const f = runChecks(ix);
     const text = JSON.stringify(s.items);
@@ -186,17 +200,45 @@ describe('verify_all: modes (raw comparisons in every mode; only finding-derived
     expect(keysOf('variance_over_firm_rule')).toEqual(py.filter((r) => r.overFirmThreshold === true).map((r) => r.key).sort());
   });
 
-  it('default: copies_disagree mirrors fact_copies disagreements over every line and document', () => {
+  it.each(MODES)('%s: copies_disagree mirrors fact_copies disagreements over every line and document', (_n, mode) => {
     const seen = new Set<string>();
     for (const t of [...lines, ...real.documents.map((d) => d.id)]) {
       for (let c: number | null = 0; c !== null;) {
-        const r = JSON.parse(runTool(ix, 'verify', { method: 'fact_copies', ids: [t], target: null, limit: 50, cursor: c })) as { data: { items?: { agree: boolean; rule: string; claims: string[] }[]; nextCursor?: number | null } };
+        const r = JSON.parse(runTool(ix, 'verify', { method: 'fact_copies', ids: [t], target: null, limit: 50, cursor: c }, { mode })) as { data: { items?: { agree: boolean; rule: string; claims: string[] }[]; nextCursor?: number | null } };
         for (const i of r.data.items ?? []) if (!i.agree) seen.add(JSON.stringify([i.rule, i.claims]));
         c = r.data.nextCursor ?? null;
       }
     }
-    const mine = new Set(sweep(ix, DEFAULT).items.filter((i) => i.kind === 'copies_disagree').map((i) => JSON.stringify([i.rule, i.claims])));
+    const mine = new Set(sweep(ix, mode).items.filter((i) => i.kind === 'copies_disagree').map((i) => JSON.stringify([i.rule, i.claims])));
+    expect(mine.size).toBe(11);
     expect(mine).toEqual(seen);
+  });
+
+  it.each(MODES)('%s: duplicate_amount_cited mirrors duplicates over every line, duplicate_page over every document', (_n, mode) => {
+    const s = sweep(ix, mode);
+    const amounts = new Set<string>();
+    for (const l of lines) {
+      const r = verify(ix, { method: 'duplicates', ids: [l], target: null }, mode) as { items: { amount: number; ids: string[]; relation: string }[] };
+      for (const i of r.items) amounts.add(JSON.stringify([l, i.ids, i.amount, i.relation]));
+    }
+    const mine = new Set(s.items.filter((i) => i.kind === 'duplicate_amount_cited').map((i) => JSON.stringify([i.key, i.ids, (i.numbers as { amount: number }).amount, i.relation])));
+    expect(mine.size).toBe(5);
+    expect(mine).toEqual(amounts);
+    const pairs = new Set<string>();
+    for (const d of real.documents) {
+      const r = verify(ix, { method: 'duplicates', ids: [d.id], target: null }, mode) as { items: { pages: string[]; likeness: string; superseded: boolean[] }[] };
+      for (const i of r.items) if (!i.superseded.some(Boolean)) pairs.add(JSON.stringify([i.pages, i.likeness]));
+    }
+    const listed = new Set(s.items.filter((i) => i.kind === 'duplicate_page').map((i) => JSON.stringify([i.ids, i.likeness])));
+    expect(listed.size).toBeGreaterThan(0);
+    expect(listed).toEqual(pairs);
+  });
+
+  it('blind-v3 (the v3 baseline): verify_all is the blind sweep; only fact_copies keeps the old agreements-only rule', () => {
+    expect(JSON.stringify(sweep(ix, { kind: 'blind-v3' }))).toBe(JSON.stringify(sweep(ix, BLIND)));
+    expect(toolNamesFor({ kind: 'blind-v3' })).toEqual(toolNamesFor(BLIND));
+    expect(agentSystemPrompt({ kind: 'blind-v3' })).toBe(agentSystemPrompt(BLIND));
+    expect(promptVersionFor({ kind: 'blind-v3' })).toBe(`${promptVersionFor(DEFAULT)}-blind-v3`);
   });
 
   it('the item sets (kind, key, ids, numbers) are identical in every mode', () => {
@@ -227,6 +269,22 @@ describe('verify_all: modes (raw comparisons in every mode; only finding-derived
       for (const m of ['recompute_line', 'prior_year', 'fact_copies']) out.push(runTool(ix, 'verify', { method: m, ids: [l], target: null }, { mode: BLIND }));
     }
     for (const d of real.documents) for (const p of d.pages) out.push(runTool(ix, 'get_page', { doc: d.id, page: p.page }, { mode: BLIND }));
+    // fact_copies in blind, every line and document, every page: raw comparisons, no finding payload on any item
+    let blindDisagree = 0;
+    for (const t of [...lines, ...real.documents.map((d) => d.id)]) {
+      for (let c: number | null = 0; c !== null;) {
+        const r = runTool(ix, 'verify', { method: 'fact_copies', ids: [t], target: null, limit: 50, cursor: c }, { mode: BLIND });
+        out.push(r);
+        const data = (JSON.parse(r) as { data: { items?: Record<string, unknown>[]; nextCursor?: number | null } }).data;
+        for (const i of data.items ?? []) {
+          for (const k of PAYLOAD_KEYS) expect(i, `${t} ${k}`).not.toHaveProperty(k);
+          if (!i.agree) blindDisagree++;
+        }
+        c = data.nextCursor ?? null;
+      }
+      out.push(runTool(ix, 'verify', { method: 'duplicates', ids: [t], target: null }, { mode: BLIND }));
+    }
+    expect(blindDisagree).toBeGreaterThan(0); // disagreements are present in blind, with their values
     out.push(runTool(ix, 'list_open_leftovers', { kind: null, limit: 50, cursor: 0 }, { mode: BLIND }));
     const { digest } = loadContextFiles(process.cwd());
     const cf = caseFile(ix, digest, BLIND);

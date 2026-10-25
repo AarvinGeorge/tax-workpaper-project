@@ -1,15 +1,19 @@
 // The agent's measurement modes. 'default' is production. 'blind' (independent re-performance) hides our checks'
 // findings, never raw comparisons: it takes away run_checks, computes leftovers and the case file as if no check had
-// run, and verify_all (verify-all.ts) drops every finding-derived field (finding wording on a comparison, onCheck).
-// The calculator's fact_copies still returns agreements only in blind until the plan's Task 2 changes it, so recall
-// on all 27 ledger mistakes is a fair comparison with the reader. 'hide-checks' hides a seeded half of the check ids, so the harness can
-// score the agent on exactly the ledger entries only those checks reach. The harness recomputes the hidden set from the
-// seed (hiddenCheckIds) and the real checks; it never takes it from the agent's output.
+// run, and drops every finding-derived field from the tools (onCheck in verify_all; a same-fact comparison's title,
+// explanation, receipt, effect, trigger and stopsEfile in verify_all and the calculator's fact_copies), while every
+// comparison itself (copies, values, agree, claims) is returned. 'blind-v3' is blind as the agent-v3 baseline ran it:
+// the same in every tool except fact_copies, which returns agreements only (the old definition); it exists only so
+// agent-v3-blind scores can be rerun comparably, and is otherwise unused. 'hide-checks' hides a seeded half of the
+// check ids, so the harness can score the agent on exactly the ledger entries only those checks reach. The harness
+// recomputes the hidden set from the seed (hiddenCheckIds) and the real checks; it never takes it from the agent's output.
 import { CHECKS, runChecks } from '../../src/domain/checks/index';
 import type { PacketIndex } from '../../src/domain/packet/load';
 import type { Finding } from '../../src/domain/contracts';
 
-export type AgentMode = { kind: 'default' } | { kind: 'blind' } | { kind: 'hide-checks'; seed: number };
+export type AgentMode = { kind: 'default' } | { kind: 'blind' } | { kind: 'blind-v3' } | { kind: 'hide-checks'; seed: number };
+/** Blind and its v3-baseline variant: no check's finding reaches the agent. */
+export const isBlind = (m: AgentMode) => m.kind === 'blind' || m.kind === 'blind-v3';
 export const DEFAULT_MODE: AgentMode = { kind: 'default' };
 
 /** mulberry32: a small deterministic PRNG, so a seed always hides the same checks. */
@@ -32,7 +36,7 @@ export function hiddenCheckIds(seed: number): string[] {
   return ids.slice(0, Math.floor(ids.length / 2)).sort();
 }
 
-/** 'default', 'blind' or 'hide-<seed>': used in file names and prompt versions. */
+/** 'default', 'blind', 'blind-v3' or 'hide-<seed>': used in file names and prompt versions. */
 export const modeLabel = (m: AgentMode) => (m.kind === 'hide-checks' ? `hide-${m.seed}` : m.kind);
 
 // ---------- The findings a mode lets the agent see (shared by the tools, the calculator and the case file) ----------
@@ -43,13 +47,13 @@ function allFindings(ix: PacketIndex): Finding[] {
   if (!f) { f = runChecks(ix); allFindingsCache.set(ix, f); }
   return f;
 }
-/** The findings a mode lets the agent use: all (default), none (blind), or those of the checks not hidden. */
+/** The findings a mode lets the agent use: all (default), none (blind, blind-v3), or those of the checks not hidden. */
 export function findingsFor(ix: PacketIndex, mode: AgentMode = DEFAULT_MODE): Finding[] {
   let m = modeCache.get(ix);
   if (!m) { m = new Map(); modeCache.set(ix, m); }
   const key = modeLabel(mode);
   if (!m.has(key)) {
-    if (mode.kind === 'blind') m.set(key, []);
+    if (isBlind(mode)) m.set(key, []);
     else if (mode.kind === 'default') m.set(key, allFindings(ix));
     else { const hidden = new Set(hiddenCheckIds(mode.seed)); m.set(key, allFindings(ix).filter((f) => !hidden.has(f.checkId))); }
   }
@@ -63,11 +67,11 @@ export function hiddenFindings(ix: PacketIndex, mode: AgentMode): Finding[] {
 }
 
 /** Whether a same-fact comparison's finding payload (title, explanation, receipt, effect, trigger, stopsEfile) must be
- *  dropped in a mode: always in blind, never in default; in hide-checks when a hidden check reports it (same title or
+ *  dropped in a mode: always in blind and blind-v3, never in default; in hide-checks when a hidden check reports it (same title or
  *  same claims) or any of its claims is claimed by a hidden finding and by no visible one. The comparison itself (rule,
  *  claims, copies, agree) is raw and stays in every mode. */
 export function comparisonPayloadHidden(ix: PacketIndex, mode: AgentMode): (c: { title: string; claims: string[] }) => boolean {
-  if (mode.kind === 'blind') return () => true;
+  if (isBlind(mode)) return () => true;
   if (mode.kind === 'default') return () => false;
   const hid = hiddenFindings(ix, mode);
   const visible = new Set(findingsFor(ix, mode).flatMap((f) => f.claims));

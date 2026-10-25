@@ -18,7 +18,7 @@ import { maskRecord, maskValue, sensitiveTypeOf } from '../../src/domain/policy'
 import { SSN_SHAPED, isShown, supersession, verifySuggestions } from '../../src/domain/ai/verify';
 import type { AiPayload } from '../../src/domain/ai/contract';
 import { OUTPUT_SCHEMA, masker, maskingRole, validateRow, type Row } from './reader-core';
-import { DEFAULT_MODE, findingsFor, modeLabel, type AgentMode } from './modes';
+import { DEFAULT_MODE, findingsFor, isBlind, modeLabel, type AgentMode } from './modes';
 import { VERIFY_METHODS, verify } from './calculator';
 
 export { findingsFor };
@@ -48,10 +48,11 @@ function cached<T>(store: WeakMap<PacketIndex, Map<string, T>>, ix: PacketIndex,
   if (!m.has(key)) m.set(key, make());
   return m.get(key)!;
 }
-/** Tools a mode offers: blind takes away run_checks (our checks' findings); raw comparisons stay (verify_all lists every
- *  disagreement in every mode; the calculator's fact_copies still gives agreements only in blind until Task 2 of the plan). */
+/** Tools a mode offers: blind (and blind-v3) takes away run_checks (our checks' findings); raw comparisons stay (verify_all
+ *  lists every disagreement and the calculator's fact_copies every comparison in every mode, without the finding wording
+ *  in blind; only blind-v3's fact_copies keeps the old agreements-only rule, for the v3 baseline reruns). */
 export function toolNamesFor(mode: AgentMode = DEFAULT_MODE): AgentToolName[] {
-  return AGENT_TOOL_NAMES.filter((n) => mode.kind !== 'blind' || n !== 'run_checks');
+  return AGENT_TOOL_NAMES.filter((n) => !isBlind(mode) || n !== 'run_checks');
 }
 
 function maskedValue(ix: PacketIndex, v: ExtractedValue): Obj {
@@ -272,9 +273,9 @@ export function runTool(ix: PacketIndex, name: string, input: Obj, opts: ToolOpt
     }
     case 'verify': {
       const r = verify(ix, { method: String(input.method ?? ''), ids: (input.ids as unknown[]) ?? [], target: input.target ?? null }, mode);
-      // fact_copies and glossary are lists: paged like the other lists; every other method is one result.
-      text = Array.isArray(r.items) && (input.method === 'fact_copies' || input.method === 'glossary')
-        ? page(name, (r.items as Obj[]).map(mask), input, { method: input.method, ...(r.target ? { target: r.target } : { term: r.term }) })
+      // fact_copies, duplicates and glossary are lists: paged like the other lists; every other method is one result.
+      text = Array.isArray(r.items) && (input.method === 'fact_copies' || input.method === 'duplicates' || input.method === 'glossary')
+        ? page(name, (r.items as Obj[]).map(mask), input, { method: input.method, ...(r.target ? { target: r.target, ...(r.kind ? { kind: r.kind } : {}) } : { term: r.term }) })
         : shrink(name, mask({ method: input.method, ...r }));
       break;
     }
@@ -328,13 +329,13 @@ export function agentTools(ix: PacketIndex, guard: ToolGuard, opts: ToolOptions 
     }),
     betaTool({
       name: 'verify', strict: true, run: run('verify'),
-      description: 'The calculator: our code does the arithmetic; you choose the check and pass ids (line keys like F1040.11, value ids like ev-0123), never numbers. Methods: recompute_line (ids: [line]; carries or adds its listed input lines, gives the difference and which signs reach the value, or says the rule needs the engine); sum_to (ids: lines or values, target: a line or value; their total against the target, the difference); prior_year (ids: [line]; last year\'s return and cited prior-year records, the change against the firm\'s variance rule); fact_copies (ids: [line or document]; every copy of the same fact across sources and whether they agree; paged); glossary (ids: [term]; what a packet field or id format means; paged).',
+      description: 'The calculator: our code does the arithmetic; you choose the check and pass ids (line keys like F1040.11, value ids like ev-0123), never numbers. Methods: recompute_line (ids: [line]; carries or adds its listed input lines, gives the difference and which signs reach the value, or says the rule needs the engine); sum_to (ids: lines or values, target: a line or value; their total against the target, the difference); prior_year (ids: [line]; last year\'s return and cited prior-year records, the change against the firm\'s variance rule); fact_copies (ids: [line or document]; every copy of the same fact across sources and whether they agree; paged); glossary (ids: [term]; what a packet field or id format means; paged); compare_to_limit (ids: [line or value], target: ref:param.<name>; above, equal or below the engine parameter and by how much; whether it applies is your judgment); convert (ids: [value or line], target: ref:fx.<currency>.<rate> or <A>_per_<B>.<rate>; the amount at that rate both ways, labelled by currency); duplicates (ids: [line or document]; a line: each amount it cites from two or more pages and how alike those pages are; a document: its pages that are identical, same-valued or near copies of other pages, marked superseded, landed and cited; paged).',
       inputSchema: {
         type: 'object', additionalProperties: false, required: ['method', 'ids', 'target', 'limit', 'cursor'],
         properties: {
           method: { type: 'string', enum: [...VERIFY_METHODS] },
           ids: { type: 'array', items: { type: 'string' }, description: 'Ids only: line keys, value ids, a document id, or the glossary term.' },
-          target: { type: ['string', 'null'], description: 'sum_to only: the line key or value id to compare with; else null.' },
+          target: { type: ['string', 'null'], description: 'sum_to: a line key or value id; compare_to_limit: ref:param.<name>; convert: ref:fx.<rate key>; else null.' },
           ...listProps,
         },
       },

@@ -14,7 +14,7 @@ import { SSN_SHAPED, isShown, verifySuggestions } from '../../src/domain/ai/veri
 import type { PacketIndex } from '../../src/domain/packet/load';
 import { agentTools, findingsFor, rowKey, type ToolGuard } from './agent-tools';
 import { caseFile } from './case-file';
-import { DEFAULT_MODE, hiddenCheckIds, modeLabel, type AgentMode } from './modes';
+import { DEFAULT_MODE, hiddenCheckIds, isBlind, modeLabel, type AgentMode } from './modes';
 import {
   OUTPUT_SCHEMA, PRICES, addUsage, assignIds, masker, namesAPerson, sanitizeRejected, validateRow, zeroUsage,
   type Row, type Usage,
@@ -40,7 +40,7 @@ const PROPOSAL_MAX_WORDS = 80;
 
 /** The system prompt for a mode. Blind mode never names run_checks (it does not have it). */
 export function agentSystemPrompt(mode: AgentMode = DEFAULT_MODE): string {
-  const blind = mode.kind === 'blind';
+  const blind = isBlind(mode);
   return [
   'You are a careful senior tax reviewer investigating one household\'s 2025 US and California return before it is approved.',
   'The cached context is a case file our code prepared from the packet: a schema card, the firm\'s review steps, a',

@@ -1,8 +1,8 @@
 // AI agent CLI (Step 2). Run from project-build, only with a budget Aarvin has approved (a run costs real money):
 //   npx tsx ai/agent.ts [--model claude-opus-5-5] [--packet real|altered|perturbed [--seed N]] [--out path] [--max-iterations 40] [--max-cost 12] [--max-minutes 40]
-//                       [--blind | --hide-checks <seed>]   (measurement modes, ai/lib/modes.ts; default is production)
+//                       [--blind | --blind-v3 | --hide-checks <seed>]   (measurement modes, ai/lib/modes.ts; default is production)
 // Reads ANTHROPIC_API_KEY from .env.local (never printed or written). One investigation over the whole packet with the
-// deterministic tools; writes ai/eval/agent-suggestions[.blind|.hide-<seed>][.altered|.seed-<n>].json and a run-meta file (tokens,
+// deterministic tools; writes ai/eval/agent-suggestions[.blind|.blind-v3|.hide-<seed>][.altered|.seed-<n>].json and a run-meta file (tokens,
 // cost, turns, seconds, served model, mode). A partial, failed or over-budget run writes nothing and exits 1.
 import { existsSync, readFileSync } from 'node:fs';
 import path from 'node:path';
@@ -48,10 +48,12 @@ async function main() {
     wallClockMs: positive('max-minutes', DEFAULT_LIMITS.wallClockMs / 60_000) * 60_000,
   };
   const blind = process.argv.includes('--blind');
+  // --blind-v3: blind as the agent-v3 baseline ran it (fact_copies agreements only), for comparable v3 reruns only.
+  const blindV3 = process.argv.includes('--blind-v3');
   const seedArg = arg('hide-checks');
-  if (blind && seedArg !== undefined) throw new Error('--blind and --hide-checks are separate modes; pick one.');
+  if ([blind, blindV3, seedArg !== undefined].filter(Boolean).length > 1) throw new Error('--blind, --blind-v3 and --hide-checks are separate modes; pick one.');
   if (seedArg !== undefined && !/^\d+$/.test(seedArg)) throw new Error('--hide-checks needs a whole-number seed.');
-  const mode: AgentMode = blind ? { kind: 'blind' } : seedArg !== undefined ? { kind: 'hide-checks', seed: Number(seedArg) } : { kind: 'default' };
+  const mode: AgentMode = blind ? { kind: 'blind' } : blindV3 ? { kind: 'blind-v3' } : seedArg !== undefined ? { kind: 'hide-checks', seed: Number(seedArg) } : { kind: 'default' };
   const which = arg('packet') ?? 'real';
   if (which !== 'real' && which !== 'altered' && which !== 'perturbed') throw new Error('--packet must be real, altered or perturbed.');
   const seedOpt = arg('seed');
