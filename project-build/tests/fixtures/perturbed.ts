@@ -36,9 +36,17 @@ export interface Plant {
   /** The claim set: the planted line(s) plus every ancestor whose value moved, in any version. */
   claims: string[];
   refs: PlantRef[];
+  /** Stale parents: lines with a moved input whose value only the engine computes (no fitted arithmetic), so they kept
+   *  their value. A claim on one is attributable to the plant, neither a hit nor a false positive. */
+  stale: string[];
 }
+/** A mirror figure that could not be moved safely (it quotes moved lines that moved by different amounts): removed. */
+export interface Excluded { path: string; reason: string }
 export interface Skipped { kind: PlantKind; reason: string }
-export interface Perturbed { packet: Packet; planted: Plant[]; skipped: Skipped[] }
+export interface Perturbed { packet: Packet; planted: Plant[]; skipped: Skipped[]; excluded: Excluded[] }
+/** A summary or what_if figure is taken as a line's mirror only from this size up, so a small figure (0, a penalty of
+ *  164) is not moved because some unrelated line shares it. */
+export const MIRROR_MIN = 1000;
 
 type Obj = Record<string, unknown>;
 const isNum = (x: unknown): x is number => typeof x === 'number' && Number.isFinite(x);
@@ -168,6 +176,13 @@ class Recorder {
     if (r) r.after = structuredClone(after); else this.refs.set(full, { path: full, before, after: structuredClone(after) });
   }
   add(path: string, record: unknown) { this.refs.set(path, { path, before: undefined, after: structuredClone(record) }); }
+  remove(path: string, obj: Obj, field: string) {
+    const full = `${path}/${field}`;
+    const before = structuredClone(obj[field]);
+    delete obj[field];
+    const r = this.refs.get(full);
+    if (r) r.after = undefined; else this.refs.set(full, { path: full, before, after: undefined });
+  }
 }
 
 const lineIn = (rv: ReturnVersion, k: string) => rv.lines.find((l) => l.key === k);
@@ -191,14 +206,14 @@ function moveLine(c: Ctx, rec: Recorder, key: string, edit: (l: ReturnLine, path
       const ins = g.inputs.get(k)!;
       if (!ins.some((i) => movedHere.has(i))) continue;
       const vals = ins.map((i) => lineIn(rv, i)?.value);
-      if (!vals.every(isNum)) continue;
       const ops = g.ops.get(k) ?? [];
+      if (!vals.every(isNum) || !ops.length) { staleSink?.add(k); continue; } // engine-only: keeps its value
       const results = [...new Set(ops.map((o) => o.apply(vals as number[])))];
       const target = lineIn(rv, k)!;
       // Operations that fitted together now disagree (a - b against max(0, a - b) once a - b turns negative): only
       // the engine could say which, and leaving the line would break its arithmetic, so the plant is refused.
-      if (ops.length && results.length !== 1) { c.ambiguous = true; continue; }
-      if (results.length !== 1 || results[0] === target.value) continue; // needs the engine, or lands where it was
+      if (results.length !== 1) { c.ambiguous = true; continue; }
+      if (results[0] === target.value) continue; // lands where it was: nothing above moves through it
       rec.set(`${base}/${k}`, target, 'value', results[0]);
       movedHere.add(k); moved.add(k);
     }
@@ -218,6 +233,67 @@ function relist(c: Ctx, rec: Recorder) {
       if ('old' in ch && prev && rPrev && same(ch.old, rPrev.value) && !same(ch.old, prev.value)) rec.set(path, ch as Obj, 'old', prev.value);
     }
   }
+}
+
+// ---------- Mirrors: summary and what_if figures that quote a line's value move with it ----------
+type Moves = Map<string, Map<number, Set<number>>>; // version -> pre-plant line value -> deltas
+type MirrorLines = Map<string, Map<string, number>>; // version -> line key -> delta
+/** Each version's summary, the what_if alternatives built on it (base figures, the alternative figures by the same
+ *  amount, changed_lines old/new of a moved line) and the extension based on it: a figure of at least MIRROR_MIN equal
+ *  to a line's pre-plant value in that version moves by that line's delta. Quoting lines that moved by different
+ *  amounts, it is removed and reported. Returns what was removed. */
+function moveMirrors(c: Ctx, rec: Recorder): Excluded[] {
+  const moves: Moves = new Map(); const byKey: MirrorLines = new Map();
+  for (const r of rec.refs.values()) {
+    const m = r.path.match(/^return_versions\/([^/]+)\/lines\/(.+)\/value$/);
+    if (!m || !isNum(r.before) || !isNum(r.after) || r.before === r.after) continue;
+    const d = round2(r.after - r.before);
+    if (!moves.has(m[1])) { moves.set(m[1], new Map()); byKey.set(m[1], new Map()); }
+    byKey.get(m[1])!.set(m[2], d);
+    if (Math.abs(r.before) < MIRROR_MIN) continue;
+    const vm = moves.get(m[1])!;
+    vm.set(r.before, (vm.get(r.before) ?? new Set()).add(d));
+  }
+  const out: Excluded[] = [];
+  /** Moves the numeric leaves of `o` that mirror a moved line; returns leaf (relative path) -> delta applied. */
+  const walk = (o: unknown, path: string, version: string, rel = '', applied = new Map<string, number>()): Map<string, number> => {
+    if (!o || typeof o !== 'object' || Array.isArray(o)) return applied;
+    for (const [k, v] of Object.entries(o as Obj)) {
+      const r = rel ? `${rel}/${k}` : k;
+      if (v && typeof v === 'object') { walk(v, `${path}/${k}`, version, r, applied); continue; }
+      const ds = isNum(v) ? moves.get(version)?.get(v) : undefined;
+      if (!ds) continue;
+      if (ds.size === 1) { const d = [...ds][0]; rec.set(path, o as Obj, k, round2((v as number) + d)); applied.set(r, d); }
+      else { rec.remove(path, o as Obj, k); out.push({ path: `${path}/${k}`, reason: `quotes ${ds.size} moved lines that moved by different amounts; removed rather than guessed` }); }
+    }
+    return applied;
+  };
+  for (const rv of c.p.return_versions) walk(rv.summary, `return_versions/${rv.version}/summary`, rv.version);
+  const wi = c.p.what_if as { alternatives: Obj[]; extension?: Obj };
+  for (const a of wi.alternatives) {
+    const v = String(a.base_version ?? '');
+    const ap = `what_if/alternatives/${String(a.id)}`;
+    for (const side of ['federal', 'california']) {
+      const s = a[side] as Obj | undefined;
+      if (!s) continue;
+      const applied = walk(s.base, `${ap}/${side}/base`, v);
+      // The alternative's figure moves with its base figure: the same line, one choice apart.
+      const alt = s.alternative as Obj | undefined;
+      for (const [k, d] of applied) if (alt && isNum(alt[k])) rec.set(`${ap}/${side}/alternative`, alt, k, round2((alt[k] as number) + d));
+    }
+    for (const ch of (a.changed_lines as Obj[] | undefined) ?? []) {
+      const d = byKey.get(v)?.get(String(ch.key));
+      const rv = c.p.return_versions.find((x) => x.version === v);
+      const now = rv ? lineIn(rv, String(ch.key))?.value : undefined;
+      // Only an entry whose old figure is the line's pre-plant value is its mirror; its new figure moves with it.
+      if (d === undefined || !isNum(now) || !isNum(ch.old) || ch.old !== round2(now - d)) continue;
+      const cp = `${ap}/changed_lines/${String(ch.key)}`;
+      rec.set(cp, ch, 'old', round2(ch.old + d));
+      if (isNum(ch.new)) rec.set(cp, ch, 'new', round2(ch.new + d));
+    }
+  }
+  if (wi.extension) walk(wi.extension, 'what_if/extension', String(wi.extension.based_on_version ?? ''));
+  return out;
 }
 
 const newEvId = (c: Ctx) => `ev-${String(c.nextEv++).padStart(4, '0')}`;
@@ -263,7 +339,7 @@ function sourceChanged(c: Ctx, r: () => number): Candidate[] {
           const delta = signedDelta(old, mag, r);
           const nv = round2(old + delta);
           const text = moneyText(val.text_as_read, nv);
-          rec.set(`documents/${v.document_id}/pages/${v.page}`, page as Obj, 'printed_content', page.printed_content.replace(val.text_as_read, text));
+          rec.set(`documents/${v.document_id}/pages/${v.page}`, page as Obj, 'printed_content', page.printed_content.replace(val.text_as_read, () => text));
           rec.set(`extracted_values/${v.id}`, val as Obj, 'text_as_read', text);
           rec.set(`extracted_values/${v.id}`, val as Obj, 'value', nv);
         },
@@ -403,7 +479,10 @@ function fxWrongYear(c: Ctx, r: () => number): Candidate[] {
 }
 
 // moveLine with the moved keys kept for the plant's claim set (set by the driver around each apply).
+// Module-level sinks, set by perturbedPacket around one candidate's apply and cleared after it. Not re-entrant: the
+// build is synchronous and one plant is applied at a time, so no two applies ever share them.
 let movedSink: Set<string> | null = null;
+let staleSink: Set<string> | null = null;
 function moveLineMarked(c: Ctx, rec: Recorder, key: string, edit: (l: ReturnLine, path: string) => void) {
   for (const k of moveLine(c, rec, key, edit)) movedSink?.add(k);
 }
@@ -427,7 +506,7 @@ export function perturbedPacket(seed: number = PERTURBED_SEED): Perturbed {
     source_changed: () => sourceChanged(c, r), copied_twice: () => copiedTwice(c), prior_shift: () => priorShift(c, r),
     fx_wrong_year: () => fxWrongYear(c, r), page_duplicated: () => pageDuplicated(c),
   };
-  const planted: Plant[] = []; const skipped: Skipped[] = [];
+  const planted: Plant[] = []; const skipped: Skipped[] = []; const excluded: Excluded[] = [];
   for (const kind of PLANT_KINDS) {
     const want = PLANT_COUNTS[kind];
     let got = 0;
@@ -437,11 +516,13 @@ export function perturbedPacket(seed: number = PERTURBED_SEED): Perturbed {
       const snapshot = JSON.stringify(c.p);
       const ev = c.nextEv;
       const rec = new Recorder();
-      movedSink = new Set();
+      movedSink = new Set(); staleSink = new Set();
       c.ambiguous = false;
       cand.apply(c, rec);
       relist(c, rec);
+      const excl = moveMirrors(c, rec);
       const moved = movedSink; movedSink = null;
+      const staleHere = staleSink; staleSink = null;
       // Undo a plant that would list a change wrongly, or that lands an earlier plant's line back on its real value.
       const cancels = [...rec.refs.values()].some((x) => same(x.after, atPath(real, x.path)));
       if (versionChangeProblems(c.p).join('\n') !== realProblems || cancels || c.ambiguous) {
@@ -453,10 +534,11 @@ export function perturbedPacket(seed: number = PERTURBED_SEED): Perturbed {
       }
       for (const m of cand.marks) c.used.add(m);
       const claims = [...cand.lines, ...[...moved].filter((k) => !cand.lines.includes(k)).sort()];
-      planted.push({ kind, lines: cand.lines, claims, refs: [...rec.refs.values()] });
+      planted.push({ kind, lines: cand.lines, claims, refs: [...rec.refs.values()], stale: [...staleHere].filter((k) => !claims.includes(k)).sort() });
+      excluded.push(...excl);
       got++;
     }
     if (got < want) skipped.push({ kind, reason: `${got} of ${want}: no further eligible target (lines a real finding claims are avoided)` });
   }
-  return { packet: p, planted, skipped };
+  return { packet: p, planted, skipped, excluded };
 }

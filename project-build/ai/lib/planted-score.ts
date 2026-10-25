@@ -1,7 +1,8 @@
 // Scores what was found against the perturbed packet's planted list (tests/fixtures/perturbed.ts), offline. The planted
 // list is the gold, with the harness's strict rule (harness-core.ts matchesStrict): a finding, sweep item or suggestion
 // matches a plant when one of its claim lines is in the plant's claim set. A claim on the planted line itself is
-// counted apart from one on a cascade line only (an ancestor the delta moved). Scoring side only: agent code never
+// counted apart from one on a cascade line only (an ancestor the delta moved). A claim on a plant's stale parent (an
+// input moved, the engine-only value did not) is attributable: neither a hit nor a false positive. Scoring side only: agent code never
 // imports this file, and nothing here reaches the model.
 import type { AiPayload } from '../../src/domain/ai/contract';
 import type { Finding } from '../../src/domain/contracts';
@@ -12,13 +13,17 @@ import { isGrounded } from './reader-core';
 /** A verify_all item (Task 1): its line key, or line keys among its ids or lines. */
 export interface SweepItem { kind: string; key?: string; ids?: string[]; lines?: string[] }
 export type Claimant = { id: string; lines: string[] };
-export interface PlantMatch { kind: Plant['kind']; lines: string[]; onLine: boolean; onCascade: boolean; by: string[] }
+export interface PlantMatch { kind: Plant['kind']; lines: string[]; onLine: boolean; onCascade: boolean; onStale: boolean; by: string[] }
 export interface KindTally { plants: number; onLine: number; onCascadeOnly: number }
 export interface PlantedScore {
   /** findings | items | payload */
   source: 'findings' | 'items' | 'payload';
   /** Claimants scored: new findings only when a baseline is given; grounded suggestions only for a payload. */
-  considered: number; matched: number; precision: number;
+  considered: number; matched: number;
+  /** Claimants on a stale parent only (no claim set hit): reported apart, out of precision's denominator. */
+  attributable: number; falsePositives: number;
+  /** matched / (considered - attributable) */
+  precision: number;
   perPlant: PlantMatch[]; perKind: Record<string, KindTally>;
 }
 
@@ -30,7 +35,7 @@ function claimants(ix: PacketIndex, source: Finding[] | SweepItem[] | AiPayload,
     const grounded = source.suggestions.filter((s) => isGrounded(ix, s));
     return { source: 'payload', list: grounded.map((s) => ({ id: s.id, lines: s.claims.map(lineKey) })) };
   }
-  if (source.length && 'checkId' in source[0]) {
+  if (!source.length || 'checkId' in source[0]) { // an empty list has nothing to score, whatever its source
     const known = new Set((baseline ?? []).map(findingKey));
     const fresh = (source as Finding[]).filter((f) => !known.has(findingKey(f)));
     return { source: 'findings', list: fresh.map((f) => ({ id: f.id ?? f.checkId, lines: f.claims.filter((c) => c.startsWith('line:')).map(lineKey) })) };
@@ -51,10 +56,15 @@ export function plantedScore(ix: PacketIndex, planted: Plant[], source: Finding[
     const own = new Set(p.lines); const cascade = new Set(p.claims.filter((c) => !own.has(c)));
     const onLine = list.filter((c) => c.lines.some((l) => own.has(l)));
     const onCascade = list.filter((c) => !c.lines.some((l) => own.has(l)) && c.lines.some((l) => cascade.has(l)));
-    return { kind: p.kind, lines: p.lines, onLine: onLine.length > 0, onCascade: onLine.length === 0 && onCascade.length > 0, by: [...onLine, ...onCascade].map((c) => c.id) };
+    const stale = new Set(p.stale ?? []);
+    const onStale = list.some((c) => c.lines.some((l) => stale.has(l)));
+    return { kind: p.kind, lines: p.lines, onLine: onLine.length > 0, onCascade: onLine.length === 0 && onCascade.length > 0, onStale, by: [...onLine, ...onCascade].map((c) => c.id) };
   });
   const all = new Set(planted.flatMap((p) => p.claims));
+  const staleAll = new Set(planted.flatMap((p) => p.stale ?? []));
   const matched = list.filter((c) => c.lines.some((l) => all.has(l))).length;
+  const attributable = list.filter((c) => !c.lines.some((l) => all.has(l)) && c.lines.some((l) => staleAll.has(l))).length;
+  const scored = list.length - attributable;
   const perKind: Record<string, KindTally> = {};
   planted.forEach((p, i) => {
     const t = (perKind[p.kind] ??= { plants: 0, onLine: 0, onCascadeOnly: 0 });
@@ -62,7 +72,7 @@ export function plantedScore(ix: PacketIndex, planted: Plant[], source: Finding[
     if (perPlant[i].onLine) t.onLine++;
     else if (perPlant[i].onCascade) t.onCascadeOnly++;
   });
-  return { source: kind, considered: list.length, matched, precision: list.length ? matched / list.length : 0, perPlant, perKind };
+  return { source: kind, considered: list.length, matched, attributable, falsePositives: scored - matched, precision: scored ? matched / scored : 0, perPlant, perKind };
 }
 
 export interface PlantedReport {

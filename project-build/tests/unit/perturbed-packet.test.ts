@@ -10,7 +10,7 @@ import { indexPacket, loadPacket, validatePacket } from '@/domain/packet/load';
 import type { AiPayload } from '@/domain/ai/contract';
 import { runChecks } from '@/domain/checks/index';
 import {
-  PERTURBED_SEED, PLANT_KINDS, moneyText, packetDiff, parseMoney, perturbedPacket, versionChangeProblems,
+  MIRROR_MIN, PERTURBED_SEED, PLANT_KINDS, moneyText, packetDiff, parseMoney, perturbedPacket, versionChangeProblems,
 } from '../fixtures/perturbed';
 import { plantedReport, plantedScore } from '../../ai/lib/planted-score';
 import { runTool, toolNamesFor } from '../../ai/lib/agent-tools';
@@ -175,6 +175,55 @@ describe('perturbed packet: consistency (the mistakes look like real ones)', () 
     }
   });
 
+  it.each([PERTURBED_SEED, 2])('seed %i: summary and what_if mirrors move with their line: no figure still quotes a moved line\'s pre-plant value', (seed) => {
+    const { packet, excluded } = seed === PERTURBED_SEED ? base : perturbedPacket(seed);
+    const ix = indexPacket(packet);
+    const leaves = (o: unknown, out: [string, number][] = [], p = ''): [string, number][] => {
+      if (o && typeof o === 'object' && !Array.isArray(o)) for (const [k, v] of Object.entries(o)) leaves(v, out, p ? `${p}/${k}` : k);
+      else if (typeof o === 'number') out.push([p, o]);
+      return out;
+    };
+    let checked = 0;
+    for (const rv of ix.versions) {
+      const movedReal = new Set<number>();
+      const movedKeys = new Set<string>();
+      for (const l of rv.lines) {
+        const r = realIx.line(rv.version, l.key);
+        if (r && typeof r.value === 'number' && r.value !== l.value && Math.abs(r.value) >= MIRROR_MIN) { movedReal.add(r.value); movedKeys.add(l.key); }
+      }
+      if (!movedReal.size) continue;
+      const realV = realIx.version(rv.version)!;
+      const mirrors: [string, unknown, unknown][] = [];
+      for (const [k, v] of leaves(realV.summary)) mirrors.push([`${rv.version} summary/${k}`, v, at(rv.summary, k)]);
+      const wi = real.what_if as { alternatives: Record<string, unknown>[]; extension?: Record<string, unknown> };
+      const pwi = packet.what_if as typeof wi;
+      wi.alternatives.forEach((a, i) => {
+        if (a.base_version !== rv.version) return;
+        for (const side of ['federal', 'california']) for (const [k, v] of leaves((a[side] as Record<string, unknown>).base)) mirrors.push([`${a.id} ${side}/base/${k}`, v, at(pwi.alternatives[i], `${side}/base/${k}`)]);
+        for (const c of (a.changed_lines as { key: string; old?: unknown }[]) ?? []) {
+          if (!movedKeys.has(c.key)) continue;
+          const pc = (pwi.alternatives[i].changed_lines as { key: string; old?: unknown }[]).find((x) => x.key === c.key)!;
+          mirrors.push([`${a.id} changed_lines/${c.key}/old`, c.old, pc.old]);
+          checked++;
+        }
+      });
+      if (wi.extension && wi.extension.based_on_version === rv.version) for (const [k, v] of leaves(wi.extension)) mirrors.push([`extension/${k}`, v, at(pwi.extension, k)]);
+      for (const [where, before, after] of mirrors) {
+        if (typeof before !== 'number' || !movedReal.has(before)) continue;
+        checked++;
+        const gone = excluded.some((e) => where.endsWith(e.path.split('/').slice(-1)[0])) && after === undefined;
+        expect(after !== before || gone, `${where} still ${before}`).toBe(true);
+      }
+    }
+    expect(checked).toBeGreaterThan(0); // some mirror really quoted a moved line
+    if (seed === PERTURBED_SEED) {
+      const v3 = ix.version('v3')!;
+      expect((v3.summary as { federal: { agi: number } }).federal.agi).toBe(ix.line('v3', 'F1040.11')!.value);
+      expect((v3.summary as { federal: { agi: number } }).federal.agi).not.toBe((realIx.version('v3')!.summary as { federal: { agi: number } }).federal.agi);
+    }
+    for (const e of excluded) expect(e.reason.length).toBeGreaterThan(10);
+  });
+
   it('money text keeps the packet\'s own format', () => {
     expect(parseMoney('1,234.56')).toBe(1234.56);
     expect(parseMoney('-1,234.00')).toBe(-1234);
@@ -320,10 +369,30 @@ describe('perturbed packet: scoring (offline)', () => {
     const realKeys = new Set(realFindings.map(key));
     expect(s.considered).toBe(pFindings.filter((f) => !realKeys.has(key(f))).length);
     expect(s.matched).toBeLessThanOrEqual(s.considered);
-    expect(s.precision).toBe(s.considered ? s.matched / s.considered : 0);
+    const scored = s.considered - s.attributable;
+    expect(s.precision).toBe(scored ? s.matched / scored : 0);
+    expect(s.falsePositives).toBe(scored - s.matched);
     expect(s.perPlant).toHaveLength(base.planted.length);
     // The real packet scored against itself has no new findings: precision has no false base.
     expect(plantedScore(realIx, base.planted, realFindings, { baseline: realFindings }).considered).toBe(0);
+  });
+
+  it('seed 1: a claim on a stale parent (an input moved, the engine-only value did not) is attributable, neither a hit nor a false positive', () => {
+    const stale = base.planted.flatMap((p) => p.stale);
+    for (const k of ['F4797.9', 'F8582.4', 'F8582.1a', 'F8582.1b', 'SchE.22B', 'F1040.12']) expect(stale, k).toContain(k);
+    for (const p of base.planted) for (const k of p.stale) {
+      expect(p.claims).not.toContain(k);
+      expect(pIx.line(pIx.latest.version, k)?.value).toEqual(realIx.line(realIx.latest.version, k)?.value);
+    }
+    const s = plantedScore(pIx, base.planted, [{ checkId: 'X', claims: ['line:F4797.9'] }, { checkId: 'Y', claims: ['line:NO.SUCH'] }, { checkId: 'Z', claims: [`line:${base.planted[0].lines[0]}`] }] as never);
+    expect(s).toMatchObject({ considered: 3, matched: 1, attributable: 1, falsePositives: 1 });
+    expect(s.precision).toBe(0.5); // matched / (considered - attributable)
+    const i = base.planted.findIndex((p) => p.stale.includes('F4797.9'));
+    expect(s.perPlant[i].onStale).toBe(true);
+  });
+
+  it('empty findings are scored as findings', () => {
+    expect(plantedScore(pIx, base.planted, [] as never, { baseline: realFindings }).source).toBe('findings');
   });
 
   it('counts a claim on the planted line apart from a claim on a cascade line only', () => {
