@@ -1,0 +1,42 @@
+{
+  "payload": "agent-suggestions.blind.json",
+  "requestedModel": "claude-opus-5-5",
+  "servedModels": [
+    "claude-opus-5-5"
+  ],
+  "promptVersion": "agent-v3-blind",
+  "runAt": "2026-10-25T00:25:45.252Z",
+  "turns": 34,
+  "toolCalls": 122,
+  "usage": {
+    "input_tokens": 70,
+    "output_tokens": 25554,
+    "cache_creation_input_tokens": 144583,
+    "cache_read_input_tokens": 2966437
+  },
+  "costUsd": 1.8275624000000001,
+  "seconds": 291,
+  "stopReason": "end_turn",
+  "limits": {
+    "maxIterations": 40,
+    "wallClockMs": 2400000,
+    "maxCostUsd": 6
+  },
+  "thinking": {
+    "type": "adaptive"
+  },
+  "effort": "high",
+  "maxTokens": 32000,
+  "source": "file",
+  "mode": "blind",
+  "seed": null,
+  "hiddenCheckIds": [],
+  "onFindingClaims": {
+    "count": 0,
+    "ids": []
+  },
+  "verifier": {
+    "shown": 19,
+    "heldBack": 0
+  }
+}
