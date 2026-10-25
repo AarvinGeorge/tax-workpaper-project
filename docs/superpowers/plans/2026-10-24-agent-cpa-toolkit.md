@@ -9,10 +9,25 @@
 schema section, and the prompt makes the routine explicit: sweep first, explain each difference from the documents,
 then read free text. Written plan only; nothing here is built until Aarvin says go.
 
+**Primary mode (Aarvin, 24 Oct 21:40 EDT): independent re-performance.** Blind mode is redefined as "independent"
+and is the headline: the agent re-performs the review with our generic tools but never sees our checks' findings.
+Default mode ("skip what the checks found") biases the agent; it is secondary and measures incremental finds.
+
 ## What the code and the last runs show (measured 24 Oct 21:14 EDT, offline, scratchpad tsx/python3 -I probes)
 - Last runs (ai/eval/*.run-meta.json, *.trace.json): default $1.99, 37 turns, 87 calls (get_page 57, get_line 20,
   verify 4: prior_year 3, recompute_line 1); blind $1.83, 34 turns, 122 calls (get_page 53, get_line 42, verify 5).
   The model reads pages; it barely uses the calculator.
+- Blind agent-v3 run, scored afterwards by the controller (counts only, as relayed): 12 misses. 3 never opened (the
+  agent opened 62 of 627 lines and 46 of 74 documents); 4 found but claimed on a line other than the one the mistake
+  changes (loose matches only); 5 looked at with no tool to judge (what_if elections, limits vs engine parameters,
+  prior-year records, a page scanned twice). Blind `fact_copies` returned agreements only (calculator.ts:164), which
+  hid a two-form double count: a handicap we imposed ourselves.
+- Duplicates (probe): 199 pages. 28 groups of identical printed pages (whitespace-normalised), all across
+  documents and every one involving a superseded document (`supersession`, verify.ts); 9 groups of pages with an
+  identical set of (field, money value) pairs (8 involve a superseded document, 1 does not, 0 with both cited by a
+  line); 5 near-identical page pairs of the same document type across documents (ratio >0.9); **5 latest lines cite
+  one nonzero amount (money, integer or quantity; 4 if money only) from 2 or more pages**: the signal a double
+  count leaves on the return.
 - Calculator sweep, latest return (627 lines, 29 findings, runChecks 46 ms, full sweep 3 ms):
   - recompute_line over the 136 lines with an arithmetic rule and inputs (calculator.ts:63, flow.ts:15): 24 differ
     from a plain sum, 20 of them on no finding's claims; 19 of the 24 are reached by a sign combination
@@ -27,8 +42,9 @@ then read free text. Written plan only; nothing here is built until Aarvin says 
   - prior_year (calculator.ts:115) applies to 94 lines (a 2024 return line of the same key or a cited py: record);
     7 disagree with the cited prior-year records (all 7 on no finding); 51 move past the firm's variance rule (a
     reason is needed, not a mistake).
-  - sameFacts (facts.ts:384): 36 comparisons, 11 disagree; every disagreement is already a check ("Two sources
-    disagree" or a specific check that yields), so they are check output (blind must not see them).
+  - sameFacts (facts.ts:384): 36 comparisons, 11 disagree. A comparison's `title` and `explanation` become the
+    "Two sources disagree" finding's own text (checks/families/disagree.ts:159-160), so those two fields are check
+    output; the copies (what, shown value, ref) and `agree` are raw comparisons.
   - Version drift: 152 line changes across v1 to v3 (value differs, or the key is added or removed); 0 not listed in
     `changes_from_previous`.
 - Agency records: payment ties exist only for transcript code 670 (agency.ts:19, facts.ts:237). The transcript also
@@ -58,12 +74,23 @@ then read free text. Written plan only; nothing here is built until Aarvin says 
   and is not called by runChecks. The app, the live payload, agent-v3 and the behaviour contract stay as they are.
 - Every result goes through `runTool`'s envelope: masked, DATA_NOTE, ≤16,000 bytes (agent-tools.ts:28), paged at
   ≤50 (agent-tools.ts:29), SSN-scanned (agent-tools.ts:295).
-- Mode invariant (new, tested per kind): kinds with a single method mirror it in that mode (arithmetic_* and
+- Leak rule (redefined): a mode hides **our checks' findings**, never raw comparisons from the generic tools. Blind
+  ("independent"): no run_checks; no finding title, explanation, check id, ledger id or finding id; nothing saying
+  which lines a check flags (no `onCheck`, no F status in the case file, no status derived from findings). Raw
+  comparisons are allowed in every mode: `fact_copies` returns every comparison's copies, values and `agree`, and
+  `verify_all` returns every disagreement. In blind, fact_copies and copies_disagree items drop the finding payload
+  sameFacts carries (disagree.ts:159-160): `title`, `explanation`, `receipt`, `effect`, `trigger`, `stopsEfile`; they
+  keep rule, lines (claims), copies and agree. A claims set equal to a finding's is raw and allowed.
+  Hide-checks: this overwrites approved change (4)'s claims filter (calculator.ts:155-167 goes), so hide-checks no
+  longer keeps its seeded purpose for fact copies; it drops hidden checks' payload fields the same way and `onCheck`
+  comes only from `findingsFor(mode)`. Hide-checks paid runs are out of scope.
+- Mode invariant (tested per kind): kinds with a single method mirror it in the same mode (arithmetic_* and
   sign_subtraction = `recompute_line`, prior_record_differs and variance = `prior_year`, copies_disagree =
-  `fact_copies`); source_unreachable and version_change_unlisted have no single method and are raw packet arithmetic,
-  the same in every mode. Blind: no copies_disagree item, no `onCheck` field. Hide-checks: hidden claim sets are
-  removed from copies_disagree only (as factCopies does, calculator.ts:155-167); arithmetic and prior-year items on a
-  hidden check's line stay (raw data); `onCheck` comes only from `findingsFor(mode)`, never from hidden findings.
+  `fact_copies`, duplicate_* = `duplicates`); source_unreachable and version_change_unlisted have no single method.
+  Item sets are identical in every mode; modes differ only in finding-derived fields.
+- Earlier blind scores (agent-v3-blind) were taken under the old definition (agreements-only fact copies), so they
+  are not comparable with v4 independent scores. Keeping the old definition is cheap (one condition at
+  calculator.ts:164): it stays reachable as mode `blind-v3` for the v3 baseline reruns only, and is otherwise unused.
 - Strict-grammar budget: the strict set stays the six accepted schemas plus enum growth on `verify` (about +60 bytes).
   New tools are non-strict with code validation, like record_suggestion.
 - `npm test` green after every task; tests that name the tool list change on purpose (listed per task).
@@ -77,7 +104,8 @@ a suggestion only after the model grounds it in a quote and the verifier passes 
 | Re-foot arithmetic lines | EXTENDS | calculator `recomputeLine`, `signsReaching` | loop the existing method; report only "no sign reaches" (5), count sign-reached (19) |
 | Tie to sources | EXTENDS | proofs.ts:24-40 receipt, `signsReaching` | a plain total is noise (318 of 375); signed reach is the test (29 miss; 5 flagged `receipted`) |
 | Prior year | EXTENDS | calculator `priorYear` | disagreements with cited records (7) are items; variances (51) are a kind on request |
-| Fact copies, payments vs agency | EXTENDS | `sameFacts` via calculator `factCopies` (mode-filtered) | already check output; default and hide-checks only |
+| Fact copies, payments vs agency | EXTENDS | `sameFacts` via calculator `factCopies` | raw copies in every mode; finding wording only outside blind |
+| Duplicate pages and documents | NEW | `supersession`, `documentLanding`, printed text, extracted values | generic: same printed text, same (field, value) set, or one amount cited from 2+ pages |
 | Unlisted version change | NEW | `ix.versions`, `changes_from_previous` | generic, 0 here; a perturbation test proves it can be non-zero |
 | Line vs engine parameter | NEW | verify `compare_to_limit` | a comparison, never a tax computation |
 | FX conversion | NEW | verify `convert` | one rate named by its key; direction from the key's `<A>_per_<B>` |
@@ -86,14 +114,27 @@ Not added: other transcript codes, notices and e-file tied to lines (mapping cod
 model reads them through lookup); caps, phase-outs, brackets (need the engine; flow.ts:1-4).
 
 ## Tool shape (grammar decision)
-- `verify` (strict) gains methods `compare_to_limit` and `convert` (enum growth only, no new properties).
+- `verify` (strict) gains methods `compare_to_limit`, `convert` and `duplicates` (enum growth only, no new
+  properties; about +80 bytes, inside the 2,400 cap). `duplicates(ids:[line | document])`: for a line, cited values
+  with one amount on 2+ pages, and how alike those pages are (identical, same value set, near); for a document, every
+  page elsewhere with identical printed text or the same value set, each pair marked superseded or not, landed or not,
+  and cited or not.
 - `verify_all` (new, non-strict): `{ kind?: one kind | 'differs' | 'all', limit?, cursor? }`. Default `differs`.
   Result: `coverage` (per method: applicable, ran, agree, differ, needsEngine, notComparable; numeric lines accounted
   for = numeric lines), `byKind` counts, then items, hardest first (no-sign arithmetic, unreached sources, prior-record
   differs, copies disagree), each by |difference|: `{ kind, key or ids, compared, numbers, difference, rule, ruleText,
   receipted?, onCheck? }`. Definition kept: source_unreachable = no sign combination of the cited values reaches the
   line, even when one source matches; such items carry `receipted: true` (5 today) so the model sees both facts.
-  Default `differs` today: 5 + 29 + 7 + 11 = 52 items (blind 41), 3 pages of 20.
+  Kinds added for duplicates: `duplicate_amount_cited` (in `differs`: 5 lines today) and `duplicate_page` (pairs with
+  neither document superseded: 1 value-set group plus the near pairs, listed on `kind`; pairs involving a superseded
+  document are counted only). Each duplicate_amount_cited item states the relation: line value = the amount once
+  (`corroboration`), = the copies added (`double_count`), or `neither`.
+  Pinned definitions: copies_disagree = one item per `sameFacts(ix)` comparison with `agree: false` (11 today: added
+  twice 3, box to line 2, payments 2, lot 3, identifier 1; every one has line claims; Fable counted 12 with one
+  claimless, not reproduced by this probe, so Task 1 asserts the definition and the count it gives);
+  duplicate_amount_cited = a latest line citing one nonzero amount-type value (money, integer, quantity) from 2+
+  distinct (document, page) pairs (5 today). `differs` today: 5 + 29 + 7 + 11 + 5 = 57 items, **the same in every
+  mode**, 3 pages of 20.
 - `lookup` (new, non-strict): `{ section, id?, as_of?, text?, limit?, cursor? }`, sections named after the brief:
   `agency_record` (id `agency:/<pointer>` or a top key), `prior_year` (id `py:/<pointer>` or a line key: last year's
   value, label, line_sources), `what_was_known` (as_of an ISO date: timeline events at or before it, with refs),
@@ -113,8 +154,18 @@ model reads them through lookup); caps, phase-outs, brackets (need the engine; f
      sources 375 (numeric, no inputs, 1 to 12 numeric ev- sources); prior_year 94 (same-key 2024 line or py: source);
      version changes 152 (value differs or key added/removed, v1 to v3);
    - mode invariant per kind as in Global constraints (default, blind, hide-checks seed 1): mirrored kinds equal their
-     method's disagreements over all ids; blind has no copies_disagree and no `onCheck`; hide-checks copies_disagree has
-     none of `hiddenFindings`' claim sets (modes.ts:57), and no `onCheck: true` comes from a hidden finding;
+     method's disagreements over all ids; the item sets (kind, key, numbers) are identical across modes;
+   - leak test (blind): no result of any tool, nor the case file, contains a finding title, explanation, check id,
+     ledger id or finding id (every string from `runChecks` titles and explanations is grepped for), no `onCheck` key,
+     no F status, and no fact_copies or copies_disagree item has a `title`, `explanation`, `receipt`, `effect`,
+     `trigger` or `stopsEfile` key; copies_disagree items are present with values (raw comparisons allowed).
+     Hide-checks: no hidden finding's payload fields, no `onCheck: true` from a hidden finding;
+   - stale comments updated: modes.ts header ("takes away ... find_fact_copies") and agent-tools.ts:51 ("fact_copies
+     gives agreements only there");
+   - duplicates: duplicate_amount_cited lists the 5 lines, each with its relation (corroboration, double_count,
+     neither); identical-print pairs with a superseded document are only
+     counted (28); a perturbed copy that cites one page's amount on a second, unsuperseded copy of that page yields an
+     item;
    - perturbation (proves non-zeros): a seeded in-test copy shifts one arithmetic input line by +1,000 and one cited
      source value by +500, and drops one key from `changes_from_previous`; each shows up as an item of its kind, and
      the real packet's items are otherwise unchanged; a shifted input of the 160-input line yields not_comparable,
@@ -127,7 +178,12 @@ model reads them through lookup); caps, phase-outs, brackets (need the engine; f
      refused; result says "whether the parameter applies is your judgment";
    - `convert(ids:[ev|line], target:'ref:fx.SEK.<rate>' or the fx_rates key)`: amount, rate, result both ways labelled
      by the key's direction; unknown rate refused; a year typed as a number refused;
-   - `VERIFY_METHODS` gains both (test at agent-tools.test.ts:39-45 updated on purpose).
+   - `duplicates`: a line id returns its same-amount pages with likeness; a document id returns its page pairs with
+     superseded/landed/cited flags; masked; bounded;
+   - `fact_copies` in blind returns disagreements with values but without title, explanation or receipt text; the
+     existing test "blind: fact_copies returns agreements only" (ai-agent-calculator.test.ts:124) is replaced on
+     purpose; `blind-v3` keeps the old behaviour and gets that old test;
+   - `VERIFY_METHODS` gains all three (test at agent-tools.test.ts:39-45 updated on purpose).
 3. **lookup tool**, new ai/lib/lookup.ts plus wiring; tests in tests/unit/ai-agent-lookup.test.ts:
    - each section on the real packet returns the record for a valid id and an error naming valid shapes for a bad one;
    - `what_was_known` as of the README's `where_now_is` date returns only events at or before it (count probed);
@@ -139,17 +195,22 @@ model reads them through lookup); caps, phase-outs, brackets (need the engine; f
    schema bytes ≤ 2,400 (today 2,244 + enum growth), so a later change cannot silently cross the measured limit.
 5. **Prompt agent-v4** as a numbered routine, in a new constant `AGENT_V4_PROMPT_VERSION` behind a `--prompt v4`
    flag; AGENT_PROMPT_VERSION and the live payload stay agent-v3 (producer.ts:12) until Aarvin approves a switch.
-   1. Call verify_all; page every `differs` item. 2. For each, open the cited line and page; decide: the document
-   explains it (say which), a real issue (record), or engine-only (say so). 3. Run verify / lookup for every number
-   you rely on; never compute. 4. Read free text (lookup client_text, what_was_known, alternatives, diagnostics_for)
-   against the lines it gates. 5. Record as you go; answer on the reserved final turn.
+   1. Call verify_all first; page every `differs` item. 2. Explain each disagreement: open the cited line and page;
+   decide whether the document explains it (say which), it is a real issue (record it), or it is engine-only (say so).
+   3. Run verify / lookup for every number you rely on; never compute. 4. Then read free text (lookup client_text,
+   what_was_known, alternatives, diagnostics_for) against the lines it gates. 5. Record as you go; answer on the
+   reserved final turn.
+   Claim-line rule: `claims` names the return line(s) whose value the mistake changes (for example the total or the
+   deduction it flows into), never only the document; when a document is wrong, claim the line that cites it.
    Recording path (verifySuggestions needs a verbatim quote from a document page, verify.ts:48,77; client text may
    not be quoted): a footing error between return lines is recorded by walking the line's (or its inputs') sources
    to a cited document page and quoting that page's printed amount or label; a client_text judgement is recorded by
    quoting the page of the document the answer contradicts or gates. When no page exists, the model says so in its
    final text and does not record; the summariser counts these as "addressed but unrecordable".
-   Tests (ai-agent.test.ts): the prompt names verify_all as step 1; blind still never names run_checks; v4 version
+   Tests (ai-agent.test.ts): the prompt names verify_all as step 1 and states the claim-line rule; blind still never
+   names run_checks and no longer says "F lines are known"; v4 version
    strings `agent-v4`, `agent-v4-blind`; default without the flag is byte-identical to today's agent-v3 prompt.
+   The v4 blind prompt is the primary one; the default-mode prompt adds only "the checks' findings are known".
 6. **Run outputs off the live file**: `--prompt v4` (and any measurement batch) writes under ai/eval/runs/<version>/
    `<mode>.<packet>.<n>.json`; test: `agentOutFile` never returns ai/eval/agent-suggestions.json for v4. An offline
    summarizer (ai/eval/summarize-runs.ts) reads run files and prints the metrics below; tested on fixture payloads.
@@ -157,15 +218,26 @@ model reads them through lookup); caps, phase-outs, brackets (need the engine; f
    the budget below. No paid run without his approval.
 
 ## Measurement design (after approval)
-- Conditions: agent-v4 × {default, blind} × real (3 runs each); agent-v4 × {default, blind} × altered (1 run each: its
-  numbers are identical, so it only checks nothing breaks on renamed ids); agent-v3 × {default, blind} × real as the
-  baseline.
-- Runs: **6 v4 real + 2 v4 altered + 4 more v3 (2 per mode) = 12**, so each compared real arm has n = 3: the smallest n
-  that shows a spread (min, median, max) and a union/intersection of finds. If a v3/v4 median difference sits inside
-  the spread, add 2 runs per arm (to 5) before claiming a gain.
+- Conditions, headline first: **agent-v4 independent (blind) × real, 5 runs**; agent-v4 independent × altered, 1 run
+  (numbers identical: checks nothing breaks on renamed ids); agent-v3 `blind-v3` × real, 2 more runs (n = 3 with the
+  committed one) as the baseline. Total **5 + 1 + 2 = 8 runs**.
+- Default-mode runs are cut. Its intended secondary metric, beyond-checks recall, is empty on the real packet (every
+  ledger entry is reached by a check: 0 entries), and adjudicated beyond-ledger finds are better taken from the
+  independent runs, which are not steered away from checked lines. Default mode stays built and tested, unmeasured.
+- Why 5 on the headline arm: it is the number that gets reported, so it needs a median and a spread that 3 cannot
+  give; the baseline stays at n = 3 because v3 is not being tuned. If the v4/v3 median difference sits inside the
+  spread, add 2 baseline runs before claiming a gain. Note the comparison is confounded by design (prompt, tools and
+  the blind definition all change); it answers "is v4 independent better than v3 blind", not which change helped.
 - Optional, approved separately: a number-perturbed copy (planted shifts as in Task 1's test, seeded, in memory),
-  1 v4 run per mode, scored by recall of verify_all's planted items: the real test that the agent generalises.
-- Headline metric per mode: **default = beyond-checks recall** (harness-core.ts:89-105), **blind = strict recall**.
+  2 v4 independent runs, scored by recall of verify_all's planted items: the real test that the agent generalises.
+- Headline, two numbers (independent mode, with precision): (a) **strict recall split into tool-surfaced** (a
+  verify_all or verify item touched the entry's claim line before the match) **vs agent-found**; (b) **agent-found
+  recall on the ledger entries no `differs` item touches**, the judgement figure. Fable's probe: verify_all alone
+  touches 15 of 27 entries (sources 7, copies 9, duplicates 2, arithmetic 1; overlapping), so (b) is over about 12
+  entries; the harness computes the split offline from the item list and the trace (no answer key in the tools).
+  Secondary: adjudicated beyond-ledger finds from the same runs. Also per run: loose-only matches (found but claimed
+  on the wrong line, the claim-line rule's target), and lines and documents opened (62 of 627 and 46 of 74 in the v3
+  blind run).
 - Metrics, per run and as median/min/max:
   - strict recall and precision from the harness (harness-core.ts:56,73-75); on altered,
     entries whose lines were removed are reported unreachable by the harness (:76), not counted as misses;
@@ -177,9 +249,17 @@ model reads them through lookup); caps, phase-outs, brackets (need the engine; f
   - number discipline: for each recorded suggestion, whether a verify or verify_all result covering its claim line
     appears earlier in the trace;
   - tool mix (verify + verify_all + lookup vs get_page), turns, seconds, cost, endedBy, held-back and rejected counts;
-  - blind leak check: no blind tool result in the trace carries a copies_disagree item.
-- Budget: measured $1.83 to $1.99 per run. 12 runs ≈ $24 expected; with `--max-cost 4` per run the ceiling is $48
-  (the optional perturbed pair adds about $4, ceiling $8).
+  - blind leak check: no blind tool result in the trace carries a finding title, explanation or check id;
+  - tool-surfaced vs agent-found: for each strict match in blind, whether a verify_all or fact_copies item on its
+    line came before it (our generic code surfaced it) or not (the agent found it reading), so independent recall
+    is not read as pure model judgement.
+- Budget: v3 measured $1.83 to $1.99 per run, but v4 must page about 57 differs items and open their lines and pages
+  (Fable: ~112+ calls before free text), so expect **$2.5 to $3.5 per run**. Runs use `--max-cost 6`: 8 runs ≈ $20 to
+  $28 expected, ceiling $48 (the optional perturbed pair adds $5 to $7, ceiling $12).
+- Stop rule: "truncated" (hit the cost, turn or time cap) is not "failed" (error, SSN hit, malformed answer). Today an
+  over-budget run writes nothing and exits 1 (ai/agent.ts); Task 6 adds a test that a truncated run persists its
+  trace and run meta (marked truncated, no payload scored), so the spend still yields evidence. Halt the batch on
+  any failed run or two truncated runs, and report.
   The stop rule: halt the batch if any run exceeds $4 or fails, and report.
 
 ## Plan review (Fable 5.1, 24 Oct 21:21 EDT): APPROVE WITH CHANGES, all 7 accepted
@@ -193,6 +273,23 @@ from hidden findings. (5) Recording path stated (walk sources to a document page
 quoted) and "addressed but unrecordable" counted. (6) Altered cut to 1 run per mode (16 to 12 runs, ≈$24); a
 number-perturbed copy added as an optional, separately approved generalisation test. (7) Headline metric per mode
 (default beyond-checks recall, blind strict recall) and a trace metric for verify coverage of each recorded claim line.
+
+**Revision 24 Oct 21:40 EDT (Aarvin: independent mode is primary), pending Fable re-review.** Blind redefined as
+independent (findings hidden, raw comparisons never), fact_copies and verify_all identical in every mode apart from
+finding text, `blind-v3` kept for the baseline; duplicates added as a verify method and two verify_all kinds;
+claim-line rule in the prompt; measurement re-centred on independent mode. All 7 approved changes kept except (4)'s
+hide-checks claims filter, overwritten. Conflict resolved in the plan: sameFacts titles and explanations are the
+disagree finding's own text, so they are dropped in blind even though the comparisons themselves are shown.
+
+**Re-review (Fable 5.1): APPROVE WITH CHANGES, all 5 accepted.** (1) Blind also drops `effect`, `trigger`,
+`stopsEfile` (with title, explanation, receipt); the leak test asserts none of these keys; equal claims sets are raw.
+(2) Headline is two numbers: recall split tool-surfaced vs agent-found, plus agent-found recall on entries no
+differs item touches (verify_all touches 15 of 27). (3) Default runs cut (8 runs): beyond-checks is empty on the
+real packet and beyond-ledger finds come from independent runs. (4) duplicate_amount_cited states corroboration,
+double_count or neither. (5) `--max-cost 6`, $2.5 to $3.5 expected per run, truncated runs persist their trace and
+are counted apart from failed ones. Also applied: (4)'s hide-checks filter overwritten and hide-checks paid runs out
+of scope; stale comments (modes.ts header, agent-tools.ts:51) fixed in Task 1; definitions pinned for
+copies_disagree (11 measured, not Fable's 12) and duplicate_amount_cited (5).
 
 ## Out of scope (each needs its own yes)
 Switching the live payload or AGENT_PROMPT_VERSION to v4; any route, store, UI or Checks-tab change; new
