@@ -98,17 +98,25 @@ function workList(ix: PacketIndex, open: Obj[]): string {
   const m = masker(ix);
   const kinds = ['unproven_line', 'uncovered_engine_warning', 'uncited_money'];
   const warnings = open.filter((x) => x.kind === 'uncovered_engine_warning');
+  // Open items first (an O line, or money no line cites), then lines only the engine computes: those the agent can
+  // settle come before those it can only question.
+  const engineOnly = (x: Obj) => {
+    if (x.kind !== 'unproven_line') return false;
+    const l = ix.line(ix.latest.version, String(x.key));
+    return !!l && (l.inputs ?? []).length > 0 && !(l.rule && FLOW_RULES.includes(l.rule));
+  };
   const rest = open.filter((x) => x.kind !== 'uncovered_engine_warning')
-    .sort((a, b) => amountOf(b) - amountOf(a) || String(a.key ?? a.ref).localeCompare(String(b.key ?? b.ref)))
+    .sort((a, b) => Number(engineOnly(a)) - Number(engineOnly(b)) || amountOf(b) - amountOf(a) || String(a.key ?? a.ref).localeCompare(String(b.key ?? b.ref)))
     .slice(0, WORK_LIST_TOP);
   const item = (x: Obj) => x.kind === 'uncovered_engine_warning'
     ? `- warning ${fmt(x.code)} (${fmt(x.severity)}): ${fmt(x.message)} [${((x.refs as string[]) ?? []).join(', ')}]`
-    : x.kind === 'unproven_line' ? `- line ${fmt(x.key)} | ${fmt(x.value)} | ${fmt(x.rule)}`
+    : x.kind === 'unproven_line' ? `- line ${fmt(x.key)} | ${fmt(x.value)} | ${fmt(x.rule)}${engineOnly(x) ? ' | engine-only (a computation past arithmetic: question it, do not recompute)' : ''}`
       : `- value ${fmt(x.ref)} | ${fmt(x.doc)} p${fmt(x.page)} | ${fmt(x.label)} | ${fmt(x.value)}`;
   return [
     '## Work list: what nothing deterministic has settled (list_open_leftovers pages through all of it)',
     `Counts: ${kinds.map((k) => `${k}: ${open.filter((x) => x.kind === k).length}`).join(', ')}.`,
-    `Every engine warning no check covers, then the ${WORK_LIST_TOP} largest other items by amount:`,
+    `Every engine warning no check covers, then the ${WORK_LIST_TOP} largest other items by amount, open items before engine-only lines.`,
+    'Informational fields (Social Security and Medicare wage boxes, mortgage principal, 1099-B summary totals) are left out.',
     ...warnings.map(item).map(m),
     ...rest.map(item).map(m),
   ].join('\n');

@@ -4,9 +4,10 @@ import { describe, expect, it } from 'vitest';
 import { indexPacket, loadPacket } from '@/domain/packet/load';
 import { LEDGER, runChecks } from '@/domain/checks/index';
 import { proofsFor } from '@/domain/proofs';
+import { FLOW_RULES } from '@/domain/flow';
 import { SSN_SHAPED } from '@/domain/ai/verify';
 import { hiddenCheckIds, type AgentMode } from '../../ai/lib/modes';
-import { leftovers } from '../../ai/lib/agent-tools';
+import { informationalUncited, leftovers } from '../../ai/lib/agent-tools';
 import { loadContextFiles } from '../../ai/lib/agent-core';
 import { clientContext, returnLinesContext, sharedContext } from '../../ai/lib/reader-core';
 import { WORK_LIST_TOP, buildCaseFile, caseFile, caseFileSections } from '../../ai/lib/case-file';
@@ -113,5 +114,34 @@ describe('reader context split (the reader\'s text is unchanged)', () => {
     expect(sharedContext(ix)).toBe(`${returnLinesContext(ix)}\n\n${clientContext(ix)}`);
     expect(returnLinesContext(ix).startsWith(`## Latest return version ${ix.latest.version}: lines`)).toBe(true);
     expect(clientContext(ix).startsWith('## Client questionnaire answers')).toBe(true);
+  });
+});
+
+describe('case file: work list ranking and informational fields', () => {
+  it('open (O) items come before engine-only (E) lines, which are labelled', () => {
+    const open = leftovers(ix, blind);
+    const isE = (x: Record<string, unknown>) => {
+      if (x.kind !== 'unproven_line') return false;
+      const l = ix.line(ix.latest.version, String(x.key));
+      return !!l && (l.inputs ?? []).length > 0 && !(l.rule && FLOW_RULES.includes(l.rule));
+    };
+    const items = (text: string) => text.split('\n## ').find((x) => x.startsWith('Work list'))!.split('\n').filter((l) => /^- (line|value) /.test(l));
+    const listed = items(caseFile(ix, digest, blind));
+    const firstE = listed.findIndex((l) => /engine-only/.test(l));
+    if (firstE >= 0) expect(listed.slice(firstE).every((l) => /engine-only/.test(l))).toBe(true);
+    const openCount = open.filter((x) => x.kind !== 'uncovered_engine_warning' && !isE(x)).length;
+    expect(listed.filter((l) => !/engine-only/.test(l))).toHaveLength(Math.min(WORK_LIST_TOP, openCount)); // open items fill the list first
+    expect(open.some(isE)).toBe(true); // engine-only lines exist, so the ranking was tested
+    const eOnly = items(buildCaseFile(ix, digest, [], open.filter(isE)));
+    expect(eOnly.length).toBeGreaterThan(0);
+    expect(eOnly.every((l) => /engine-only/.test(l))).toBe(true);
+  });
+
+  it('informational fields leave the uncited money: Social Security/Medicare wage boxes, mortgage principal, 1099-B summary totals', () => {
+    const dropped = informationalUncited(ix).map((v) => v.id).sort();
+    expect(dropped).toEqual(['ev-0018', 'ev-0037', 'ev-0703', 'ev-0907', 'ev-1031', 'ev-1033', 'ev-1083', 'ev-1084', 'ev-1085', 'ev-1086', 'ev-1087', 'ev-1088']);
+    const refs = new Set(leftovers(ix, blind).filter((x) => x.kind === 'uncited_money').map((x) => x.ref));
+    for (const id of dropped) expect(refs.has(id), id).toBe(false);
+    expect(refs.size).toBeGreaterThan(30); // the rest stay
   });
 });

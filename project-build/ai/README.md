@@ -19,7 +19,7 @@ known mistakes before anyone trusts it.
 | `src/server/ai-reader.ts`, `src/app/api/internal/ai-reader/route.ts` | The reader in the cloud (see below) |
 | `ai/agent.ts` | CLI: the agent (one investigation over the whole packet with the deterministic tools); writes `ai/eval/agent-suggestions.json` and its run meta. Never run without an approved budget |
 | `ai/lib/agent-core.ts` | The agent loop on the Anthropic SDK tool runner: context, guards (iteration cap, wall-clock abort, cost budget, refusal and max_tokens stops), final-answer validation, proposals, writing only a finished run |
-| `ai/lib/agent-tools.ts` | The six read-only tools (`get_line`, `get_page`, `search_values`, `verify`, `run_checks`, `list_open_leftovers`): masked, labelled as data, bounded, SSN-scanned; findings leave without ledger, finding or check ids |
+| `ai/lib/agent-tools.ts` | The seven tools (`get_line`, `get_page`, `search_values`, `verify`, `run_checks`, `list_open_leftovers`, and `record_suggestion`, which checks a suggestion at once and keeps it): masked, labelled as data with the run's budget (turn k of N), bounded, SSN-scanned; findings leave without ledger, finding or check ids |
 | `ai/lib/calculator.ts` | The `verify` tool's methods (`recompute_line`, `sum_to`, `prior_year`, `fact_copies`, `glossary`): ids in, numbers computed by our code |
 | `ai/lib/case-file.ts` | The agent's cached context: schema card, review steps, digest, state map (P/F/O/E), work list, documents, client text |
 | `ai/lib/domain-digest.md` | The short review-method digest in the agent's context (from `docs/research`; no ledger content) |
@@ -176,7 +176,7 @@ re-checked by the backend, a person accepts each suggestion, never blocks), but 
   steps, `ai/lib/domain-digest.md`, a state map of every line (key, value, rule, P/F/O/E status from the mode's findings
   and our proofs), the work list (counts, every uncovered engine warning, the 40 largest other items), a compact
   document index and the client's text, masked. About 11,900 tokens (the agent-v1 context was about 22,900).
-- **Output**: the `AiPayload` (`promptVersion` `agent-v2`, `model` = the served model) plus optional `proposals`
+- **Output**: the `AiPayload` (`promptVersion` `agent-v3`, `model` = the served model) plus optional `proposals`
   (rule, fields compared, where it fires, where it stays silent, refs; words only, never code). Rows are validated as the
   reader's.
 - **Measurement modes** (`ai/lib/modes.ts`): `--blind` drops `run_checks`, gives agreements only from `verify` `fact_copies`, and computes leftovers

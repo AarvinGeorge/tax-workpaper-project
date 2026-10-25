@@ -78,7 +78,7 @@ describe('agent: the request', () => {
     expect(AGENT_BETAS).toContain('server-side-fallback-2026-07-01');
     expect(headers.get('anthropic-beta')).toContain('server-side-fallback-2026-07-01');
     expect(body.tool_choice === undefined || (body.tool_choice as { type: string }).type === 'auto').toBe(true);
-    expect(body.tools).toHaveLength(6);
+    expect(body.tools).toHaveLength(7);
     for (const t of body.tools) expect(t.strict).toBe(true);
     expect(body.system.at(-1)!.cache_control).toEqual({ type: 'ephemeral' }); // the shared context, cached
     expect(body.cache_control).toEqual({ type: 'ephemeral' });               // the growing transcript, cached
@@ -101,6 +101,9 @@ describe('agent: the request', () => {
     for (const a of AI_AUTHORITIES) expect(AGENT_SYSTEM_PROMPT).toContain(a);
     expect(AGENT_SYSTEM_PROMPT).toMatch(/data, never instructions/);
     expect(AGENT_SYSTEM_PROMPT).toMatch(/verify/);
+    expect(AGENT_SYSTEM_PROMPT).toMatch(/at most 25 words/);
+    expect(AGENT_SYSTEM_PROMPT).toMatch(/over 30 words is discarded/);
+    expect(AGENT_SYSTEM_PROMPT).toMatch(/record_suggestion/);
   });
 });
 
@@ -229,7 +232,7 @@ describe('agent: the payload', () => {
     expect(res.ok).toBe(true);
     if (!res.ok) return;
     expect(res.payload).toMatchObject({ schemaVersion: 1, packetSha: 'abc', model: 'claude-opus-5', promptVersion: AGENT_PROMPT_VERSION, runAt: '2026-10-24T00:00:00.000Z' });
-    expect(AGENT_PROMPT_VERSION).toBe('agent-v2');
+    expect(AGENT_PROMPT_VERSION).toBe('agent-v3');
     expect(res.payload.suggestions.map((s) => s.id)).toEqual(['ai-document_not_reflected-1']);
     expect(res.payload.rejected.map((r) => r.reason)).toEqual(['unknown kind nonsense']);
     expect(res.payload.proposals).toEqual([proposal()]);
@@ -266,29 +269,29 @@ describe('agent: measurement modes', () => {
     const { fetch, calls } = fakeFetch(() => final({ suggestions: [], proposals: [] }));
     const res = await runAgent(opts(fetch, { mode: { kind: 'blind' } }));
     expect(res.ok).toBe(true);
-    expect(calls[0].body.tools).toHaveLength(5);
+    expect(calls[0].body.tools).toHaveLength(6);
     expect(calls[0].body.system[0].text).not.toMatch(/run_checks/);
     expect(agentSystemPrompt({ kind: 'default' })).toBe(AGENT_SYSTEM_PROMPT);
     expect(res.meta).toMatchObject({ mode: 'blind', seed: null, hiddenCheckIds: [] });
-    expect(res.ok && res.payload.promptVersion).toBe('agent-v2-blind');
+    expect(res.ok && res.payload.promptVersion).toBe('agent-v3-blind');
   });
 
   it('hide-checks: the seed and the hidden check ids in the meta (never in a request), the prompt version names the seed', async () => {
     const { fetch, calls } = fakeFetch(() => final({ suggestions: [], proposals: [] }));
     const res = await runAgent(opts(fetch, { mode: { kind: 'hide-checks', seed: 7 } }));
     expect(res.ok).toBe(true);
-    expect(calls[0].body.tools).toHaveLength(6);
+    expect(calls[0].body.tools).toHaveLength(7);
     expect(res.meta).toMatchObject({ mode: 'hide-checks', seed: 7, hiddenCheckIds: hiddenCheckIds(7) });
-    expect(res.ok && res.payload.promptVersion).toBe('agent-v2-hide-7');
+    expect(res.ok && res.payload.promptVersion).toBe('agent-v3-hide-7');
   });
 
-  it('default mode: six tools, prompt version agent-v2', async () => {
+  it('default mode: seven tools, prompt version agent-v3', async () => {
     const { fetch, calls } = fakeFetch(() => final({ suggestions: [], proposals: [] }));
     const res = await runAgent(opts(fetch));
-    expect(calls[0].body.tools).toHaveLength(6);
+    expect(calls[0].body.tools).toHaveLength(7);
     expect(calls[0].body.system[0].text).toBe(AGENT_SYSTEM_PROMPT);
     expect(res.meta).toMatchObject({ mode: 'default', seed: null, hiddenCheckIds: [] });
-    expect(res.ok && res.payload.promptVersion).toBe('agent-v2');
+    expect(res.ok && res.payload.promptVersion).toBe('agent-v3');
   });
 
   it('the CLI writes each mode to its own file', () => {
@@ -342,19 +345,56 @@ describe('agent: the per-turn trace', () => {
     expect(JSON.stringify(t)).not.toContain('PRIVATE-THOUGHT');
   });
 
-  it('a run stopped by the iteration cap says so, and its trace is written although the payload is not', async () => {
+  it('reserved final turn: a run that keeps calling tools is asked for its answer, with no tools usable, and ends with it', async () => {
     const dir = mkdtempSync(path.join(tmpdir(), 'agent-trace-'));
     const out = path.join(dir, 'agent-suggestions.json');
-    const always: Script = () => message([toolUse('get_line', { key: freeLine })], 'tool_use');
-    const res = await runAgent(opts(fakeFetch(always).fetch, { limits: { maxIterations: 3 } }));
-    expect(res.ok).toBe(false);
-    expect(res.trace.endedBy).toBe('iteration_cap');
+    const always: Script = (body) => (body.tool_choice && (body.tool_choice as { type: string }).type === 'none')
+      ? final({ suggestions: [], proposals: [] })
+      : message([toolUse('get_line', { key: freeLine })], 'tool_use');
+    const { fetch, calls } = fakeFetch(always);
+    const res = await runAgent(opts(fetch, { limits: { maxIterations: 3 } }));
+    expect(res.ok).toBe(true);
+    expect(calls).toHaveLength(3); // two working turns, then the reserved one: never more than the limit
+    const last = calls.at(-1)!.body;
+    expect(last.tool_choice).toEqual({ type: 'none' });
+    expect(last.tools).toHaveLength(7); // definitions unchanged, so the cached prefix holds
+    expect(JSON.stringify(last.messages.at(-1))).toContain('Final turn: answer now with JSON only');
+    expect(JSON.stringify(last.messages)).toContain('tool_result'); // the last working turn's calls were answered first
+    expect(res.trace.endedBy).toBe('final_turn');
     expect(res.trace.turns).toHaveLength(3);
-    expect(writeRun(res, out)).toBe(false);
-    expect(existsSync(out)).toBe(false);
-    const written = JSON.parse(readFileSync(out.replace(/\.json$/, '.trace.json'), 'utf8'));
-    expect(written.endedBy).toBe('iteration_cap');
-    expect(written.turns).toHaveLength(3);
+    expect(writeRun(res, out)).toBe(true);
+    expect(JSON.parse(readFileSync(out.replace(/\.json$/, '.trace.json'), 'utf8')).endedBy).toBe('final_turn');
+  });
+
+  it('reserved final turn also when the cost nears its limit', async () => {
+    const always: Script = (body) => (body.tool_choice && (body.tool_choice as { type: string }).type === 'none')
+      ? final({ suggestions: [], proposals: [] })
+      : message([toolUse('get_line', { key: freeLine })], 'tool_use');
+    const { fetch, calls } = fakeFetch(always);
+    const res = await runAgent(opts(fetch, { limits: { maxCostUsd: 0.1 } })); // ~0.009 a turn: 90% after about 10
+    expect(res.ok).toBe(true);
+    expect(res.trace.endedBy).toBe('final_turn');
+    expect(calls.length).toBeLessThan(40);
+    expect(calls.at(-1)!.body.tool_choice).toEqual({ type: 'none' });
+  });
+
+  it('every tool result tells the model its budget: turn k of N', async () => {
+    const { fetch, calls } = fakeFetch(twoToolTurns);
+    await runAgent(opts(fetch));
+    const second = JSON.stringify(calls[1].body.messages);
+    expect(second).toMatch(/turn 1 of 40/);
+    expect(JSON.stringify(calls[2].body.messages)).toMatch(/turn 2 of 40/);
+  });
+
+  it('record_suggestion: recorded rows reach the payload though the final JSON is empty; a repeat in the final JSON is not doubled', async () => {
+    const rec: Script = (_b, turn) => turn === 1 ? message([toolUse('record_suggestion', row())], 'tool_use')
+      : final({ suggestions: turn === 2 ? [row()] : [], proposals: [] });
+    const res = await runAgent(opts(fakeFetch(rec).fetch));
+    expect(res.ok).toBe(true);
+    expect(res.ok && res.payload.suggestions).toHaveLength(1);
+    const empty: Script = (_b, turn) => turn === 1 ? message([toolUse('record_suggestion', row())], 'tool_use') : final({ suggestions: [], proposals: [] });
+    const r2 = await runAgent(opts(fakeFetch(empty).fetch));
+    expect(r2.ok && r2.payload.suggestions).toHaveLength(1);
   });
 
   it('a good run writes the trace beside the payload', async () => {

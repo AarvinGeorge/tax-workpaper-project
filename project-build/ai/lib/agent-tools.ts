@@ -15,14 +15,15 @@ import { proofsFor } from '../../src/domain/proofs';
 import { documentLanding } from '../../src/domain/docs';
 import { checkItems, engineOn } from '../../src/domain/items';
 import { maskRecord, maskValue, sensitiveTypeOf } from '../../src/domain/policy';
-import { SSN_SHAPED, supersession } from '../../src/domain/ai/verify';
-import { masker, maskingRole } from './reader-core';
+import { SSN_SHAPED, isShown, supersession, verifySuggestions } from '../../src/domain/ai/verify';
+import type { AiPayload } from '../../src/domain/ai/contract';
+import { OUTPUT_SCHEMA, masker, maskingRole, validateRow, type Row } from './reader-core';
 import { DEFAULT_MODE, findingsFor, modeLabel, type AgentMode } from './modes';
 import { VERIFY_METHODS, verify } from './calculator';
 
 export { findingsFor };
 
-export const AGENT_TOOL_NAMES = ['get_line', 'get_page', 'search_values', 'verify', 'run_checks', 'list_open_leftovers'] as const;
+export const AGENT_TOOL_NAMES = ['get_line', 'get_page', 'search_values', 'verify', 'run_checks', 'list_open_leftovers', 'record_suggestion'] as const;
 export type AgentToolName = (typeof AGENT_TOOL_NAMES)[number];
 export const TOOL_RESULT_MAX_BYTES = 16_000;
 export const MAX_LIMIT = 50;
@@ -146,23 +147,49 @@ function computeLeftovers(ix: PacketIndex, mode: AgentMode): Obj[] {
   for (const d of ix.latest.diagnostics) {
     if (!named.has(d)) out.push({ kind: 'uncovered_engine_warning', code: d.code, severity: d.severity, message: d.message, refs: d.refs });
   }
+  const info = new Set(informationalUncited(ix).map((v) => v.id));
+  for (const v of uncitedMoney(ix)) if (!info.has(v.id)) out.push({ kind: 'uncited_money', ...maskedValue(ix, v) });
+  return out;
+}
+
+/** Money read from a landed document that no line cites. */
+function uncitedMoney(ix: PacketIndex): ExtractedValue[] {
   const landed = new Set(documentLanding(ix, '9999-12-31T00:00:00Z').filter((d) => d.status === 'landed').map((d) => d.docId));
   const cited = new Set(ix.latest.lines.flatMap((l) => l.sources ?? []));
-  for (const v of ix.packet.extracted_values) {
-    if (v.value_type !== 'money' || !landed.has(v.document_id) || cited.has(v.id)) continue;
+  return ix.packet.extracted_values.filter((v) => {
+    if (v.value_type !== 'money' || !landed.has(v.document_id) || cited.has(v.id)) return false;
     const n = num(v.value);
-    if (n === null || n === 0) continue;
-    out.push({ kind: 'uncited_money', ...maskedValue(ix, v) });
-  }
-  return out;
+    return n !== null && n !== 0;
+  });
+}
+
+/** Fields that are information, not money owed to a line, by document type and field name: Social Security and
+ *  Medicare wage boxes (W-2 boxes 3 and 5), mortgage principal (1098 box 2, a payoff's principal), and the summary
+ *  totals of a 1099-B (composite summary rows; short- and long-term proceeds, basis and wash-sale totals; a 1099-DA
+ *  total). The lots and lines they summarise are where a mistake would show. */
+export const INFORMATIONAL_FIELDS: { docType: RegExp; field: RegExp; why: string }[] = [
+  { docType: /^W-2$/, field: /^box[35]$/, why: 'Social Security / Medicare wages' },
+  { docType: /^1098$/, field: /^box2$/, why: 'mortgage principal' },
+  { docType: /^payoff_statement$/, field: /^principal$/, why: 'mortgage principal paid' },
+  { docType: /^1099-composite$/, field: /summary|^(st|lt)_(proceeds|basis|wash)$/, why: '1099-B summary total' },
+  { docType: /^1099-DA$/, field: /^total$/, why: '1099-B summary total' },
+];
+/** The uncited money values dropped as informational (listed so a test can name each). */
+export function informationalUncited(ix: PacketIndex): ExtractedValue[] {
+  return uncitedMoney(ix).filter((v) => {
+    const t = ix.docById.get(v.document_id)?.document_type ?? '';
+    return INFORMATIONAL_FIELDS.some((f) => f.docType.test(t) && f.field.test(v.field));
+  });
 }
 
 // ---------- Envelope: mask, label, bound, scan ----------
 const clampLimit = (n: unknown) => Math.max(1, Math.min(MAX_LIMIT, Number.isInteger(n) ? (n as number) : 20));
 const clampCursor = (n: unknown) => (Number.isInteger(n) && (n as number) > 0 ? (n as number) : 0);
 
+/** The run's budget, set by runTool for the call in hand (synchronous, so one call at a time). */
+let budgetNote: string | null = null;
 function envelope(tool: string, data: Obj): string {
-  return JSON.stringify({ tool, note: DATA_NOTE, data });
+  return JSON.stringify(budgetNote ? { tool, note: DATA_NOTE, budget: budgetNote, data } : { tool, note: DATA_NOTE, data });
 }
 
 /** Shortens the longest strings, then the longest lists, until the result fits; says it was cut. */
@@ -199,6 +226,22 @@ export interface ToolOptions {
   mode?: AgentMode;
   /** Test hook only: text added to every result before the scan (proves the scan fires). */
   inject?: (tool: string) => string;
+  /** The run's budget as the model should see it (e.g. "turn 3 of 40; about $9.80 left"), in every result. */
+  budget?: () => string;
+  /** Where record_suggestion keeps accepted rows (the run's; absent in direct calls, which only check). */
+  recorder?: Row[];
+}
+
+/** Checks one suggestion as the final answer would be checked (the row's shape, then the verifier's grounding) and
+ *  keeps it when it passes; otherwise says exactly why, so the model can fix it and record it again. */
+function recordSuggestion(ix: PacketIndex, raw: Obj, recorder?: Row[]): Obj {
+  const v = validateRow(ix, raw);
+  if (!v.row) return { accepted: false, reasons: [v.reason!] };
+  const payload = { schemaVersion: 1, packetSha: '', model: '', promptVersion: '', runAt: '', suggestions: [{ id: 'recorded', ...v.row }], rejected: [] } as unknown as AiPayload;
+  const [checked] = verifySuggestions(ix, payload);
+  if (!isShown(checked)) return { accepted: false, reasons: checked.problems };
+  recorder?.push(v.row);
+  return { accepted: true, recorded: recorder ? recorder.length : null, note: 'Kept for the final answer; no need to repeat it there.' };
 }
 
 /** Runs one tool on the packet and returns the result text the model sees. Throws SsnInToolResult on an SSN shape. */
@@ -209,8 +252,11 @@ export function runTool(ix: PacketIndex, name: string, input: Obj, opts: ToolOpt
   if ((AGENT_TOOL_NAMES as readonly string[]).includes(name) && !toolNamesFor(mode).includes(name as AgentToolName)) {
     throw new Error(`Tool ${name} is not available in ${modeLabel(mode)} mode.`);
   }
+  budgetNote = opts.budget ? opts.budget() : null;
   let text: string;
+  try {
   switch (name) {
+    case 'record_suggestion': text = shrink(name, recordSuggestion(ix, input, opts.recorder)); break;
     case 'get_line': text = shrink(name, mask(getLine(ix, input as { key: string }))); break;
     case 'get_page': text = shrink(name, mask(getPage(ix, input as { doc: string; page: number }))); break;
     case 'search_values': {
@@ -236,6 +282,9 @@ export function runTool(ix: PacketIndex, name: string, input: Obj, opts: ToolOpt
       break;
     }
     default: text = shrink(name, { error: `Unknown tool ${name}.` });
+  }
+  } finally {
+    budgetNote = null;
   }
   // Test hook: added after masking (masking would hide it), so the scan below is what must catch it.
   if (opts.inject) text = text.slice(0, -2) + `,"injected":${JSON.stringify(opts.inject(name))}}}`;
@@ -297,6 +346,11 @@ export function agentTools(ix: PacketIndex, guard: ToolGuard, opts: ToolOptions 
         type: 'object', additionalProperties: false, required: ['kind', 'limit', 'cursor'],
         properties: { kind: { type: 'string', enum: [...LEFTOVER_KINDS, 'all'], description: 'One kind, or all.' }, ...listProps },
       },
+    }),
+    betaTool({
+      name: 'record_suggestion', strict: true, run: run('record_suggestion'),
+      description: 'Record one suggestion as soon as you have it. It is checked as the final answer will be (kind, claims, quotes copied verbatim from the cited page, authority, rationale length): accepted rows are kept for the final answer; a refused row comes back with the exact reasons, so fix it and record it again.',
+      inputSchema: OUTPUT_SCHEMA.properties.suggestions.items as never,
     }),
   ] as BetaRunnableTool[]).filter((t) => offered.has(t.name));
 }

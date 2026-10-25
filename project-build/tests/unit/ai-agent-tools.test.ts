@@ -36,10 +36,10 @@ function everyResult(): string[] {
 }
 
 describe('agent tools: the tool set', () => {
-  it('has the six planned tools, each strict with a closed input schema', () => {
+  it('has the seven planned tools, each strict with a closed input schema', () => {
     const tools = agentTools(ix, { onHit: () => {} });
     expect(tools.map((t) => t.name).sort()).toEqual([...AGENT_TOOL_NAMES].sort());
-    expect(AGENT_TOOL_NAMES).toEqual(['get_line', 'get_page', 'search_values', 'verify', 'run_checks', 'list_open_leftovers']);
+    expect(AGENT_TOOL_NAMES).toEqual(['get_line', 'get_page', 'search_values', 'verify', 'run_checks', 'list_open_leftovers', 'record_suggestion']);
     for (const t of tools) {
       const tool = t as unknown as { strict?: boolean; input_schema: { additionalProperties: boolean; required: string[]; properties: Record<string, unknown> } };
       expect(tool.strict, t.name).toBe(true);
@@ -200,7 +200,7 @@ describe('agent tools: measurement modes', () => {
   it('blind: no run_checks, and leftovers computed with no findings', () => {
     const blind: AgentMode = { kind: 'blind' };
     const names = agentTools(ix, { onHit: () => {} }, { mode: blind }).map((t) => t.name);
-    expect(names.sort()).toEqual(['get_line', 'get_page', 'list_open_leftovers', 'search_values', 'verify']);
+    expect(names.sort()).toEqual(['get_line', 'get_page', 'list_open_leftovers', 'record_suggestion', 'search_values', 'verify']);
     expect(() => runTool(ix, 'run_checks', { limit: 5, cursor: 0 }, { mode: blind })).toThrow(/not available/);
     const d = (m?: AgentMode) => (JSON.parse(runTool(ix, 'list_open_leftovers', { kind: null, limit: 1, cursor: 0 }, { mode: m })) as { data: { byKind: Record<string, number> } }).data.byKind;
     expect(d(blind).uncovered_engine_warning).toBe(ix.latest.diagnostics.length);
@@ -228,5 +228,30 @@ describe('agent tools: measurement modes', () => {
       expect(joined.includes(JSON.stringify(f.title).slice(1, -1)), f.title).toBe(false);
       expect(joined.includes(JSON.stringify(f.explanation).slice(1, -1)), f.checkId).toBe(false);
     }
+  });
+});
+
+describe('agent tools: record_suggestion', () => {
+  const quote = docWithPages.pages[0].printed_content.split('\n').find((l) => l.trim().length > 10 && !/\d{3}-\d{2}-\d{4}/.test(l))!.trim();
+  const good = () => ({
+    kind: 'document_not_reflected', otherKind: null, claims: [lineWithSources.key], evidence: [{ doc: docWithPages.id, page: docWithPages.pages[0].page, quote }],
+    rationale: 'The page states an amount the return does not reflect.', authority: null, confidence: 0.6,
+  });
+  const rec = (raw: Record<string, unknown>, rows?: unknown[]) => (JSON.parse(runTool(ix, 'record_suggestion', raw, rows ? { recorder: rows as never } : {})) as { data: { accepted: boolean; reasons?: string[] } }).data;
+
+  it('a 31-word rationale is refused with the reason; the fixed one is accepted and stored', () => {
+    const rows: unknown[] = [];
+    const long = rec({ ...good(), rationale: Array(31).fill('word').join(' ') }, rows);
+    expect(long.accepted).toBe(false);
+    expect(long.reasons!.join(' ')).toMatch(/over 30 words/);
+    expect(rows).toHaveLength(0);
+    expect(rec(good(), rows).accepted).toBe(true);
+    expect(rows).toHaveLength(1);
+  });
+
+  it('a quote that is not on the cited page is refused with the verifier\'s reason', () => {
+    const r = rec({ ...good(), evidence: [{ doc: docWithPages.id, page: docWithPages.pages[0].page, quote: 'These exact words are nowhere on this page 4711' }] });
+    expect(r.accepted).toBe(false);
+    expect(r.reasons!.join(' ')).toMatch(/quote not found/);
   });
 });

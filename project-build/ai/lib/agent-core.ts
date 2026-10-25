@@ -20,7 +20,7 @@ import {
   type Row, type Usage,
 } from './reader-core';
 
-export const AGENT_PROMPT_VERSION = 'agent-v2';
+export const AGENT_PROMPT_VERSION = 'agent-v3';
 export const AGENT_DEFAULT_MODEL = 'claude-opus-5-5';
 /** Per turn. Non-streaming; with an explicit client timeout the SDK accepts it (its 10-minute guard applies only to
  *  the default timeout). Thinking counts toward it. */
@@ -53,8 +53,11 @@ export function agentSystemPrompt(mode: AgentMode = DEFAULT_MODE): string {
   'Your job: find what a mechanical tie-out cannot settle, mainly meaning in free text (pages, client answers,',
   'notes) and amounts no source or rule explains. Start from the open (O) lines and the work list; F lines are known.',
   ...(blind ? [] : ['Call run_checks when you need a finding\'s detail: anything it raises is known; spend your effort on what it does not say.']),
-  'Work efficiently: batch independent tool calls in one turn, and finish within about 30 turns.',
-  'When you are done, answer with JSON only, matching the output schema: suggestions and proposals.',
+  'Work efficiently: batch independent tool calls in one turn. Every tool result shows your budget (turn k of N); the',
+  'last turn is reserved for your answer and offers no tools.',
+  'Record each suggestion with record_suggestion as soon as you have it: it is checked at once, and a refused one comes',
+  'back with the reasons, so fix it and record it again. Recorded suggestions are kept; you need not repeat them.',
+  'When you are done, answer with JSON only, matching the output schema: suggestions (any not yet recorded) and proposals.',
   'Suggestions (each one an issue where the return as computed may be wrong):',
   '1. Grounded in one or more quotes copied VERBATIM from a document page\'s printed text (get_page), a short phrase or',
   '   sentence, with that document id and page. Never quote client text, tool summaries or masked values (anything with •).',
@@ -62,7 +65,8 @@ export function agentSystemPrompt(mode: AgentMode = DEFAULT_MODE): string {
   `3. authority: one title copied exactly from this list, or null: ${AI_AUTHORITIES.map((a) => JSON.stringify(a)).join('; ')}.`,
   '4. Never compute or restate an amount that is not printed in the text you quote or the tools returned.',
   '5. Prefer no suggestion to a weak one.',
-  '6. rationale: plain words, one sentence, at most 25 words, no names of people, account numbers or other identifiers.',
+  '6. rationale: plain words, one sentence, at most 25 words (a rationale over 30 words is discarded), no names of people,',
+  '   account numbers or other identifiers.',
   `7. kind: one of ${AI_KINDS.join(', ')}. Use other only when none fits, with a short label in otherKind; otherwise otherKind is null.`,
   '8. confidence: your own estimate from 0 to 1.',
   'Proposals (optional, at most 12): a new deterministic check that would have caught something you found, in plain',
@@ -139,14 +143,19 @@ export interface OnFindingClaims { count: number; ids: string[] }
 export interface Finalized { payload: AiPayload; onFindingClaims: OnFindingClaims }
 
 /** Parses and validates the final answer text. Throws with "final payload" in the message when it is malformed. */
-export function finalizePayload(ix: PacketIndex, text: string, env: { packetSha: string; model: string; runAt: string; mode?: AgentMode }): Finalized {
+export function finalizePayload(ix: PacketIndex, text: string, env: { packetSha: string; model: string; runAt: string; mode?: AgentMode }, recorded: Row[] = []): Finalized {
   let parsed: unknown;
   try { parsed = JSON.parse(text); } catch { throw new Error('final payload is not JSON'); }
   if (!isObj(parsed) || !Array.isArray(parsed.suggestions) || !Array.isArray(parsed.proposals)) throw new Error('final payload lacks the suggestions and proposals lists');
-  const rows: Row[] = []; const rejected: AiRejected[] = []; const proposals: AiProposal[] = [];
+  const rows: Row[] = [...recorded]; const rejected: AiRejected[] = []; const proposals: AiProposal[] = [];
+  // A row recorded during the run and repeated in the final JSON is one suggestion (same kind, lines and first quote).
+  const rowKey = (r: Row) => `${r.kind}|${[...r.claims].sort().join(',')}|${r.evidence[0]?.doc}|${r.evidence[0]?.quote.replace(/\s+/g, ' ').trim()}`;
+  const seen = new Set(rows.map(rowKey));
   for (const raw of parsed.suggestions) {
     const v = validateRow(ix, raw);
     if (!v.row) { rejected.push({ raw: sanitizeRejected(ix, raw), reason: v.reason! }); continue; }
+    if (seen.has(rowKey(v.row))) continue;
+    seen.add(rowKey(v.row));
     rows.push(v.row);
   }
   for (const raw of parsed.proposals.slice(0, MAX_PROPOSALS)) {
@@ -206,10 +215,12 @@ export interface TraceTurn {
 /** Per turn, for seeing where a run's turns went. Masked; visible text only (never thinking); SSN-scanned. */
 export interface AgentTrace {
   promptVersion: string; runAt: string; turns: TraceTurn[];
-  /** end_turn: a normal final answer; iteration_cap: the turn limit ended it; stopped: a guard or error ended it. */
-  endedBy: 'end_turn' | 'iteration_cap' | 'stopped'; reason: string | null;
+  /** end_turn: the model answered on its own; final_turn: it answered on the reserved last turn; iteration_cap: the
+   *  turn limit ended it with no answer; stopped: a guard or error ended it. */
+  endedBy: 'end_turn' | 'final_turn' | 'iteration_cap' | 'stopped'; reason: string | null;
 }
 export const TRACE_TEXT_MAX = 300;
+export const FINAL_TURN_TEXT = 'Final turn: answer now with JSON only, matching the output schema. No tools are available.';
 export type AgentRunResult =
   | { ok: true; payload: AiPayload; meta: AgentRunMeta; trace: AgentTrace }
   | { ok: false; reason: string; meta: AgentRunMeta; trace: AgentTrace };
@@ -240,7 +251,10 @@ export async function runAgent(o: AgentRunOptions): Promise<AgentRunResult> {
   const guard: ToolGuard = { onHit: (tool) => fail(`SSN-shaped text in a ${tool} result`) };
   const timer = setTimeout(() => fail(`wall-clock limit of ${Math.round(limits.wallClockMs / 1000)} s reached`), limits.wallClockMs);
   const mode = o.mode ?? DEFAULT_MODE;
-  const baseTools = o.toolsFor ? o.toolsFor(o.ix, guard, mode) : agentTools(o.ix, guard, { mode });
+  const recorded: Row[] = [];
+  let turns = 0; let cost = 0;
+  const budget = () => `turn ${turns} of ${limits.maxIterations}; about $${Math.max(0, limits.maxCostUsd - cost).toFixed(2)} left`;
+  const baseTools = o.toolsFor ? o.toolsFor(o.ix, guard, mode) : agentTools(o.ix, guard, { mode, recorder: recorded, budget });
   // Each call's result, in brief, matched later to the turn's tool_use blocks by name and input.
   const done: { name: string; input: string; result: TraceResult }[] = [];
   const tools = baseTools.map((t) => ({
@@ -271,7 +285,7 @@ export async function runAgent(o: AgentRunOptions): Promise<AgentRunResult> {
     }
   };
 
-  let usage = zeroUsage(); let cost = 0; let turns = 0; let toolCalls = 0;
+  let usage = zeroUsage(); let toolCalls = 0;
   const served: string[] = [];
   let last: BetaMessage | null = null;
   const runner = client.beta.messages.toolRunner({
@@ -284,9 +298,9 @@ export async function runAgent(o: AgentRunOptions): Promise<AgentRunResult> {
     tools,
     messages: [{ role: 'user', content: 'Investigate this return with the tools, then give your final answer as JSON matching the schema.' }],
   }, { signal: controller.signal });
-  try {
-    for await (const msg of runner) {
-      last = msg; turns++;
+  /** Counts a reply (usage, cost, tool calls) and adds its turn to the trace. */
+  const account = (msg: BetaMessage) => {
+    last = msg; turns++;
       if (!served.includes(msg.model)) served.push(msg.model);
       const u = { ...zeroUsage(), ...(msg.usage as Partial<Usage>) } as Usage;
       for (const k of Object.keys(u) as (keyof Usage)[]) u[k] = u[k] ?? 0;
@@ -306,16 +320,52 @@ export async function runAgent(o: AgentRunOptions): Promise<AgentRunResult> {
         text: visible ? mask(visible).slice(0, TRACE_TEXT_MAX) : null,
       });
       log(`turn ${turns}: ${msg.stop_reason}, ${toolCalls} tool call(s) so far, ~$${cost.toFixed(2)}`);
+  };
+  /** The next turn is the last one allowed, or cost or time is within 10% of its limit: keep it for the answer. */
+  const nearLimit = () => turns >= limits.maxIterations - 1 || cost >= 0.9 * limits.maxCostUsd || Date.now() - started >= 0.9 * limits.wallClockMs;
+  let reserve = false; let reservedUsed = false;
+  try {
+    for await (const msg of runner) {
+      account(msg);
       if (cost > limits.maxCostUsd) { fail(`over the cost budget ($${cost.toFixed(2)} > $${limits.maxCostUsd})`); break; }
       if (msg.stop_reason === 'refusal') { fail(`the model refused${msg.stop_details?.category ? ` (${msg.stop_details.category})` : ''}`); break; }
       if (msg.stop_reason === 'max_tokens') { fail('a response was cut at max_tokens'); break; }
       if (failure) break;
+      if (msg.stop_reason === 'tool_use' && nearLimit()) { reserve = true; break; }
     }
   } catch (e) {
     fail(`the run stopped: ${e instanceof Error ? e.message : String(e)}`);
-  } finally {
-    clearTimeout(timer);
   }
+  // The reserved final turn, outside the runner: answer this turn's calls, then ask for the answer with tools listed
+  // (so the cached prefix holds) but none usable. Its cost is allowed past the cap: the 10% margin is kept for it.
+  if (reserve && !failure && last) {
+    try {
+      const pending = (last as BetaMessage).content.filter((b) => b.type === 'tool_use') as { id: string; name: string; input: unknown }[];
+      const results = await Promise.all(pending.map(async (b) => {
+        const t = tools.find((x) => x.name === b.name);
+        try {
+          const content = t ? String(await (t.run as (i: unknown) => unknown)(b.input)) : `Unknown tool ${b.name}.`;
+          return { type: 'tool_result' as const, tool_use_id: b.id, content, ...(t ? {} : { is_error: true }) };
+        } catch (e) {
+          return { type: 'tool_result' as const, tool_use_id: b.id, content: e instanceof Error ? e.message : 'tool failed', is_error: true };
+        }
+      }));
+      if (!failure) {
+        const p = runner.params;
+        const finalMsg = await client.beta.messages.create({
+          ...(p as unknown as Record<string, unknown>), max_iterations: undefined, thread: undefined,
+          tool_choice: { type: 'none' },
+          messages: [...p.messages, { role: 'assistant', content: (last as BetaMessage).content }, { role: 'user', content: [...results, { type: 'text', text: FINAL_TURN_TEXT }] }],
+        } as never, { signal: controller.signal }) as BetaMessage;
+        account(finalMsg);
+        settle();
+        reservedUsed = true;
+      }
+    } catch (e) {
+      fail(`the final turn failed: ${e instanceof Error ? e.message : String(e)}`);
+    }
+  }
+  clearTimeout(timer);
   const meta = (extra: Partial<AgentRunMeta> = {}): AgentRunMeta => ({
     requestedModel: o.model, servedModels: served, promptVersion: promptVersionFor(mode), runAt, turns, toolCalls, usage,
     costUsd: cost, seconds: Math.round((Date.now() - started) / 1000), stopReason: last?.stop_reason ?? null, limits,
@@ -324,12 +374,12 @@ export async function runAgent(o: AgentRunOptions): Promise<AgentRunResult> {
     onFindingClaims: { count: 0, ids: [] }, verifier: null, ...extra,
   });
   settle();
-  const capped = !failure && !!last && last.stop_reason === 'tool_use';
+  const capped = !failure && !!last && (last as BetaMessage).stop_reason === 'tool_use';
   if (!failure && !last) failure = 'no response';
   if (capped) failure = `iteration cap of ${limits.maxIterations} reached before a final answer`;
   if (!failure && last!.stop_reason !== 'end_turn') failure = `stopped with ${last!.stop_reason}`;
   const trace = (): AgentTrace => {
-    const t: AgentTrace = { promptVersion: promptVersionFor(mode), runAt, turns: traceTurns, endedBy: capped ? 'iteration_cap' : failure ? 'stopped' : 'end_turn', reason: failure };
+    const t: AgentTrace = { promptVersion: promptVersionFor(mode), runAt, turns: traceTurns, endedBy: capped ? 'iteration_cap' : failure ? 'stopped' : reservedUsed ? 'final_turn' : 'end_turn', reason: failure };
     // Fail closed, as tool results do: a trace holding an SSN shape is withheld and the run fails.
     if (SSN_SHAPED.test(JSON.stringify(t))) {
       failure ??= 'SSN-shaped text in the trace';
@@ -342,7 +392,7 @@ export async function runAgent(o: AgentRunOptions): Promise<AgentRunResult> {
   const text = last!.content.filter((b) => b.type === 'text').map((b) => (b as { text: string }).text).join('');
   let fin: Finalized;
   try {
-    fin = finalizePayload(o.ix, text, { packetSha: o.packetSha, model: last!.model, runAt, mode });
+    fin = finalizePayload(o.ix, text, { packetSha: o.packetSha, model: last!.model, runAt, mode }, recorded);
   } catch (e) {
     const why = e instanceof Error ? e.message : 'final payload rejected';
     return { ok: false, reason: why, meta: meta(), trace: { ...tr, endedBy: 'stopped', reason: why } };
