@@ -8,5 +8,5 @@ export type AiUseSource = 'AI agent' | 'AI reader';
 export const aiUseText = (source: AiUseSource) => (source === 'AI agent' ? AI_AGENT : AI_READER);
 /** The Legends pill text for the AI mark. */
 export const aiFlaggedText = (source: AiUseSource) => `the ${source} flagged this item; a person accepts or dismisses each suggestion`;
-/** The glossary entry for "AI suggestion". */
-export const aiSuggestionTerm = (source: AiUseSource) => `An issue an ${source} proposed from the packet’s text, shown only after each quote was found on its page. Staff accept or dismiss it; it never blocks filing.`;
+/** The glossary entry for "AI suggestion"; with no source (the dictionary default) it names none. */
+export const aiSuggestionTerm = (source?: AiUseSource) => `An issue ${source ? `an ${source}` : 'the AI'} proposed from the packet’s text, shown only after each quote was found on its page. Staff accept or dismiss it; it never blocks filing.`;

@@ -11,6 +11,7 @@ import { findingStatus, refClaim } from '../work/lib';
 import { DrawerActions, type ActionSpec } from './DrawerActions';
 import { retractedSeqs } from '@/domain/events';
 import { Term } from '../term/Term';
+import { aiSuggestionTerm } from '../info/aiUse';
 import { AiMark } from '../work/ui';
 import { AiDecision } from './AiDecision';
 import { DocNote } from './DocNote';
@@ -467,7 +468,7 @@ function AiFindingClaim({ c, f }: { c: Ctx; f: Finding }) {
   return (
     <>
       <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
-        <div className="row"><span className={`tag ${tag[0]}`}>{tag[1]}</span><span className="small"><AiMark />AI suggestion</span><Term k="ai-suggestion" /></div>
+        <div className="row"><span className={`tag ${tag[0]}`}>{tag[1]}</span><span className="small"><AiMark />AI suggestion</span><Term k="ai-suggestion" text={aiSuggestionTerm(aiSourceLabel(ai.promptVersion))} /></div>
         <h2 style={{ fontSize: 19, lineHeight: 1.3 }}>{m(f.title)}</h2>
         <p style={{ maxWidth: '60ch' }}>{m(ai.rationale)}</p>
         {st.status === 'accepted' && <span className="small" data-testid="ai-accepted">Suggested by AI, accepted by {first(st.by)}</span>}

@@ -11,7 +11,7 @@ import {
 import { AiMark, Est, NoAccess, Page, Tag } from './ui';
 import { aiSourceLabel, confidenceWord, groupAiRows, isAi, suggestionStatus } from '@/domain/ai/merge';
 import { lineLabel, personName } from './lib';
-import { AI_FOUND, aiUseText } from '../info/aiUse';
+import { AI_FOUND, aiSuggestionTerm, aiUseText } from '../info/aiUse';
 import { signatures } from '@/components/client/signing';
 import { openAtFiling } from '@/components/overview/blockers';
 import { confidentRange } from '@/components/drawer/lib';
@@ -181,7 +181,7 @@ export function ChecksScreen(p: WorkProps) {
               const grpIds = shownItems.filter((x) => (x.severity ?? 'ai') === grp).flatMap(signableIn);
               return (
                 <div key={it.key}>
-                  {showGrp ? <div className={s.grp}><GroupSelect word={grp === 'ai' ? 'AI only' : SEVERITY_WORD[grp]} ids={grpIds}><span className={s.lbl}>{grp === 'ai' ? 'Flagged by the AI only' : SEVERITY_WORD[grp]}</span>{grp === 'judgment' ? <Term k="judgment" /> : grp === 'ai' ? <Term k="ai-suggestion" /> : null}</GroupSelect></div> : null}
+                  {showGrp ? <div className={s.grp}><GroupSelect word={grp === 'ai' ? 'AI only' : SEVERITY_WORD[grp]} ids={grpIds}><span className={s.lbl}>{grp === 'ai' ? 'Flagged by the AI only' : SEVERITY_WORD[grp]}</span>{grp === 'judgment' ? <Term k="judgment" /> : grp === 'ai' ? <Term k="ai-suggestion" text={aiSuggestionTerm(aiSource)} /> : null}</GroupSelect></div> : null}
                   <div className={`${s.chkRow} ${s.chkSel}${on ? ` ${s.rowOn}` : ''}`} data-item={it.key} data-severity={it.severity ?? 'ai'} aria-current={on ? 'true' : undefined} data-holds={holds ? '' : undefined}>
                     <RowSelect ids={signableIn(it)} title={m(lead ? it.checks.map((f) => f.title).join('; ') : aiTitleOf(it.ai[0].f))} />
                     <span className={s.tags}>

@@ -27,16 +27,13 @@ describe('AI source tag', () => {
     expect(aiFindings(ix, reader, verifySuggestions(ix, reader))[0].checkId).toBe('AI reader');
   });
 
-  it('the how-AI-was-used text names the source and is otherwise unchanged', () => {
-    expect(aiUseText('AI reader')).toBe(AI_READER);
-  });
-
   it('says how the AI works once per source: the agent investigated the whole packet, the reader read each document', () => {
     expect(aiUseText('AI agent')).toBe(AI_AGENT);
     expect(AI_AGENT).toMatch(/AI agent investigated the whole packet with the app.s own tools/);
     expect(AI_AGENT).not.toMatch(/read the text of each document|AI reader/);
     expect(AI_AGENT).toMatch(/final computed version/);
     expect(AI_AGENT).toMatch(/a person accepts or dismisses each one/);
+    expect(aiUseText('AI reader')).toBe(AI_READER);
     expect(AI_READER).toMatch(/AI reader read the text of each document/);
   });
 
@@ -46,7 +43,17 @@ describe('AI source tag', () => {
     expect(aiSuggestionTerm('AI agent')).toMatch(/AI agent proposed/);
     expect(aiSuggestionTerm('AI agent')).not.toMatch(/reader/);
     expect(aiSuggestionTerm('AI reader')).toMatch(/AI reader proposed/);
-    expect(TERMS['ai-suggestion'].text).toBe(aiSuggestionTerm('AI reader'));
+    // the glossary default never names a source: every site must pass its own
+    expect(TERMS['ai-suggestion'].text).not.toMatch(/AI reader|AI agent/);
+  });
+
+  it('every site that shows the ai-suggestion term passes the source text', () => {
+    for (const f of ['src/components/work/Checks.tsx', 'src/components/drawer/ClaimDrawer.tsx']) {
+      const src = readFileSync(f, 'utf8');
+      const marks = src.match(/<Term k="ai-suggestion"[^>]*>/g) ?? [];
+      expect(marks.length, f).toBeGreaterThan(0);
+      for (const m of marks) expect(m, f).toMatch(/text=\{aiSuggestionTerm\(/);
+    }
   });
 
   it('Legends and the "?" dialog take the source from the payload', () => {
