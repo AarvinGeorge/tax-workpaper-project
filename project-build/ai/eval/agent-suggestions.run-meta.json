@@ -1,0 +1,42 @@
+{
+  "payload": "agent-suggestions.json",
+  "requestedModel": "claude-opus-5-5",
+  "servedModels": [
+    "claude-opus-5-5"
+  ],
+  "promptVersion": "agent-v2",
+  "runAt": "2026-10-24T23:58:29.690Z",
+  "turns": 40,
+  "toolCalls": 90,
+  "usage": {
+    "input_tokens": 82,
+    "output_tokens": 21391,
+    "cache_creation_input_tokens": 142050,
+    "cache_read_input_tokens": 3407462
+  },
+  "costUsd": 1.8198903999999998,
+  "seconds": 280,
+  "stopReason": "end_turn",
+  "limits": {
+    "maxIterations": 40,
+    "wallClockMs": 2400000,
+    "maxCostUsd": 6
+  },
+  "thinking": {
+    "type": "adaptive"
+  },
+  "effort": "high",
+  "maxTokens": 32000,
+  "source": "file",
+  "mode": "default",
+  "seed": null,
+  "hiddenCheckIds": [],
+  "onFindingClaims": {
+    "count": 0,
+    "ids": []
+  },
+  "verifier": {
+    "shown": 0,
+    "heldBack": 0
+  }
+}

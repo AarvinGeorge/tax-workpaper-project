@@ -1,0 +1,75 @@
+{
+  "schemaVersion": 1,
+  "packetSha": "ee01f8508bd2fd9854754b82fd9c4a055bdc55e2778a132002a25381c412ad19",
+  "model": "claude-opus-5-5",
+  "promptVersion": "agent-v2",
+  "runAt": "2026-10-24T23:58:29.690Z",
+  "suggestions": [],
+  "rejected": [
+    {
+      "raw": {
+        "kind": "other",
+        "otherKind": "digital_asset_lot_identification",
+        "claims": [
+          "F8949.H.C2",
+          "F8949.H.C3",
+          "F8949.H.C5",
+          "F8949.H.C12",
+          "F8949.K.C1"
+        ],
+        "evidence": [
+          {
+            "doc": "D35",
+            "page": 1
+          },
+          {
+            "doc": "D35",
+            "page": 1
+          },
+          {
+            "doc": "D35",
+            "page": 1
+          },
+          {
+            "doc": "D35",
+            "page": 1
+          },
+          {
+            "doc": "D35",
+            "page": 1
+          },
+          {
+            "doc": "D34",
+            "page": 1
+          }
+        ],
+        "grounded": true,
+        "rationaleWords": 31,
+        "authority": null,
+        "confidence": 0.6
+      },
+      "reason": "rationale over 30 words"
+    }
+  ],
+  "proposals": [
+    {
+      "rule": "When a broker or exchange export states its lot method (FIFO), check each sold lot against the lots of the same asset still held at year end. Flag any sale that used a later lot while an earlier lot of that asset was still held.",
+      "compares": [
+        "sold lot asset code and date acquired (transaction export)",
+        "held lot asset code and date acquired (transaction export)",
+        "stated cost basis method printed on the export",
+        "Form 8949 lot basis and holding period"
+      ],
+      "firesWhen": "The export prints FIFO (or no method, which defaults to FIFO) and, for some asset, a sold lot's acquisition date is later than a lot of that asset that is still held after the sale date.",
+      "silentWhen": "The export or a client document records specific identification made by the sale date, or no earlier lot of that asset is held at the sale date, or the method printed is specific ID or HIFO with a broker confirmation of standing orders.",
+      "refs": [
+        "D35",
+        "D34",
+        "F8949.H.C2",
+        "F8949.H.C3",
+        "F8949.H.C5",
+        "F8949.K.C1"
+      ]
+    }
+  ]
+}
