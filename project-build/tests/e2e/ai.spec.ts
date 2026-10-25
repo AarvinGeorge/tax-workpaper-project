@@ -91,7 +91,13 @@ test('A7: Checks and the "?" dialog say how AI was used: what it read, the final
   await expect(group).toContainText(/final computed version/);
   await expect(group).toContainText(/a person accepts or dismisses each/);
   // B7: titles name the line, never a raw snake_case kind; one entry per title and line.
-  const titles = await page.locator('[data-finding][data-ai] strong').allTextContents();
+  // A joined entry carries its title in a <strong>; an AI-only item carries it in the item's summary.
+  const titles = await page.locator('[data-finding][data-ai]').evaluateAll((els) => els.map((el) => {
+    const strong = el.querySelector('strong');
+    if (strong) return strong.textContent ?? '';
+    const first = el.closest('details')?.querySelector('summary > span');
+    return (first?.textContent ?? '').replace('\u2726', '').trim();
+  }));
   expect(titles.length).toBeGreaterThan(0);
   for (const t of titles) expect(t).not.toMatch(/[A-Za-z]_[A-Za-z]/);
   expect(new Set(titles).size).toBe(titles.length);

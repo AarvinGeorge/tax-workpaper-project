@@ -3,6 +3,9 @@
 import { expect, test } from '@playwright/test';
 
 const ws = () => `e2e-items-${Date.now().toString(36)}${Math.floor(Math.random() * 1e4)}`;
+// Against a deployed app (E2E_BASE_URL) the server holds the measured AI payload, not the local fixture: a test that needs
+// the fixture's suggestion on a given line is skipped there rather than failing on a payload that never claimed it.
+const fixtureOnly = () => test.skip(!!process.env.E2E_BASE_URL, 'needs the local AI fixture payload');
 const item = (k: string) => `[data-item="${k}"]`;
 
 test('two checks on one line are one item, with both titles and both entries', async ({ page }) => {
@@ -17,6 +20,7 @@ test('two checks on one line are one item, with both titles and both entries', a
 });
 
 test('an item our check and the AI both flagged carries both pills', async ({ page }) => {
+  fixtureOnly();
   await page.goto(`/w/${ws()}/daniel/checks`);
   const row = page.locator(item('line:SchE.14A'));
   await expect(row).toContainText('Blocker');
