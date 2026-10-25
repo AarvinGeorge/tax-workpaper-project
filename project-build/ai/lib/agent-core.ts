@@ -118,7 +118,9 @@ export function agentSystem(ix: PacketIndex, files: ContextFiles, mode: AgentMod
 // ---------- Validation of the final answer ----------
 const isObj = (x: unknown): x is Record<string, unknown> => !!x && typeof x === 'object' && !Array.isArray(x);
 const words = (s: string) => s.trim().split(/\s+/).filter(Boolean).length;
-const CODE = /```|=>|\bfunction\b|\breturn\b|\bconst\b|\blet\b|\bif\s*\(|[{};]\s*$|\w+\([^)]*\)\s*[{;]/m;
+// Code shapes only. Bare English words ("in return", "tax return", "let") are plain words, so a keyword counts only
+// with its code syntax: `function name(`, `const x =`, `return expr;`. Snake_case field names are allowed.
+const CODE = /```|=>|\bfunction\s+\w*\s*\(|\b(?:const|let|var)\s+\w+\s*[=:]|\breturn\s*[({[]|\breturn\s+[\w.]+\s*;|\bif\s*\(|[{};]\s*$|\w+\([^)]*\)\s*[{;]/m;
 
 export function validateProposal(ix: PacketIndex, raw: unknown): { proposal?: AiProposal; reason?: string } {
   if (!isObj(raw)) return { reason: 'proposal is not an object' };

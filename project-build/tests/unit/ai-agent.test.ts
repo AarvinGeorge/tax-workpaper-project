@@ -262,6 +262,23 @@ describe('agent: the payload', () => {
     expect(validateProposal(ix, { ...proposal(), rule: Array(81).fill('w').join(' ') }).reason).toMatch(/words/);
     expect(validateProposal(ix, { ...proposal(), silentWhen: 'id 123-45-6789' }).reason).toMatch(/SSN/);
   });
+
+  it('accepts plain words that merely contain code-like words or field names, still refuses real code', () => {
+    const ok = (over: object) => validateProposal(ix, { ...proposal(), ...over });
+    // The two real rejected proposals: "return" (tax return, in return) and schema field names in compares.
+    expect(ok({
+      rule: 'A cash gift of 250 or more needs a written receipt that says whether the charity gave any goods or services in return.',
+      compares: ['donation_receipt printed text (goods or services statement)', 'extracted amount confidence', 'SchA.11 sources'],
+    }).proposal).toBeDefined();
+    expect(ok({
+      firesWhen: 'The K-1 tax year is missing from the prior return and the let-through income was not reported.',
+      compares: ['K-1 tax year and box 1 income', 'prior-year return lines for the same entity'],
+    }).proposal).toBeDefined();
+    for (const bad of ['if (line.value > 0) return true;', 'const total = a + b', 'let x = 1', 'function check(a) { }', 'items.map(x => x.value)', 'compare(a, b);', 'x = 1;', 'return line.value;']) {
+      expect(ok({ rule: bad }).reason, bad).toMatch(/code/);
+      expect(ok({ compares: [bad] }).reason, bad).toMatch(/code/);
+    }
+  });
 });
 
 describe('agent: measurement modes', () => {
