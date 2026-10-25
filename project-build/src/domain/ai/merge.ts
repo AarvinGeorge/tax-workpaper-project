@@ -11,6 +11,10 @@ import { isShown, verifySuggestions } from './verify';
 export const AI_FAMILY = 'AI suggestion';
 export const AI_CHECK_ID = 'AI reader';
 
+/** Who produced a payload, as the screens name it: the agent's prompt versions start with agent-. */
+export type AiSource = 'AI agent' | 'AI reader';
+export const aiSourceLabel = (promptVersion: string | null | undefined): AiSource => (promptVersion?.startsWith('agent-') ? 'AI agent' : 'AI reader');
+
 const KIND_TITLE: Record<Exclude<AiKind, 'other'>, string> = {
   repair_vs_improvement: 'A repair that may be an improvement',
   answer_conflicts_with_return: 'A client answer that conflicts with the return',
@@ -55,7 +59,7 @@ export function aiFindings(ix: PacketIndex, payload: AiPayload, verified: Verifi
   return verified.filter(isShown).map((s) => {
     const received = s.evidence.map((e) => ix.docById.get(e.doc)?.received_at).filter((x): x is string => !!x).sort();
     const f: Finding = {
-      id: s.id, checkId: AI_CHECK_ID, family: AI_FAMILY, title: aiTitle(s.kind, s.otherKind), severity: 'judgment',
+      id: s.id, checkId: aiSourceLabel(payload.promptVersion), family: AI_FAMILY, title: aiTitle(s.kind, s.otherKind), severity: 'judgment',
       claims: s.claims.map((k) => k.replace(/^line:/, '')).filter((k) => ix.line(ix.latest.version, k)).map((k) => 'line:' + k),
       evidence: [...new Set(s.evidence.map((e) => `doc:${e.doc}#page${e.page}`))],
       explanation: s.rationale, ledgerIds: [], source: 'ai',

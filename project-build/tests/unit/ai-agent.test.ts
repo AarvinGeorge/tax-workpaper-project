@@ -79,7 +79,7 @@ describe('agent: the request', () => {
     expect(headers.get('anthropic-beta')).toContain('server-side-fallback-2026-07-01');
     expect(body.tool_choice === undefined || (body.tool_choice as { type: string }).type === 'auto').toBe(true);
     expect(body.tools).toHaveLength(7);
-    for (const t of body.tools) expect(t.strict, t.name).toBe(t.name !== 'record_suggestion');
+    for (const t of body.tools) expect(t.strict, String(t.name)).toBe(t.name !== 'record_suggestion');
     expect(body.system.at(-1)!.cache_control).toEqual({ type: 'ephemeral' }); // the shared context, cached
     expect(body.cache_control).toEqual({ type: 'ephemeral' });               // the growing transcript, cached
     expect(body.thread).toBeUndefined();                                       // full history each turn, no server thread

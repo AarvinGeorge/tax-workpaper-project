@@ -11,6 +11,7 @@ import { DEFAULT_STORY_AT } from '@/domain/clock';
 import { proofsFor } from '@/domain/proofs';
 import { aiReview } from '@/domain/ai/merge';
 import { documentLanding } from '@/domain/docs';
+import { ACTIVE_PAYLOAD_FILE } from '../../ai/lib/producer';
 import type { RoleKey, WorkEvent } from '@/domain/contracts';
 
 const ix = indexPacket(loadPacket());
@@ -49,8 +50,10 @@ describe('behaviour contract (real packet)', () => {
     await expect(json(out)).toMatchFileSnapshot('../contract/proofs.json');
   });
 
+  // The live AI payload is the active producer's (ai/lib/producer.ts). Switching producers is an approved change to this
+  // snapshot only; regenerate it once that producer's payload is final.
   it('the AI layer: which suggestions are shown and which are held back, with reasons', async () => {
-    const r = aiReview(ix, path.join(process.cwd(), 'ai/eval/ai-suggestions.json'));
+    const r = aiReview(ix, path.join(process.cwd(), ACTIVE_PAYLOAD_FILE));
     const out = { present: r.present, shown: r.findings.map((f) => `${f.id} | ${f.claims.join(',')}`).sort(), held: r.held.map((h) => `${h.id} | ${h.reasons.join('; ')}`).sort() };
     await expect(json(out)).toMatchFileSnapshot('../contract/ai.json');
   });

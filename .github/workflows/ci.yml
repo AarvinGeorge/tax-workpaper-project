@@ -1,5 +1,5 @@
 # Unit tests, typecheck, SSN scan and the AI eval gate on every push and pull request. No secrets: the eval gate scores
-# the committed eval payload (project-build/ai/eval/ai-suggestions.json); it never calls a model.
+# the active AI producer's committed payload (ai/lib/producer.ts) against its committed baseline; it never calls a model.
 name: ci
 
 on:

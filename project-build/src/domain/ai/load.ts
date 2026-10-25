@@ -1,4 +1,5 @@
-// Reads the AI payload as untrusted input. Never throws. File mode: ai/eval/ai-suggestions.json (or AI_PAYLOAD_PATH).
+// Reads the AI payload as untrusted input. Never throws. File mode: the active producer's committed payload
+// (ai/lib/producer.ts; AI_PAYLOAD_PATH overrides).
 // Vault mode: the decrypted payload the data module (src/server/data.ts) fetched from the private Blob store.
 // Envelope and core fields are strict; unknown extra fields are ignored; an invalid row is held back with its reasons;
 // a payload made for another packet is refused whole. Absent file: no AI section, the app is unchanged.
@@ -8,6 +9,7 @@ import path from 'node:path';
 import { isVaultMode } from '../datamode';
 import { loadPacket, loadedPacketSha, type PacketIndex } from '../packet/load';
 import { AI_KINDS, type AiEvidence, type AiPayload, type AiRejected, type AiSuggestion } from './contract';
+import { ACTIVE_PAYLOAD_FILE } from '../../../ai/lib/producer';
 
 /** A suggestion that will not be shown, and why. id is null when the row has no usable id. */
 export interface AiHeld { id: string | null; reasons: string[] }
@@ -18,7 +20,7 @@ export type AiLoad =
   | { status: 'loaded'; payload: AiPayload; held: AiHeld[] };
 
 export function aiPayloadPath(): string {
-  return process.env.AI_PAYLOAD_PATH || path.join(process.cwd(), 'ai', 'eval', 'ai-suggestions.json');
+  return process.env.AI_PAYLOAD_PATH || path.join(process.cwd(), ACTIVE_PAYLOAD_FILE);
 }
 
 const shaCache = new WeakMap<object, string>();
@@ -122,7 +124,7 @@ export function setVaultAiPayload(raw: unknown | null): void {
 }
 
 /** Reads and validates the payload. With no file given: in vault mode the payload fetched from the vault, otherwise
- *  ai/eval/ai-suggestions.json (AI_PAYLOAD_PATH overrides). Cached until the file or the fetched payload changes. */
+ *  the active producer's committed payload (AI_PAYLOAD_PATH overrides). Cached until the file or the fetched payload changes. */
 export function loadAiPayload(ix: PacketIndex, fileArg?: string): AiLoad {
   if (fileArg === undefined && isVaultMode()) {
     if (!vaultRaw) return { status: 'absent' };

@@ -1,5 +1,5 @@
 // Checks inbox: one row per item (a return line or a document) with every signal on it: our rule findings (blockers
-// first), the AI reader's suggestions, and whether every value behind it was read confidently. Beside it, the engine's
+// first), the AI's suggestions (named by their source), and whether every value behind it was read confidently. Beside it, the engine's
 // diagnostics. Filter by severity, bulk sign-off with one undo.
 import type { Finding, Severity } from '@/domain/contracts';
 import { refText, resolveRef } from '@/domain/refs';
@@ -9,9 +9,9 @@ import {
   signed, visibleFinding, when, writeBlock, type WorkProps,
 } from './lib';
 import { AiMark, Est, NoAccess, Page, Tag } from './ui';
-import { confidenceWord, groupAiRows, isAi, suggestionStatus } from '@/domain/ai/merge';
+import { aiSourceLabel, confidenceWord, groupAiRows, isAi, suggestionStatus } from '@/domain/ai/merge';
 import { lineLabel, personName } from './lib';
-import { AI_FOUND, AI_READER } from '../info/aiUse';
+import { AI_FOUND, aiUseText } from '../info/aiUse';
 import { signatures } from '@/components/client/signing';
 import { openAtFiling } from '@/components/overview/blockers';
 import { confidentRange } from '@/components/drawer/lib';
@@ -80,6 +80,7 @@ export function ChecksScreen(p: WorkProps) {
   const ai = p.findings.filter((f) => isAi(f) && visibleFinding(f, state.storyAt))
     .map((f) => ({ f, st: suggestionStatus(state.events, f.id) })).filter((x) => x.st.status !== 'dismissed');
   const aiOn = !!p.ai?.present && role.kind === 'staff';
+  const aiSource = aiSourceLabel(p.ai?.meta?.promptVersion);
   const held = aiOn ? p.ai!.held : [];
   // One row per item: our findings and the AI's suggestions on the same line or document share a row (src/domain/items.ts).
   const items = checkItems(visible, aiOn ? ai : []);
@@ -146,7 +147,7 @@ export function ChecksScreen(p: WorkProps) {
           <h2 className={s.h2} id="chk-ours" tabIndex={-1}>Items <span className={s.note}>({shownItems.length})</span><Term k="blocker" /></h2>
           <p className={`${s.note} ${s.row}`} style={{ margin: 0, gap: 6 }} data-testid="pill-key">
             <span className={s.row} style={{ gap: 6 }}><Tag tone="blk">Blocker</Tag><Tag tone="wrn">Check</Tag><Tag tone="acc">Judgment</Tag><Tag tone="neu">Info</Tag><span>our rule checks;</span></span>
-            <span className={s.row} style={{ gap: 6 }}><Tag tone="neu"><AiMark label="" />AI</Tag><span>the AI reader flagged this item, a person decides;</span></span>
+            <span className={s.row} style={{ gap: 6 }}><Tag tone="neu"><AiMark label="" />AI</Tag><span>the {aiSource} flagged this item, a person decides;</span></span>
             <span className={s.row} style={{ gap: 6 }}><Tag tone="wrn">Engine warning</Tag><span>the engine&apos;s own note names this item;</span></span>
             <span style={{ flexBasis: '100%', lineHeight: 1.7 }}><Tag tone="neu">Confident mistake</Tag> <span>flagged by our checks, though every value behind it was read at 0.95 or above. The checks were built from the mistakes our external investigation found.</span></span>
           </p>
@@ -185,7 +186,7 @@ export function ChecksScreen(p: WorkProps) {
                     <RowSelect ids={signableIn(it)} title={m(lead ? it.checks.map((f) => f.title).join('; ') : aiTitleOf(it.ai[0].f))} />
                     <span className={s.tags}>
                       {st ? <Tag tone={st.tone}>{st.word}</Tag> : <Tag tone={aiOpen ? 'wrn' : 'pas'}>{aiOpen ? 'Needs review' : 'Accepted'}</Tag>}
-                      {it.ai.length ? <Tag tone="neu" title="The AI reader flagged this item; a person accepts or dismisses each suggestion"><AiMark label="" />AI</Tag> : null}
+                      {it.ai.length ? <Tag tone="neu" title={`The ${aiSource} flagged this item; a person accepts or dismisses each suggestion`}><AiMark label="" />AI</Tag> : null}
                       {engine.has(it.key) ? <span className={s.hideSm}><Tag tone="wrn" title="The engine's own diagnostic names this item; shown as it wrote it, not one of our checks">Engine warning</Tag></span> : null}
                       {sure ? <span className={s.hideSm}><Tag tone="neu" title="Flagged by our checks, though every value behind it was read at 0.95 or above; confidence gave no warning">Confident mistake</Tag></span> : null}
                     </span>
@@ -323,13 +324,13 @@ function AiEntry({ p, row, titled }: { p: WorkProps; row: { title: string; items
   );
 }
 
-/** Under the list: how the AI reader works, and any suggestion held back by verification. */
+/** Under the list: how the AI that made the suggestions works, and any suggestion held back by verification. */
 function AiFoot({ p, held, count, items }: { p: WorkProps; held: { id: string | null; reasons: string[] }[]; count: number; items: number }) {
   const m = masker(p.state, p.role);
   return (
     <div className={s.body} data-testid="ai-suggestions">
       <p className={s.note} style={{ margin: 0 }} data-testid="ai-count"><AiMark label="" />{count} AI suggestion{count === 1 ? '' : 's'} on {items} item{items === 1 ? '' : 's'}{count > items ? ' (some items carry more than one)' : ''}; open a row to see each one.</p>
-      <p className={s.note} style={{ margin: 0, maxWidth: '90ch' }}>{AI_READER} {AI_FOUND}</p>
+      <p className={s.note} style={{ margin: 0, maxWidth: '90ch' }}>{aiUseText(aiSourceLabel(p.ai?.meta?.promptVersion))} {AI_FOUND}</p>
       {held.length ? (
         <details className={s.note} data-testid="ai-held">
           <summary>{held.length} AI suggestion{held.length === 1 ? '' : 's'} held back: failed verification</summary>

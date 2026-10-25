@@ -16,7 +16,7 @@ import { AiDecision } from './AiDecision';
 import { DocNote } from './DocNote';
 import { needsPartnerSignoff } from '@/domain/project';
 import { effectEstimate, formLabel } from '@/domain/versions';
-import { confidenceWord, suggestionStatus } from '@/domain/ai/merge';
+import { aiSourceLabel, confidenceWord, suggestionStatus } from '@/domain/ai/merge';
 import { humanize } from '@/domain/labels';
 import { proofsFor } from '@/domain/proofs';
 
@@ -487,8 +487,8 @@ function AiFindingClaim({ c, f }: { c: Ctx; f: Finding }) {
       {f.claims.length > 0 && <div className="drw-sec"><span className="lbl">Sits on</span><div className="row small" style={{ gap: 6 }}>{f.claims.map((k) => <Link key={k} className="srcref" href={claimHref(k)}>{k.replace(/^line:/, '')}</Link>)}</div></div>}
       <div className="drw-sec">
         <span className="lbl">Who suggested it</span>
-        <span className="small">Suggested by {ai.model}, prompt {ai.promptVersion}, {fmtDay(ai.runAt)}</span>
-        <span className="small">Confidence: {confidenceWord(ai.confidence)} <span className="muted">(the reader&apos;s own estimate; it never skips the quote check)</span></span>
+        <span className="small">Suggested by the {aiSourceLabel(ai.promptVersion)} ({ai.model}), prompt {ai.promptVersion}, {fmtDay(ai.runAt)}</span>
+        <span className="small">Confidence: {confidenceWord(ai.confidence)} <span className="muted">(the {aiSourceLabel(ai.promptVersion) === 'AI agent' ? 'agent' : 'reader'}&apos;s own estimate; it never skips the quote check)</span></span>
       </div>
       <Trail c={c} claimId={claimId} />
       <AiDecision ws={c.ws} role={c.role} claimId={claimId} status={st.status} ok={verdict.ok} reason={verdict.reason} />

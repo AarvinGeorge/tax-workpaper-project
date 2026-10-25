@@ -9,7 +9,8 @@ import { maskText, maskValue, roleInfo, sensitiveTypeOf } from '../../src/domain
 import type { RoleInfo } from '../../src/domain/contracts';
 import { supersession } from '../../src/domain/ai/verify';
 
-export const PROMPT_VERSION = 'reader-v2';
+import { READER_PROMPT_VERSION } from './versions';
+export const PROMPT_VERSION = READER_PROMPT_VERSION;
 export const DEFAULT_MODEL = 'claude-sonnet-5-5';
 export const MAX_TOKENS = 8000;
 /** Adaptive thinking: a judgment task, so tokens are traded for quality. Thinking counts toward max_tokens. */

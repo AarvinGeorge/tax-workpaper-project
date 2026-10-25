@@ -8,9 +8,9 @@ import { existsSync, readFileSync, readdirSync, writeFileSync } from 'node:fs';
 import path from 'node:path';
 import type { AiPayload } from '../src/domain/ai/contract';
 import { indexPacket, loadPacket } from '../src/domain/packet/load';
-import { agentScorecardMarkdown, evalGate, goldSet, hiddenOnlyLedger, uncheckedLedger, type ModeRun, type ScoredRun, MAX_HELD_BACK, MIN_STRICT_RECALL, scorecardMarkdown, scorePayload, shownView, summaryLine, type Adjudication, type RunMeta, type Score } from './lib/harness-core';
+import { GATE_BASELINES_FILE, agentScorecardMarkdown, baselineFrom, evalGate, gateBaseline, goldSet, hiddenOnlyLedger, uncheckedLedger, type ModeRun, type ScoredRun, scorecardMarkdown, scorePayload, shownView, summaryLine, type Adjudication, type RunMeta, type Score } from './lib/harness-core';
 import { redactNames } from './lib/reader-core';
-import { ACTIVE_PROMPT_VERSION } from './lib/producer';
+import { ACTIVE_PAYLOAD_FILE, ACTIVE_PRODUCER, ACTIVE_PROMPT_VERSION } from './lib/producer';
 import { hiddenCheckIds } from './lib/modes';
 
 function meta(payloadFile: string): RunMeta {
@@ -25,13 +25,25 @@ async function main() {
   const root = process.cwd();
   const args = process.argv.slice(2);
   const check = args.includes('--check');
-  const file = path.resolve(root, args.find((a) => !a.startsWith('--')) ?? 'ai/eval/ai-suggestions.json');
-  if (!existsSync(file)) { console.error(`No payload at ${path.relative(root, file)}. Run the reader first.`); process.exit(2); }
+  const file = path.resolve(root, args.find((a) => !a.startsWith('--')) ?? ACTIVE_PAYLOAD_FILE);
+  if (!existsSync(file)) { console.error(`No payload at ${path.relative(root, file)}. Run the active producer (${ACTIVE_PRODUCER}) first.`); process.exit(2); }
   const payload = JSON.parse(readFileSync(file, 'utf8')) as AiPayload;
   if (args.includes('--agent')) return agentCard(root);
+  if (args.includes('--set-baseline')) {
+    // The active producer's committed payload becomes its gate baseline (what it reaches now); commit the file it writes.
+    const b = baselineFrom(indexPacket(loadPacket()), ACTIVE_PRODUCER, payload);
+    const g = evalGate(indexPacket(loadPacket()), payload, ACTIVE_PROMPT_VERSION, b);
+    if (g.failures.length) { for (const f of g.failures) console.error('set-baseline refused: ' + f); process.exit(1); }
+    const out = path.join(root, GATE_BASELINES_FILE);
+    const all = existsSync(out) ? JSON.parse(readFileSync(out, 'utf8')) as Record<string, unknown> : {};
+    writeFileSync(out, JSON.stringify({ ...all, [ACTIVE_PRODUCER]: b }, null, 2) + '\n');
+    console.log(`gate baseline for ${ACTIVE_PRODUCER} (${b.promptVersion}): strict recall as shown at least ${b.minStrict}, held back at most ${b.maxHeldBack}; wrote ${GATE_BASELINES_FILE}`);
+    return;
+  }
   if (check) {
-    const g = evalGate(indexPacket(loadPacket()), payload, ACTIVE_PROMPT_VERSION);
-    console.log(`eval gate: ${path.relative(root, file)} (${payload.promptVersion}); strict recall as shown ${g.strictFound}/${g.ledgerTotal} (baseline ${MIN_STRICT_RECALL}); raw grounding ${(g.rawGrounding * 100).toFixed(0)}% of ${g.produced}; held back ${g.heldBack} (baseline ${MAX_HELD_BACK}), shown ${g.shown}`);
+    const base = gateBaseline(ACTIVE_PRODUCER, root);
+    const g = evalGate(indexPacket(loadPacket()), payload, ACTIVE_PROMPT_VERSION, base);
+    console.log(`eval gate (${ACTIVE_PRODUCER}): ${path.relative(root, file)} (${payload.promptVersion}); strict recall as shown ${g.strictFound}/${g.ledgerTotal} (baseline ${base?.minStrict ?? 'none'}); raw grounding ${(g.rawGrounding * 100).toFixed(0)}% of ${g.produced}; held back ${g.heldBack} (baseline ${base?.maxHeldBack ?? 'none'}), shown ${g.shown}`);
     for (const f of g.failures) console.error('eval gate FAILED: ' + f);
     if (g.failures.length) process.exit(1);
     console.log('eval gate: passed');

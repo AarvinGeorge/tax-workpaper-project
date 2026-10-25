@@ -20,7 +20,8 @@ import {
   type Row, type Usage,
 } from './reader-core';
 
-export const AGENT_PROMPT_VERSION = 'agent-v3';
+export { AGENT_PROMPT_VERSION } from './versions';
+import { AGENT_PROMPT_VERSION } from './versions';
 export const AGENT_DEFAULT_MODEL = 'claude-opus-5-5';
 /** Per turn. Non-streaming; with an explicit client timeout the SDK accepts it (its 10-minute guard applies only to
  *  the default timeout). Thinking counts toward it. */

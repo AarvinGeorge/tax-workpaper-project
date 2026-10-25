@@ -43,7 +43,7 @@ test('the side panel shows rationale, quote, authority and provenance; accept la
   await expect(drawer).toContainText('Needs review');
   await expect(drawer).toContainText('Installed new');
   await expect(drawer).toContainText('Treas. Reg. 1.263(a)-3');
-  await expect(drawer).toContainText(/Suggested by example-model, prompt reader-test, /);
+  await expect(drawer).toContainText(/Suggested by the AI reader \(example-model\), prompt reader-test, /);
   await expect(drawer).toContainText('Confidence: high');
   await expect(drawer.getByRole('link', { name: /page 1/ }).first()).toHaveAttribute('href', /claim=doc%3AD\d+%23page1|claim=doc:D\d+#page1/);
   await drawer.getByRole('button', { name: 'Accept' }).click();
@@ -86,7 +86,7 @@ test('A7: Checks and the "?" dialog say how AI was used: what it read, the final
   await page.goto(`/w/${ws()}/daniel/checks`);
   const group = page.getByTestId('ai-suggestions');
   await expect(group).toContainText('found during an AI-assisted review of the packet and are now caught by deterministic checks');
-  await expect(group).toContainText(/AI reader read/);
+  await expect(group).toContainText(/AI (reader|agent) read/); // the source the payload names
   await expect(group).toContainText(/final computed version/);
   await expect(group).toContainText(/a person accepts or dismisses each/);
   // B7: titles name the line, never a raw snake_case kind; one entry per title and line.

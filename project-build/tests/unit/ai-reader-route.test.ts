@@ -74,7 +74,7 @@ describe('ai-reader route', () => {
     const ap = vault.aiBlobPath(SHA);
     const current = { schemaVersion: 1, packetSha: SHA, model: 'm', promptVersion: PROMPT_VERSION, runAt: '2026-10-17T00:00:00Z', suggestions: [], rejected: [] };
     blobs.set(ap, vault.seal(Buffer.from(JSON.stringify(current)), vault.vaultKey(env()), ap));
-    const res = await handleAiReader(req(`Bearer ${SECRET}`), env(), fakeFetch);
+    const res = await handleAiReader(req(`Bearer ${SECRET}`), env(), fakeFetch, 'reader');
     expect(res.status).toBe(200);
     expect(await res.json()).toMatchObject({ skipped: true });
     expect(fetchCalls).toBe(0);
@@ -82,7 +82,7 @@ describe('ai-reader route', () => {
 
   it('runs over the vault packet, stores the encrypted payload, and returns a summary only', async () => {
     const { vault, handleAiReader, PROMPT_VERSION } = await setup();
-    const res = await handleAiReader(req(`Bearer ${SECRET}`, '?force=1'), env(), fakeFetch);
+    const res = await handleAiReader(req(`Bearer ${SECRET}`, '?force=1'), env(), fakeFetch, 'reader');
     expect(res.status).toBe(200);
     const text = await res.text();
     expect(text).not.toContain(RATIONALE);
@@ -100,16 +100,25 @@ describe('ai-reader route', () => {
     expect(payload).toMatchObject({ packetSha: SHA, promptVersion: PROMPT_VERSION });
   });
 
+  it('refuses a full run while the active producer is not the reader: it never replaces the agent\'s payload', async () => {
+    const { vault, handleAiReader } = await setup();
+    const res = await handleAiReader(req(`Bearer ${SECRET}`, '?force=1'), env(), fakeFetch);
+    expect(res.status).toBe(409);
+    expect(await res.json()).toMatchObject({ ok: false, reason: expect.stringMatching(/active AI producer is the agent/) });
+    expect(fetchCalls).toBe(0);
+    expect(blobs.has(vault.aiBlobPath(SHA))).toBe(false);
+  });
+
   it('an unparseable or undecryptable stored payload is treated as stale and re-run, not a 500', async () => {
     const { vault, handleAiReader } = await setup();
     const ap = vault.aiBlobPath(SHA);
     blobs.set(ap, vault.seal(Buffer.from('{not json'), vault.vaultKey(env()), ap));
-    let res = await handleAiReader(req(`Bearer ${SECRET}`), env(), fakeFetch);
+    let res = await handleAiReader(req(`Bearer ${SECRET}`), env(), fakeFetch, 'reader');
     expect(res.status).toBe(200);
     expect(await res.json()).toMatchObject({ skipped: false });
     blobs.set(ap, vault.seal(Buffer.from('{}'), randomBytes(32), ap)); // another key: fails authentication
     const before = fetchCalls;
-    res = await handleAiReader(req(`Bearer ${SECRET}`), env(), fakeFetch);
+    res = await handleAiReader(req(`Bearer ${SECRET}`), env(), fakeFetch, 'reader');
     expect(res.status).toBe(200);
     expect(await res.json()).toMatchObject({ skipped: false });
     expect(fetchCalls).toBeGreaterThan(before);
@@ -168,7 +177,7 @@ describe('ai-reader route', () => {
     const ap = vault.aiBlobPath(SHA);
     const old = { schemaVersion: 1, packetSha: SHA, model: 'm', promptVersion: 'reader-v0', runAt: '2026-10-17T00:00:00Z', suggestions: [], rejected: [] };
     blobs.set(ap, vault.seal(Buffer.from(JSON.stringify(old)), vault.vaultKey(env()), ap));
-    const res = await handleAiReader(req(`Bearer ${SECRET}`), env(), fakeFetch);
+    const res = await handleAiReader(req(`Bearer ${SECRET}`), env(), fakeFetch, 'reader');
     expect(await res.json()).toMatchObject({ skipped: false });
     expect(fetchCalls).toBeGreaterThan(0);
   });
