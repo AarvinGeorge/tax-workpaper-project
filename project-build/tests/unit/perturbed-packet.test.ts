@@ -12,7 +12,7 @@ import { runChecks } from '@/domain/checks/index';
 import {
   MIRROR_MIN, PERTURBED_SEED, PLANT_KINDS, moneyText, packetDiff, parseMoney, perturbedPacket, versionChangeProblems,
 } from '../fixtures/perturbed';
-import { plantedReport, plantedScore } from '../../ai/lib/planted-score';
+import { plantSources, plantedReport, plantedScore } from '../../ai/lib/planted-score';
 import { runTool, toolNamesFor } from '../../ai/lib/agent-tools';
 import { VERIFY_METHODS } from '../../ai/lib/calculator';
 import { agentOutFile, agentSystem, loadContextFiles, runAgent, writeRun } from '../../ai/lib/agent-core';
@@ -384,11 +384,15 @@ describe('perturbed packet: scoring (offline)', () => {
       expect(p.claims).not.toContain(k);
       expect(pIx.line(pIx.latest.version, k)?.value).toEqual(realIx.line(realIx.latest.version, k)?.value);
     }
-    const s = plantedScore(pIx, base.planted, [{ checkId: 'X', claims: ['line:F4797.9'] }, { checkId: 'Y', claims: ['line:NO.SUCH'] }, { checkId: 'Z', claims: [`line:${base.planted[0].lines[0]}`] }] as never);
+    // Per plant (Task 6): the stale claim also names that plant's source, else it is a false positive (planted-score.test.ts).
+    const i = base.planted.findIndex((p) => p.stale.includes('F4797.9'));
+    const ref = [...plantSources(pIx, base.planted[i]).ids][0];
+    expect(ref).toBeTruthy();
+    const s = plantedScore(pIx, base.planted, [{ checkId: 'X', claims: ['line:F4797.9'], evidence: [ref] }, { checkId: 'Y', claims: ['line:NO.SUCH'] }, { checkId: 'Z', claims: [`line:${base.planted[0].lines[0]}`] }] as never);
     expect(s).toMatchObject({ considered: 3, matched: 1, attributable: 1, falsePositives: 1 });
     expect(s.precision).toBe(0.5); // matched / (considered - attributable)
-    const i = base.planted.findIndex((p) => p.stale.includes('F4797.9'));
     expect(s.perPlant[i].onStale).toBe(true);
+    expect(s.perPlant[i].attributable).toBe(1);
   });
 
   it('empty findings are scored as findings', () => {
