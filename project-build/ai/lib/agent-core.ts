@@ -16,7 +16,7 @@ import { agentTools, findingsFor, type ToolGuard } from './agent-tools';
 import { caseFile } from './case-file';
 import { DEFAULT_MODE, hiddenCheckIds, modeLabel, type AgentMode } from './modes';
 import {
-  OUTPUT_SCHEMA, PRICES, addUsage, assignIds, namesAPerson, sanitizeRejected, validateRow, zeroUsage,
+  OUTPUT_SCHEMA, PRICES, addUsage, assignIds, masker, namesAPerson, sanitizeRejected, validateRow, zeroUsage,
   type Row, type Usage,
 } from './reader-core';
 
@@ -196,7 +196,36 @@ export interface AgentRunMeta {
   source: 'vault' | 'file' | null; mode: AgentMode['kind']; seed: number | null; hiddenCheckIds: string[];
   onFindingClaims: OnFindingClaims; verifier: { shown: number; heldBack: number } | null;
 }
-export type AgentRunResult = { ok: true; payload: AiPayload; meta: AgentRunMeta } | { ok: false; reason: string; meta: AgentRunMeta };
+/** What one tool call returned, in brief (never the result itself). */
+export interface TraceResult { bytes: number; error: boolean; total?: number; items?: number }
+export interface TraceTurn {
+  turn: number; stopReason: string | null; model: string;
+  toolCalls: { name: string; input: unknown; result: TraceResult | null }[];
+  usage: Usage; costUsd: number; text: string | null;
+}
+/** Per turn, for seeing where a run's turns went. Masked; visible text only (never thinking); SSN-scanned. */
+export interface AgentTrace {
+  promptVersion: string; runAt: string; turns: TraceTurn[];
+  /** end_turn: a normal final answer; iteration_cap: the turn limit ended it; stopped: a guard or error ended it. */
+  endedBy: 'end_turn' | 'iteration_cap' | 'stopped'; reason: string | null;
+}
+export const TRACE_TEXT_MAX = 300;
+export type AgentRunResult =
+  | { ok: true; payload: AiPayload; meta: AgentRunMeta; trace: AgentTrace }
+  | { ok: false; reason: string; meta: AgentRunMeta; trace: AgentTrace };
+
+/** A tool result in brief: its size, whether it is an error, and a list's total and item count. */
+function summarize(result: unknown): TraceResult {
+  const text = typeof result === 'string' ? result : JSON.stringify(result ?? '');
+  const out: TraceResult = { bytes: Buffer.byteLength(text), error: false };
+  try {
+    const d = (JSON.parse(text) as { data?: Record<string, unknown> }).data ?? {};
+    out.error = typeof d.error === 'string';
+    if (typeof d.total === 'number') out.total = d.total;
+    if (Array.isArray(d.items)) out.items = d.items.length;
+  } catch { /* not JSON: size only */ }
+  return out;
+}
 
 export async function runAgent(o: AgentRunOptions): Promise<AgentRunResult> {
   if (!o.apiKey) throw new Error('ANTHROPIC_API_KEY is not set (expected in project-build/.env.local).');
@@ -211,7 +240,36 @@ export async function runAgent(o: AgentRunOptions): Promise<AgentRunResult> {
   const guard: ToolGuard = { onHit: (tool) => fail(`SSN-shaped text in a ${tool} result`) };
   const timer = setTimeout(() => fail(`wall-clock limit of ${Math.round(limits.wallClockMs / 1000)} s reached`), limits.wallClockMs);
   const mode = o.mode ?? DEFAULT_MODE;
-  const tools = o.toolsFor ? o.toolsFor(o.ix, guard, mode) : agentTools(o.ix, guard, { mode });
+  const baseTools = o.toolsFor ? o.toolsFor(o.ix, guard, mode) : agentTools(o.ix, guard, { mode });
+  // Each call's result, in brief, matched later to the turn's tool_use blocks by name and input.
+  const done: { name: string; input: string; result: TraceResult }[] = [];
+  const tools = baseTools.map((t) => ({
+    ...t,
+    run: async (input: unknown) => {
+      const key = JSON.stringify(input ?? null);
+      try {
+        const r = await (t.run as (i: unknown) => unknown)(input);
+        done.push({ name: t.name, input: key, result: summarize(r) });
+        return r;
+      } catch (e) {
+        done.push({ name: t.name, input: key, result: { bytes: 0, error: true } });
+        throw e;
+      }
+    },
+  })) as BetaRunnableTool[];
+  const mask = masker(o.ix);
+  const maskDeep = (x: unknown): unknown => typeof x === 'string' ? mask(x) : Array.isArray(x) ? x.map(maskDeep)
+    : x && typeof x === 'object' ? Object.fromEntries(Object.entries(x).map(([k, v]) => [k, maskDeep(v)])) : x;
+  const traceTurns: TraceTurn[] = [];
+  const rawInput = new WeakMap<object, string>();
+  /** Attaches finished calls' summaries to the turn that asked for them (the runner runs tools between turns). */
+  const settle = () => {
+    for (const t of traceTurns) for (const c of t.toolCalls) {
+      if (c.result) continue;
+      const i = done.findIndex((d) => d.name === c.name && d.input === rawInput.get(c));
+      if (i >= 0) { c.result = done[i].result; done.splice(i, 1); }
+    }
+  };
 
   let usage = zeroUsage(); let cost = 0; let turns = 0; let toolCalls = 0;
   const served: string[] = [];
@@ -234,6 +292,19 @@ export async function runAgent(o: AgentRunOptions): Promise<AgentRunResult> {
       for (const k of Object.keys(u) as (keyof Usage)[]) u[k] = u[k] ?? 0;
       usage = addUsage(usage, u); cost += turnCost(u, msg.model);
       toolCalls += msg.content.filter((b) => b.type === 'tool_use').length;
+      settle();
+      const visible = msg.content.filter((b) => b.type === 'text').map((b) => (b as { text: string }).text).join('').trim();
+      traceTurns.push({
+        turn: turns, stopReason: msg.stop_reason, model: msg.model,
+        toolCalls: msg.content.filter((b) => b.type === 'tool_use').map((b) => {
+          const tu = b as { name: string; input: unknown };
+          const call = { name: tu.name, input: maskDeep(tu.input), result: null as TraceResult | null };
+          rawInput.set(call, JSON.stringify(tu.input ?? null));
+          return call;
+        }),
+        usage: u, costUsd: Math.round(cost * 10_000) / 10_000,
+        text: visible ? mask(visible).slice(0, TRACE_TEXT_MAX) : null,
+      });
       log(`turn ${turns}: ${msg.stop_reason}, ${toolCalls} tool call(s) so far, ~$${cost.toFixed(2)}`);
       if (cost > limits.maxCostUsd) { fail(`over the cost budget ($${cost.toFixed(2)} > $${limits.maxCostUsd})`); break; }
       if (msg.stop_reason === 'refusal') { fail(`the model refused${msg.stop_details?.category ? ` (${msg.stop_details.category})` : ''}`); break; }
@@ -252,24 +323,39 @@ export async function runAgent(o: AgentRunOptions): Promise<AgentRunResult> {
     source: o.source ?? null, mode: mode.kind, seed: mode.kind === 'hide-checks' ? mode.seed : null, hiddenCheckIds: mode.kind === 'hide-checks' ? hiddenCheckIds(mode.seed) : [],
     onFindingClaims: { count: 0, ids: [] }, verifier: null, ...extra,
   });
+  settle();
+  const capped = !failure && !!last && last.stop_reason === 'tool_use';
   if (!failure && !last) failure = 'no response';
-  if (!failure && last!.stop_reason === 'tool_use') failure = `iteration cap of ${limits.maxIterations} reached before a final answer`;
+  if (capped) failure = `iteration cap of ${limits.maxIterations} reached before a final answer`;
   if (!failure && last!.stop_reason !== 'end_turn') failure = `stopped with ${last!.stop_reason}`;
-  if (failure) return { ok: false, reason: failure, meta: meta() };
+  const trace = (): AgentTrace => {
+    const t: AgentTrace = { promptVersion: promptVersionFor(mode), runAt, turns: traceTurns, endedBy: capped ? 'iteration_cap' : failure ? 'stopped' : 'end_turn', reason: failure };
+    // Fail closed, as tool results do: a trace holding an SSN shape is withheld and the run fails.
+    if (SSN_SHAPED.test(JSON.stringify(t))) {
+      failure ??= 'SSN-shaped text in the trace';
+      return { promptVersion: t.promptVersion, runAt, turns: [], endedBy: 'stopped', reason: 'trace withheld: SSN-shaped text' };
+    }
+    return t;
+  };
+  const tr = trace();
+  if (failure) return { ok: false, reason: failure, meta: meta(), trace: tr };
   const text = last!.content.filter((b) => b.type === 'text').map((b) => (b as { text: string }).text).join('');
   let fin: Finalized;
   try {
     fin = finalizePayload(o.ix, text, { packetSha: o.packetSha, model: last!.model, runAt, mode });
   } catch (e) {
-    return { ok: false, reason: e instanceof Error ? e.message : 'final payload rejected', meta: meta() };
+    const why = e instanceof Error ? e.message : 'final payload rejected';
+    return { ok: false, reason: why, meta: meta(), trace: { ...tr, endedBy: 'stopped', reason: why } };
   }
   const verified = verifySuggestions(o.ix, fin.payload);
   const shown = verified.filter(isShown).length;
-  return { ok: true, payload: fin.payload, meta: meta({ onFindingClaims: fin.onFindingClaims, verifier: { shown, heldBack: verified.length - shown } }) };
+  return { ok: true, payload: fin.payload, meta: meta({ onFindingClaims: fin.onFindingClaims, verifier: { shown, heldBack: verified.length - shown } }), trace: tr };
 }
 
-/** Writes the payload and its run meta beside it, only for a run that finished. Returns whether it wrote. */
+/** Writes the trace beside the payload always (a failed run is when it is needed most), and the payload and its run
+ *  meta only for a run that finished. Returns whether it wrote the payload. */
 export function writeRun(res: AgentRunResult, outFile: string): boolean {
+  writeFileSync(outFile.replace(/\.json$/, '.trace.json'), JSON.stringify(res.trace, null, 2) + '\n');
   if (!res.ok) return false;
   writeFileSync(outFile, JSON.stringify(res.payload, null, 2) + '\n');
   writeFileSync(outFile.replace(/\.json$/, '.run-meta.json'), JSON.stringify({ payload: path.basename(outFile), ...res.meta }, null, 2) + '\n');

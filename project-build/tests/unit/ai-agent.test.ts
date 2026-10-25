@@ -6,6 +6,7 @@ import path from 'node:path';
 import { describe, expect, it } from 'vitest';
 import { indexPacket, loadPacket } from '@/domain/packet/load';
 import { LEDGER, runChecks } from '@/domain/checks/index';
+import { SSN_SHAPED } from '@/domain/ai/verify';
 import { AI_AUTHORITIES } from '@/domain/ai/contract';
 import { SsnInToolResult, agentTools, toolNamesFor } from '../../ai/lib/agent-tools';
 import {
@@ -298,17 +299,79 @@ describe('agent: measurement modes', () => {
 });
 
 describe('agent: writing the run', () => {
-  it('a failed run writes nothing; a good run writes the payload and its run meta', async () => {
+  it('a failed run writes only its trace; a good run writes the payload and its run meta', async () => {
     const dir = mkdtempSync(path.join(tmpdir(), 'agent-'));
     const out = path.join(dir, 'agent-suggestions.json');
     const bad = await runAgent(opts(fakeFetch(() => message([{ type: 'text', text: 'x' }], 'max_tokens')).fetch));
     expect(writeRun(bad, out)).toBe(false);
-    expect(readdirSync(dir)).toEqual([]);
+    expect(readdirSync(dir)).toEqual(['agent-suggestions.trace.json']); // only the trace: a failed run is when it is needed
     const good = await runAgent(opts(fakeFetch(() => final({ suggestions: [row()], proposals: [] })).fetch));
     expect(writeRun(good, out)).toBe(true);
     expect(existsSync(out)).toBe(true);
     const meta = JSON.parse(readFileSync(out.replace(/\.json$/, '.run-meta.json'), 'utf8'));
     for (const k of ['requestedModel', 'servedModels', 'promptVersion', 'turns', 'toolCalls', 'usage', 'costUsd', 'seconds', 'limits', 'mode', 'onFindingClaims']) expect(meta, k).toHaveProperty(k);
     expect(meta.mode).toBe('default');
+  });
+});
+
+describe('agent: the per-turn trace', () => {
+  const thinking = { type: 'thinking', thinking: 'PRIVATE-THOUGHT-never-in-the-trace', signature: 'sig' };
+  const twoToolTurns: Script = (_b, turn) => turn === 1
+    ? message([thinking, { type: 'text', text: 'Looking at the open lines first.' }, toolUse('get_line', { key: freeLine }), toolUse('list_open_leftovers', { kind: 'all', limit: 5, cursor: 0 })], 'tool_use')
+    : turn === 2 ? message([thinking, toolUse('verify', { method: 'recompute_line', ids: [freeLine], target: null, limit: null, cursor: null })], 'tool_use')
+      : message([thinking, { type: 'text', text: JSON.stringify({ suggestions: [], proposals: [] }) }], 'end_turn');
+
+  it('one entry per turn: stop reason, each tool call with its input and a result summary, usage, running cost, visible text', async () => {
+    const res = await runAgent(opts(fakeFetch(twoToolTurns).fetch));
+    expect(res.ok).toBe(true);
+    const t = res.trace;
+    expect(t.turns).toHaveLength(3);
+    expect(t.turns.map((x) => x.turn)).toEqual([1, 2, 3]);
+    expect(t.turns.map((x) => x.stopReason)).toEqual(['tool_use', 'tool_use', 'end_turn']);
+    expect(t.turns[0].toolCalls.map((c) => c.name)).toEqual(['get_line', 'list_open_leftovers']);
+    expect(t.turns[0].toolCalls[0].input).toEqual({ key: freeLine });
+    expect(t.turns[0].toolCalls[0].result).toMatchObject({ error: false });
+    expect(t.turns[0].toolCalls[0].result!.bytes).toBeGreaterThan(0);
+    expect(t.turns[0].toolCalls[1].result).toMatchObject({ error: false, items: 5 });
+    expect(t.turns[0].toolCalls[1].result!.total).toBeGreaterThan(5);
+    expect(t.turns[1].toolCalls.map((c) => c.name)).toEqual(['verify']);
+    expect(t.turns[0].text).toBe('Looking at the open lines first.');
+    expect(t.turns[0].usage.output_tokens).toBe(200);
+    expect(t.turns[2].costUsd).toBeGreaterThan(t.turns[0].costUsd);
+    expect(t.endedBy).toBe('end_turn');
+    expect(JSON.stringify(t)).not.toContain('PRIVATE-THOUGHT');
+  });
+
+  it('a run stopped by the iteration cap says so, and its trace is written although the payload is not', async () => {
+    const dir = mkdtempSync(path.join(tmpdir(), 'agent-trace-'));
+    const out = path.join(dir, 'agent-suggestions.json');
+    const always: Script = () => message([toolUse('get_line', { key: freeLine })], 'tool_use');
+    const res = await runAgent(opts(fakeFetch(always).fetch, { limits: { maxIterations: 3 } }));
+    expect(res.ok).toBe(false);
+    expect(res.trace.endedBy).toBe('iteration_cap');
+    expect(res.trace.turns).toHaveLength(3);
+    expect(writeRun(res, out)).toBe(false);
+    expect(existsSync(out)).toBe(false);
+    const written = JSON.parse(readFileSync(out.replace(/\.json$/, '.trace.json'), 'utf8'));
+    expect(written.endedBy).toBe('iteration_cap');
+    expect(written.turns).toHaveLength(3);
+  });
+
+  it('a good run writes the trace beside the payload', async () => {
+    const dir = mkdtempSync(path.join(tmpdir(), 'agent-trace-'));
+    const out = path.join(dir, 'agent-suggestions.json');
+    const res = await runAgent(opts(fakeFetch(twoToolTurns).fetch));
+    expect(writeRun(res, out)).toBe(true);
+    expect(readdirSync(dir).sort()).toEqual(['agent-suggestions.json', 'agent-suggestions.run-meta.json', 'agent-suggestions.trace.json']);
+  });
+
+  it('no SSN shape reaches the trace: model text and tool inputs are masked, and a hit fails closed', async () => {
+    const leaky: Script = (_b, turn) => turn === 1
+      ? message([{ type: 'text', text: 'The number 123-45-6789 looks odd.' }, toolUse('search_values', { text: '123-45-6789', limit: 5, cursor: 0 })], 'tool_use')
+      : final({ suggestions: [], proposals: [] });
+    const res = await runAgent(opts(fakeFetch(leaky).fetch));
+    const text = JSON.stringify(res.trace);
+    expect(SSN_SHAPED.test(text)).toBe(false);
+    if (!res.ok) expect(res.reason).toMatch(/SSN/); // fail closed if masking could not remove it
   });
 });

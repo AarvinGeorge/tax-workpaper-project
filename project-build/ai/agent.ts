@@ -64,11 +64,12 @@ async function main() {
   });
   const m = res.meta; const u = m.usage;
   console.log(`agent: ${m.turns} turn(s), ${m.toolCalls} tool call(s), ${m.seconds} s; served ${m.servedModels.join(', ') || 'none'}; tokens in ${u.input_tokens}, cache write ${u.cache_creation_input_tokens}, cache read ${u.cache_read_input_tokens}, out ${u.output_tokens}; approx cost $${m.costUsd.toFixed(3)}`);
+  writeRun(res, out); // the trace always; the payload and run meta only for a finished run
+  const tracePath = path.relative(root, out.replace(/\.json$/, '.trace.json'));
   if (!res.ok) {
-    console.error(`agent FAILED, nothing written: ${res.reason}`);
+    console.error(`agent FAILED (${res.trace.endedBy}), payload not written; trace in ${tracePath}: ${res.reason}`);
     process.exit(1);
   }
-  writeRun(res, out);
   console.log(`agent: wrote ${path.relative(root, out)}: ${res.payload.suggestions.length} suggestion(s), ${res.payload.rejected.length} rejected (${m.onFindingClaims.count} on a finding's exact claims, kept), ${res.payload.proposals?.length ?? 0} proposal(s); verifier shows ${m.verifier?.shown}, holds back ${m.verifier?.heldBack}`);
 }
 
