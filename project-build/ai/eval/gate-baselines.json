@@ -3,6 +3,7 @@
     "producer": "agent",
     "promptVersion": "agent-v3",
     "minStrict": 0,
-    "maxHeldBack": 0
+    "maxHeldBack": 0,
+    "minShown": 3
   }
 }

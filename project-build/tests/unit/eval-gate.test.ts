@@ -6,7 +6,7 @@ import path from 'node:path';
 import { describe, expect, it } from 'vitest';
 import { indexPacket, loadPacket } from '@/domain/packet/load';
 import type { AiPayload } from '@/domain/ai/contract';
-import { baselineFrom, evalGate, gateBaseline, MAX_HELD_BACK, MIN_STRICT_RECALL } from '../../ai/lib/harness-core';
+import { baselineFrom, evalGate, gateBaseline, sidecarTexts, MAX_HELD_BACK, MIN_STRICT_RECALL } from '../../ai/lib/harness-core';
 import { ACTIVE_PAYLOAD_FILE, ACTIVE_PRODUCER, ACTIVE_PROMPT_VERSION, PRODUCERS } from '../../ai/lib/producer';
 
 const PROMPT_VERSION = PRODUCERS.reader.promptVersion;
@@ -65,5 +65,27 @@ describe('eval gate', () => {
   it('the active producer\'s committed payload passes against its committed baseline', () => {
     const active = JSON.parse(readFileSync(path.join(process.cwd(), ACTIVE_PAYLOAD_FILE), 'utf8')) as AiPayload;
     expect(evalGate(ix, active, ACTIVE_PROMPT_VERSION, gateBaseline(ACTIVE_PRODUCER)).failures).toEqual([]);
+  });
+
+  it('an empty payload fails the gate against the active baseline (minShown guards a degraded run)', () => {
+    const active = JSON.parse(readFileSync(path.join(process.cwd(), ACTIVE_PAYLOAD_FILE), 'utf8')) as AiPayload;
+    const base = gateBaseline(ACTIVE_PRODUCER);
+    expect(base?.minShown).toBe(3);
+    const f = evalGate(ix, { ...active, suggestions: [] }, ACTIVE_PROMPT_VERSION, base).failures.join(' ');
+    expect(f).toMatch(/shown 0 .*below the baseline 3/);
+  });
+
+  it('a baseline made from a payload records how many suggestions it showed', () => {
+    expect(baselineFrom(ix, 'reader', payload).minShown).toBe(g0().shown);
+  });
+
+  it('fails on an SSN-shaped string in a sidecar file (run meta or trace), and passes the committed sidecars', () => {
+    expect(evalGate(ix, payload, PROMPT_VERSION, {}, ['{"note":"123-45-6789"}']).failures.join(' ')).toMatch(/run meta or trace.*SSN-shaped/);
+    const real = [...new Set(JSON.stringify(ix.packet).match(/\b\d{3}-\d{2}-\d{4}\b/g) ?? [])][0];
+    if (real) expect(evalGate(ix, payload, PROMPT_VERSION, {}, [`x ${real.replace(/-/g, '')} y`]).failures.join(' ')).toMatch(/SSN-shaped/);
+    const texts = sidecarTexts(ACTIVE_PAYLOAD_FILE);
+    expect(texts.length).toBe(2);
+    const active = JSON.parse(readFileSync(path.join(process.cwd(), ACTIVE_PAYLOAD_FILE), 'utf8')) as AiPayload;
+    expect(evalGate(ix, active, ACTIVE_PROMPT_VERSION, gateBaseline(ACTIVE_PRODUCER), texts).failures).toEqual([]);
   });
 });

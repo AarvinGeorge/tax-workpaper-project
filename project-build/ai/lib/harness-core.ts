@@ -375,19 +375,20 @@ export function summaryLine(s: Score): string {
  *  shown (after the backend verifier) 16 of 27 (17 before the verifier); 1 of 40 suggestions held back by the verifier. */
 export const MIN_STRICT_RECALL = 16;
 export const MAX_HELD_BACK = 1;
+export const MIN_SHOWN = 1;
 const SSN_DASHED = /\b\d{3}-\d{2}-\d{4}\b/;
 
 export interface GateResult { failures: string[]; strictFound: number; ledgerTotal: number; rawGrounding: number; produced: number; shown: number; heldBack: number }
 
 /** A producer's gate baseline: what its committed payload reached when it was accepted. */
-export interface GateBaseline { producer: ProducerName; promptVersion: string; minStrict: number; maxHeldBack: number }
+export interface GateBaseline { producer: ProducerName; promptVersion: string; minStrict: number; maxHeldBack: number; minShown: number }
 /** Where the baselines measured from a committed payload are kept (written by ai/harness.ts --set-baseline). */
 export const GATE_BASELINES_FILE = 'ai/eval/gate-baselines.json';
 
 /** The reader's baseline is the fixed one above; any other producer's is read from GATE_BASELINES_FILE, or null when
  *  none has been committed (the gate then fails and says how to make one). `root` is project-build. */
 export function gateBaseline(producer: ProducerName, root: string = process.cwd()): GateBaseline | null {
-  if (producer === 'reader') return { producer, promptVersion: 'reader-v2', minStrict: MIN_STRICT_RECALL, maxHeldBack: MAX_HELD_BACK };
+  if (producer === 'reader') return { producer, promptVersion: 'reader-v2', minStrict: MIN_STRICT_RECALL, maxHeldBack: MAX_HELD_BACK, minShown: MIN_SHOWN };
   const file = path.join(root, GATE_BASELINES_FILE);
   if (!existsSync(file)) return null;
   const all = JSON.parse(readFileSync(file, 'utf8')) as Partial<Record<ProducerName, GateBaseline>>;
@@ -397,20 +398,28 @@ export function gateBaseline(producer: ProducerName, root: string = process.cwd(
 /** The baseline a committed payload sets: its strict recall as shown and its held-back count, through the verifier. */
 export function baselineFrom(ix: PacketIndex, producer: ProducerName, payload: AiPayload): GateBaseline {
   const shown = shownView(ix, payload);
-  return { producer, promptVersion: payload.promptVersion, minStrict: shown.score.ledgerFound.length, maxHeldBack: shown.heldBack };
+  return { producer, promptVersion: payload.promptVersion, minStrict: shown.score.ledgerFound.length, maxHeldBack: shown.heldBack, minShown: shown.shown };
+}
+
+/** The texts of the run meta and trace committed beside a payload file (missing ones are skipped), for the SSN scan. */
+export function sidecarTexts(payloadFile: string, root: string = process.cwd()): string[] {
+  const base = payloadFile.replace(/\.json$/, '');
+  return ['.run-meta.json', '.trace.json'].map((x) => path.join(root, base + x)).filter((f) => existsSync(f)).map((f) => readFileSync(f, 'utf8'));
 }
 
 /** The CI eval gate over the committed eval payload, scored through the backend verifier. Fails on: any produced
  *  suggestion whose quotes are not on its page (raw grounding below 100%), more suggestions held back by the verifier
  *  than the baseline, strict recall as shown below the baseline, a prompt version that differs from the code's, or any
  *  SSN-shaped string (dashed, or any of this packet's SSNs without dashes) anywhere in the payload. */
-export function evalGate(ix: PacketIndex, payload: AiPayload, codePromptVersion: string, o: { minStrict?: number; maxHeldBack?: number } | null = {}): GateResult {
+export function evalGate(ix: PacketIndex, payload: AiPayload, codePromptVersion: string, o: { minStrict?: number; maxHeldBack?: number; minShown?: number } | null = {}, sidecars: string[] = []): GateResult {
   const failures: string[] = [];
   if (o === null) failures.push('no committed gate baseline for this producer: commit its payload, then run npx tsx ai/harness.ts --set-baseline and commit ' + GATE_BASELINES_FILE);
   const minStrict = o?.minStrict ?? MIN_STRICT_RECALL;
   const maxHeldBack = o?.maxHeldBack ?? MAX_HELD_BACK;
+  const minShown = o?.minShown ?? MIN_SHOWN;
   const raw = scorePayload(ix, payload);
   const shown = shownView(ix, payload);
+  if (shown.shown < minShown) failures.push(`shown ${shown.shown} suggestion(s), below the baseline ${minShown}: an empty or degraded payload`);
   if (raw.groundingRate < 1) failures.push(`raw grounding ${raw.grounded}/${raw.suggestions} is below 100% (ungrounded: ${raw.ungrounded.join(', ')})`);
   if (shown.heldBack > maxHeldBack) failures.push(`${shown.heldBack} suggestion(s) held back by the verifier, above the baseline ${maxHeldBack}`);
   const found = shown.score.ledgerFound.length;
@@ -420,7 +429,9 @@ export function evalGate(ix: PacketIndex, payload: AiPayload, codePromptVersion:
   }
   const text = JSON.stringify(payload);
   const realSsns = [...new Set(JSON.stringify(ix.packet).match(/\b\d{3}-\d{2}-\d{4}\b/g) ?? [])].map((s) => s.replace(/-/g, ''));
-  if (SSN_DASHED.test(text) || realSsns.some((s) => text.includes(s))) failures.push('the payload holds an SSN-shaped string');
+  const ssnIn = (t: string) => SSN_DASHED.test(t) || realSsns.some((s) => t.includes(s));
+  if (ssnIn(text)) failures.push('the payload holds an SSN-shaped string');
+  if (sidecars.some(ssnIn)) failures.push('the run meta or trace beside the payload holds an SSN-shaped string');
   return { failures, strictFound: found, ledgerTotal: shown.score.ledgerTotal, rawGrounding: raw.groundingRate, produced: raw.suggestions, shown: shown.shown, heldBack: shown.heldBack };
 }
 

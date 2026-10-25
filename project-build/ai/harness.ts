@@ -8,7 +8,7 @@ import { existsSync, readFileSync, readdirSync, writeFileSync } from 'node:fs';
 import path from 'node:path';
 import type { AiPayload } from '../src/domain/ai/contract';
 import { indexPacket, loadPacket } from '../src/domain/packet/load';
-import { GATE_BASELINES_FILE, agentScorecardMarkdown, baselineFrom, evalGate, gateBaseline, goldSet, hiddenOnlyLedger, uncheckedLedger, type ModeRun, type ScoredRun, scorecardMarkdown, scorePayload, shownView, summaryLine, type Adjudication, type RunMeta, type Score } from './lib/harness-core';
+import { GATE_BASELINES_FILE, agentScorecardMarkdown, baselineFrom, evalGate, gateBaseline, sidecarTexts, goldSet, hiddenOnlyLedger, uncheckedLedger, type ModeRun, type ScoredRun, scorecardMarkdown, scorePayload, shownView, summaryLine, type Adjudication, type RunMeta, type Score } from './lib/harness-core';
 import { redactNames } from './lib/reader-core';
 import { ACTIVE_PAYLOAD_FILE, ACTIVE_PRODUCER, ACTIVE_PROMPT_VERSION } from './lib/producer';
 import { hiddenCheckIds } from './lib/modes';
@@ -32,7 +32,7 @@ async function main() {
   if (args.includes('--set-baseline')) {
     // The active producer's committed payload becomes its gate baseline (what it reaches now); commit the file it writes.
     const b = baselineFrom(indexPacket(loadPacket()), ACTIVE_PRODUCER, payload);
-    const g = evalGate(indexPacket(loadPacket()), payload, ACTIVE_PROMPT_VERSION, b);
+    const g = evalGate(indexPacket(loadPacket()), payload, ACTIVE_PROMPT_VERSION, b, sidecarTexts(path.relative(root, file), root));
     if (g.failures.length) { for (const f of g.failures) console.error('set-baseline refused: ' + f); process.exit(1); }
     const out = path.join(root, GATE_BASELINES_FILE);
     const all = existsSync(out) ? JSON.parse(readFileSync(out, 'utf8')) as Record<string, unknown> : {};
@@ -42,7 +42,7 @@ async function main() {
   }
   if (check) {
     const base = gateBaseline(ACTIVE_PRODUCER, root);
-    const g = evalGate(indexPacket(loadPacket()), payload, ACTIVE_PROMPT_VERSION, base);
+    const g = evalGate(indexPacket(loadPacket()), payload, ACTIVE_PROMPT_VERSION, base, sidecarTexts(path.relative(root, file), root));
     console.log(`eval gate (${ACTIVE_PRODUCER}): ${path.relative(root, file)} (${payload.promptVersion}); strict recall as shown ${g.strictFound}/${g.ledgerTotal} (baseline ${base?.minStrict ?? 'none'}); raw grounding ${(g.rawGrounding * 100).toFixed(0)}% of ${g.produced}; held back ${g.heldBack} (baseline ${base?.maxHeldBack ?? 'none'}), shown ${g.shown}`);
     for (const f of g.failures) console.error('eval gate FAILED: ' + f);
     if (g.failures.length) process.exit(1);
