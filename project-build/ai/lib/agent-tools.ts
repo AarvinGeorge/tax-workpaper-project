@@ -20,11 +20,12 @@ import type { AiPayload } from '../../src/domain/ai/contract';
 import { OUTPUT_SCHEMA, masker, maskingRole, validateRow, type Row } from './reader-core';
 import { DEFAULT_MODE, findingsFor, isBlind, modeLabel, type AgentMode } from './modes';
 import { VERIFY_METHODS, verify } from './calculator';
-import { lookup } from './lookup';
+import { LOOKUP_SECTIONS, lookup } from './lookup';
+import { VERIFY_ALL_KINDS, verifyAll } from './verify-all';
 
 export { findingsFor };
 
-export const AGENT_TOOL_NAMES = ['get_line', 'get_page', 'search_values', 'verify', 'run_checks', 'list_open_leftovers', 'record_suggestion'] as const;
+export const AGENT_TOOL_NAMES = ['get_line', 'get_page', 'search_values', 'verify', 'run_checks', 'list_open_leftovers', 'record_suggestion', 'verify_all', 'lookup'] as const;
 export type AgentToolName = (typeof AGENT_TOOL_NAMES)[number];
 export const TOOL_RESULT_MAX_BYTES = 16_000;
 export const MAX_LIMIT = 50;
@@ -287,6 +288,7 @@ export function runTool(ix: PacketIndex, name: string, input: Obj, opts: ToolOpt
       text = Array.isArray(items) ? page(name, (items as Obj[]).map(mask), input, mask(rest)) : shrink(name, mask(r));
       break;
     }
+    case 'verify_all': text = shrink(name, mask(verifyAll(ix, input, mode))); break;
     case 'run_checks': text = page(name, checkRows(ix, mode).map(mask), input); break;
     case 'list_open_leftovers': {
       const all = leftovers(ix, mode);
@@ -366,6 +368,35 @@ export function agentTools(ix: PacketIndex, guard: ToolGuard, opts: ToolOptions 
       name: 'record_suggestion', strict: false, run: run('record_suggestion'),
       description: 'Record one suggestion as soon as you have it. It is checked as the final answer will be (kind, claims, quotes copied verbatim from the cited page, authority, rationale length): accepted rows are kept for the final answer; a refused row comes back with the exact reasons, so fix it and record it again.',
       inputSchema: OUTPUT_SCHEMA.properties.suggestions.items as never,
+    }),
+    betaTool({
+      // Not strict (grammar budget): verifyAll refuses a bad kind, limit or cursor with { error } and coerces nothing.
+      name: 'verify_all', strict: false, run: run('verify_all'),
+      description: 'One sweep of every deterministic comparison, disagreements only, hardest first: lines no sign combination of their cited values reaches (receipted ones say so), prior-year records that differ, copies of one fact that disagree, one amount cited from two or more pages, near-duplicate pages. Gives coverage (what was compared, what needs the engine, what is not comparable) and counts by kind. Start here, then use verify and get_page on the items. Input: kind (differs, all, or one kind; default differs), limit (integer 1 to 50), cursor (integer 0 or more). Paged.',
+      inputSchema: {
+        type: 'object', additionalProperties: false,
+        properties: {
+          kind: { type: 'string', description: `differs (default), all, or one of: ${VERIFY_ALL_KINDS.join(', ')}.` },
+          limit: { type: 'integer', description: `How many items (1 to ${MAX_LIMIT}); omit for 20.` },
+          cursor: { type: 'integer', description: 'Where to start: omit or 0 for the first page, else the nextCursor of the previous page.' },
+        },
+      },
+    }),
+    betaTool({
+      // Not strict (grammar budget): lookup validates every input and answers a bad one with { error } naming the valid shapes.
+      name: 'lookup', strict: false, run: run('lookup'),
+      description: 'Raw packet sections by id, the same in every mode. Sections: agency_record (id agency:/<pointer> or a top key; none lists the keys), prior_year (id py:/<pointer> or a line key: last year\'s value, label, sources), what_was_known (as_of an ISO date: timeline events at or before it), client_text (text: search over the questionnaire, messages, call notes, preparer memo, notes, timeline and notices), diagnostics_for (id a line key: every return version\'s diagnostics naming it; none: the latest list), alternatives (what-if alternatives and extension; id optional). Ids only, never numbers. Paged: limit, cursor.',
+      inputSchema: {
+        type: 'object', additionalProperties: false, required: ['section'],
+        properties: {
+          section: { type: 'string', enum: [...LOOKUP_SECTIONS] },
+          id: { type: 'string', description: 'A line key, agency:/..., py:/... pointer or top key, as the section says.' },
+          as_of: { type: 'string', description: 'what_was_known: an ISO date (YYYY-MM-DD).' },
+          text: { type: 'string', description: 'client_text: at least 2 characters.' },
+          limit: { type: 'integer', description: `How many items (1 to ${MAX_LIMIT}); omit for 20.` },
+          cursor: { type: 'integer', description: 'Where to start: omit or 0 for the first page, else the nextCursor of the previous page.' },
+        },
+      },
     }),
   ] as BetaRunnableTool[]).filter((t) => offered.has(t.name));
 }

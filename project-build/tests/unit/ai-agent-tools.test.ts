@@ -36,15 +36,17 @@ function everyResult(): string[] {
 }
 
 describe('agent tools: the tool set', () => {
-  it('has the seven planned tools, each with a closed input schema; strict except record_suggestion (the API refused 7 strict tools: "compiled grammar is too large", 24 Oct; code validates its input)', () => {
+  it('has the nine tools, each with a closed input schema; strict except record_suggestion, verify_all and lookup (the API refused 7 strict tools: "compiled grammar is too large", 24 Oct; code validates their input)', () => {
     const tools = agentTools(ix, { onHit: () => {} });
     expect(tools.map((t) => t.name).sort()).toEqual([...AGENT_TOOL_NAMES].sort());
-    expect(AGENT_TOOL_NAMES).toEqual(['get_line', 'get_page', 'search_values', 'verify', 'run_checks', 'list_open_leftovers', 'record_suggestion']);
+    expect(AGENT_TOOL_NAMES).toEqual(['get_line', 'get_page', 'search_values', 'verify', 'run_checks', 'list_open_leftovers', 'record_suggestion', 'verify_all', 'lookup']);
     for (const t of tools) {
       const tool = t as unknown as { strict?: boolean; input_schema: { additionalProperties: boolean; required: string[]; properties: Record<string, unknown> } };
-      expect(tool.strict, t.name).toBe(t.name !== 'record_suggestion');
+      expect(tool.strict, t.name).toBe(!['record_suggestion', 'verify_all', 'lookup'].includes(t.name));
       expect(tool.input_schema.additionalProperties, t.name).toBe(false);
-      expect([...tool.input_schema.required].sort(), t.name).toEqual(Object.keys(tool.input_schema.properties).sort());
+      const required = [...(tool.input_schema.required ?? [])].sort();
+      if (tool.strict) expect(required, t.name).toEqual(Object.keys(tool.input_schema.properties).sort()); // strict: every property required
+      else for (const r of required) expect(Object.keys(tool.input_schema.properties), t.name).toContain(r);
     }
   });
   it('no property declares an enum together with a list of types (the API refused it: "Enum value ... does not match declared type", 24 Oct)', () => {
@@ -200,7 +202,7 @@ describe('agent tools: measurement modes', () => {
   it('blind: no run_checks, and leftovers computed with no findings', () => {
     const blind: AgentMode = { kind: 'blind' };
     const names = agentTools(ix, { onHit: () => {} }, { mode: blind }).map((t) => t.name);
-    expect(names.sort()).toEqual(['get_line', 'get_page', 'list_open_leftovers', 'record_suggestion', 'search_values', 'verify']);
+    expect(names.sort()).toEqual(['get_line', 'get_page', 'list_open_leftovers', 'lookup', 'record_suggestion', 'search_values', 'verify', 'verify_all']);
     expect(() => runTool(ix, 'run_checks', { limit: 5, cursor: 0 }, { mode: blind })).toThrow(/not available/);
     const d = (m?: AgentMode) => (JSON.parse(runTool(ix, 'list_open_leftovers', { kind: null, limit: 1, cursor: 0 }, { mode: m })) as { data: { byKind: Record<string, number> } }).data.byKind;
     expect(d(blind).uncovered_engine_warning).toBe(ix.latest.diagnostics.length);

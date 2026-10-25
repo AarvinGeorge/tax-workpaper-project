@@ -181,7 +181,8 @@ describe('verify_all: real packet, default mode', () => {
     expect(VERIFY_ALL_PAGE_BYTES).toBeLessThan(16_000);
     expect(verifyAll(ix, { kind: 'nope' })).toHaveProperty('error');
     expect(verifyAll(ix, { kind: '1000' })).toHaveProperty('error');
-    expect((verifyAll(ix, { kind: 'all', limit: 500 }) as { items: unknown[] }).items.length).toBeLessThanOrEqual(50);
+    expect(verifyAll(ix, { kind: 'all', limit: 500 })).toHaveProperty('error'); // changed on purpose (Task 4): non-strict tool, an out-of-range limit is refused, not clamped
+    expect((verifyAll(ix, { kind: 'all', limit: 50 }) as { items: unknown[] }).items.length).toBeLessThanOrEqual(50);
   });
 });
 

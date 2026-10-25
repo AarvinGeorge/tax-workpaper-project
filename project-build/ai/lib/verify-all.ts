@@ -337,12 +337,24 @@ export interface VerifyAllInput { kind?: unknown; limit?: unknown; cursor?: unkn
 /** One page of the sweep: `kind` is one kind, 'differs' (the default: the six disagreement kinds) or 'all'. Errors are
  *  results ({ error }), never throws. Coverage and counts by kind come with every page. */
 export function verifyAll(ix: PacketIndex, input: VerifyAllInput = {}, mode: AgentMode = DEFAULT_MODE): Obj {
-  const kind = input.kind === undefined || input.kind === null ? 'differs' : String(input.kind);
+  // Not a strict tool: the schema cannot refuse a bad input, so this does. Nothing is coerced.
+  if (!input || typeof input !== 'object' || Array.isArray(input)) return { error: 'Input must be an object: { kind?, limit?, cursor? }.' };
+  const extra = Object.keys(input).filter((k) => !['kind', 'limit', 'cursor'].includes(k));
+  if (extra.length) return { error: `Unknown input ${extra.join(', ')}. Valid: kind (${['differs', 'all', ...VERIFY_ALL_KINDS].join(', ')}), limit (integer 1 to ${VERIFY_ALL_MAX_LIMIT}), cursor (integer 0 or more).` };
+  const none = (x: unknown) => x === undefined || x === null;
+  if (!none(input.kind) && typeof input.kind !== 'string') return { error: `kind must be a string: differs, all, or one of ${VERIFY_ALL_KINDS.join(', ')}.` };
+  if (!none(input.limit) && !(typeof input.limit === 'number' && Number.isInteger(input.limit) && input.limit >= 1 && input.limit <= VERIFY_ALL_MAX_LIMIT)) {
+    return { error: `limit must be an integer from 1 to ${VERIFY_ALL_MAX_LIMIT} (or null for ${VERIFY_ALL_DEFAULT_LIMIT}); got ${JSON.stringify(input.limit)}.` };
+  }
+  if (!none(input.cursor) && !(typeof input.cursor === 'number' && Number.isInteger(input.cursor) && input.cursor >= 0)) {
+    return { error: `cursor must be an integer, 0 or more (or null for the first page); got ${JSON.stringify(input.cursor)}.` };
+  }
+  const kind = none(input.kind) ? 'differs' : String(input.kind);
   if (kind !== 'differs' && kind !== 'all' && !(VERIFY_ALL_KINDS as readonly string[]).includes(kind)) {
     return { error: `Unknown kind ${kind}. Use differs, all, or one of ${VERIFY_ALL_KINDS.join(', ')}.` };
   }
-  const limit = Math.max(1, Math.min(VERIFY_ALL_MAX_LIMIT, Number.isInteger(input.limit) ? (input.limit as number) : VERIFY_ALL_DEFAULT_LIMIT));
-  const cursor = Number.isInteger(input.cursor) && (input.cursor as number) > 0 ? (input.cursor as number) : 0;
+  const limit = none(input.limit) ? VERIFY_ALL_DEFAULT_LIMIT : (input.limit as number);
+  const cursor = none(input.cursor) ? 0 : (input.cursor as number);
   const s = sweep(ix, mode);
   const pick = kind === 'all' ? s.items : kind === 'differs' ? s.items.filter((i) => DIFFERS_KINDS.includes(i.kind)) : s.items.filter((i) => i.kind === kind);
   const coverage: Obj = { ...s.coverage };
