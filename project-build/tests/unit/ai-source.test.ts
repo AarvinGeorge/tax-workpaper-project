@@ -7,7 +7,8 @@ import { indexPacket, loadPacket } from '@/domain/packet/load';
 import type { AiPayload } from '@/domain/ai/contract';
 import { aiFindings, aiSourceLabel } from '@/domain/ai/merge';
 import { verifySuggestions } from '@/domain/ai/verify';
-import { AI_READER, aiUseText } from '@/components/info/aiUse';
+import { AI_AGENT, AI_READER, aiFlaggedText, aiSuggestionTerm, aiUseText } from '@/components/info/aiUse';
+import { TERMS } from '@/components/term/terms';
 
 const ix = indexPacket(loadPacket());
 const reader = JSON.parse(readFileSync(path.join(process.cwd(), 'ai/eval/ai-suggestions.json'), 'utf8')) as AiPayload;
@@ -28,7 +29,31 @@ describe('AI source tag', () => {
 
   it('the how-AI-was-used text names the source and is otherwise unchanged', () => {
     expect(aiUseText('AI reader')).toBe(AI_READER);
-    expect(aiUseText('AI agent')).toBe(AI_READER.replace('An AI reader', 'An AI agent'));
+  });
+
+  it('says how the AI works once per source: the agent investigated the whole packet, the reader read each document', () => {
+    expect(aiUseText('AI agent')).toBe(AI_AGENT);
+    expect(AI_AGENT).toMatch(/AI agent investigated the whole packet with the app.s own tools/);
+    expect(AI_AGENT).not.toMatch(/read the text of each document|AI reader/);
+    expect(AI_AGENT).toMatch(/final computed version/);
+    expect(AI_AGENT).toMatch(/a person accepts or dismisses each one/);
+    expect(AI_READER).toMatch(/AI reader read the text of each document/);
+  });
+
+  it('the Legends pill and the glossary term name the source', () => {
+    expect(aiFlaggedText('AI agent')).toMatch(/^the AI agent flagged this item/);
+    expect(aiFlaggedText('AI reader')).toMatch(/^the AI reader flagged this item/);
+    expect(aiSuggestionTerm('AI agent')).toMatch(/AI agent proposed/);
+    expect(aiSuggestionTerm('AI agent')).not.toMatch(/reader/);
+    expect(aiSuggestionTerm('AI reader')).toMatch(/AI reader proposed/);
+    expect(TERMS['ai-suggestion'].text).toBe(aiSuggestionTerm('AI reader'));
+  });
+
+  it('Legends and the "?" dialog take the source from the payload', () => {
+    const src = (f: string) => readFileSync(f, 'utf8').split('\n').filter((l) => !/^\s*(\/\/|\/\*|\*)/.test(l)).join('\n');
+    expect(src('src/components/info/Legends.tsx')).not.toMatch(/AI reader/);
+    expect(src('src/components/info/Info.tsx')).not.toMatch(/AI_READER/);
+    expect(src('src/components/info/Info.tsx')).toMatch(/aiSource/);
   });
 
   it('the Checks screen and the side panel take the source from the payload, never a hard-coded "AI reader"', () => {

@@ -86,7 +86,8 @@ test('A7: Checks and the "?" dialog say how AI was used: what it read, the final
   await page.goto(`/w/${ws()}/daniel/checks`);
   const group = page.getByTestId('ai-suggestions');
   await expect(group).toContainText('found during an AI-assisted review of the packet and are now caught by deterministic checks');
-  await expect(group).toContainText(/AI (reader|agent) read/); // the source the payload names
+  // the source the payload names: the agent investigated the whole packet, the reader read each document
+  await expect(group).toContainText(/AI agent investigated the whole packet with the app.s own tools|AI reader read the text of each document/);
   await expect(group).toContainText(/final computed version/);
   await expect(group).toContainText(/a person accepts or dismisses each/);
   // B7: titles name the line, never a raw snake_case kind; one entry per title and line.
@@ -96,4 +97,6 @@ test('A7: Checks and the "?" dialog say how AI was used: what it read, the final
   expect(new Set(titles).size).toBe(titles.length);
   await page.getByRole('button', { name: /About this workspace/ }).click();
   await expect(page.getByRole('dialog')).toContainText('found during an AI-assisted review of the packet and are now caught by deterministic checks');
+  await expect(page.getByRole('dialog')).toContainText(/AI agent investigated the whole packet|AI reader read the text of each document/);
+  await expect(page.getByRole('dialog')).not.toContainText(/AI agent read|AI reader investigated/);
 });

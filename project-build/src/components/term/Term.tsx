@@ -8,8 +8,10 @@ import s from './Term.module.css';
 const GAP = 6;
 const EDGE = 16;
 
-export function Term({ k }: { k: string }) {
-  const t = TERMS[k];
+/** text: replaces the dictionary text where it depends on the data (the AI suggestion term names its source). */
+export function Term({ k, text }: { k: string; text?: string }) {
+  const base = TERMS[k];
+  const t = base && text ? { ...base, text } : base;
   const auto = useId();
   const id = 'term-' + auto.replace(/[^a-zA-Z0-9_-]/g, '');
   const btn = useRef<HTMLButtonElement>(null);

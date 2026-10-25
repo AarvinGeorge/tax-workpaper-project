@@ -2,6 +2,7 @@
 // and the Checks pill key is repeated here in full for staff (only staff have Checks), so the dialog answers what any pill means.
 import type { ReactNode } from 'react';
 import { Term } from '../term/Term';
+import { aiFlaggedText, aiSuggestionTerm, type AiUseSource } from './aiUse';
 
 const TAGS: { tag: string; tone: string; text: string; term?: string }[] = [
   { tag: 'Blocking', tone: 't-blk', text: 'stops filing', term: 'blocker' },
@@ -26,7 +27,7 @@ const PILLS: { key: string; tag: ReactNode; tone: string; text: string; term?: s
   { key: 'Check', tag: 'Check', tone: 't-wrn', text: 'our check disagrees; it does not stop approval' },
   { key: 'Judgment', tag: 'Judgment', tone: 't-acc', text: 'our check needs a recorded decision', term: 'judgment' },
   { key: 'Info', tag: 'Info', tone: 't-mut', text: 'our check notes it; nothing to act on' },
-  { key: 'AI', tag: <><span aria-hidden="true">✦ </span>AI</>, tone: 't-mut', text: 'the AI reader flagged this item; a person accepts or dismisses each suggestion', term: 'ai-suggestion' },
+  { key: 'AI', tag: <><span aria-hidden="true">✦ </span>AI</>, tone: 't-mut', text: '', term: 'ai-suggestion' },
   { key: 'Needs review', tag: 'Needs review', tone: 't-wrn', text: 'an AI suggestion no one has decided yet (Accepted once someone has)' },
   { key: 'Engine warning', tag: 'Engine warning', tone: 't-wrn', text: 'the engine’s own warning names this item, quoted as it wrote it; not one of our checks', term: 'engine-diagnostics' },
   { key: 'Confident mistake', tag: 'Confident mistake', tone: 't-mut', text: 'flagged by our checks, though every value behind it was read at 0.95 or above. The checks were built from the mistakes our external investigation found.', term: 'read-confidence' },
@@ -34,7 +35,7 @@ const PILLS: { key: string; tag: ReactNode; tone: string; text: string; term?: s
   { key: 'Signed off', tag: 'Signed off', tone: 't-pas', text: 'a sign-off covers this finding', term: 'sign-off' },
 ];
 
-export function Legends({ checks }: { checks: boolean }) {
+export function Legends({ checks, aiSource }: { checks: boolean; aiSource: AiUseSource }) {
   return (
     <>
       <ul className="legend" aria-label="Status tags">
@@ -47,7 +48,7 @@ export function Legends({ checks }: { checks: boolean }) {
         <h4 className="legend-cap" id="legend-checks">Pills on Checks</h4>
         <ul className="legend" aria-labelledby="legend-checks">
           {PILLS.map((t) => (
-            <li key={t.key}><span className={`tag ${t.tone}`}>{t.tag}</span><span>{t.text}{t.term ? <Term k={t.term} /> : null}</span></li>
+            <li key={t.key}><span className={`tag ${t.tone}`}>{t.tag}</span><span>{t.key === 'AI' ? aiFlaggedText(aiSource) : t.text}{t.term ? <Term k={t.term} text={t.key === 'AI' ? aiSuggestionTerm(aiSource) : undefined} /> : null}</span></li>
           ))}
         </ul>
       </> : null}

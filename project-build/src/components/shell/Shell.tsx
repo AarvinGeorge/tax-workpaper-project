@@ -169,7 +169,7 @@ export async function Shell({ ws, role, screen, claim, q, children, ...given }: 
       )}
 
       <div className="sh-frame">
-        <Info ix={ix} state={state} role={me} ws={ws} />
+        <Info ix={ix} state={state} role={me} ws={ws} promptVersion={w.ai.meta?.promptVersion} />
         <aside className="sh-pane-l" aria-label="Screens">
           <nav aria-label="Screens" style={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
             <div className="lbl" style={{ padding: '0 10px 6px' }}>{isClient ? 'Your return' : 'Screens'}</div>
