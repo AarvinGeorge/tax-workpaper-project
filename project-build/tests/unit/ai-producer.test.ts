@@ -6,7 +6,7 @@ import path from 'node:path';
 import { afterEach, beforeEach, describe, expect, it } from 'vitest';
 import { ACTIVE_PAYLOAD_FILE, ACTIVE_PRODUCER, ACTIVE_PROMPT_VERSION, PRODUCERS } from '../../ai/lib/producer';
 import { PROMPT_VERSION } from '../../ai/lib/reader-core';
-import { AGENT_PROMPT_VERSION } from '../../ai/lib/agent-core';
+import { AGENT_PROMPT_VERSION, AGENT_V4_PROMPT_VERSION } from '../../ai/lib/agent-core';
 import { aiPayloadPath } from '@/domain/ai/load';
 
 const code = (f: string) => readFileSync(f, 'utf8').split('\n').filter((l) => !l.trim().startsWith('//')).join('\n');
@@ -15,11 +15,18 @@ beforeEach(() => { saved = process.env.AI_PAYLOAD_PATH; delete process.env.AI_PA
 afterEach(() => { if (saved === undefined) delete process.env.AI_PAYLOAD_PATH; else process.env.AI_PAYLOAD_PATH = saved; });
 
 describe('active producer', () => {
-  it('is the agent, at the agent\'s prompt version, with its own payload file', () => {
+  it('is the agent, at the agent-v4 independent (blind) prompt version, with its own payload file', () => {
     expect(ACTIVE_PRODUCER).toBe('agent');
-    expect(ACTIVE_PROMPT_VERSION).toBe(AGENT_PROMPT_VERSION);
+    expect(ACTIVE_PROMPT_VERSION).toBe(`${AGENT_V4_PROMPT_VERSION}-blind`);
+    expect(ACTIVE_PROMPT_VERSION).not.toBe(AGENT_PROMPT_VERSION); // agent-v3 stays as a constant, for history
     expect(ACTIVE_PAYLOAD_FILE).toBe('ai/eval/agent-suggestions.json');
     expect(PRODUCERS.reader).toMatchObject({ promptVersion: PROMPT_VERSION, payloadFile: 'ai/eval/ai-suggestions.json' });
+  });
+
+  it('the active version is the committed payload\'s own promptVersion (24/25 Oct: agent-v4 independent went live)', () => {
+    const payload = JSON.parse(readFileSync(ACTIVE_PAYLOAD_FILE, 'utf8'));
+    expect(ACTIVE_PROMPT_VERSION).toBe(payload.promptVersion);
+    expect(payload.promptVersion).toBe('agent-v4-blind');
   });
 
   it('file mode reads the active producer\'s file (AI_PAYLOAD_PATH still overrides)', () => {

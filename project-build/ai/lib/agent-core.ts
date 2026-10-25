@@ -537,7 +537,7 @@ export function resolveOutFile(o: OutChoice): string {
   if (o.live) {
     if (o.out !== undefined) throw new Error('--live writes the live payload only; drop --out.');
     if (promptVersionFor(o.mode, o.prompt) !== ACTIVE_PROMPT_VERSION || o.packet !== 'real') {
-      throw new Error(`--live is only for the active producer (${ACTIVE_PROMPT_VERSION}: --prompt v3, default mode, --packet real).`);
+      throw new Error(`--live is only for the active producer (${ACTIVE_PROMPT_VERSION}, --packet real).`);
     }
     return path.join(o.root, ACTIVE_PAYLOAD_FILE);
   }

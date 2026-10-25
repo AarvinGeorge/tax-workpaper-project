@@ -143,11 +143,12 @@ describe('run outputs: off the live file', () => {
     expect(resolveOutFile({ ...base, out: 'ai/eval/runs/agent-v3/mine.json' })).toBe(path.join(root, 'ai', 'eval', 'runs', 'agent-v3', 'mine.json'));
   });
 
-  it('resolveOutFile --live: only the active producer (agent-v3, default mode, real packet, no --out) may target the live payload', () => {
-    const base = { root: '/r', mode: { kind: 'default' } as AgentMode, packet: 'real' as const, seed: undefined, prompt: 'v3' as AgentPrompt, live: true };
+  it('resolveOutFile --live: only the active producer (agent-v4 independent/blind, real packet, no --out) may target the live payload', () => {
+    const base = { root: '/r', mode: { kind: 'blind' } as AgentMode, packet: 'real' as const, seed: undefined, prompt: 'v4' as AgentPrompt, live: true };
     expect(resolveOutFile(base)).toBe(path.join('/r', ACTIVE_PAYLOAD_FILE));
-    expect(() => resolveOutFile({ ...base, prompt: 'v4' })).toThrow(/--live/);
-    for (const mode of MODES.slice(1)) expect(() => resolveOutFile({ ...base, mode })).toThrow(/--live/);
+    expect(() => resolveOutFile({ ...base, prompt: 'v3' })).toThrow(/--live/); // agent-v3 blind, and the retired v3 default, are no longer live
+    expect(() => resolveOutFile({ ...base, prompt: 'v3', mode: { kind: 'default' } })).toThrow(/--live/);
+    for (const mode of MODES.filter((m) => m.kind !== 'blind')) expect(() => resolveOutFile({ ...base, mode }), mode.kind).toThrow(/--live/);
     expect(() => resolveOutFile({ ...base, packet: 'altered' })).toThrow(/--live/);
     expect(() => resolveOutFile({ ...base, packet: 'perturbed', seed: 1 })).toThrow(/--live/);
     expect(() => resolveOutFile({ ...base, out: 'x.json' })).toThrow(/--live/);

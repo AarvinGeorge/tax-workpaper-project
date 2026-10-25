@@ -1,9 +1,9 @@
 {
   "agent": {
     "producer": "agent",
-    "promptVersion": "agent-v3",
-    "minStrict": 0,
+    "promptVersion": "agent-v4-blind",
+    "minStrict": 17,
     "maxHeldBack": 0,
-    "minShown": 3
+    "minShown": 20
   }
 }

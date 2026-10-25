@@ -70,9 +70,9 @@ describe('eval gate', () => {
   it('an empty payload fails the gate against the active baseline (minShown guards a degraded run)', () => {
     const active = JSON.parse(readFileSync(path.join(process.cwd(), ACTIVE_PAYLOAD_FILE), 'utf8')) as AiPayload;
     const base = gateBaseline(ACTIVE_PRODUCER);
-    expect(base?.minShown).toBe(3);
+    expect(base?.minShown).toBe(20);
     const f = evalGate(ix, { ...active, suggestions: [] }, ACTIVE_PROMPT_VERSION, base).failures.join(' ');
-    expect(f).toMatch(/shown 0 .*below the baseline 3/);
+    expect(f).toMatch(/shown 0 .*below the baseline 20/);
   });
 
   it('a baseline made from a payload records how many suggestions it showed', () => {

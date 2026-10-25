@@ -1,21 +1,21 @@
 {
-  "payload": "agent-suggestions.json",
+  "payload": "blind.real.2.json",
   "requestedModel": "claude-opus-5-5",
   "servedModels": [
     "claude-opus-5-5"
   ],
-  "promptVersion": "agent-v3",
-  "runAt": "2026-10-25T00:41:53.014Z",
-  "turns": 37,
-  "toolCalls": 87,
+  "promptVersion": "agent-v4-blind",
+  "runAt": "2026-10-25T05:18:56.561Z",
+  "turns": 33,
+  "toolCalls": 101,
   "usage": {
-    "input_tokens": 76,
-    "output_tokens": 28417,
-    "cache_creation_input_tokens": 146153,
-    "cache_read_input_tokens": 3454235
+    "input_tokens": 68,
+    "output_tokens": 24775,
+    "cache_creation_input_tokens": 100202,
+    "cache_read_input_tokens": 3206687
   },
-  "costUsd": 1.9902560000000002,
-  "seconds": 352,
+  "costUsd": 1.6381194000000001,
+  "seconds": 279,
   "stopReason": "end_turn",
   "limits": {
     "maxIterations": 40,
@@ -28,7 +28,7 @@
   "effort": "high",
   "maxTokens": 32000,
   "source": "file",
-  "mode": "default",
+  "mode": "blind",
   "seed": null,
   "hiddenCheckIds": [],
   "onFindingClaims": {
@@ -36,7 +36,8 @@
     "ids": []
   },
   "verifier": {
-    "shown": 3,
+    "shown": 20,
     "heldBack": 0
-  }
+  },
+  "outcome": "ok"
 }

@@ -1,9 +1,26 @@
 {
  "present": true,
  "shown": [
-  "ai-document_not_reflected-1 | line:F7203.1",
-  "ai-limit_or_eligibility-1 | line:SchA.11",
-  "ai-other-1 | line:F8949.H.C2,line:F8949.H.C3,line:F8949.H.C5,line:F8949.K.C1"
+  "ai-answer_conflicts_with_return-1 | line:F8949.H.C6,line:F8949.H.total,line:SchD.3",
+  "ai-business_use_share-1 | line:SchC.25,line:SchC.28,line:SchC.31",
+  "ai-date_or_year_mismatch-1 | line:F540NR.72",
+  "ai-date_or_year_mismatch-2 | line:SchB.1.6,line:SchB.2",
+  "ai-document_not_reflected-1 | line:F1040.26",
+  "ai-document_not_reflected-2 | line:F8949.B.N1,line:F8949.B.N3,line:F8949.E.N4,line:F8949.B.total,line:F8949.E.total",
+  "ai-document_not_reflected-3 | line:F8812.4,line:F8812.5,line:F540NR.39",
+  "ai-document_not_reflected-4 | line:F8949.B.total,line:SchD.2",
+  "ai-limit_or_eligibility-1 | line:F8283.A1.vehicle,line:SchA.12",
+  "ai-limit_or_eligibility-2 | line:Sch1.17,line:F1040.10",
+  "ai-limit_or_eligibility-3 | line:Sch2.21,line:Sch1.16",
+  "ai-other-1 | line:SchA.8a",
+  "ai-other-2 | line:SchB.1.2,line:SchB.2",
+  "ai-other-3 | line:SchC.44a,line:SchC.9",
+  "ai-other-4 | line:SchC.1,line:SchC.7,line:SchC.31",
+  "ai-other-5 | line:SchC.27a.1,line:SchC.28,line:SchC.31",
+  "ai-other-6 | line:F4562-C.12,line:F4562-C.14,line:SchCA540NR.12.C",
+  "ai-repair_vs_improvement-1 | line:SchE.14A,line:SchE.18A,line:F4562-E.total-A",
+  "ai-residency_or_source-1 | line:SchCA540NR.1.E,line:SchCA540NR.22.E",
+  "ai-residency_or_source-2 | line:F540NR.61,line:F540NR.64"
  ],
  "held": []
 }

@@ -2,119 +2,611 @@
   "schemaVersion": 1,
   "packetSha": "ee01f8508bd2fd9854754b82fd9c4a055bdc55e2778a132002a25381c412ad19",
   "model": "claude-opus-5-5",
-  "promptVersion": "agent-v3",
-  "runAt": "2026-10-25T00:41:53.014Z",
+  "promptVersion": "agent-v4-blind",
+  "runAt": "2026-10-25T05:18:56.561Z",
   "suggestions": [
-    {
-      "id": "ai-limit_or_eligibility-1",
-      "kind": "limit_or_eligibility",
-      "otherKind": null,
-      "claims": [
-        "SchA.11"
-      ],
-      "evidence": [
-        {
-          "doc": "D64",
-          "page": 1,
-          "quote": "The first digit is ambiguous (could be read as 1 or 7). No goods or services line."
-        }
-      ],
-      "rationale": "The parish receipt for a gift over 250 lacks the required goods-or-services statement and its amount is illegible; a phone confirmation does not substitute.",
-      "authority": "IRS Pub 526 (2025): Charitable Contributions",
-      "confidence": 0.65
-    },
-    {
-      "id": "ai-other-1",
-      "kind": "other",
-      "otherKind": "crypto lot identification",
-      "claims": [
-        "F8949.H.C2",
-        "F8949.H.C3",
-        "F8949.H.C5",
-        "F8949.K.C1"
-      ],
-      "evidence": [
-        {
-          "doc": "D35",
-          "page": 1,
-          "quote": "CSV export, cost basis by lot (FIFO)."
-        },
-        {
-          "doc": "D35",
-          "page": 1,
-          "quote": "C2 ETH 1.25 acquired 2024-11-30 cost 4,680.00 sold 2025-02-14 proceeds 3,412.00"
-        },
-        {
-          "doc": "D35",
-          "page": 1,
-          "quote": "Buy 3 ETH acquired 2021-11-27 cost 1,060.30"
-        }
-      ],
-      "rationale": "Sold crypto lots carry later, higher-cost acquisitions while older lots remain held, contradicting the stated FIFO method; confirm specific identification or recompute basis.",
-      "authority": null,
-      "confidence": 0.4
-    },
     {
       "id": "ai-document_not_reflected-1",
       "kind": "document_not_reflected",
       "otherKind": null,
       "claims": [
-        "F7203.1"
+        "F1040.26"
       ],
       "evidence": [
         {
-          "doc": "D40",
+          "doc": "D67",
           "page": 1,
-          "quote": "Box 1 ordinary business income 14,100. Box 4 interest income 0. Box 16D distributions 20,000."
+          "quote": "04/15/2025 3,000.00; 06/16/2025 3,000.00; 09/15/2025 3,000.00."
         }
       ],
-      "rationale": "This 2023 K-1 surfaced only in 2026 and the prior preparer never had it; confirm its income was reported for 2023 before relying on the basis roll-forward.",
+      "rationale": "Fourth-quarter payment taken from the client's guess of 4,000; the IRS transcript shows 3,000 on 2026-01-15, so estimated payments are overstated.",
       "authority": null,
-      "confidence": 0.35
-    }
-  ],
-  "rejected": [
-    {
-      "raw": {
-        "proposal": true,
-        "compares": [
-          "donation_receipt printed text (goods or services statement)",
-          "extracted amount confidence",
-          "SchA.11 sources"
-        ]
-      },
-      "reason": "proposal reads as code, not words"
+      "confidence": 0.9
     },
     {
-      "raw": {
-        "proposal": true,
-        "compares": [
-          "K-1 tax year and box 1 income",
-          "prior-year return lines for the same entity",
-          "prior preparer notes saying the K-1 was not provided"
-        ]
-      },
-      "reason": "proposal reads as code, not words"
+      "id": "ai-date_or_year_mismatch-1",
+      "kind": "date_or_year_mismatch",
+      "otherKind": null,
+      "claims": [
+        "F540NR.72"
+      ],
+      "evidence": [
+        {
+          "doc": "D68",
+          "page": 1,
+          "quote": "2025-09-15 3,500.00 tax year 2024 (estimated payment)"
+        }
+      ],
+      "rationale": "The September payment was applied to tax year 2024 and is absent from the FTB 2025 account, yet it is counted as a 2025 estimate.",
+      "authority": null,
+      "confidence": 0.85
+    },
+    {
+      "id": "ai-limit_or_eligibility-1",
+      "kind": "limit_or_eligibility",
+      "otherKind": null,
+      "claims": [
+        "F8283.A1.vehicle",
+        "SchA.12"
+      ],
+      "evidence": [
+        {
+          "doc": "D66",
+          "page": 1,
+          "quote": "Box 4a vehicle sold in arm's length transaction to unrelated party checked; 4b date of sale 09/09/2025; 4c gross proceeds from sale 2,900.00."
+        }
+      ],
+      "rationale": "A donated vehicle the charity sold is limited to the gross proceeds on Form 1098-C, not the Kelley Blue Book value the client gave.",
+      "authority": "IRS Pub 526 (2025): Charitable Contributions",
+      "confidence": 0.92
+    },
+    {
+      "id": "ai-other-1",
+      "kind": "other",
+      "otherKind": "double_counted_interest",
+      "claims": [
+        "SchA.8a"
+      ],
+      "evidence": [
+        {
+          "doc": "D55",
+          "page": 1,
+          "quote": "Box 1 mortgage interest received 13,900.00 (includes prepaid interest at closing and interest paid at payoff 11/20/2025)."
+        },
+        {
+          "doc": "D56",
+          "page": 1,
+          "quote": "(Interest is reported on the 2025 Form 1098.)"
+        }
+      ],
+      "rationale": "Payoff interest is already in the Form 1098 box 1 total, so adding the payoff statement interest counts it twice.",
+      "authority": null,
+      "confidence": 0.9
+    },
+    {
+      "id": "ai-other-2",
+      "kind": "other",
+      "otherKind": "double_counted_interest",
+      "claims": [
+        "SchB.1.2",
+        "SchB.2"
+      ],
+      "evidence": [
+        {
+          "doc": "D29",
+          "page": 1,
+          "quote": "(bank sweep program for Northlake Securities account ending 7731)"
+        },
+        {
+          "doc": "D28",
+          "page": 1,
+          "quote": "1099-INT (bank sweep program, Northlake Bank): box 1 interest 1,840.00."
+        }
+      ],
+      "rationale": "The standalone Form 1099-INT reports the same sweep interest already on the composite statement, so the interest is counted twice.",
+      "authority": null,
+      "confidence": 0.85
+    },
+    {
+      "id": "ai-document_not_reflected-2",
+      "kind": "document_not_reflected",
+      "otherKind": null,
+      "claims": [
+        "F8949.B.N1",
+        "F8949.B.N3",
+        "F8949.E.N4",
+        "F8949.B.total",
+        "F8949.E.total"
+      ],
+      "evidence": [
+        {
+          "doc": "D11",
+          "page": 2,
+          "quote": "Lot RSU-2502: 400 sh acquired 02/15/2025 (vest FMV 47.75) adjusted basis 19,100.00"
+        },
+        {
+          "doc": "D11",
+          "page": 2,
+          "quote": "Lot RSU-2308: 300 sh acquired 08/15/2023 (vest FMV 31.40) adjusted basis 9,420.00"
+        }
+      ],
+      "rationale": "RSU lots use the broker's zero basis although the supplemental statement gives adjusted basis already taxed as wages, which double-taxes the vest income.",
+      "authority": null,
+      "confidence": 0.92
+    },
+    {
+      "id": "ai-residency_or_source-1",
+      "kind": "residency_or_source",
+      "otherKind": null,
+      "claims": [
+        "SchCA540NR.1.E",
+        "SchCA540NR.22.E"
+      ],
+      "evidence": [
+        {
+          "doc": "D09",
+          "page": 1,
+          "quote": "(Employment began 06/02/2025. Employer payroll kept California as the work state through 09/30/2025.)"
+        },
+        {
+          "doc": "D09",
+          "page": 1,
+          "quote": "Box 15 CA; Box 16 111,300.00"
+        }
+      ],
+      "rationale": "California wages follow the W-2 box 16, which wrongly coded Texas-period work as California; wages earned after the July 15 move are not California source.",
+      "authority": "FTB Pub 1031 (2025): Guidelines for Determining Resident Status",
+      "confidence": 0.85
+    },
+    {
+      "id": "ai-other-3",
+      "kind": "other",
+      "otherKind": "duplicate_page_counted",
+      "claims": [
+        "SchC.44a",
+        "SchC.9"
+      ],
+      "evidence": [
+        {
+          "doc": "D23",
+          "page": 3,
+          "quote": "(Second scan of the May-Aug sheet - same handwriting and coffee stain as page 2.)"
+        }
+      ],
+      "rationale": "Business miles add the page total from a second scan of the same May-August sheet, overstating miles and the standard mileage deduction.",
+      "authority": "IRS Pub 334 (2025): Tax Guide for Small Business",
+      "confidence": 0.93
+    },
+    {
+      "id": "ai-repair_vs_improvement-1",
+      "kind": "repair_vs_improvement",
+      "otherKind": null,
+      "claims": [
+        "SchE.14A",
+        "SchE.18A",
+        "F4562-E.total-A"
+      ],
+      "evidence": [
+        {
+          "doc": "D47",
+          "page": 1,
+          "quote": "Removed failed 2004 gas furnace and 3-ton AC condenser. Installed new 3-ton heat pump system with air handler, new line set and thermostat. Total 11,000.00."
+        },
+        {
+          "doc": "D46",
+          "page": 1,
+          "quote": "HVAC 11,000.00 (Delta Breeze Heating & Air, 08/12/2025)"
+        }
+      ],
+      "rationale": "Replacing the whole HVAC system is a restoration of a building system, so it must be capitalised and depreciated rather than expensed as a repair.",
+      "authority": "Treas. Reg. 1.263(a)-3: Amounts paid to improve tangible property",
+      "confidence": 0.9
+    },
+    {
+      "id": "ai-limit_or_eligibility-2",
+      "kind": "limit_or_eligibility",
+      "otherKind": null,
+      "claims": [
+        "Sch1.17",
+        "F1040.10"
+      ],
+      "evidence": [
+        {
+          "doc": "D25",
+          "page": 1,
+          "quote": "Subscriber Erik Lindqvist, individual PPO plan (not marketplace)."
+        },
+        {
+          "doc": "D09",
+          "page": 1,
+          "quote": "DD 11,400.00"
+        }
+      ],
+      "rationale": "No deduction is allowed for any month he was eligible for a spouse's subsidized employer plan, and the client confirms both employers offered family coverage.",
+      "authority": "IRS Form 7206 instructions (2025): Self-Employed Health Insurance Deduction",
+      "confidence": 0.85
+    },
+    {
+      "id": "ai-other-4",
+      "kind": "other",
+      "otherKind": "income_counted_twice",
+      "claims": [
+        "SchC.1",
+        "SchC.7",
+        "SchC.31"
+      ],
+      "evidence": [
+        {
+          "doc": "D15",
+          "page": 3,
+          "quote": "Atlas Outdoor Gear paid 41,200.00 in 2025, of which 12,400.00 arrived through Paywell Payments card processing (deposited gross; processing fees booked to Bank and merchant fees)"
+        }
+      ],
+      "rationale": "The Form 1099-K receipts were deposited gross and are already in books revenue, so adding them as unmatched double-counts gross receipts.",
+      "authority": "IRS Pub 334 (2025): Tax Guide for Small Business",
+      "confidence": 0.88
+    },
+    {
+      "id": "ai-document_not_reflected-3",
+      "kind": "document_not_reflected",
+      "otherKind": null,
+      "claims": [
+        "F8812.4",
+        "F8812.5",
+        "F540NR.39"
+      ],
+      "evidence": [
+        {
+          "doc": "D71",
+          "page": 1,
+          "quote": "Social Security card: Theo Lindqvist-Okafor"
+        }
+      ],
+      "rationale": "The dependent's number came from an organizer typo; the card received after the last engine run and last year's return show a different number.",
+      "authority": null,
+      "confidence": 0.85
+    },
+    {
+      "id": "ai-answer_conflicts_with_return-1",
+      "kind": "answer_conflicts_with_return",
+      "otherKind": null,
+      "claims": [
+        "F8949.H.C6",
+        "F8949.H.total",
+        "SchD.3"
+      ],
+      "evidence": [
+        {
+          "doc": "D35",
+          "page": 1,
+          "quote": "C6 BTC 0.05 acquired TRANSFER-IN 2025-06-01 (cost basis unknown)"
+        }
+      ],
+      "rationale": "The client says this bitcoin was bought in March 2021 with bank proof of cost, so zero basis and a short-term holding period are likely wrong.",
+      "authority": null,
+      "confidence": 0.7
+    },
+    {
+      "id": "ai-date_or_year_mismatch-2",
+      "kind": "date_or_year_mismatch",
+      "otherKind": null,
+      "claims": [
+        "SchB.1.6",
+        "SchB.2"
+      ],
+      "evidence": [
+        {
+          "doc": "D36",
+          "page": 1,
+          "quote": "Interest credited 12/31/2025: SEK 18,450.00."
+        }
+      ],
+      "rationale": "2025 Swedish interest was converted at the 2024 average rate; at the 2025 average rate it is about 1,871 dollars, not 1,747.",
+      "authority": null,
+      "confidence": 0.75
+    },
+    {
+      "id": "ai-business_use_share-1",
+      "kind": "business_use_share",
+      "otherKind": null,
+      "claims": [
+        "SchC.25",
+        "SchC.28",
+        "SchC.31"
+      ],
+      "evidence": [
+        {
+          "doc": "D15",
+          "page": 2,
+          "quote": "Telephone 2,160.00: family mobile plan (4 lines) 180.00 per month. Internet 1,320.00: home internet 110.00 per month."
+        }
+      ],
+      "rationale": "The family phone plan and shared home internet are deducted in full; the client estimates business use at about 70% and 50%.",
+      "authority": "IRS Pub 334 (2025): Tax Guide for Small Business",
+      "confidence": 0.82
+    },
+    {
+      "id": "ai-other-5",
+      "kind": "other",
+      "otherKind": "personal_expense_deducted",
+      "claims": [
+        "SchC.27a.1",
+        "SchC.28",
+        "SchC.31"
+      ],
+      "evidence": [
+        {
+          "doc": "D15",
+          "page": 1,
+          "quote": "Spotify Family 216.00"
+        }
+      ],
+      "rationale": "The family music subscription is personal and was booked to software by mistake, so it should come out of business expenses.",
+      "authority": "IRS Pub 334 (2025): Tax Guide for Small Business",
+      "confidence": 0.85
+    },
+    {
+      "id": "ai-document_not_reflected-4",
+      "kind": "document_not_reflected",
+      "otherKind": null,
+      "claims": [
+        "F8949.B.total",
+        "SchD.2"
+      ],
+      "evidence": [
+        {
+          "doc": "D31",
+          "page": 32,
+          "quote": "M18 Ironwood REIT (fractional share cash in lieu) 6.8 sh acquired 2025-01-14 sold 2025-12-15 proceeds 250.00 basis 310.00 short-term noncovered."
+        }
+      ],
+      "rationale": "The unread supplemental page holds a sale missing from Form 8949, which explains the gap between the broker summary and the extracted lots.",
+      "authority": null,
+      "confidence": 0.85
+    },
+    {
+      "id": "ai-residency_or_source-2",
+      "kind": "residency_or_source",
+      "otherKind": null,
+      "claims": [
+        "F540NR.61",
+        "F540NR.64"
+      ],
+      "evidence": [
+        {
+          "doc": "D12",
+          "page": 1,
+          "quote": "Date option granted 03/01/2022. Date exercised 07/30/2025. Exercise price per share 12.00. FMV per share on exercise date 52.00. Shares transferred 1,000."
+        }
+      ],
+      "rationale": "The option was earned through California work, so the held ISO spread is likely a California-source AMT item, yet California AMT was left at zero.",
+      "authority": "FTB Pub 1031 (2025): Guidelines for Determining Resident Status",
+      "confidence": 0.65
+    },
+    {
+      "id": "ai-limit_or_eligibility-3",
+      "kind": "limit_or_eligibility",
+      "otherKind": null,
+      "claims": [
+        "Sch2.21",
+        "Sch1.16"
+      ],
+      "evidence": [
+        {
+          "doc": "D26",
+          "page": 1,
+          "quote": "SEP-IRA contribution of 18,000.00 deposited 04/10/2026, designated for tax year 2025."
+        }
+      ],
+      "rationale": "The SEP deposit exceeds the computed deduction limit; the excess needs timely withdrawal or a 6% excise tax, and neither is addressed.",
+      "authority": "IRS Pub 560 (2025): Retirement Plans for Small Business",
+      "confidence": 0.6
+    },
+    {
+      "id": "ai-other-6",
+      "kind": "other",
+      "otherKind": "election_opportunity",
+      "claims": [
+        "F4562-C.12",
+        "F4562-C.14",
+        "SchCA540NR.12.C"
+      ],
+      "evidence": [
+        {
+          "doc": "D22",
+          "page": 1,
+          "quote": "Large-format printer 14,200.00; camera system (body, 3 lenses) 16,300.00; workstation computer 7,500.00. Total 38,000.00, paid in full 03/14/2025."
+        }
+      ],
+      "rationale": "Electing section 179 instead of special depreciation leaves federal tax unchanged but lowers California tax, which allows section 179 but not bonus depreciation.",
+      "authority": "IRS Pub 946 (2025): How to Depreciate Property",
+      "confidence": 0.55
     }
   ],
+  "rejected": [],
   "proposals": [
     {
-      "rule": "Crypto lot method check: when an exchange export says it uses FIFO, no lot sold on a given date should be newer than a lot of the same asset that is still held.",
+      "rule": "Check each estimated payment against the agency transcript. Do not let the client's questionnaire amount fill in a quarter when the IRS or FTB record shows a different amount for that quarter.",
       "compares": [
-        "D35 sold-lot acquired dates",
-        "D35 held-lot (Buy n) acquired dates",
-        "asset code",
-        "sale date",
-        "stated method text"
+        "F1040.26 note per-payment amounts",
+        "agency:/irs_account_transcript_2025 code 670 amounts",
+        "F540NR.72 sources pay*_year",
+        "agency:/ftb_account/tax_year_2025_payments"
       ],
-      "firesWhen": "The export says it uses FIFO, and a lot was sold while an older lot of the same asset, bought before that sale, is still held.",
-      "silentWhen": "The export says it uses specific identification, or every lot still held was bought after each sale of that asset.",
+      "firesWhen": "The line includes a payment that came from client text, or a payment the confirmation marks for another tax year, and the transcript for that date shows a different amount or no 2025 credit.",
+      "silentWhen": "Every payment on the line matches a transcript entry for 2025 in date and amount.",
       "refs": [
-        "D35",
-        "F8949.H.C2",
-        "F8949.H.C3",
-        "F8949.H.C5",
-        "F8949.K.C1"
+        "F1040.26",
+        "F540NR.72",
+        "D67",
+        "D68",
+        "qa-41"
+      ]
+    },
+    {
+      "rule": "When a donated vehicle's Form 1098-C has box 4a checked, the Form 8283 vehicle value cannot exceed the box 4c gross proceeds.",
+      "compares": [
+        "F8283.A1.vehicle",
+        "1098-C box4c",
+        "1098-C box4a"
+      ],
+      "firesWhen": "Box 4a is checked and the claimed value is above box 4c.",
+      "silentWhen": "Box 4a is not checked, box 5 (significant use) applies, or the claimed value is at or below box 4c.",
+      "refs": [
+        "D66",
+        "F8283.A1.vehicle"
+      ]
+    },
+    {
+      "rule": "A payoff statement interest amount must not be added to a mortgage interest line when the Form 1098 printed text says box 1 already includes the payoff interest.",
+      "compares": [
+        "SchA.8a sources",
+        "1098 box1 printed note",
+        "payoff_statement interest"
+      ],
+      "firesWhen": "The same line cites both, and the 1098 or the payoff page says the interest is reported on the 1098.",
+      "silentWhen": "The payoff interest is for a lender with no 1098, or the 1098 says it excludes the payoff.",
+      "refs": [
+        "D55",
+        "D56",
+        "SchA.8a"
+      ]
+    },
+    {
+      "rule": "Find information returns from the same payer that report the same interest, such as a composite 1099 sweep section and a standalone 1099-INT for the same sweep program, when each is landed on its own Schedule B line.",
+      "compares": [
+        "SchB.1.* sources payer and amount",
+        "composite 1099-INT section",
+        "standalone 1099-INT printed program description"
+      ],
+      "firesWhen": "Two Schedule B lines carry the same amount from the same payer or sweep program across two documents.",
+      "silentWhen": "The account numbers or amounts differ, or one document is marked superseded.",
+      "refs": [
+        "D28",
+        "D29",
+        "SchB.1.1",
+        "SchB.1.2"
+      ]
+    },
+    {
+      "rule": "For a broker lot with zero or missing basis, look for a matching lot on a stock plan supplemental statement (same shares and date acquired) and use its adjusted basis.",
+      "compares": [
+        "F8949 lot basis",
+        "stock_plan_supplement adjusted basis",
+        "lot date acquired and shares"
+      ],
+      "firesWhen": "Broker basis is zero and a supplement lot with the same acquisition date and share count gives nonzero adjusted basis that is not applied.",
+      "silentWhen": "No supplement lot matches, or the supplement basis is already used.",
+      "refs": [
+        "D11",
+        "F8949.B.N1",
+        "F8949.B.N3",
+        "F8949.E.N4"
+      ]
+    },
+    {
+      "rule": "Mileage page totals from pages the duplicate check flags as near or identical copies, or whose printed text says second scan, must count only once.",
+      "compares": [
+        "SchC.44a sources page totals",
+        "duplicate_page likeness on D23 pages"
+      ],
+      "firesWhen": "A line sums page totals from two pages with word similarity of at least 0.9 and the same page total.",
+      "silentWhen": "The pages cover different date ranges or have different trip lists.",
+      "refs": [
+        "D23",
+        "SchC.44a",
+        "SchC.9"
+      ]
+    },
+    {
+      "rule": "Do not add Form 1099-K gross to Schedule C receipts as unmatched when books transaction detail says the card receipts were deposited gross into recorded sales.",
+      "compares": [
+        "SchC.1 sources",
+        "1099-K box1a",
+        "books_transaction_detail deposit notes"
+      ],
+      "firesWhen": "The books detail names the 1099-K processor and an amount equal to box 1a as included in deposits, yet the engine adds box 1a.",
+      "silentWhen": "No books detail ties the 1099-K to recorded deposits.",
+      "refs": [
+        "D15",
+        "D21",
+        "SchC.1"
+      ]
+    },
+    {
+      "rule": "A foreign-currency income line must use a rate for the same tax year as the income.",
+      "compares": [
+        "line sources ref:fx period",
+        "line tax year",
+        "document date of income"
+      ],
+      "firesWhen": "The cited fx reference period year differs from the tax year of the income it converts.",
+      "silentWhen": "The rate period matches the tax year, or the line is a year-end balance that uses the year-end rate.",
+      "refs": [
+        "SchB.1.6",
+        "D36"
+      ]
+    },
+    {
+      "rule": "Flag a broker document page that has an extraction status of partial with pages not read, and compare the 1099-B summary proceeds with the sum of the lots landed on the return.",
+      "compares": [
+        "document extraction status",
+        "1099-B summary proceeds",
+        "sum of F8949 lot proceeds per broker"
+      ],
+      "firesWhen": "A page was not read and the summary proceeds differ from the sum of landed lots.",
+      "silentWhen": "All pages were read and the totals agree.",
+      "refs": [
+        "D31",
+        "BROKER_SUMMARY_DETAIL_MISMATCH"
+      ]
+    },
+    {
+      "rule": "Flag an expense whose transaction detail names a family or multi-line plan, a shared home service, or a personal subscription, when the client text gives a business-use share below 100% or calls the item personal.",
+      "compares": [
+        "SchC.25",
+        "SchC.27a.1",
+        "books_transaction_detail descriptions",
+        "call note business-use percentages"
+      ],
+      "firesWhen": "The full books amount is deducted and the client text gives a lower business share or says the item is personal.",
+      "silentWhen": "No business-use share is stated or the line already applies it.",
+      "refs": [
+        "D15",
+        "SchC.25",
+        "SchC.27a.1"
+      ]
+    },
+    {
+      "rule": "An owner-statement repair entry that an invoice describes as replacing a whole building system, with words like removed, installed new system or permit, should go to a capitalisation review instead of repairs.",
+      "compares": [
+        "SchE.14A sources",
+        "invoice printed text",
+        "rental owner statement repair breakdown"
+      ],
+      "firesWhen": "A repair line includes an item whose invoice describes full system replacement over the de minimis threshold.",
+      "silentWhen": "The invoice describes a part repair or routine maintenance below the threshold.",
+      "refs": [
+        "D46",
+        "D47",
+        "SchE.14A"
+      ]
+    },
+    {
+      "rule": "California source wages for a part-year resident must be split by residency dates and not taken straight from W-2 box 16 when the W-2 text says the payroll work state was kept after the move date.",
+      "compares": [
+        "SchCA540NR.1.E",
+        "W-2 box16",
+        "residency change date",
+        "W-2 printed work-state note"
+      ],
+      "firesWhen": "Box 16 California wages include pay periods after the move-out date given in the questionnaire.",
+      "silentWhen": "The household was resident all year, or the W-2 box 16 stops at the move date.",
+      "refs": [
+        "D09",
+        "SchCA540NR.1.E",
+        "qa-02",
+        "qa-45"
       ]
     }
   ]
