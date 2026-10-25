@@ -18,9 +18,9 @@ export interface VerifyInput { method: string; ids: unknown[]; target: unknown }
 
 type Obj = Record<string, unknown>;
 /** Amounts may be added; identifiers, dates, codes and text may not. */
-const AMOUNT_TYPES = new Set(['money', 'integer', 'quantity']);
+export const AMOUNT_TYPES = new Set(['money', 'integer', 'quantity']);
 /** Up to 12 inputs, every sign combination is tried (4,096 at most). */
-const MAX_SIGNED_INPUTS = 12;
+export const MAX_SIGNED_INPUTS = 12;
 const NEAR = 1;
 const isNum = (x: unknown): x is number => typeof x === 'number' && Number.isFinite(x);
 const looksNumeric = (x: unknown) => typeof x === 'number' || (typeof x === 'string' && /^[\s$€£(+-]*[\d.,]+[)%\s]*$/.test(x));
@@ -51,7 +51,7 @@ export function verify(ix: PacketIndex, input: VerifyInput, mode: AgentMode = DE
 
 // ---------- recompute_line ----------
 /** The first sign combination (inputs in order, + before -) whose total is within 1 of the value, or null. */
-function signsReaching(keys: string[], vals: number[], value: number): string[] | null {
+export function signsReaching(keys: string[], vals: number[], value: number): string[] | null {
   if (vals.length > MAX_SIGNED_INPUTS) return null;
   for (let mask = 0; mask < 1 << vals.length; mask++) {
     const total = vals.reduce((s, v, i) => s + (mask & (1 << i) ? -v : v), 0);

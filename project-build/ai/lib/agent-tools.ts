@@ -48,7 +48,8 @@ function cached<T>(store: WeakMap<PacketIndex, Map<string, T>>, ix: PacketIndex,
   if (!m.has(key)) m.set(key, make());
   return m.get(key)!;
 }
-/** Tools a mode offers: blind takes away run_checks (the calculator's fact_copies gives agreements only there). */
+/** Tools a mode offers: blind takes away run_checks (our checks' findings); raw comparisons stay (verify_all lists every
+ *  disagreement in every mode; the calculator's fact_copies still gives agreements only in blind until Task 2 of the plan). */
 export function toolNamesFor(mode: AgentMode = DEFAULT_MODE): AgentToolName[] {
   return AGENT_TOOL_NAMES.filter((n) => mode.kind !== 'blind' || n !== 'run_checks');
 }

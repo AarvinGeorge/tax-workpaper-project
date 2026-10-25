@@ -1,6 +1,8 @@
-// The agent's measurement modes. 'default' is production. 'blind' takes away the tools that hand over our checks'
-// results (run_checks, find_fact_copies) and computes leftovers as if no check had run, so recall on all 27 ledger
-// mistakes is a fair comparison with the reader. 'hide-checks' hides a seeded half of the check ids, so the harness can
+// The agent's measurement modes. 'default' is production. 'blind' (independent re-performance) hides our checks'
+// findings, never raw comparisons: it takes away run_checks, computes leftovers and the case file as if no check had
+// run, and verify_all (verify-all.ts) drops every finding-derived field (finding wording on a comparison, onCheck).
+// The calculator's fact_copies still returns agreements only in blind until the plan's Task 2 changes it, so recall
+// on all 27 ledger mistakes is a fair comparison with the reader. 'hide-checks' hides a seeded half of the check ids, so the harness can
 // score the agent on exactly the ledger entries only those checks reach. The harness recomputes the hidden set from the
 // seed (hiddenCheckIds) and the real checks; it never takes it from the agent's output.
 import { CHECKS, runChecks } from '../../src/domain/checks/index';
@@ -58,4 +60,17 @@ export function hiddenFindings(ix: PacketIndex, mode: AgentMode): Finding[] {
   if (mode.kind !== 'hide-checks') return [];
   const hidden = new Set(hiddenCheckIds(mode.seed));
   return allFindings(ix).filter((f) => hidden.has(f.checkId));
+}
+
+/** Whether a same-fact comparison's finding payload (title, explanation, receipt, effect, trigger, stopsEfile) must be
+ *  dropped in a mode: always in blind, never in default; in hide-checks when a hidden check reports it (same title or
+ *  same claims) or any of its claims is claimed by a hidden finding and by no visible one. The comparison itself (rule,
+ *  claims, copies, agree) is raw and stays in every mode. */
+export function comparisonPayloadHidden(ix: PacketIndex, mode: AgentMode): (c: { title: string; claims: string[] }) => boolean {
+  if (mode.kind === 'blind') return () => true;
+  if (mode.kind === 'default') return () => false;
+  const hid = hiddenFindings(ix, mode);
+  const visible = new Set(findingsFor(ix, mode).flatMap((f) => f.claims));
+  const hiddenOnly = new Set(hid.flatMap((f) => f.claims).filter((c) => !visible.has(c)));
+  return (c) => c.claims.some((x) => hiddenOnly.has(x)) || hid.some((f) => f.title === c.title || f.claims.join('|') === c.claims.join('|'));
 }
