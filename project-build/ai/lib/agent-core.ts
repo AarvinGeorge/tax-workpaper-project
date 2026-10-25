@@ -4,7 +4,7 @@
 // reader's are) plus optional check proposals in words. Pure apart from the injected fetch, so tests need no network.
 // Guards: an iteration cap, a wall-clock abort, a cost budget, refusal and max_tokens stops, an SSN scan on every tool
 // result. A partial, failed or over-budget run returns { ok: false } and writeRun never writes it.
-import { existsSync, mkdirSync, readFileSync, readdirSync, writeFileSync } from 'node:fs';
+import { existsSync, mkdirSync, readFileSync, readdirSync, realpathSync, writeFileSync } from 'node:fs';
 import path from 'node:path';
 import Anthropic from '@anthropic-ai/sdk';
 import type { BetaMessage, BetaTextBlockParam } from '@anthropic-ai/sdk/resources/beta/messages/messages';
@@ -294,7 +294,7 @@ export async function runAgent(o: AgentRunOptions): Promise<AgentRunResult> {
   const recorded: Row[] = [];
   let turns = 0; let cost = 0;
   const budget = () => `turn ${turns} of ${limits.maxIterations}; about $${Math.max(0, limits.maxCostUsd - cost).toFixed(2)} left`;
-  const baseTools = o.toolsFor ? o.toolsFor(o.ix, guard, mode) : agentTools(o.ix, guard, { mode, recorder: recorded, budget });
+  const baseTools = o.toolsFor ? o.toolsFor(o.ix, guard, mode) : agentTools(o.ix, guard, { mode, recorder: recorded, budget, independent: prompt === 'v4' && isBlind(mode) });
   // Each call's result, in brief, matched later to the turn's tool_use blocks by name and input.
   const done: { name: string; input: string; result: TraceResult }[] = [];
   const tools = baseTools.map((t) => ({
@@ -449,16 +449,27 @@ export async function runAgent(o: AgentRunOptions): Promise<AgentRunResult> {
 /** The sidecars of a run file: its trace and run meta beside it. */
 const sidecars = (outFile: string) => ({ trace: outFile.replace(/\.json$/, '.trace.json'), meta: outFile.replace(/\.json$/, '.run-meta.json') });
 
-/** A committed agent output: any ai/eval/agent-suggestions*.json (the live payload, its sidecars, and the earlier
- *  measured runs beside it). No run writes one unless it is the live payload and the run was given --live. */
-export function isProtectedEvalFile(file: string): boolean {
+/** The forms a path can take on disk: as given (resolved), and with its nearest existing folder resolved through
+ *  symlinks to its real name. Compared case-folded, since macOS and Windows volumes are case-insensitive. */
+function pathForms(file: string): string[] {
   const abs = path.resolve(file);
-  return path.basename(abs).startsWith('agent-suggestions') && abs.endsWith('.json')
-    && path.basename(path.dirname(abs)) === 'eval' && path.basename(path.dirname(path.dirname(abs))) === 'ai';
+  const forms = [abs];
+  let dir = path.dirname(abs); const rest: string[] = [path.basename(abs)];
+  while (!existsSync(dir) && path.dirname(dir) !== dir) { rest.unshift(path.basename(dir)); dir = path.dirname(dir); }
+  try { forms.push(path.join(realpathSync.native(dir), ...rest)); } catch { /* unreadable: the given form only */ }
+  return forms.map((f) => f.toLowerCase());
+}
+/** A committed agent output: any ai/eval/agent-suggestions*.json (the live payload, its sidecars, and the earlier
+ *  measured runs beside it), in any letter case or through a symlinked folder. No run writes one unless it is the live
+ *  payload and the run was given --live. */
+export function isProtectedEvalFile(file: string): boolean {
+  return pathForms(file).some((abs) => path.basename(abs).startsWith('agent-suggestions') && abs.endsWith('.json')
+    && path.basename(path.dirname(abs)) === 'eval' && path.basename(path.dirname(path.dirname(abs))) === 'ai');
 }
 const isLiveFile = (file: string) => {
-  const abs = path.resolve(file); const live = path.normalize(ACTIVE_PAYLOAD_FILE);
-  return [live, live.replace(/\.json$/, '.trace.json'), live.replace(/\.json$/, '.run-meta.json')].some((l) => abs.endsWith(path.sep + l));
+  const live = path.normalize(ACTIVE_PAYLOAD_FILE).toLowerCase();
+  const trio = [live, live.replace(/\.json$/, '.trace.json'), live.replace(/\.json$/, '.run-meta.json')];
+  return pathForms(file).some((abs) => trio.some((l) => abs.endsWith(path.sep + l)));
 };
 
 /** Writes the trace beside the payload always (a failed run is when it is needed most); the run meta for a finished or

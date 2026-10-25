@@ -16,7 +16,7 @@ import { runTool } from '../../ai/lib/agent-tools';
 import { DIFFERS_KINDS, sweep, verifyAll } from '../../ai/lib/verify-all';
 import type { AgentMode } from '../../ai/lib/modes';
 import {
-  METRICS, aggregate, itemLines, stopRule, leakScanner, loadRuns, offlineFigures, report, runOutcome, stat, summarizeRun, type RunFile,
+  METRICS, aggregate, disagreementLines, itemLines, stopRule, leakScanner, loadRuns, offlineFigures, report, runOutcome, stat, summarizeRun, type RunFile,
 } from '../../ai/lib/run-summary';
 
 const ix = indexPacket(loadPacket());
@@ -172,6 +172,59 @@ describe('summariser: per-run metrics', () => {
     expect(a.ledger!.reachable + a.ledger!.unreachable.length).toBe(gold.length);
     // At least one entry reachable on the real packet lost every claim line on the altered one (the removed form).
     expect(goneAll.some((id) => [...gold.find((g) => g.id === id)!.claimLines].some(isLine))).toBe(true);
+  });
+});
+
+describe('summariser: tool-surfaced means disagreement evidence before the record (fix round 1)', () => {
+  const fc = (l: string) => JSON.parse(runTool(ix, 'verify', { method: 'fact_copies', ids: [l], target: null, limit: 50, cursor: 0 }, { mode: BLIND })).data as { items: { agree: boolean }[] };
+  const reach = gold.flatMap((g) => [...g.claimLines].filter(isLine).map((l) => ({ g, l })));
+  // Picked by probing the tools (scoring side): an entry line whose fact copies all agree, and one where some disagree.
+  const agreeing = reach.find(({ l }) => fc(l).items.length > 0 && fc(l).items.every((i) => i.agree))!;
+  const disagreeing = reach.find(({ g, l }) => g !== agreeing.g && fc(l).items.some((i) => !i.agree))!;
+  const fcCall = (l: string): [string, Record<string, unknown>] => ['verify', { method: 'fact_copies', ids: [l], target: null, limit: 50, cursor: 0 }];
+  const runWith = (turns: ReturnType<typeof turn>[], rows: ReturnType<typeof rowFor>[]): RunFile => ({
+    file: 'agent-v4/blind.real.9.json', version: 'agent-v4', modeLabel: 'blind', mode: BLIND, packet: 'real', seed: null, n: 9,
+    payload: payloadOf(rows), meta: { outcome: 'ok' }, adjudication: null,
+    trace: { promptVersion: 'agent-v4-blind', runAt: 'x', endedBy: 'end_turn', reason: null, outcome: 'ok', turns } as never,
+  });
+
+  it('the cases exist on this packet', () => {
+    expect(agreeing).toBeTruthy();
+    expect(disagreeing).toBeTruthy();
+  });
+
+  it('verify agrees, then record: agent-found (consulted, so it still counts for verify before record)', () => {
+    const s = summarizeRun(runWith([turn(1, [fcCall(agreeing.l)]), turn(2, [['record_suggestion', row([agreeing.l])]]), turn(3, [], '{}')], [row([agreeing.l])]), { ix });
+    expect(s.ledger!.agentFound).toContain(agreeing.g.id);
+    expect(s.ledger!.toolSurfaced).not.toContain(agreeing.g.id);
+    expect(s.discipline).toEqual({ recorded: 1, covered: 1, share: 1 });
+  });
+
+  it('a disagreement in an earlier turn: tool-surfaced; in the same turn as the record: agent-found (strictly before)', () => {
+    const earlier = summarizeRun(runWith([turn(1, [fcCall(disagreeing.l)]), turn(2, [['record_suggestion', row([disagreeing.l])]]), turn(3, [], '{}')], [row([disagreeing.l])]), { ix });
+    expect(earlier.ledger!.toolSurfaced).toContain(disagreeing.g.id);
+    const same = summarizeRun(runWith([turn(1, [fcCall(disagreeing.l), ['record_suggestion', row([disagreeing.l])]]), turn(2, [], '{}')], [row([disagreeing.l])]), { ix });
+    expect(same.ledger!.agentFound).toContain(disagreeing.g.id);
+    expect(same.discipline.covered).toBe(0);
+  });
+
+  it('disagreementLines: differs items only from verify_all; agrees false, agreesWithPriorRecords false, fact copies agree false, duplicates items from verify', () => {
+    const L = lineA; const L2 = lineB;
+    const va = (items: unknown[]) => disagreementLines(ix, { turn: 1, name: 'verify_all', input: { kind: 'all' } }, { items } as never);
+    expect(va([{ kind: 'variance_over_firm_rule', key: L }, { kind: 'sign_subtraction', key: L }, { kind: 'duplicate_page', lines: [L] }])).toEqual([]);
+    expect(va([{ kind: 'prior_record_differs', key: L }, { kind: 'copies_disagree', lines: [L2] }])).toEqual([L, L2]);
+    const v = (method: string, data: Record<string, unknown>) => disagreementLines(ix, { turn: 1, name: 'verify', input: { method, ids: [L], target: null } }, data as never);
+    expect(v('recompute_line', { agrees: true })).toEqual([]);
+    expect(v('recompute_line', { agrees: false })).toEqual([L]);
+    expect(v('sum_to', { agrees: false })).toEqual([L]);
+    expect(v('prior_year', { agreesWithPriorRecords: true })).toEqual([]);
+    expect(v('prior_year', { agreesWithPriorRecords: false })).toEqual([L]);
+    expect(v('fact_copies', { items: [{ agree: true, lines: [L2] }] })).toEqual([]);
+    expect(v('fact_copies', { items: [{ agree: false, lines: [L2] }] })).toEqual([L2]);
+    expect(v('duplicates', { items: [{ lines: [L2] }] })).toEqual([L2]);
+    expect(v('glossary', { items: [{ key: L2 }] })).toEqual([]);
+    expect(v('recompute_line', { error: 'x', agrees: false })).toEqual([]);
+    expect(disagreementLines(ix, { turn: 1, name: 'lookup', input: {} }, { items: [{ key: L }] } as never)).toEqual([]);
   });
 });
 

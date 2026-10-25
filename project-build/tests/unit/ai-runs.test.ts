@@ -14,6 +14,7 @@ import {
 import { ACTIVE_PAYLOAD_FILE } from '../../ai/lib/producer';
 import { caseFile } from '../../ai/lib/case-file';
 import { agentRunFiles } from '../../ai/lib/harness-core';
+import { agentTools } from '../../ai/lib/agent-tools';
 import type { AgentMode } from '../../ai/lib/modes';
 
 const ix = indexPacket(loadPacket());
@@ -81,6 +82,29 @@ describe('run outputs: off the live file', () => {
     for (const f of ['agent-suggestions.blind.json', 'agent-suggestions.blind.trace.json', 'agent-suggestions.v4.json']) expect(isProtectedEvalFile(path.join('/r', 'ai', 'eval', f)), f).toBe(true);
     expect(isProtectedEvalFile(path.join('/r', 'ai', 'eval', 'runs', 'agent-v4', 'blind.real.1.json'))).toBe(false);
     expect(isProtectedEvalFile(path.join('/tmp', 'x', 'agent-suggestions.json'))).toBe(false); // not under ai/eval
+  });
+
+  // Fix round 1 (Fable): macOS volumes are case-insensitive, so a differently cased path names the same file.
+  const CASED = ['AI/EVAL/agent-suggestions.json', 'ai/eval/Agent-Suggestions.json', 'ai/Eval/agent-suggestions.json', 'ai/eval/AGENT-SUGGESTIONS.TRACE.JSON'];
+  it('case variants of a protected path are protected too (isProtectedEvalFile, resolveOutFile, writeRun)', async () => {
+    for (const f of CASED) expect(isProtectedEvalFile(path.join('/r', f)), f).toBe(true);
+    const base = { root: '/r', mode: { kind: 'default' } as AgentMode, packet: 'real' as const, seed: undefined, prompt: 'v3' as AgentPrompt, live: false };
+    for (const out of CASED.slice(0, 3)) for (const prompt of PROMPTS) expect(() => resolveOutFile({ ...base, prompt, out }), `${prompt} ${out}`).toThrow(/protected|--live/);
+    const res = await runAgent(opts(fake(() => final())));
+    const root = tmpRoot();
+    for (const f of CASED.slice(0, 3)) expect(() => writeRun(res, path.join(root, f)), f).toThrow(/protected/);
+    expect(readdirSync(path.join(root, 'ai', 'eval'))).toEqual([]);
+  });
+
+  it('a symlinked folder that resolves to ai/eval is protected (the real parent is checked)', async () => {
+    const { symlinkSync } = await import('node:fs');
+    const root = tmpRoot();
+    const link = path.join(root, 'alias');
+    symlinkSync(path.join(root, 'ai', 'eval'), link);
+    expect(isProtectedEvalFile(path.join(link, 'agent-suggestions.json'))).toBe(true);
+    const res = await runAgent(opts(fake(() => final())));
+    expect(() => writeRun(res, path.join(link, 'agent-suggestions.json'))).toThrow(/protected/);
+    expect(readdirSync(path.join(root, 'ai', 'eval'))).toEqual([]);
   });
 
   it('resolveOutFile: without --live no path (given or default) reaches a protected file; --out at one is refused', () => {
@@ -252,6 +276,40 @@ describe('independence: the v4 independent case file does not define F', () => {
     expect(agentSystem(ix, files, { kind: 'blind' }, 'v4').at(-1)!.text).toBe(agentContext(ix, files, { kind: 'blind' }, 'v4'));
     await runAgent(opts(fetch, { mode: { kind: 'blind' } }));
     expect(sha(bodies[1].system.at(-1)!.text)).toBe(PINNED.blind);
+  });
+});
+
+describe('independence: v4 independent tool descriptions say nothing of our checks (fix round 1)', () => {
+  const guard = { onHit() {} };
+  const defs = (mode: AgentMode, independent?: boolean) => (agentTools(ix, guard, { mode, independent }) as unknown as { name: string; description: string; input_schema?: unknown; strict?: unknown }[]).map((t) => ({ name: t.name, description: t.description, input_schema: t.input_schema, strict: t.strict }));
+  // sha256 of the tool definitions per mode at 0d0f6a9 (before this fix): v3 bytes stay identical.
+  const PINNED = { checks: '38edd39ee1f5273e43335e2a8b97e871f09f692247473a741a34262384cc00e4', blind: '44d8f23fc3bd8a404d20d0f076216bf465d5b881af23b53369a6cac1ec9bd5c7' };
+  it('v3 tool definitions are pinned in every mode, and independent applies only with a blind mode', () => {
+    expect(sha(JSON.stringify(defs({ kind: 'default' })))).toBe(PINNED.checks);
+    expect(sha(JSON.stringify(defs({ kind: 'hide-checks', seed: 7 })))).toBe(PINNED.checks);
+    expect(sha(JSON.stringify(defs({ kind: 'blind' })))).toBe(PINNED.blind);
+    expect(sha(JSON.stringify(defs({ kind: 'blind-v3' })))).toBe(PINNED.blind);
+    expect(sha(JSON.stringify(defs({ kind: 'default' }, true)))).toBe(PINNED.checks); // no findings to hide: unchanged
+  });
+
+  it('independent: list_open_leftovers is the only description that changes, and it names no finding or check', () => {
+    const v3 = defs({ kind: 'blind' }); const v4 = defs({ kind: 'blind' }, true);
+    const changed = v4.filter((d, i) => JSON.stringify(d) !== JSON.stringify(v3[i]));
+    expect(changed.map((d) => d.name)).toEqual(['list_open_leftovers']);
+    // "choose the check" in verify means a calculator method, not our checks; nothing says a check raised or names anything.
+    for (const d of v4) expect(d.description, d.name).not.toMatch(/finding|no check|check names|checks raise/i);
+  });
+
+  it('runAgent sends the independent tool descriptions for prompt v4 + blind only', async () => {
+    const bodies: { tools: { name: string; description: string }[] }[] = [];
+    const fetch = async (_u: unknown, init?: RequestInit) => { bodies.push(JSON.parse(String(init?.body))); return new Response(JSON.stringify(final()), { status: 200, headers: { 'content-type': 'application/json' } }); };
+    await runAgent(opts(fetch, { mode: { kind: 'blind' }, prompt: 'v4' }));
+    await runAgent(opts(fetch, { mode: { kind: 'blind' } }));
+    await runAgent(opts(fetch, { mode: { kind: 'default' }, prompt: 'v4' }));
+    const leftovers = (b: (typeof bodies)[number]) => b.tools.find((t) => t.name === 'list_open_leftovers')!.description;
+    expect(leftovers(bodies[0])).not.toMatch(/finding|check/i);
+    expect(leftovers(bodies[1])).toMatch(/no finding/);
+    expect(leftovers(bodies[2])).toMatch(/no finding/);
   });
 });
 

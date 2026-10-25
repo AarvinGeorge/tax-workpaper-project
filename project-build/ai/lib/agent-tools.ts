@@ -234,6 +234,8 @@ export interface ToolOptions {
   budget?: () => string;
   /** Where record_suggestion keeps accepted rows (the run's; absent in direct calls, which only check). */
   recorder?: Row[];
+  /** agent-v4 independent (v4 with a blind mode): descriptions say nothing of our checks. Ignored outside blind modes. */
+  independent?: boolean;
 }
 
 /** One suggestion, for dedupe: same kind, lines and first quote (used when recording and in the final answer). */
@@ -357,7 +359,9 @@ export function agentTools(ix: PacketIndex, guard: ToolGuard, opts: ToolOptions 
     }),
     betaTool({
       name: 'list_open_leftovers', strict: true, run: run('list_open_leftovers'),
-      description: 'What nothing deterministic has settled: numeric lines with no receipt and no finding (unproven_line), engine warnings no check names (uncovered_engine_warning), money on landed documents that no line cites (uncited_money). Paged; byKind gives the counts.',
+      description: opts.independent && isBlind(opts.mode ?? DEFAULT_MODE)
+        ? 'What nothing deterministic has settled: numeric lines with no receipt (unproven_line), the engine\'s warnings (uncovered_engine_warning), money on landed documents that no line cites (uncited_money). Paged; byKind gives the counts.'
+        : 'What nothing deterministic has settled: numeric lines with no receipt and no finding (unproven_line), engine warnings no check names (uncovered_engine_warning), money on landed documents that no line cites (uncited_money). Paged; byKind gives the counts.',
       inputSchema: {
         type: 'object', additionalProperties: false, required: ['kind', 'limit', 'cursor'],
         properties: { kind: { type: 'string', enum: [...LEFTOVER_KINDS, 'all'], description: 'One kind, or all.' }, ...listProps },

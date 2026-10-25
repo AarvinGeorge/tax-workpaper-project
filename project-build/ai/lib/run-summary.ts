@@ -76,7 +76,7 @@ export function runOutcome(r: Pick<RunFile, 'payload' | 'meta' | 'trace'>): RunO
 }
 
 // ---------- Trace replay ----------
-interface Call { turn: number; name: string; input: Obj }
+export interface Call { turn: number; name: string; input: Obj }
 const callsOf = (t: AgentTrace | null): Call[] => (t?.turns ?? []).flatMap((x) => x.toolCalls.map((c) => ({ turn: x.turn, name: c.name, input: (c.input ?? {}) as Obj })));
 const lastTurn = (t: AgentTrace | null) => (t?.turns.length ? t.turns[t.turns.length - 1].turn : 0);
 
@@ -99,6 +99,24 @@ function coveredLines(ix: PacketIndex, c: Call, data: Obj | null): string[] {
   const items = Array.isArray(data?.items) ? (data!.items as Obj[]) : [];
   const own = c.name === 'verify' && !data?.error ? [...((c.input.ids as unknown[]) ?? []), c.input.target].filter((x) => isLine(ix, x)) as string[] : [];
   return [...new Set([...own, ...items.flatMap((i) => itemLines(ix, i))])];
+}
+
+/** The lines a call shows a disagreement on (tool-surfaced evidence): verify_all items of the differs kinds only (any
+ *  page, kind=all included); a verify result that disagrees (agrees false: recompute_line, sum_to; agreesWithPriorRecords
+ *  false: prior_year) on the lines it was given; fact_copies items with agree false; every duplicates item. An agreement,
+ *  an error, a glossary or any other tool is no disagreement. */
+export function disagreementLines(ix: PacketIndex, c: Call, data: Obj | null): string[] {
+  if (!data || data.error) return [];
+  const items = Array.isArray(data.items) ? (data.items as Obj[]) : [];
+  if (c.name === 'verify_all') return [...new Set(items.filter((i) => (DIFFERS_KINDS as readonly unknown[]).includes(i.kind)).flatMap((i) => itemLines(ix, i)))];
+  if (c.name !== 'verify') return [];
+  const method = c.input.method;
+  if (method === 'fact_copies') return [...new Set(items.filter((i) => i.agree === false).flatMap((i) => itemLines(ix, i)))];
+  if (method === 'duplicates') return [...new Set(items.flatMap((i) => itemLines(ix, i)))];
+  if (data.agrees === false || data.agreesWithPriorRecords === false) {
+    return [...new Set([...((c.input.ids as unknown[]) ?? []), c.input.target].filter((x): x is string => isLine(ix, x)))];
+  }
+  return [];
 }
 
 /** The documents a line cites (value ids' documents, doc: refs). */
@@ -175,7 +193,9 @@ export function summarizeRun(run: RunFile, ctx: PacketContext): RunSummary {
   for (const c of calls) toolMix[c.name] = (toolMix[c.name] ?? 0) + 1;
 
   // Replay, in order: what each verify / verify_all call covered and when; which record_suggestion was accepted when.
-  const touches: { turn: number; lines: Set<string> }[] = [];
+  // consulted: any verify / verify_all result covering a line (verify before record); disagreed: only disagreement
+  // evidence (disagreementLines), the tool-surfaced test, so a run that verifies every number is not all tool-surfaced.
+  const touches: { turn: number; lines: Set<string>; disagreed: Set<string> }[] = [];
   const recorder: unknown[] = [];
   const accepted: { turn: number; key: string; claims: string[] }[] = [];
   const leakOf = isBlind(mode) ? leakScanner(ix) : null;
@@ -184,12 +204,14 @@ export function summarizeRun(run: RunFile, ctx: PacketContext): RunSummary {
     const before = recorder.length;
     const text = replay(ix, c, mode, c.name === 'record_suggestion' ? recorder : undefined);
     if (leakOf && text) { const w = leakOf(text); if (w) leaks.push({ turn: c.turn, tool: c.name, what: w }); }
-    if (c.name === 'verify' || c.name === 'verify_all') touches.push({ turn: c.turn, lines: new Set(coveredLines(ix, c, dataOf(text))) });
+    if (c.name === 'verify' || c.name === 'verify_all') { const d = dataOf(text); touches.push({ turn: c.turn, lines: new Set(coveredLines(ix, c, d)), disagreed: new Set(disagreementLines(ix, c, d)) }); }
     if (c.name === 'record_suggestion' && recorder.length > before) {
       accepted.push({ turn: c.turn, key: sugKey(c.input), claims: ((c.input.claims as string[]) ?? []).map(lineOf) });
     }
   }
+  /** Strictly before: a result is seen by the model only from the turn after the call. */
   const touchedBefore = (lines: string[], turn: number) => touches.some((t) => t.turn < turn && lines.some((l) => t.lines.has(l)));
+  const disagreedBefore = (lines: string[], turn: number) => touches.some((t) => t.turn < turn && lines.some((l) => t.disagreed.has(l)));
   /** The turn a payload suggestion was settled: its accepted record_suggestion call, else the final answer. */
   const turnOf = (s: AiSuggestion) => accepted.find((a) => a.key === sugKey(s))?.turn ?? final;
 
@@ -248,7 +270,7 @@ export function summarizeRun(run: RunFile, ctx: PacketContext): RunSummary {
   const toolSurfaced: string[] = []; const agentFound: string[] = [];
   for (const g of found) {
     const at = Math.min(...grounded.filter((s) => matchesStrict(s, g)).map(turnOf));
-    (touchedBefore([...g.claimLines], at) ? toolSurfaced : agentFound).push(g.id);
+    (disagreedBefore([...g.claimLines], at) ? toolSurfaced : agentFound).push(g.id);
   }
   const differsLines = new Set(differs.flatMap((i) => itemLines(ix, i as unknown as Obj)));
   const untouched = reachable.filter((g) => ![...g.claimLines].some((l) => differsLines.has(l))).map((g) => g.id);
@@ -304,8 +326,8 @@ export const METRICS: Metric[] = [
   { key: 'strict_found', define: 'Count of those entries.', get: (r) => len(r.ledger?.found) },
   { key: 'strict_recall_shown', define: 'Strict recall after the backend verifier (what a reviewer would see).', get: (r) => r.ledger?.shownRecall ?? null },
   { key: 'strict_precision', define: 'Grounded suggestions on any ledger entry\'s claim line, over all grounded suggestions (harness-core scorePayload). Unmatched ones may still be real: see beyond_*.', get: (r) => r.ledger?.precision ?? null },
-  { key: 'tool_surfaced', define: 'Strict finds where a verify or verify_all result (replayed from the trace) covered one of the entry\'s claim lines in a turn before the matching suggestion was accepted (record_suggestion) or, if never recorded, before the final answer: our generic code surfaced it.', get: (r) => len(r.ledger?.toolSurfaced) },
-  { key: 'agent_found', define: 'Strict finds with no such earlier verify/verify_all result: found by the agent reading.', get: (r) => len(r.ledger?.agentFound) },
+  { key: 'tool_surfaced', define: 'Strict finds where a replayed result showed a disagreement on one of the entry\'s claim lines in a turn strictly before the matching suggestion was accepted (record_suggestion) or, if never recorded, before the final answer: a verify_all differs item, a verify recompute_line/sum_to with agrees false or prior_year with agreesWithPriorRecords false, a fact_copies copy with agree false, or a duplicates item. Our generic code surfaced it; an agreeing check does not count.', get: (r) => len(r.ledger?.toolSurfaced) },
+  { key: 'agent_found', define: 'Strict finds with no such earlier disagreement: found by the agent reading (verifying an agreeing number first still counts here).', get: (r) => len(r.ledger?.agentFound) },
   { key: 'judgement_tier', define: 'Reachable ledger entries no verify_all differs item (full offline sweep, this mode) touches by claim line.', get: (r) => len(r.ledger?.untouchedByDiffers) },
   { key: 'judgement_recall', define: 'Agent-found strict finds in the judgement tier, over the judgement tier (the headline judgement figure).', get: (r) => r.ledger?.judgementRecall ?? null },
   { key: 'loose_only', define: 'Ledger entries matched only loosely (a shared evidence document, not a claim line): found but claimed on the wrong line.', get: (r) => len(r.ledger?.looseOnly) },

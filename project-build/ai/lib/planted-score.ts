@@ -4,7 +4,8 @@
 // counted apart from one on a cascade line only (an ancestor the delta moved). Attributable (neither a hit nor a false
 // positive, out of precision's denominator) is per plant: a claimant that hits no plant's claim set is attributable to
 // plant P only when it claims one of P's stale parents (an input moved, the engine-only value did not) AND names P's
-// source (plantSources: an id or document P changed, or one P's planted lines cite). A claim on a stale top line that
+// source (plantSources: an id or document P changed, or one P's planted lines cite), AND P is the only plant whose
+// source it names (naming several plants' sources is ambiguous: a false positive). A claim on a stale top line that
 // names nothing is a false positive, so a shotgun of top-line claims cannot buy precision. Scoring side only: agent
 // code never imports this file, and nothing here reaches the model.
 import type { AiPayload } from '../../src/domain/ai/contract';
@@ -86,11 +87,16 @@ export function plantedScore(ix: PacketIndex, planted: Plant[], source: Finding[
   const all = new Set(planted.flatMap((p) => p.claims));
   const isHit = (c: Claimant) => c.lines.some((l) => all.has(l));
   const sources = planted.map((p) => plantSources(ix, p));
-  /** The plant a non-hit claimant is attributable to (the first, in plant order), or -1. */
-  const attributedTo = (c: Claimant) => (isHit(c) ? -1 : planted.findIndex((p, i) => {
-    const stale = new Set(p.stale ?? []); const own = new Set(p.lines);
-    return c.lines.some((l) => stale.has(l)) && (c.lines.some((l) => own.has(l)) || c.refs.some((r) => sources[i].ids.has(r) || sources[i].docs.has(r)));
-  }));
+  /** The one plant a non-hit claimant is attributable to, or -1: none qualifies, or more than one does (ambiguous, so a
+   *  claimant naming several plants' sources cannot be attributed at all). A claim on a plant's own line is a hit, so only
+   *  the source test is needed here. */
+  const attributedTo = (c: Claimant) => {
+    if (isHit(c)) return -1;
+    const named = planted.map((_, i) => i).filter((i) => c.refs.some((r) => sources[i].ids.has(r) || sources[i].docs.has(r)));
+    if (named.length !== 1) return -1; // names no plant's source, or several plants' (ambiguous)
+    const i = named[0];
+    return c.lines.some((l) => (planted[i].stale ?? []).includes(l)) ? i : -1;
+  };
   const owner = list.map(attributedTo);
   const perPlant: PlantMatch[] = planted.map((p, i) => {
     const own = new Set(p.lines); const cascade = new Set(p.claims.filter((c) => !own.has(c)));

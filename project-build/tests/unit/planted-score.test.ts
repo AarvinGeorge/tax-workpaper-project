@@ -52,6 +52,31 @@ describe('planted score: attributable is per plant (a claim on a stale parent th
     expect(plantedScore(pIx, base.planted, payload)).toMatchObject({ considered: 1, attributable: 1 });
   });
 
+  it('a claimant that qualifies for more than one plant is ambiguous: a false positive (fix round 1)', () => {
+    // A shotgun naming every plant's documents and ids: each stale claim qualifies for several plants.
+    const every = [...new Set(base.planted.flatMap((p) => { const s = plantSources(pIx, p); return [...s.ids, ...s.docs]; }))];
+    const shared = allStale.filter((k) => base.planted.filter((p) => p.stale.includes(k)).length >= 1);
+    const shot = shared.slice(0, 7).map((k, i) => ({ checkId: `S${i}`, claims: [`line:${k}`, ...allStale.filter((x) => x !== k).slice(0, 3).map((x) => `line:${x}`)], evidence: every }));
+    const s = plantedScore(pIx, base.planted, [...hits, ...shot] as never);
+    // Each shot claims stale lines of more than one plant and names all their sources: ambiguous, never attributable.
+    const qualifying = (c: { claims: string[] }) => base.planted.filter((p) => c.claims.some((x) => p.stale.includes(x.slice(5)))).length;
+    expect(shot.every((c) => qualifying(c) > 1)).toBe(true);
+    expect(s).toMatchObject({ considered: 9, matched: 2, attributable: 0, falsePositives: 7 });
+    expect(s.precision).toBeCloseTo(2 / 9, 10);
+    // The review's probe: seven claims, each on ONE plant's stale line, each naming every plant document. Before this
+    // fix the first qualifying plant took each (precision 1.00); naming several plants' sources is now ambiguous.
+    const docs = [...new Set(base.planted.flatMap((x) => [...plantSources(pIx, x).docs]))].map((d) => `doc:${d}`);
+    const single = allStale.slice(0, 7).map((k, i) => ({ checkId: `T${i}`, claims: [`line:${k}`], evidence: docs }));
+    const t = plantedScore(pIx, base.planted, [...hits, ...single] as never);
+    expect(t).toMatchObject({ considered: 9, matched: 2, attributable: 0, falsePositives: 7 });
+    expect(t.precision).toBeCloseTo(2 / 9, 10);
+    // The same stale line naming only its own plant's source stays attributable.
+    const p = base.planted.find((x) => x.stale.length && plantSources(pIx, x).docs.size)!;
+    const own = [...plantSources(pIx, p).docs].filter((d) => base.planted.filter((y) => plantSources(pIx, y).docs.has(d)).length === 1).map((d) => `doc:${d}`);
+    expect(own.length).toBeGreaterThan(0);
+    expect(plantedScore(pIx, base.planted, [{ checkId: 'O', claims: [`line:${p.stale[0]}`], evidence: own }] as never)).toMatchObject({ attributable: 1 });
+  });
+
   it('a claim that hits a plant is matched, never attributable, whatever else it claims', () => {
     const s = plantedScore(pIx, base.planted, [{ checkId: 'M', claims: [`line:${base.planted[0].lines[0]}`, `line:${allStale[0]}`], evidence: [] }] as never);
     expect(s).toMatchObject({ matched: 1, attributable: 0, falsePositives: 0 });
