@@ -20,8 +20,9 @@ import {
   type Row, type Usage,
 } from './reader-core';
 
-export { AGENT_PROMPT_VERSION } from './versions';
-import { AGENT_PROMPT_VERSION } from './versions';
+export { AGENT_PROMPT_VERSION, AGENT_V4_PROMPT_VERSION } from './versions';
+import { AGENT_PROMPT_VERSION, AGENT_V4_PROMPT_VERSION } from './versions';
+import { agentV4Prompt } from './prompt-v4';
 export const AGENT_DEFAULT_MODEL = 'claude-opus-5-5';
 /** Per turn. Non-streaming; with an explicit client timeout the SDK accepts it (its 10-minute guard applies only to
  *  the default timeout). Thinking counts toward it. */
@@ -38,8 +39,18 @@ export const DEFAULT_LIMITS: AgentLimits = { maxIterations: 40, wallClockMs: 40 
 export const MAX_PROPOSALS = 12;
 const PROPOSAL_MAX_WORDS = 80;
 
-/** The system prompt for a mode. Blind mode never names run_checks (it does not have it). */
-export function agentSystemPrompt(mode: AgentMode = DEFAULT_MODE): string {
+/** Which system prompt a run uses: v3 (the default, agent-v3, the live producer) or v4 (prompt-v4.ts, --prompt v4). */
+export type AgentPrompt = 'v3' | 'v4';
+/** The CLI's --prompt value: absent is v3; anything but v3 or v4 is refused. */
+export function agentPromptFrom(v: string | undefined): AgentPrompt {
+  if (v === undefined) return 'v3';
+  if (v === 'v3' || v === 'v4') return v;
+  throw new Error('--prompt must be v3 or v4.');
+}
+
+/** The system prompt for a mode. Blind mode never names run_checks (it does not have it). v3 below is frozen. */
+export function agentSystemPrompt(mode: AgentMode = DEFAULT_MODE, prompt: AgentPrompt = 'v3'): string {
+  if (prompt === 'v4') return agentV4Prompt(isBlind(mode));
   const blind = isBlind(mode);
   return [
   'You are a careful senior tax reviewer investigating one household\'s 2025 US and California return before it is approved.',
@@ -77,8 +88,11 @@ export function agentSystemPrompt(mode: AgentMode = DEFAULT_MODE): string {
   ].join('\n');
 }
 export const AGENT_SYSTEM_PROMPT = agentSystemPrompt(DEFAULT_MODE);
-/** agent-v1 in production; agent-v1-blind and agent-v1-hide-<seed> for the measurement modes. */
-export const promptVersionFor = (mode: AgentMode = DEFAULT_MODE) => (mode.kind === 'default' ? AGENT_PROMPT_VERSION : `${AGENT_PROMPT_VERSION}-${modeLabel(mode)}`);
+/** agent-v3 in production; agent-v3-blind and agent-v3-hide-<seed> for the measurement modes; agent-v4[-<mode>] with v4. */
+export const promptVersionFor = (mode: AgentMode = DEFAULT_MODE, prompt: AgentPrompt = 'v3') => {
+  const base = prompt === 'v4' ? AGENT_V4_PROMPT_VERSION : AGENT_PROMPT_VERSION;
+  return mode.kind === 'default' ? base : `${base}-${modeLabel(mode)}`;
+};
 
 const proposalSchema = {
   type: 'object', additionalProperties: false, required: ['rule', 'compares', 'firesWhen', 'silentWhen', 'refs'],
@@ -108,9 +122,9 @@ export function agentContext(ix: PacketIndex, files: ContextFiles, mode: AgentMo
   return caseFile(ix, files.digest, mode);
 }
 
-export function agentSystem(ix: PacketIndex, files: ContextFiles, mode: AgentMode = DEFAULT_MODE): BetaTextBlockParam[] {
+export function agentSystem(ix: PacketIndex, files: ContextFiles, mode: AgentMode = DEFAULT_MODE, prompt: AgentPrompt = 'v3'): BetaTextBlockParam[] {
   return [
-    { type: 'text', text: agentSystemPrompt(mode) },
+    { type: 'text', text: agentSystemPrompt(mode, prompt) },
     { type: 'text', text: agentContext(ix, files, mode), cache_control: { type: 'ephemeral' } },
   ];
 }
@@ -146,7 +160,7 @@ export interface OnFindingClaims { count: number; ids: string[] }
 export interface Finalized { payload: AiPayload; onFindingClaims: OnFindingClaims }
 
 /** Parses and validates the final answer text. Throws with "final payload" in the message when it is malformed. */
-export function finalizePayload(ix: PacketIndex, text: string, env: { packetSha: string; model: string; runAt: string; mode?: AgentMode }, recorded: Row[] = []): Finalized {
+export function finalizePayload(ix: PacketIndex, text: string, env: { packetSha: string; model: string; runAt: string; mode?: AgentMode; prompt?: AgentPrompt }, recorded: Row[] = []): Finalized {
   let parsed: unknown;
   try { parsed = JSON.parse(text); } catch { throw new Error('final payload is not JSON'); }
   if (!isObj(parsed) || !Array.isArray(parsed.suggestions) || !Array.isArray(parsed.proposals)) throw new Error('final payload lacks the suggestions and proposals lists');
@@ -170,7 +184,7 @@ export function finalizePayload(ix: PacketIndex, text: string, env: { packetSha:
   const on = suggestions.filter((s) => { const k = [...new Set(s.claims.map((c) => `line:${c}`))].sort().join('|'); return !!k && known.has(k); }).map((s) => s.id);
   return {
     payload: {
-      schemaVersion: 1, packetSha: env.packetSha, model: env.model, promptVersion: promptVersionFor(env.mode), runAt: env.runAt,
+      schemaVersion: 1, packetSha: env.packetSha, model: env.model, promptVersion: promptVersionFor(env.mode, env.prompt), runAt: env.runAt,
       suggestions, rejected, proposals,
     },
     onFindingClaims: { count: on.length, ids: on },
@@ -195,6 +209,8 @@ export interface AgentRunOptions {
   limits?: Partial<AgentLimits>; now?: () => Date; log?: (s: string) => void;
   /** Measurement mode (modes.ts); omitted is production. */
   mode?: AgentMode;
+  /** The system prompt; omitted is v3 (agent-v3). */
+  prompt?: AgentPrompt;
   /** Where the packet came from (agent-packet.ts); recorded in the run meta. */
   source?: 'vault' | 'file';
   /** Tests only: replace the tool set (e.g. to prove the SSN guard fires). */
@@ -253,6 +269,7 @@ export async function runAgent(o: AgentRunOptions): Promise<AgentRunResult> {
   const guard: ToolGuard = { onHit: (tool) => fail(`SSN-shaped text in a ${tool} result`) };
   const timer = setTimeout(() => fail(`wall-clock limit of ${Math.round(limits.wallClockMs / 1000)} s reached`), limits.wallClockMs);
   const mode = o.mode ?? DEFAULT_MODE;
+  const prompt = o.prompt ?? 'v3';
   const recorded: Row[] = [];
   let turns = 0; let cost = 0;
   const budget = () => `turn ${turns} of ${limits.maxIterations}; about $${Math.max(0, limits.maxCostUsd - cost).toFixed(2)} left`;
@@ -296,7 +313,7 @@ export async function runAgent(o: AgentRunOptions): Promise<AgentRunResult> {
     output_config: { effort: AGENT_EFFORT, format: { type: 'json_schema', schema: AGENT_OUTPUT_SCHEMA as unknown as Record<string, unknown> } },
     betas: [...AGENT_BETAS], fallbacks: 'default',
     cache_control: { type: 'ephemeral' }, // caches the growing transcript; the shared context has its own breakpoint
-    system: agentSystem(o.ix, o.files, mode),
+    system: agentSystem(o.ix, o.files, mode, prompt),
     tools,
     messages: [{ role: 'user', content: 'Investigate this return with the tools, then give your final answer as JSON matching the schema.' }],
   }, { signal: controller.signal });
@@ -369,7 +386,7 @@ export async function runAgent(o: AgentRunOptions): Promise<AgentRunResult> {
   }
   clearTimeout(timer);
   const meta = (extra: Partial<AgentRunMeta> = {}): AgentRunMeta => ({
-    requestedModel: o.model, servedModels: served, promptVersion: promptVersionFor(mode), runAt, turns, toolCalls, usage,
+    requestedModel: o.model, servedModels: served, promptVersion: promptVersionFor(mode, prompt), runAt, turns, toolCalls, usage,
     costUsd: cost, seconds: Math.round((Date.now() - started) / 1000), stopReason: last?.stop_reason ?? null, limits,
     thinking: AGENT_THINKING, effort: AGENT_EFFORT, maxTokens: AGENT_MAX_TOKENS,
     source: o.source ?? null, mode: mode.kind, seed: mode.kind === 'hide-checks' ? mode.seed : null, hiddenCheckIds: mode.kind === 'hide-checks' ? hiddenCheckIds(mode.seed) : [],
@@ -381,7 +398,7 @@ export async function runAgent(o: AgentRunOptions): Promise<AgentRunResult> {
   if (capped) failure = `iteration cap of ${limits.maxIterations} reached before a final answer`;
   if (!failure && last!.stop_reason !== 'end_turn') failure = `stopped with ${last!.stop_reason}`;
   const trace = (): AgentTrace => {
-    const t: AgentTrace = { promptVersion: promptVersionFor(mode), runAt, turns: traceTurns, endedBy: capped ? 'iteration_cap' : failure ? 'stopped' : reservedUsed ? 'final_turn' : 'end_turn', reason: failure };
+    const t: AgentTrace = { promptVersion: promptVersionFor(mode, prompt), runAt, turns: traceTurns, endedBy: capped ? 'iteration_cap' : failure ? 'stopped' : reservedUsed ? 'final_turn' : 'end_turn', reason: failure };
     // Fail closed, as tool results do: a trace holding an SSN shape is withheld and the run fails.
     if (SSN_SHAPED.test(JSON.stringify(t))) {
       failure ??= 'SSN-shaped text in the trace';
@@ -394,7 +411,7 @@ export async function runAgent(o: AgentRunOptions): Promise<AgentRunResult> {
   const text = last!.content.filter((b) => b.type === 'text').map((b) => (b as { text: string }).text).join('');
   let fin: Finalized;
   try {
-    fin = finalizePayload(o.ix, text, { packetSha: o.packetSha, model: last!.model, runAt, mode }, recorded);
+    fin = finalizePayload(o.ix, text, { packetSha: o.packetSha, model: last!.model, runAt, mode, prompt }, recorded);
   } catch (e) {
     const why = e instanceof Error ? e.message : 'final payload rejected';
     return { ok: false, reason: why, meta: meta(), trace: { ...tr, endedBy: 'stopped', reason: why } };
@@ -414,10 +431,11 @@ export function writeRun(res: AgentRunResult, outFile: string): boolean {
   return true;
 }
 
-/** Where the CLI writes a run: ai/eval/agent-suggestions[.blind|.hide-<seed>][.altered|.seed-<n>].json. A perturbed
- *  run is named by its seed only, so the payload name recorded in its run meta says nothing about the copy. */
-export function agentOutFile(root: string, mode: AgentMode, packet: 'real' | 'altered' | 'perturbed', seed?: number): string {
-  const tag = mode.kind === 'default' ? '' : `.${modeLabel(mode)}`;
+/** Where the CLI writes a run: ai/eval/agent-suggestions[.v4][.blind|.hide-<seed>][.altered|.seed-<n>].json. A perturbed
+ *  run is named by its seed only, so the payload name recorded in its run meta says nothing about the copy. A v4 run
+ *  always carries .v4, so it never overwrites the live (agent-v3) payload. */
+export function agentOutFile(root: string, mode: AgentMode, packet: 'real' | 'altered' | 'perturbed', seed?: number, prompt: AgentPrompt = 'v3'): string {
+  const tag = (prompt === 'v4' ? '.v4' : '') + (mode.kind === 'default' ? '' : `.${modeLabel(mode)}`);
   const which = packet === 'altered' ? '.altered' : packet === 'perturbed' ? `.seed-${seed ?? 'default'}` : '';
   return path.join(root, 'ai', 'eval', `agent-suggestions${tag}${which}.json`);
 }

@@ -1,13 +1,14 @@
 // AI agent CLI (Step 2). Run from project-build, only with a budget Aarvin has approved (a run costs real money):
 //   npx tsx ai/agent.ts [--model claude-opus-5-5] [--packet real|altered|perturbed [--seed N]] [--out path] [--max-iterations 40] [--max-cost 12] [--max-minutes 40]
 //                       [--blind | --blind-v3 | --hide-checks <seed>]   (measurement modes, ai/lib/modes.ts; default is production)
+//                       [--prompt v3|v4]   (system prompt; default v3, the live producer; a v4 run writes ai/eval/agent-suggestions.v4[...].json)
 // Reads ANTHROPIC_API_KEY from .env.local (never printed or written). One investigation over the whole packet with the
 // deterministic tools; writes ai/eval/agent-suggestions[.blind|.blind-v3|.hide-<seed>][.altered|.seed-<n>].json and a run-meta file (tokens,
 // cost, turns, seconds, served model, mode). A partial, failed or over-budget run writes nothing and exits 1.
 import { existsSync, readFileSync } from 'node:fs';
 import path from 'node:path';
 import { loadAgentPacket } from './lib/agent-packet';
-import { AGENT_DEFAULT_MODEL, DEFAULT_LIMITS, agentOutFile, loadContextFiles, runAgent, writeRun } from './lib/agent-core';
+import { AGENT_DEFAULT_MODEL, DEFAULT_LIMITS, agentOutFile, agentPromptFrom, loadContextFiles, runAgent, writeRun } from './lib/agent-core';
 import { modeLabel, type AgentMode } from './lib/modes';
 
 function arg(name: string): string | undefined {
@@ -54,6 +55,7 @@ async function main() {
   if ([blind, blindV3, seedArg !== undefined].filter(Boolean).length > 1) throw new Error('--blind, --blind-v3 and --hide-checks are separate modes; pick one.');
   if (seedArg !== undefined && !/^\d+$/.test(seedArg)) throw new Error('--hide-checks needs a whole-number seed.');
   const mode: AgentMode = blind ? { kind: 'blind' } : blindV3 ? { kind: 'blind-v3' } : seedArg !== undefined ? { kind: 'hide-checks', seed: Number(seedArg) } : { kind: 'default' };
+  const prompt = agentPromptFrom(process.argv.includes('--prompt') ? (arg('prompt') ?? '') : undefined);
   const which = arg('packet') ?? 'real';
   if (which !== 'real' && which !== 'altered' && which !== 'perturbed') throw new Error('--packet must be real, altered or perturbed.');
   const seedOpt = arg('seed');
@@ -64,11 +66,11 @@ async function main() {
   // The altered and perturbed copies are laptop measurements: refused in vault mode (agent-packet.ts).
   const got = await loadAgentPacket({ env: process.env, root, packet: which, seed });
   const { ix, packetSha, source } = got;
-  const out = arg('out') ? path.resolve(root, arg('out')!) : agentOutFile(root, mode, which, got.seed);
+  const out = arg('out') ? path.resolve(root, arg('out')!) : agentOutFile(root, mode, which, got.seed, prompt);
 
-  console.log(`agent: ${which} packet from ${source} (sha ${packetSha.slice(0, 12)}), model ${model}, mode ${modeLabel(mode)}, limits ${JSON.stringify(limits)}`);
+  console.log(`agent: ${which} packet from ${source} (sha ${packetSha.slice(0, 12)}), model ${model}, mode ${modeLabel(mode)}, prompt ${prompt}, limits ${JSON.stringify(limits)}`);
   const res = await runAgent({
-    ix, packetSha, model, apiKey, mode, source, fetchImpl: fetch, files: loadContextFiles(root), limits, log: (s) => console.log('  ' + s),
+    ix, packetSha, model, apiKey, mode, prompt, source, fetchImpl: fetch, files: loadContextFiles(root), limits, log: (s) => console.log('  ' + s),
   });
   const m = res.meta; const u = m.usage;
   console.log(`agent: ${m.turns} turn(s), ${m.toolCalls} tool call(s), ${m.seconds} s; served ${m.servedModels.join(', ') || 'none'}; tokens in ${u.input_tokens}, cache write ${u.cache_creation_input_tokens}, cache read ${u.cache_read_input_tokens}, out ${u.output_tokens}; approx cost $${m.costUsd.toFixed(3)}`);

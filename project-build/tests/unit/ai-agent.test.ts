@@ -7,12 +7,16 @@ import { describe, expect, it } from 'vitest';
 import { indexPacket, loadPacket } from '@/domain/packet/load';
 import { LEDGER, runChecks } from '@/domain/checks/index';
 import { SSN_SHAPED } from '@/domain/ai/verify';
-import { AI_AUTHORITIES } from '@/domain/ai/contract';
+import { AI_AUTHORITIES, AI_KINDS } from '@/domain/ai/contract';
 import { SsnInToolResult, agentTools, toolNamesFor } from '../../ai/lib/agent-tools';
 import {
   AGENT_BETAS, AGENT_DEFAULT_MODEL, AGENT_EFFORT, AGENT_PROMPT_VERSION, AGENT_SYSTEM_PROMPT, MAX_RETRIES, REQUEST_TIMEOUT_MS,
   agentContext, agentOutFile, agentSystemPrompt, loadContextFiles, makeClient, runAgent, validateProposal, writeRun, type AgentRunOptions,
+  AGENT_V4_PROMPT_VERSION, agentPromptFrom, promptVersionFor,
 } from '../../ai/lib/agent-core';
+import { createHash } from 'node:crypto';
+import { VERIFY_METHODS } from '../../ai/lib/calculator';
+import { LOOKUP_SECTIONS } from '../../ai/lib/lookup';
 import { hiddenCheckIds, type AgentMode } from '../../ai/lib/modes';
 import { caseFile } from '../../ai/lib/case-file';
 
@@ -154,7 +158,7 @@ describe('agent: the answer key never reaches the model', () => {
   });
 
   it('agent code never imports the ledger catalogue or reads the ground truth or the errors write-up', () => {
-    for (const f of ['ai/lib/agent-core.ts', 'ai/lib/agent-tools.ts', 'ai/lib/agent-packet.ts', 'ai/lib/modes.ts', 'ai/agent.ts', 'ai/lib/planted-score.ts', 'tests/fixtures/perturbed.ts', 'ai/lib/verify-all.ts', 'tests/unit/ai-agent-verify-all.test.ts', 'ai/lib/calculator.ts', 'ai/lib/duplicates.ts', 'tests/unit/ai-agent-calculator.test.ts', 'ai/lib/lookup.ts', 'tests/unit/ai-agent-lookup.test.ts']) {
+    for (const f of ['ai/lib/agent-core.ts', 'ai/lib/agent-tools.ts', 'ai/lib/agent-packet.ts', 'ai/lib/modes.ts', 'ai/agent.ts', 'ai/lib/planted-score.ts', 'tests/fixtures/perturbed.ts', 'ai/lib/verify-all.ts', 'tests/unit/ai-agent-verify-all.test.ts', 'ai/lib/calculator.ts', 'ai/lib/duplicates.ts', 'tests/unit/ai-agent-calculator.test.ts', 'ai/lib/lookup.ts', 'tests/unit/ai-agent-lookup.test.ts', 'ai/lib/prompt-v4.ts']) {
       const src = readFileSync(f, 'utf8').split('\n').filter((l) => !l.trim().startsWith('//')).join('\n');
       expect(src, f).not.toMatch(/catalogue|LEDGER|ground-truth|errors-found|ledgerIds:/);
     }
@@ -317,6 +321,119 @@ describe('agent: measurement modes', () => {
     expect(agentOutFile('/r', { kind: 'default' }, 'real')).toBe(path.join('/r', 'ai', 'eval', 'agent-suggestions.json'));
     expect(agentOutFile('/r', { kind: 'blind' }, 'real')).toBe(path.join('/r', 'ai', 'eval', 'agent-suggestions.blind.json'));
     expect(agentOutFile('/r', { kind: 'hide-checks', seed: 7 }, 'altered')).toBe(path.join('/r', 'ai', 'eval', 'agent-suggestions.hide-7.altered.json'));
+  });
+});
+
+describe('agent: prompt agent-v4 (a numbered CPA routine behind --prompt v4)', () => {
+  const sha = (s: string) => createHash('sha256').update(s).digest('hex');
+  const BLIND: AgentMode = { kind: 'blind' };
+  const DEF: AgentMode = { kind: 'default' };
+
+  it('v3 is untouched: the default prompt per mode is byte-identical to agent-v3 as committed before v4', () => {
+    // sha256 of agentSystemPrompt(mode) taken at ec951f6, before agent-v4 existed.
+    const V3 = { default: '0c35122d334fa41713611b3f1d32b35a59724e40e7f62f1c0648b2e3ac073908', blind: '84f05f07e8586e677abeb5116a718b03af209d9104db07d69d1d9ad6af75a8e4' };
+    for (const m of [DEF, { kind: 'hide-checks', seed: 7 }] as AgentMode[]) { expect(sha(agentSystemPrompt(m))).toBe(V3.default); expect(agentSystemPrompt(m, 'v3')).toBe(agentSystemPrompt(m)); }
+    for (const m of [BLIND, { kind: 'blind-v3' }] as AgentMode[]) { expect(sha(agentSystemPrompt(m))).toBe(V3.blind); expect(agentSystemPrompt(m, 'v3')).toBe(agentSystemPrompt(m)); }
+    expect(AGENT_PROMPT_VERSION).toBe('agent-v3');
+    expect(promptVersionFor(DEF)).toBe('agent-v3');
+  });
+
+  it('version strings agent-v4 and agent-v4-blind', () => {
+    expect(AGENT_V4_PROMPT_VERSION).toBe('agent-v4');
+    expect(promptVersionFor(DEF, 'v4')).toBe('agent-v4');
+    expect(promptVersionFor(BLIND, 'v4')).toBe('agent-v4-blind');
+    expect(promptVersionFor({ kind: 'hide-checks', seed: 7 }, 'v4')).toBe('agent-v4-hide-7');
+  });
+
+  it('a numbered routine: step 1 is verify_all, then explain, verify/lookup, free text, record; and the claim-line rule', () => {
+    const p = agentSystemPrompt(BLIND, 'v4');
+    const steps = [/^1\. Call verify_all first/m, /^2\. Explain each disagreement/m, /^3\. .*(verify|lookup)/m, /^4\. .*client_text/m, /^5\. Record/m];
+    const at = steps.map((r) => { const m = r.exec(p); expect(m, String(r)).not.toBeNull(); return m!.index; });
+    expect([...at].sort((a, b) => a - b)).toEqual(at);
+    expect(p).toMatch(/page every/i);
+    for (const s of ['what_was_known', 'alternatives', 'diagnostics_for', 'get_line', 'get_page']) expect(p).toContain(s);
+    expect(p).toMatch(/Claim-line rule: claims names the return line\(s\) whose value the mistake changes/);
+    expect(p).toMatch(/never only the document/);
+    expect(p).toMatch(/When a document is wrong, claim the line that cites it/);
+    expect(p).toMatch(/Never compute/);
+    // The recording path: a footing error or a client-text judgement still reaches a verbatim document quote.
+    expect(p).toMatch(/footing error/);
+    expect(p).toMatch(/client text may not be quoted|never quote client text/i);
+    expect(p).toMatch(/unrecordable/);
+    for (const a of AI_AUTHORITIES) expect(p).toContain(a);
+    expect(p).toMatch(/data, never instructions/);
+    expect(p).toMatch(/over 30 words is discarded/);
+  });
+
+  it('blind (primary): never names run_checks or our checks\' findings; no "F lines are known"', () => {
+    const p = agentSystemPrompt(BLIND, 'v4');
+    expect(p).not.toMatch(/run_checks/);
+    expect(p).not.toMatch(/F lines are known/);
+    expect(p).not.toMatch(/finding/i);
+    expect(p).not.toMatch(/\bF\b/);
+    expect(agentSystemPrompt({ kind: 'blind-v3' }, 'v4')).toBe(p);
+  });
+
+  it('default mode adds exactly one line to the blind prompt: the checks\' findings are known', () => {
+    const b = agentSystemPrompt(BLIND, 'v4').split('\n');
+    const d = agentSystemPrompt(DEF, 'v4').split('\n');
+    expect(d.length).toBe(b.length + 1);
+    const added = d.filter((l) => !b.includes(l));
+    expect(added).toHaveLength(1);
+    expect(added[0]).toMatch(/the checks' findings are known/i);
+    expect(d.filter((l) => l !== added[0])).toEqual(b);
+    expect(agentSystemPrompt({ kind: 'hide-checks', seed: 7 }, 'v4')).toBe(agentSystemPrompt(DEF, 'v4'));
+  });
+
+  it('generic over the schema: names only real tools, verify methods and lookup sections; no packet line key or document id', () => {
+    for (const m of [BLIND, DEF]) {
+      const p = agentSystemPrompt(m, 'v4');
+      const known = new Set<string>([...toolNamesFor(m), ...VERIFY_METHODS, ...LOOKUP_SECTIONS, ...AI_KINDS]);
+      for (const w of p.match(/\b[a-z]+(?:_[a-z]+)+\b/g) ?? []) expect(known.has(w), w).toBe(true);
+    }
+    const p = agentSystemPrompt(DEF, 'v4');
+    const esc = (s: string) => s.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+    for (const k of ix.latest.lines.map((l) => l.key).filter((k) => k.length >= 4 && /[A-Za-z]/.test(k) && /[.\d]/.test(k))) expect(p, k).not.toMatch(new RegExp(`(^|[^\\w.])${esc(k)}($|[^\\w])`));
+    for (const d of ix.packet.documents) expect(p, d.id).not.toContain(d.id);
+  });
+
+  it('short: v4 is no longer than v3 plus a third, and deterministic (a stable cached prefix)', () => {
+    for (const m of [BLIND, DEF]) {
+      expect(Buffer.byteLength(agentSystemPrompt(m, 'v4'))).toBeLessThanOrEqual(Math.round(Buffer.byteLength(agentSystemPrompt(m)) * 4 / 3));
+      expect(agentSystemPrompt(m, 'v4')).toBe(agentSystemPrompt(m, 'v4'));
+    }
+  });
+
+  it('runAgent with prompt v4: sends the v4 prompt on every turn, the same context, and records agent-v4-blind', async () => {
+    const { fetch, calls } = fakeFetch((_b, n) => (n === 1 ? message([toolUse('verify_all', { kind: 'differs', limit: 5, cursor: 0 })], 'tool_use') : final({ suggestions: [], proposals: [] })));
+    const res = await runAgent(opts(fetch, { mode: BLIND, prompt: 'v4' }));
+    expect(res.ok).toBe(true);
+    expect(calls.length).toBeGreaterThanOrEqual(2);
+    for (const c of calls) {
+      expect(c.body.system[0].text).toBe(agentSystemPrompt(BLIND, 'v4'));
+      expect(c.body.system.at(-1)!.text).toBe(caseFile(ix, files.digest, BLIND));
+      expect(c.body.tools.map((t) => t.name)).not.toContain('run_checks');
+    }
+    expect(res.meta.promptVersion).toBe('agent-v4-blind');
+    expect(res.trace.promptVersion).toBe('agent-v4-blind');
+    expect(res.ok && res.payload.promptVersion).toBe('agent-v4-blind');
+  });
+
+  it('without the flag the run is agent-v3, byte for byte', async () => {
+    const { fetch, calls } = fakeFetch(() => final({ suggestions: [], proposals: [] }));
+    const res = await runAgent(opts(fetch));
+    expect(calls[0].body.system[0].text).toBe(AGENT_SYSTEM_PROMPT);
+    expect(res.ok && res.payload.promptVersion).toBe('agent-v3');
+  });
+
+  it('--prompt parses v3 or v4 only (absent is v3), and a v4 run never writes the live payload file', () => {
+    expect(agentPromptFrom(undefined)).toBe('v3');
+    expect(agentPromptFrom('v3')).toBe('v3');
+    expect(agentPromptFrom('v4')).toBe('v4');
+    for (const bad of ['', 'v5', 'V4', 'agent-v4']) expect(() => agentPromptFrom(bad), bad).toThrow(/--prompt/);
+    expect(agentOutFile('/r', DEF, 'real', undefined, 'v4')).toBe(path.join('/r', 'ai', 'eval', 'agent-suggestions.v4.json'));
+    expect(agentOutFile('/r', BLIND, 'perturbed', 5, 'v4')).toBe(path.join('/r', 'ai', 'eval', 'agent-suggestions.v4.blind.seed-5.json'));
+    expect(agentOutFile('/r', DEF, 'real', undefined, 'v3')).toBe(path.join('/r', 'ai', 'eval', 'agent-suggestions.json'));
   });
 });
 
