@@ -398,6 +398,7 @@ export function gateBaseline(producer: ProducerName, root: string = process.cwd(
 /** The baseline a committed payload sets: its strict recall as shown and its held-back count, through the verifier. */
 export function baselineFrom(ix: PacketIndex, producer: ProducerName, payload: AiPayload): GateBaseline {
   const shown = shownView(ix, payload);
+  // minStrict 0 is expected for the agent in default mode (it is told to skip what the checks already flag); minShown and maxHeldBack are its real guards.
   return { producer, promptVersion: payload.promptVersion, minStrict: shown.score.ledgerFound.length, maxHeldBack: shown.heldBack, minShown: shown.shown };
 }
 

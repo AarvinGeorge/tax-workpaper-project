@@ -10,7 +10,7 @@ import { Legends } from './Legends';
 import { Deadlines, FirmStandards, People, TimeBudget } from './FirmInfo';
 import { Demo } from './Demo';
 import { AI_FOUND, aiUseText } from './aiUse';
-import { aiSourceLabel } from '@/domain/ai/merge';
+import { activeAiSourceLabel } from '@/domain/ai/merge';
 
 function Sec({ id, title, open, children }: { id: string; title: ReactNode; open?: boolean; children: ReactNode }) {
   return (
@@ -22,7 +22,7 @@ function Sec({ id, title, open, children }: { id: string; title: ReactNode; open
 }
 
 export function Info({ ix, state, role, ws, promptVersion }: { ix: PacketIndex; state: WorkspaceState; role: RoleInfo; ws: string; promptVersion?: string | null }) {
-  const aiSource = aiSourceLabel(promptVersion);
+  const aiSource = activeAiSourceLabel(promptVersion);
   const staff = role.kind === 'staff';
   const p = { ix, state, role, ws };
   return (

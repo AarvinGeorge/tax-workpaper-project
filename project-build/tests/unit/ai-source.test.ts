@@ -5,7 +5,7 @@ import path from 'node:path';
 import { describe, expect, it } from 'vitest';
 import { indexPacket, loadPacket } from '@/domain/packet/load';
 import type { AiPayload } from '@/domain/ai/contract';
-import { aiFindings, aiSourceLabel } from '@/domain/ai/merge';
+import { aiFindings, aiSourceLabel, activeAiSourceLabel } from '@/domain/ai/merge';
 import { verifySuggestions } from '@/domain/ai/verify';
 import { AI_AGENT, AI_READER, aiFlaggedText, aiSuggestionTerm, aiUseText } from '@/components/info/aiUse';
 import { TERMS } from '@/components/term/terms';
@@ -19,6 +19,16 @@ describe('AI source tag', () => {
     expect(aiSourceLabel('agent-v3-blind')).toBe('AI agent');
     expect(aiSourceLabel('reader-v2')).toBe('AI reader');
     expect(aiSourceLabel(null)).toBe('AI reader');
+  });
+
+  it('with no payload meta (refused or absent) the label is the active producer, the agent, not the reader', () => {
+    expect(activeAiSourceLabel(null)).toBe('AI agent');
+    expect(activeAiSourceLabel(undefined)).toBe('AI agent');
+    expect(activeAiSourceLabel('reader-v2')).toBe('AI reader');
+    expect(activeAiSourceLabel('agent-v3')).toBe('AI agent');
+    for (const f of ['src/components/work/Checks.tsx', 'src/components/info/Info.tsx']) {
+      expect(readFileSync(f, 'utf8'), f).toMatch(/activeAiSourceLabel/);
+    }
   });
 
   it('findings carry the source as their check name', () => {
@@ -67,7 +77,7 @@ describe('AI source tag', () => {
     for (const f of ['src/components/work/Checks.tsx', 'src/components/drawer/ClaimDrawer.tsx']) {
       const src = readFileSync(f, 'utf8').split('\n').filter((l) => !/^\s*(\/\/|\/\*|\*)/.test(l)).join('\n');
       expect(src, f).not.toMatch(/AI reader/);
-      expect(src, f).toMatch(/aiSourceLabel/);
+      expect(src, f).toMatch(/[aA]iSourceLabel/);
     }
   });
 });

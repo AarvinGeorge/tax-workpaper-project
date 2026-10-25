@@ -9,7 +9,7 @@ import {
   signed, visibleFinding, when, writeBlock, type WorkProps,
 } from './lib';
 import { AiMark, Est, NoAccess, Page, Tag } from './ui';
-import { aiSourceLabel, confidenceWord, groupAiRows, isAi, suggestionStatus } from '@/domain/ai/merge';
+import { activeAiSourceLabel, confidenceWord, groupAiRows, isAi, suggestionStatus } from '@/domain/ai/merge';
 import { lineLabel, personName } from './lib';
 import { AI_FOUND, aiSuggestionTerm, aiUseText } from '../info/aiUse';
 import { signatures } from '@/components/client/signing';
@@ -80,7 +80,7 @@ export function ChecksScreen(p: WorkProps) {
   const ai = p.findings.filter((f) => isAi(f) && visibleFinding(f, state.storyAt))
     .map((f) => ({ f, st: suggestionStatus(state.events, f.id) })).filter((x) => x.st.status !== 'dismissed');
   const aiOn = !!p.ai?.present && role.kind === 'staff';
-  const aiSource = aiSourceLabel(p.ai?.meta?.promptVersion);
+  const aiSource = activeAiSourceLabel(p.ai?.meta?.promptVersion);
   const held = aiOn ? p.ai!.held : [];
   // One row per item: our findings and the AI's suggestions on the same line or document share a row (src/domain/items.ts).
   const items = checkItems(visible, aiOn ? ai : []);
@@ -330,7 +330,7 @@ function AiFoot({ p, held, count, items }: { p: WorkProps; held: { id: string | 
   return (
     <div className={s.body} data-testid="ai-suggestions">
       <p className={s.note} style={{ margin: 0 }} data-testid="ai-count"><AiMark label="" />{count} AI suggestion{count === 1 ? '' : 's'} on {items} item{items === 1 ? '' : 's'}{count > items ? ' (some items carry more than one)' : ''}; open a row to see each one.</p>
-      <p className={s.note} style={{ margin: 0, maxWidth: '90ch' }}>{aiUseText(aiSourceLabel(p.ai?.meta?.promptVersion))} {AI_FOUND}</p>
+      <p className={s.note} style={{ margin: 0, maxWidth: '90ch' }}>{aiUseText(activeAiSourceLabel(p.ai?.meta?.promptVersion))} {AI_FOUND}</p>
       {held.length ? (
         <details className={s.note} data-testid="ai-held">
           <summary>{held.length} AI suggestion{held.length === 1 ? '' : 's'} held back: failed verification</summary>

@@ -6,14 +6,16 @@ import type { PacketIndex } from '../packet/load';
 import { retractedSeqs } from '../events';
 import type { AiKind, AiPayload, VerifiedSuggestion } from './contract';
 import { loadAiPayload, type AiHeld } from './load';
+import { ACTIVE_PROMPT_VERSION } from '../../../ai/lib/producer';
 import { isShown, verifySuggestions } from './verify';
 
 export const AI_FAMILY = 'AI suggestion';
-export const AI_CHECK_ID = 'AI reader';
 
 /** Who produced a payload, as the screens name it: the agent's prompt versions start with agent-. */
 export type AiSource = 'AI agent' | 'AI reader';
 export const aiSourceLabel = (promptVersion: string | null | undefined): AiSource => (promptVersion?.startsWith('agent-') ? 'AI agent' : 'AI reader');
+/** The same, for the screens: with no payload meta (refused or absent) the source is the active producer, not the reader. */
+export const activeAiSourceLabel = (promptVersion: string | null | undefined): AiSource => aiSourceLabel(promptVersion ?? ACTIVE_PROMPT_VERSION);
 
 const KIND_TITLE: Record<Exclude<AiKind, 'other'>, string> = {
   repair_vs_improvement: 'A repair that may be an improvement',
