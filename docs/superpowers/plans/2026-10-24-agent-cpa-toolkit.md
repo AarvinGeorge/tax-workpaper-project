@@ -145,6 +145,49 @@ model reads them through lookup); caps, phase-outs, brackets (need the engine; f
   more schemas in every request and a crowded tool list) or `verify_all` as a `verify` method (less salient for step 1).
 
 ## Tasks (red first; offline; each ends with `npm test` green and the contract snapshots unchanged)
+0. **Perturbed packet, required** (Aarvin, 24 Oct 21:51 EDT: the real generalisation test, "even if a new packet
+   comes in"). Built first; it needs none of the agent tools. New tests/fixtures/perturbed.ts, beside altered.ts and
+   in memory like it: `perturbedPacket(seed)` returns `{ packet, planted }`. A mulberry32 seed (as modes.ts:14) picks
+   targets by schema shape only, never by id, and avoids lines any finding of the real packet claims, so each plant
+   is a mistake the checks were not written for. Kinds (one or two each, about 8 in all):
+   - `source_changed`: one cited money value changed with its `text_as_read` and its page's `printed_content`
+     together, so the document and the line no longer tie;
+   - `copied_twice`: one document's money value repeated on a page of a second, unsuperseded document of the same type
+     and cited again by the same line, whose value is raised by it (a double count);
+   - `prior_shift`: the 2025 carryover line that cites a `py:` record is shifted past the firm's variance rule. The py
+     record and the prior-year pages that print it stay as the truth, so a page quotes the right figure and the
+     mistake can be recorded (verify.ts:77). Shifting the py record alone would leave no page to quote;
+   - `fx_wrong_year`: a line citing `ref:fx.SEK.<rate>` switched to another year's rate key with its value rescaled
+     by the rates' ratio (plain arithmetic);
+   - `page_duplicated`: one page copied as an extra page of its own document, with its values cited again.
+   Consistency rules (Fable, Task 0 review):
+   - Cascade: 371 of 372 numeric latest lines that cite sources and have no inputs feed a parent sum. Each plant's
+     delta is carried up the sum-rule ancestors (FLOW_RULES), in every return version where the line has the same
+     value (367 of 372 match v2). A latest-only change would itself trip version_change_unlisted, a giveaway.
+   - Printed text: a target value is picked only when its `text_as_read` appears exactly once on its page (827 values
+     do; 18 repeat; 122 have none). copied_twice and page_duplicated also raise `page_count` and the document's
+     `extraction.values`.
+   - Target scarcity: fx has 2 of 3 citing lines unclaimed by a real finding, and prior-year has 10 unclaimed. The
+     by-line rule stays (avoid lines a real finding claims); a kind with no eligible target is skipped and reported,
+     never forced.
+   `planted` lists, per plant: kind, the claim set (the planted line plus every ancestor whose value moved), the
+   refs changed, before and after. It never enters the packet object: no note, label or field mentions it.
+   Tests in tests/unit/perturbed-packet.test.ts: the same seed gives byte-identical JSON and planted list, and two
+   seeds differ; each planted entry matches a real difference against the real packet, and every difference belongs
+   to a planted entry; the packet still loads with `indexPacket`, and the real packet is not mutated; leak test: no
+   planted-list string (kind names, "planted", "perturb") appears in any tool result, the case file, the prompt, or
+   the run-meta and trace files a fake-transport run writes, in every mode, on a full sweep of every tool over the
+   perturbed packet; ancestors carry the delta in every version where they shared the value, and the perturbed
+   packet gives no version_change_unlisted item; each changed value's `text_as_read` occurs once on its page and
+   matches the new figure.
+   Scoring (offline, no API): a `plantedScore(ix, planted, payload | findings)` helper. The harness's strict rule
+   (harness-core.ts:56) is applied to the planted list as the gold, with findings, items and suggestions mapped to
+   their claims. It scores **runChecks on the perturbed packet** (which plants the checks catch: the floor) and later
+   each agent payload, plus verify_all's items (which plants the generic sweep surfaces). For the checks' precision
+   it counts new findings only: runChecks(perturbed) minus runChecks(real), by (checkId, claims). It reports per kind
+   checks caught / sweep surfaced / agent recorded, with matches on the planted line and on cascade lines counted
+   apart. "As much as the checks, and more" is then measured per kind on mistakes the checks were not written for. CLI: `--packet perturbed --seed N` in file mode only, refused in vault mode (as altered is,
+   ai/lib/agent-packet.ts:22).
 1. **verify_all core**, new pure module ai/lib/verify-all.ts; tests in tests/unit/ai-agent-verify-all.test.ts:
    - real packet, default: byKind arithmetic_unreachable 5, source_unreachable 29, prior_record_differs 7,
      copies_disagree 11, version_change_unlisted 0; sign_subtraction 19 and variance_over_firm_rule 51 counted, listed
@@ -220,7 +263,8 @@ model reads them through lookup); caps, phase-outs, brackets (need the engine; f
 ## Measurement design (after approval)
 - Conditions, headline first: **agent-v4 independent (blind) × real, 5 runs**; agent-v4 independent × altered, 1 run
   (numbers identical: checks nothing breaks on renamed ids); agent-v3 `blind-v3` × real, 2 more runs (n = 3 with the
-  committed one) as the baseline. Total **5 + 1 + 2 = 8 runs**.
+  committed one) as the baseline; **agent-v4 independent × perturbed (Task 0, one fixed seed), 2 runs, required**.
+  Total **5 + 1 + 2 + 2 = 10 runs**.
 - Default-mode runs are cut. Its intended secondary metric, beyond-checks recall, is empty on the real packet (every
   ledger entry is reached by a check: 0 entries), and adjudicated beyond-ledger finds are better taken from the
   independent runs, which are not steered away from checked lines. Default mode stays built and tested, unmeasured.
@@ -228,8 +272,9 @@ model reads them through lookup); caps, phase-outs, brackets (need the engine; f
   give; the baseline stays at n = 3 because v3 is not being tuned. If the v4/v3 median difference sits inside the
   spread, add 2 baseline runs before claiming a gain. Note the comparison is confounded by design (prompt, tools and
   the blind definition all change); it answers "is v4 independent better than v3 blind", not which change helped.
-- Optional, approved separately: a number-perturbed copy (planted shifts as in Task 1's test, seeded, in memory),
-  2 v4 independent runs, scored by recall of verify_all's planted items: the real test that the agent generalises.
+- Perturbed packet (required): scored by `plantedScore` for runChecks (offline, before any paid run), verify_all
+  (offline) and each of the 2 agent runs. Reported per kind: checks caught, sweep surfaced, agent recorded on the
+  planted claim line. Plus the real-packet ledger metrics for those runs' unchanged mistakes.
 - Headline, two numbers (independent mode, with precision): (a) **strict recall split into tool-surfaced** (a
   verify_all or verify item touched the entry's claim line before the match) **vs agent-found**; (b) **agent-found
   recall on the ledger entries no `differs` item touches**, the judgement figure. Fable's probe: verify_all alone
@@ -254,8 +299,8 @@ model reads them through lookup); caps, phase-outs, brackets (need the engine; f
     line came before it (our generic code surfaced it) or not (the agent found it reading), so independent recall
     is not read as pure model judgement.
 - Budget: v3 measured $1.83 to $1.99 per run, but v4 must page about 57 differs items and open their lines and pages
-  (Fable: ~112+ calls before free text), so expect **$2.5 to $3.5 per run**. Runs use `--max-cost 6`: 8 runs ≈ $20 to
-  $28 expected, ceiling $48 (the optional perturbed pair adds $5 to $7, ceiling $12).
+  (Fable: ~112+ calls before free text), so expect **$2.5 to $3.5 per run**. Runs use `--max-cost 6`: 10 runs ≈ $26
+  to $34 expected, ceiling $60.
 - Stop rule: "truncated" (hit the cost, turn or time cap) is not "failed" (error, SSN hit, malformed answer). Today an
   over-budget run writes nothing and exits 1 (ai/agent.ts); Task 6 adds a test that a truncated run persists its
   trace and run meta (marked truncated, no payload scored), so the spend still yields evidence. Halt the batch on
@@ -291,9 +336,24 @@ are counted apart from failed ones. Also applied: (4)'s hide-checks filter overw
 of scope; stale comments (modes.ts header, agent-tools.ts:51) fixed in Task 1; definitions pinned for
 copies_disagree (11 measured, not Fable's 12) and duplicate_amount_cited (5).
 
+**Revision 24 Oct 21:51 EDT (Aarvin: the perturbed packet is required), pending Fable re-review.** Task 0 added,
+built first and offline; it scores runChecks, verify_all and the agent on planted mistakes; 2 perturbed runs make 10
+runs (≈$26 to $34, ceiling $60). Watch points: (a) `fx_wrong_year` and `prior_shift` are kinds some check families
+already target (ignored-field: "the year of an exchange rate"; prior-year), so the checks may catch them. The score
+is reported per kind and plants avoid lines the real checks claim; that measures generality, it does not guarantee
+the checks miss. (b) A plant changes the printed text with the value, or it becomes a pipeline misread, a different
+kind.
+
+**Task 0 review (Fable 5.1): APPROVE WITH CHANGES, all 6 accepted.** (1) Deltas cascade up sum ancestors in every
+version sharing the value; the claim set includes moved ancestors. (2) value, text_as_read and printed_content change
+together; only once-on-page targets; page_count and extraction.values bumped. (3) prior_shift moves the 2025 line
+and keeps the py record and pages as the truth. (4) Checks' precision is taken from new findings only (perturbed
+minus real); per-kind triple; cascade matches counted apart. (5) Target scarcity noted; by-line rule kept, skipped
+kinds reported. (6) Leak test covers run-meta and trace files.
+
 ## Out of scope (each needs its own yes)
 Switching the live payload or AGENT_PROMPT_VERSION to v4; any route, store, UI or Checks-tab change; new
 deterministic checks from verify_all items; caps, limits, brackets, phase-outs or any tax computation; mapping
-transcript codes, notices or e-file records to lines; the optional perturbed-packet runs (until approved apart);
+transcript codes, notices or e-file records to lines; perturbed packets beyond the one fixed seed's 2 runs;
 planted-injection documents;
 the verifier feedback loop beyond record_suggestion; hide-checks paid runs; reader changes.
