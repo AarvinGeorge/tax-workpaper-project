@@ -1,433 +1,438 @@
 {
- "meta": {
-  "project": "Tax workpaper case study",
-  "subtitle": "A web-native workpaper for the invented Okafor-Lindqvist household's 2025 return: every number traced to its source, every packet mistake surfaced. Due Fri 16 Oct 2026, 21:00 EDT.",
-  "mode": "light",
-  "plan_version": "0.5.0",
-  "updated": "2026-10-24T22:37:37Z",
-  "changelog": [
-   {
-    "version": "0.1.0",
-    "date": "2026-10-15",
-    "note": "Plan created. Mistake hunt and industry research started."
-   },
-   {
-    "version": "0.2.0",
-    "date": "2026-10-16",
-    "note": "Hunt done; section-by-section discovery started."
-   },
-   {
-    "version": "0.3.0",
-    "date": "2026-10-17",
-    "note": "Pipeline figure added; discovery moved to done; design work (hybrid mock-up, checklists) is the active item."
-   },
-   {
-    "version": "0.4.0",
-    "date": "2026-10-17",
-    "note": "Build started: spec, plan, five lanes."
-   },
-   {
-    "version": "0.5.0",
-    "date": "2026-10-24",
-    "note": "Plan caught up after a week unrecorded: build and hand-in done; new active item for unlisted mistakes and the AI agent."
-   }
-  ]
- },
- "capabilities": [
-  {
-   "id": 1,
-   "name": "Ledger of packet mistakes (ground truth)",
-   "short": "Mistakes",
-   "what": "Every confident mistake in the data packet, with document, field, value, why it is wrong, evidence and tax effect. Raw form of deliverable 3.",
-   "build": "done",
-   "plan": "none",
-   "where": "docs/ground-truth/",
-   "evidence": "docs/ground-truth/README.md: 27 distinct findings with evidence; 5 spot-checked 15 Oct 22:34 UTC."
-  },
-  {
-   "id": 2,
-   "name": "Industry research and plain-language primer",
-   "short": "Research",
-   "what": "What a tax workpaper is, the standards that shape it, existing tools and the patterns worth borrowing.",
-   "build": "done",
-   "plan": "none",
-   "where": "docs/research/industry.md, docs/brief-explained.md",
-   "evidence": "docs/research/industry.md written 15 Oct 22:28 UTC (primer, standards, tools, 15 principles, glossary); gaps marked unverified in the file."
-  },
-  {
-   "id": 3,
-   "name": "Core idea and data model",
-   "short": "Model",
-   "what": "One short decision on the central idea (every number carries source, confidence, verification and failing checks) and the data model behind it.",
-   "build": "done",
-   "plan": "none",
-   "where": "No plan yet",
-   "evidence": "spec docs/superpowers/specs/2026-10-17-workpaper-build-design.md; mock-up v9"
-  },
-  {
-   "id": 4,
-   "name": "Thin deployed slice",
-   "short": "App",
-   "what": "Load the packet as delivered, trace any number to a simulated source document and field, surface every logged mistake, role switcher, saving, live link.",
-   "build": "done",
-   "plan": "planned",
-   "where": "project-build/ (plan: docs/superpowers/plans/2026-10-17-workpaper-build.md)",
-   "evidence": "Live at taxmark-workpaper.vercel.app; unit and browser suites green in CI"
-  },
-  {
-   "id": 5,
-   "name": "Hand-in documents and video",
-   "short": "Hand-in",
-   "what": "One page on the core idea and data model, the errors write-up, the AI-usage note, the walkthrough video.",
-   "build": "done",
-   "plan": "none",
-   "where": "No plan yet",
-   "evidence": "docs/final handin (brief, appendix, confident mistakes, video)"
-  },
-  {
-   "id": 6,
-   "name": "Catching mistakes nobody listed (after hand-in)",
-   "short": "Unlisted mistakes",
-   "what": "Deterministic accounting the tool does itself (proofs, same-fact engine, a check for lines the engine never computed) and an AI agent that investigates what rules cannot settle, all fitted to the existing architecture.",
-   "build": "active",
-   "plan": "planned",
-   "where": "project-build/src/domain (checks, facts.ts, proofs.ts), project-build/ai (agent)",
-   "evidence": "Live: 444d27a (line never computed), f72782c (proofs, variance net, engine coverage), 970c81d (same-fact engine). Agent built offline, 671 unit tests, not yet run or deployed."
-  }
- ],
- "plans": {
-  "done": [
-   {
-    "name": "Design: hybrid mock-up and the brief and README checklists",
-    "why": "Aarvin chose the hybrid frame; the mock-up is the design reference for the build, and the checklists make sure nothing in the brief or README is missed before the spec.",
-    "unblocks": "The written spec (docs/superpowers/specs/) and the build plan, then the build on Aarvin's go.",
-    "stage": "recorded",
-    "capability": 3,
-    "plan_file": "docs/design/hybrid/HYBRID-BRIEF.md",
-    "tasks": [
-     {
-      "name": "Directions A, B and C, reviewed; hybrid frame chosen",
-      "state": "done",
-      "note": "canvas https://claude.ai/artifact/3SjRkRoEYHNHaDixg9M7j4"
-     },
-     {
-      "name": "Hybrid mock-up rounds H1 and H2 (Areas, search), Fable reviews 1-6",
-      "state": "done",
-      "note": "https://claude.ai/artifact/RW8BgnvPMRwFzFjZyVVHoy version 7"
-     },
-     {
-      "name": "Brief checklist: Fable blind pass plus Aarvin's handwritten notes",
-      "state": "done",
-      "note": "docs/discovery/11-brief-checklist.md: 88 items; U1-U20 UI gaps, B1-B18 backend, When column"
-     },
-     {
-      "name": "README checklist: Fable line by line",
-      "state": "done",
-      "note": "61 lines; B19-B26 added (finalized version, reference resolver, version-bound tax effects)"
-     },
-     {
-      "name": "Round H3: live notifications, story clock, Erik, U1-U20",
-      "state": "done",
-      "note": "six Opus authors; Fable review 7: reconciles with fixes, 4 must-fixes"
-     },
-     {
-      "name": "Round H3b: fixes, test first; all 7 suites pass",
-      "state": "done",
-      "note": "Fable re-review 8 running"
-     },
-     {
-      "name": "Publish hybrid version 8 after Fable says ready",
-      "state": "done"
-     },
-     {
-      "name": "Pipeline visual for the video",
-      "state": "done",
-      "note": "first version rejected by Aarvin 22:53 EDT; redesign as a 16:9 visual"
-     }
-    ],
-    "status": "Design frozen at mock-up v9.",
-    "updated": "2026-10-17T03:56:32Z",
-    "period": "15-16 Oct 2026",
-    "outcome": "Hybrid mock-up v9 (design frozen), brief and README checklists, pipeline visual; Fable fresh-eyes assessment."
-   },
-   {
-    "name": "Discovery: what the app must do, section by section",
-    "why": "Aarvin wants each requirement in the brief examined in depth (packet measurements, each role's view, real-world edge cases) before deciding scope.",
-    "unblocks": "The round 1/2/3 scope decision and the data model.",
-    "stage": "recorded",
-    "capability": 3,
-    "tasks": [
-     {
-      "name": "1. Evidence",
-      "state": "done",
-      "note": "written by main session, Fable review found a false zero in my script; fixed"
-     },
-     {
-      "name": "2. Calculation",
-      "state": "done",
-      "note": "written by Opus 5.5, reviewed by Fable 5.1, fixes applied; docs/discovery/ and docs/discovery/reviews/"
-     },
-     {
-      "name": "3. Change",
-      "state": "done",
-      "note": "written by Opus 5.5, reviewed by Fable 5.1, fixes applied; docs/discovery/ and docs/discovery/reviews/"
-     },
-     {
-      "name": "4. Judgment",
-      "state": "done",
-      "note": "written by Opus 5.5, reviewed by Fable 5.1, fixes applied; docs/discovery/ and docs/discovery/reviews/"
-     },
-     {
-      "name": "5. People",
-      "state": "done",
-      "note": "written by Opus 5.5, reviewed by Fable 5.1, fixes applied; docs/discovery/ and docs/discovery/reviews/"
-     },
-     {
-      "name": "6. Filing and after",
-      "state": "done",
-      "note": "written by Opus 5.5, reviewed by Fable 5.1, fixes applied; docs/discovery/ and docs/discovery/reviews/"
-     },
-     {
-      "name": "7. Firm",
-      "state": "done",
-      "note": "written by Opus 5.5, reviewed by Fable 5.1, fixes applied; docs/discovery/ and docs/discovery/reviews/"
-     },
-     {
-      "name": "8. Records a CPA expects",
-      "state": "done",
-      "note": "written by Opus 5.5, reviewed by Fable 5.1, fixes applied; docs/discovery/ and docs/discovery/reviews/"
-     },
-     {
-      "name": "9. Person and place rules (Aarvin's idea)",
-      "state": "done",
-      "note": "docs/discovery/09-person-and-place-rules.md, reviewed and fixed"
-     },
-     {
-      "name": "Packet README recorded verbatim and explained",
-      "state": "done",
-      "note": "docs/packet/; copy verified exact by Fable (16 mutation tests)"
-     },
-     {
-      "name": "Research: Unlimited-OCR fit; local PII redaction",
-      "state": "done",
-      "note": "OCR report done (don't build; design for it); PII research running"
-     },
-     {
-      "name": "Reconcile ledger (docs/ground-truth/reconciliation-queue.md)",
-      "state": "done",
-      "note": "25 items; C05, A06, D04 applied"
-     },
-     {
-      "name": "Walk Aarvin through each section; answer open questions",
-      "state": "done"
-     }
-    ],
-    "status": "Discovery 1-10 written by Opus 5.5 and reviewed by Fable 5.1; synthesis in docs/discovery/10-how-it-comes-together.md.",
-    "updated": "2026-10-17T02:54:01Z",
-    "period": "16 Oct 2026",
-    "outcome": "Ten discovery sections, each cross-model reviewed; five design calls accepted (docs/discovery/reviews/five-calls/)."
-   },
-   {
-    "name": "Hunt the packet's confident mistakes (time-boxed)",
-    "why": "The brief says the packet contains confident mistakes; the ones found decide what the data model must carry.",
-    "unblocks": "The core-idea brainstorm and the data model.",
-    "stage": "recorded",
-    "capability": 1,
-    "tasks": [
-     {
-      "name": "Read the brief and the packet README",
-      "state": "done"
-     },
-     {
-      "name": "Wages, people, credits, retirement, payments",
-      "state": "done",
-      "note": "8 confirmed (4 high) in docs/ground-truth/01-wages-people-credits.md"
-     },
-     {
-      "name": "Investments, crypto, foreign account, K-1s",
-      "state": "done",
-      "note": "5 confirmed in docs/ground-truth/02-investments-foreign-k1.md"
-     },
-     {
-      "name": "Business, rentals, rental sale, depreciation",
-      "state": "done",
-      "note": "10 confirmed (4 high) in docs/ground-truth/03-business-rentals-assets.md; two overlap other areas"
-     },
-     {
-      "name": "California-Texas split, deductions, whole-return math",
-      "state": "done",
-      "note": "6 confirmed in docs/ground-truth/04-state-deductions-integrity.md; line-math checker 0 mismatches on 148 lines"
-     },
-     {
-      "name": "Merge into one ledger and review with Aarvin",
-      "state": "done",
-      "note": "Index in docs/ground-truth/README.md; 5 high findings spot-checked; walked through with Aarvin 15 Oct"
-     }
-    ],
-    "status": "Hunt finished: 27 distinct mistakes (6 high), ledger in docs/ground-truth/.",
-    "updated": "2026-10-15T22:35:02Z",
-    "period": "15 Oct 2026",
-    "outcome": "27 distinct mistakes (6 high) with evidence; engine arithmetic verified sound"
-   },
-   {
-    "name": "Build and deploy the thin, honest workpaper",
-    "why": "Hand-in 1: a working web app from a link; items 2-4 depend on it.",
-    "unblocks": "The errors write-up, the one-page, the AI-usage note and the video.",
-    "stage": "recorded",
-    "capability": 4,
-    "plan_file": "docs/superpowers/plans/2026-10-17-workpaper-build.md",
-    "tasks": [
-     {
-      "name": "Spec, Fable spec review, plan",
-      "state": "done",
-      "note": "docs/superpowers/specs/2026-10-17-workpaper-build-design.md (section 11 = review amendments)"
-     },
-     {
-      "name": "Scaffold, packet copy with hash test, loader, contracts",
-      "state": "done",
-      "note": "3 tests pass"
-     },
-     {
-      "name": "Lane A checks library (every ledger finding)",
-      "state": "done"
-     },
-     {
-      "name": "Lane B references, documents, versions",
-      "state": "done"
-     },
-     {
-      "name": "Lane C events, store, policy, clock, API",
-      "state": "done"
-     },
-     {
-      "name": "Lane D1 shell, Start here, Return, Documents, drawer",
-      "state": "done"
-     },
-     {
-      "name": "Lane D2 Checks, Review, Changes, Filing, Firm, Areas, Findings",
-      "state": "done"
-     },
-     {
-      "name": "Integrate, deploy, grader walk",
-      "state": "done"
-     },
-     {
-      "name": "Fable review of the deployed app; must-fixes only",
-      "state": "done"
-     },
-     {
-      "name": "Round G: notifications, independent pane scroll, client signing and copy, assignments (Fable reviewed)",
-      "state": "done"
-     },
-     {
-      "name": "Secure data round: encrypted storage, cloud AI reader, CI eval gate, client switcher (Fable reviewed)",
-      "state": "done"
-     },
-     {
-      "name": "Code freeze 14:00 EDT Sat",
-      "state": "todo"
-     }
-    ],
-    "status": "Live at taxmark-workpaper.vercel.app (b1213be): client data sealed in a private Blob store and loaded by pointer, AI reader as a cloud function, CI eval gate green; acceptance walk 36/36 on live. Hand-in documents drafted; video next.",
-    "updated": "2026-10-24T18:37:20Z",
-    "period": "16-19 Oct 2026",
-    "outcome": "Live at taxmark-workpaper.vercel.app; acceptance walk passed; the base every later change builds on."
-   },
-   {
-    "name": "Decide the core idea, data model and round scope with Aarvin",
-    "why": "No code before the idea is agreed (project rule).",
-    "unblocks": "The plan for the thin slice.",
-    "stage": "recorded",
-    "capability": 3,
-    "period": "16 Oct 2026",
-    "outcome": "Core idea and data model decided (docs/handin/core-idea-and-data-model.md).",
-    "updated": "2026-10-24T18:37:20Z"
-   },
-   {
-    "name": "Write the hand-in documents and record the video",
-    "why": "Deliverables 2 to 4.",
-    "unblocks": "Submission.",
-    "stage": "recorded",
-    "capability": 5,
-    "period": "17-20 Oct 2026",
-    "outcome": "Brief, appendix, confident-mistakes write-up and video in docs/final handin; submitted.",
-    "updated": "2026-10-24T18:37:20Z"
-   }
-  ],
-  "now": [
-   {
-    "name": "Deterministic accounting and the AI agent",
-    "why": "A blind re-investigation found CA AMT, which no check named; the tool must catch mistakes nobody listed without adding reviewer work.",
-    "unblocks": "Measuring the agent and deciding whether it replaces the per-document reader.",
-    "stage": "building",
-    "capability": 6,
-    "plan_file": "docs/superpowers/plans/2026-10-24-same-fact-and-agent.md",
-    "status": "Live 5dc026f. Agent v2 (case file + calculator) built and reviewed offline on a branch; first paid run awaits Aarvin budget.",
-    "updated": "2026-10-24T22:37:37Z",
-    "tasks": [
-     {
-      "name": "Blind re-investigation of the raw packet",
-      "state": "done",
-      "note": "22 of 27 found plus CA AMT"
-     },
-     {
-      "name": "Check: a line the engine never computed blocks approval",
-      "state": "done",
-      "note": "444d27a, live"
-     },
-     {
-      "name": "Firm-steps review gate",
-      "state": "done",
-      "note": "built 834d79d, then rolled back (e24af9e, 60f2c88): it handed the reviewer work the tool can do"
-     },
-     {
-      "name": "Tool proofs, unexplained-variance net, engine-warning coverage",
-      "state": "done",
-      "note": "f72782c, live"
-     },
-     {
-      "name": "Same-fact engine (five generic rules)",
-      "state": "done",
-      "note": "970c81d, live; reaches 9 of 27 with no noise, then yields"
-     },
-     {
-      "name": "AI agent built offline (SDK tool runner, vault loader, modes)",
-      "state": "done",
-      "note": "uncommitted; 671 unit tests; no API spend"
-     },
-     {
-      "name": "One door to the store: only the data module touches Blob; AI output verified before it is sealed",
-      "state": "done",
-      "note": "36543f5, live"
-     },
-     {
-      "name": "Behaviour contract test and preview-first deploys (no breaking changes)",
-      "state": "done",
-      "note": "36543f5, live; previews dropped by Aarvin (client data production-only): local production build + rollback target instead"
-     },
-     {
-      "name": "Drop the nightly reader schedule, keep the route (demo packet never changes)",
-      "state": "done",
-      "note": "36543f5, live; crons [] verified"
-     },
-     {
-      "name": "Redesign the agent on the research: processed packet in, established pattern",
-      "state": "done",
-      "note": "branch agent-case-file 2bb64a7 (offline): case file 22,890 -> 11,912 tokens, verify calculator; Fable SHIP after 4 fixes; unit 714/714; not merged"
-     },
-     {
-      "name": "Make 4 browser specs runnable against live (they assume the local AI fixture)",
-      "state": "done",
-      "note": "5dc026f, live: full browser suite against live 190 passed, 4 skipped, 0 failed; A7 duplicate AI titles fixed (one entry per title and line)"
-     },
-     {
-      "name": "Measure the agent (blind, hide-checks, default) and decide on a switch",
-      "state": "todo",
-      "note": "paid runs, after the redesign"
-     }
+  "meta": {
+    "project": "Tax workpaper case study",
+    "subtitle": "A web-native workpaper for the invented Okafor-Lindqvist household's 2025 return: every number traced to its source, every packet mistake surfaced. Due Fri 16 Oct 2026, 21:00 EDT.",
+    "mode": "light",
+    "plan_version": "0.6.0",
+    "updated": "2026-10-25T21:10:05Z",
+    "changelog": [
+      {
+        "version": "0.1.0",
+        "date": "2026-10-15",
+        "note": "Plan created. Mistake hunt and industry research started."
+      },
+      {
+        "version": "0.2.0",
+        "date": "2026-10-16",
+        "note": "Hunt done; section-by-section discovery started."
+      },
+      {
+        "version": "0.3.0",
+        "date": "2026-10-17",
+        "note": "Pipeline figure added; discovery moved to done; design work (hybrid mock-up, checklists) is the active item."
+      },
+      {
+        "version": "0.4.0",
+        "date": "2026-10-17",
+        "note": "Build started: spec, plan, five lanes."
+      },
+      {
+        "version": "0.5.0",
+        "date": "2026-10-24",
+        "note": "Plan caught up after a week unrecorded: build and hand-in done; new active item for unlisted mistakes and the AI agent."
+      },
+      {
+        "version": "0.6.0",
+        "date": "2026-10-25",
+        "note": "AI agent v4 independent run live and verified; work paused for the day with the pill label change awaiting approval."
+      }
     ]
-   }
+  },
+  "capabilities": [
+    {
+      "id": 1,
+      "name": "Ledger of packet mistakes (ground truth)",
+      "short": "Mistakes",
+      "what": "Every confident mistake in the data packet, with document, field, value, why it is wrong, evidence and tax effect. Raw form of deliverable 3.",
+      "build": "done",
+      "plan": "none",
+      "where": "docs/ground-truth/",
+      "evidence": "docs/ground-truth/README.md: 27 distinct findings with evidence; 5 spot-checked 15 Oct 22:34 UTC."
+    },
+    {
+      "id": 2,
+      "name": "Industry research and plain-language primer",
+      "short": "Research",
+      "what": "What a tax workpaper is, the standards that shape it, existing tools and the patterns worth borrowing.",
+      "build": "done",
+      "plan": "none",
+      "where": "docs/research/industry.md, docs/brief-explained.md",
+      "evidence": "docs/research/industry.md written 15 Oct 22:28 UTC (primer, standards, tools, 15 principles, glossary); gaps marked unverified in the file."
+    },
+    {
+      "id": 3,
+      "name": "Core idea and data model",
+      "short": "Model",
+      "what": "One short decision on the central idea (every number carries source, confidence, verification and failing checks) and the data model behind it.",
+      "build": "done",
+      "plan": "none",
+      "where": "No plan yet",
+      "evidence": "spec docs/superpowers/specs/2026-10-17-workpaper-build-design.md; mock-up v9"
+    },
+    {
+      "id": 4,
+      "name": "Thin deployed slice",
+      "short": "App",
+      "what": "Load the packet as delivered, trace any number to a simulated source document and field, surface every logged mistake, role switcher, saving, live link.",
+      "build": "done",
+      "plan": "planned",
+      "where": "project-build/ (plan: docs/superpowers/plans/2026-10-17-workpaper-build.md)",
+      "evidence": "Live at taxmark-workpaper.vercel.app; unit and browser suites green in CI"
+    },
+    {
+      "id": 5,
+      "name": "Hand-in documents and video",
+      "short": "Hand-in",
+      "what": "One page on the core idea and data model, the errors write-up, the AI-usage note, the walkthrough video.",
+      "build": "done",
+      "plan": "none",
+      "where": "No plan yet",
+      "evidence": "docs/final handin (brief, appendix, confident mistakes, video)"
+    },
+    {
+      "id": 6,
+      "name": "Catching mistakes nobody listed (after hand-in)",
+      "short": "Unlisted mistakes",
+      "what": "Deterministic accounting the tool does itself (proofs, same-fact engine, a check for lines the engine never computed) and an AI agent that investigates what rules cannot settle, all fitted to the existing architecture.",
+      "build": "active",
+      "plan": "planned",
+      "where": "project-build/src/domain (checks, facts.ts, proofs.ts), project-build/ai (agent)",
+      "evidence": "Live 6cf110e (dpl_ENZiPyezpm4cAJxZRYnSjcnUsu4J, verified 25 Oct 01:58 EDT): agent v4 independent (blind) run is the live AI producer, run offline and loaded to Blob. Real packet strict 17/27, precision ~0.89; perturbed packet agent 11/16 planted vs checks 3/16; 0 leaks; $7.01 of $30 spent. Live suite 189 passed. Paused 25 Oct: pending approval to relabel the Checks pill '✦ AI' -> '✦ AI agent'; optional next: adjudicate beyond-ledger findings, self-improving loop (confirmed proposals -> checks), raise verify_all coverage from 68%."
+    }
   ],
-  "next": []
- }
+  "plans": {
+    "done": [
+      {
+        "name": "Design: hybrid mock-up and the brief and README checklists",
+        "why": "Aarvin chose the hybrid frame; the mock-up is the design reference for the build, and the checklists make sure nothing in the brief or README is missed before the spec.",
+        "unblocks": "The written spec (docs/superpowers/specs/) and the build plan, then the build on Aarvin's go.",
+        "stage": "recorded",
+        "capability": 3,
+        "plan_file": "docs/design/hybrid/HYBRID-BRIEF.md",
+        "tasks": [
+          {
+            "name": "Directions A, B and C, reviewed; hybrid frame chosen",
+            "state": "done",
+            "note": "canvas https://claude.ai/artifact/3SjRkRoEYHNHaDixg9M7j4"
+          },
+          {
+            "name": "Hybrid mock-up rounds H1 and H2 (Areas, search), Fable reviews 1-6",
+            "state": "done",
+            "note": "https://claude.ai/artifact/RW8BgnvPMRwFzFjZyVVHoy version 7"
+          },
+          {
+            "name": "Brief checklist: Fable blind pass plus Aarvin's handwritten notes",
+            "state": "done",
+            "note": "docs/discovery/11-brief-checklist.md: 88 items; U1-U20 UI gaps, B1-B18 backend, When column"
+          },
+          {
+            "name": "README checklist: Fable line by line",
+            "state": "done",
+            "note": "61 lines; B19-B26 added (finalized version, reference resolver, version-bound tax effects)"
+          },
+          {
+            "name": "Round H3: live notifications, story clock, Erik, U1-U20",
+            "state": "done",
+            "note": "six Opus authors; Fable review 7: reconciles with fixes, 4 must-fixes"
+          },
+          {
+            "name": "Round H3b: fixes, test first; all 7 suites pass",
+            "state": "done",
+            "note": "Fable re-review 8 running"
+          },
+          {
+            "name": "Publish hybrid version 8 after Fable says ready",
+            "state": "done"
+          },
+          {
+            "name": "Pipeline visual for the video",
+            "state": "done",
+            "note": "first version rejected by Aarvin 22:53 EDT; redesign as a 16:9 visual"
+          }
+        ],
+        "status": "Design frozen at mock-up v9.",
+        "updated": "2026-10-17T03:56:32Z",
+        "period": "15-16 Oct 2026",
+        "outcome": "Hybrid mock-up v9 (design frozen), brief and README checklists, pipeline visual; Fable fresh-eyes assessment."
+      },
+      {
+        "name": "Discovery: what the app must do, section by section",
+        "why": "Aarvin wants each requirement in the brief examined in depth (packet measurements, each role's view, real-world edge cases) before deciding scope.",
+        "unblocks": "The round 1/2/3 scope decision and the data model.",
+        "stage": "recorded",
+        "capability": 3,
+        "tasks": [
+          {
+            "name": "1. Evidence",
+            "state": "done",
+            "note": "written by main session, Fable review found a false zero in my script; fixed"
+          },
+          {
+            "name": "2. Calculation",
+            "state": "done",
+            "note": "written by Opus 5.5, reviewed by Fable 5.1, fixes applied; docs/discovery/ and docs/discovery/reviews/"
+          },
+          {
+            "name": "3. Change",
+            "state": "done",
+            "note": "written by Opus 5.5, reviewed by Fable 5.1, fixes applied; docs/discovery/ and docs/discovery/reviews/"
+          },
+          {
+            "name": "4. Judgment",
+            "state": "done",
+            "note": "written by Opus 5.5, reviewed by Fable 5.1, fixes applied; docs/discovery/ and docs/discovery/reviews/"
+          },
+          {
+            "name": "5. People",
+            "state": "done",
+            "note": "written by Opus 5.5, reviewed by Fable 5.1, fixes applied; docs/discovery/ and docs/discovery/reviews/"
+          },
+          {
+            "name": "6. Filing and after",
+            "state": "done",
+            "note": "written by Opus 5.5, reviewed by Fable 5.1, fixes applied; docs/discovery/ and docs/discovery/reviews/"
+          },
+          {
+            "name": "7. Firm",
+            "state": "done",
+            "note": "written by Opus 5.5, reviewed by Fable 5.1, fixes applied; docs/discovery/ and docs/discovery/reviews/"
+          },
+          {
+            "name": "8. Records a CPA expects",
+            "state": "done",
+            "note": "written by Opus 5.5, reviewed by Fable 5.1, fixes applied; docs/discovery/ and docs/discovery/reviews/"
+          },
+          {
+            "name": "9. Person and place rules (Aarvin's idea)",
+            "state": "done",
+            "note": "docs/discovery/09-person-and-place-rules.md, reviewed and fixed"
+          },
+          {
+            "name": "Packet README recorded verbatim and explained",
+            "state": "done",
+            "note": "docs/packet/; copy verified exact by Fable (16 mutation tests)"
+          },
+          {
+            "name": "Research: Unlimited-OCR fit; local PII redaction",
+            "state": "done",
+            "note": "OCR report done (don't build; design for it); PII research running"
+          },
+          {
+            "name": "Reconcile ledger (docs/ground-truth/reconciliation-queue.md)",
+            "state": "done",
+            "note": "25 items; C05, A06, D04 applied"
+          },
+          {
+            "name": "Walk Aarvin through each section; answer open questions",
+            "state": "done"
+          }
+        ],
+        "status": "Discovery 1-10 written by Opus 5.5 and reviewed by Fable 5.1; synthesis in docs/discovery/10-how-it-comes-together.md.",
+        "updated": "2026-10-17T02:54:01Z",
+        "period": "16 Oct 2026",
+        "outcome": "Ten discovery sections, each cross-model reviewed; five design calls accepted (docs/discovery/reviews/five-calls/)."
+      },
+      {
+        "name": "Hunt the packet's confident mistakes (time-boxed)",
+        "why": "The brief says the packet contains confident mistakes; the ones found decide what the data model must carry.",
+        "unblocks": "The core-idea brainstorm and the data model.",
+        "stage": "recorded",
+        "capability": 1,
+        "tasks": [
+          {
+            "name": "Read the brief and the packet README",
+            "state": "done"
+          },
+          {
+            "name": "Wages, people, credits, retirement, payments",
+            "state": "done",
+            "note": "8 confirmed (4 high) in docs/ground-truth/01-wages-people-credits.md"
+          },
+          {
+            "name": "Investments, crypto, foreign account, K-1s",
+            "state": "done",
+            "note": "5 confirmed in docs/ground-truth/02-investments-foreign-k1.md"
+          },
+          {
+            "name": "Business, rentals, rental sale, depreciation",
+            "state": "done",
+            "note": "10 confirmed (4 high) in docs/ground-truth/03-business-rentals-assets.md; two overlap other areas"
+          },
+          {
+            "name": "California-Texas split, deductions, whole-return math",
+            "state": "done",
+            "note": "6 confirmed in docs/ground-truth/04-state-deductions-integrity.md; line-math checker 0 mismatches on 148 lines"
+          },
+          {
+            "name": "Merge into one ledger and review with Aarvin",
+            "state": "done",
+            "note": "Index in docs/ground-truth/README.md; 5 high findings spot-checked; walked through with Aarvin 15 Oct"
+          }
+        ],
+        "status": "Hunt finished: 27 distinct mistakes (6 high), ledger in docs/ground-truth/.",
+        "updated": "2026-10-15T22:35:02Z",
+        "period": "15 Oct 2026",
+        "outcome": "27 distinct mistakes (6 high) with evidence; engine arithmetic verified sound"
+      },
+      {
+        "name": "Build and deploy the thin, honest workpaper",
+        "why": "Hand-in 1: a working web app from a link; items 2-4 depend on it.",
+        "unblocks": "The errors write-up, the one-page, the AI-usage note and the video.",
+        "stage": "recorded",
+        "capability": 4,
+        "plan_file": "docs/superpowers/plans/2026-10-17-workpaper-build.md",
+        "tasks": [
+          {
+            "name": "Spec, Fable spec review, plan",
+            "state": "done",
+            "note": "docs/superpowers/specs/2026-10-17-workpaper-build-design.md (section 11 = review amendments)"
+          },
+          {
+            "name": "Scaffold, packet copy with hash test, loader, contracts",
+            "state": "done",
+            "note": "3 tests pass"
+          },
+          {
+            "name": "Lane A checks library (every ledger finding)",
+            "state": "done"
+          },
+          {
+            "name": "Lane B references, documents, versions",
+            "state": "done"
+          },
+          {
+            "name": "Lane C events, store, policy, clock, API",
+            "state": "done"
+          },
+          {
+            "name": "Lane D1 shell, Start here, Return, Documents, drawer",
+            "state": "done"
+          },
+          {
+            "name": "Lane D2 Checks, Review, Changes, Filing, Firm, Areas, Findings",
+            "state": "done"
+          },
+          {
+            "name": "Integrate, deploy, grader walk",
+            "state": "done"
+          },
+          {
+            "name": "Fable review of the deployed app; must-fixes only",
+            "state": "done"
+          },
+          {
+            "name": "Round G: notifications, independent pane scroll, client signing and copy, assignments (Fable reviewed)",
+            "state": "done"
+          },
+          {
+            "name": "Secure data round: encrypted storage, cloud AI reader, CI eval gate, client switcher (Fable reviewed)",
+            "state": "done"
+          },
+          {
+            "name": "Code freeze 14:00 EDT Sat",
+            "state": "todo"
+          }
+        ],
+        "status": "Live at taxmark-workpaper.vercel.app (b1213be): client data sealed in a private Blob store and loaded by pointer, AI reader as a cloud function, CI eval gate green; acceptance walk 36/36 on live. Hand-in documents drafted; video next.",
+        "updated": "2026-10-24T18:37:20Z",
+        "period": "16-19 Oct 2026",
+        "outcome": "Live at taxmark-workpaper.vercel.app; acceptance walk passed; the base every later change builds on."
+      },
+      {
+        "name": "Decide the core idea, data model and round scope with Aarvin",
+        "why": "No code before the idea is agreed (project rule).",
+        "unblocks": "The plan for the thin slice.",
+        "stage": "recorded",
+        "capability": 3,
+        "period": "16 Oct 2026",
+        "outcome": "Core idea and data model decided (docs/handin/core-idea-and-data-model.md).",
+        "updated": "2026-10-24T18:37:20Z"
+      },
+      {
+        "name": "Write the hand-in documents and record the video",
+        "why": "Deliverables 2 to 4.",
+        "unblocks": "Submission.",
+        "stage": "recorded",
+        "capability": 5,
+        "period": "17-20 Oct 2026",
+        "outcome": "Brief, appendix, confident-mistakes write-up and video in docs/final handin; submitted.",
+        "updated": "2026-10-24T18:37:20Z"
+      }
+    ],
+    "now": [
+      {
+        "name": "Deterministic accounting and the AI agent",
+        "why": "A blind re-investigation found CA AMT, which no check named; the tool must catch mistakes nobody listed without adding reviewer work.",
+        "unblocks": "Measuring the agent and deciding whether it replaces the per-document reader.",
+        "stage": "building",
+        "capability": 6,
+        "plan_file": "docs/superpowers/plans/2026-10-24-same-fact-and-agent.md",
+        "status": "Live 5dc026f. Agent v2 (case file + calculator) built and reviewed offline on a branch; first paid run awaits Aarvin budget.",
+        "updated": "2026-10-24T22:37:37Z",
+        "tasks": [
+          {
+            "name": "Blind re-investigation of the raw packet",
+            "state": "done",
+            "note": "22 of 27 found plus CA AMT"
+          },
+          {
+            "name": "Check: a line the engine never computed blocks approval",
+            "state": "done",
+            "note": "444d27a, live"
+          },
+          {
+            "name": "Firm-steps review gate",
+            "state": "done",
+            "note": "built 834d79d, then rolled back (e24af9e, 60f2c88): it handed the reviewer work the tool can do"
+          },
+          {
+            "name": "Tool proofs, unexplained-variance net, engine-warning coverage",
+            "state": "done",
+            "note": "f72782c, live"
+          },
+          {
+            "name": "Same-fact engine (five generic rules)",
+            "state": "done",
+            "note": "970c81d, live; reaches 9 of 27 with no noise, then yields"
+          },
+          {
+            "name": "AI agent built offline (SDK tool runner, vault loader, modes)",
+            "state": "done",
+            "note": "uncommitted; 671 unit tests; no API spend"
+          },
+          {
+            "name": "One door to the store: only the data module touches Blob; AI output verified before it is sealed",
+            "state": "done",
+            "note": "36543f5, live"
+          },
+          {
+            "name": "Behaviour contract test and preview-first deploys (no breaking changes)",
+            "state": "done",
+            "note": "36543f5, live; previews dropped by Aarvin (client data production-only): local production build + rollback target instead"
+          },
+          {
+            "name": "Drop the nightly reader schedule, keep the route (demo packet never changes)",
+            "state": "done",
+            "note": "36543f5, live; crons [] verified"
+          },
+          {
+            "name": "Redesign the agent on the research: processed packet in, established pattern",
+            "state": "done",
+            "note": "branch agent-case-file 2bb64a7 (offline): case file 22,890 -> 11,912 tokens, verify calculator; Fable SHIP after 4 fixes; unit 714/714; not merged"
+          },
+          {
+            "name": "Make 4 browser specs runnable against live (they assume the local AI fixture)",
+            "state": "done",
+            "note": "5dc026f, live: full browser suite against live 190 passed, 4 skipped, 0 failed; A7 duplicate AI titles fixed (one entry per title and line)"
+          },
+          {
+            "name": "Measure the agent (blind, hide-checks, default) and decide on a switch",
+            "state": "todo",
+            "note": "paid runs, after the redesign"
+          }
+        ]
+      }
+    ],
+    "next": []
+  }
 }
