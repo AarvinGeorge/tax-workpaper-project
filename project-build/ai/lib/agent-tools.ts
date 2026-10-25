@@ -275,7 +275,7 @@ export function runTool(ix: PacketIndex, name: string, input: Obj, opts: ToolOpt
       const r = verify(ix, { method: String(input.method ?? ''), ids: (input.ids as unknown[]) ?? [], target: input.target ?? null }, mode);
       // fact_copies, duplicates and glossary are lists: paged like the other lists; every other method is one result.
       text = Array.isArray(r.items) && (input.method === 'fact_copies' || input.method === 'duplicates' || input.method === 'glossary')
-        ? page(name, (r.items as Obj[]).map(mask), input, { method: input.method, ...(r.target ? { target: r.target, ...(r.kind ? { kind: r.kind } : {}) } : { term: r.term }) })
+        ? page(name, (r.items as Obj[]).map(mask), input, { method: input.method, ...(r.target ? { target: r.target, ...(r.kind ? { kind: r.kind } : {}), ...(r.note ? { note: r.note } : {}) } : { term: r.term }) })
         : shrink(name, mask({ method: input.method, ...r }));
       break;
     }

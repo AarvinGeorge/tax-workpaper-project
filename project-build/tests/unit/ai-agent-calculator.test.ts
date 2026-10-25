@@ -321,6 +321,23 @@ describe('calculator: convert', () => {
     expect(verify('convert', [l.key], ref).data).toMatchObject({ id: l.key, amount: l.value });
   });
 
+  it('the rate\'s period and year against the return\'s tax year (Fable fix 1): a cited prior-year rate says false, a same-year rate true; every mode alike', () => {
+    const taxYear = ix.packet.household.tax_year as number;
+    const fxp = params.fx as Record<string, Record<string, number>>;
+    const cited = lines.flatMap((l) => (l.sources ?? []).filter((s) => s.startsWith('ref:fx.')).map((fx) => ({ l, fx, ev: (l.sources ?? []).find((s) => s.startsWith('ev-'))! })));
+    const wrong = cited.find(({ fx }) => !fx.split('.')[2].includes(String(taxYear)));
+    expect(wrong).toBeDefined(); // the packet has a line citing another year's rate on this year's return
+    const period = wrong!.fx.split('.')[2];
+    const d = verify('convert', [wrong!.ev], wrong!.fx).data;
+    expect(d.ratePeriod).toEqual({ period, year: Number(/\d{4}/.exec(period)![0]), taxYear, periodYearMatchesTaxYear: false });
+    const same = Object.keys(fxp[A]).find((r) => r.includes(String(taxYear)))!;
+    expect(verify('convert', [wrong!.ev], `ref:fx.${A}.${same}`).data.ratePeriod).toEqual({ period: same, year: taxYear, taxYear, periodYearMatchesTaxYear: true });
+    expect(verify('convert', [wrong!.ev], `${fxKey}.${same}`).data.ratePeriod).toMatchObject({ periodYearMatchesTaxYear: true });
+    for (const mode of [{ kind: 'blind' }, { kind: 'blind-v3' }, { kind: 'hide-checks', seed: 1 }] as AgentMode[]) {
+      for (const { ev, fx } of cited) expect(verify('convert', [ev], fx, mode).data).toEqual(verify('convert', [ev], fx).data);
+    }
+  });
+
   it('an unknown rate is refused; a year typed as a number is refused', () => {
     const v = ix.packet.extracted_values.find((x) => x.value_type === 'money' && typeof x.value === 'number')!;
     expect(verify('convert', [v.id], `ref:fx.${A}.1999_average`).data.error).toMatch(/Unknown rate/);
@@ -361,6 +378,7 @@ describe('calculator: duplicates', () => {
     }
     const plain = lines.find((l) => typeof l.value === 'number' && !dupLines.includes(l))!;
     expect((verify('duplicates', [plain.key]).data.items as unknown[])).toEqual([]);
+    expect(String(verify('duplicates', [plain.key]).data.note)).toMatch(/No nonzero amount this line cites appears on two or more pages/); // Fable fix 2: the note survives paging
   });
 
   it('a document id returns its page pairs with superseded, landed and cited flags', () => {

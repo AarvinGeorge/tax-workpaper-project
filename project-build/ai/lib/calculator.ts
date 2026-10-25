@@ -11,6 +11,7 @@
 import type { PacketIndex } from '../../src/domain/packet/load';
 import type { ReturnLine } from '../../src/domain/packet/types';
 import { FLOW_RULES } from '../../src/domain/flow';
+import { taxYear } from '../../src/domain/checks/util';
 import { sameFacts } from '../../src/domain/facts';
 import { masker } from './reader-core';
 import { DEFAULT_MODE, comparisonPayloadHidden, type AgentMode } from './modes';
@@ -200,7 +201,7 @@ function compareToLimit(ix: PacketIndex, id: string, target: string | null): Obj
 }
 
 // ---------- convert ----------
-type Rate = { ref: string | null; key: string | null; value: number; from: string; to: string; fxRatesValue?: number };
+type Rate = { ref: string | null; key: string | null; period: string; value: number; from: string; to: string; fxRatesValue?: number };
 
 /** One rate, named as ref:fx.<CUR>.<rate> (engine_reference.parameters.fx) or <A>_per_<B>.<rate> (fx_rates). The
  *  direction comes from the fx_rates key: <A>_per_<B> is units of A for one unit of B. */
@@ -221,14 +222,14 @@ function rateOf(ix: PacketIndex, target: string): Rate | { error: string } {
     const key = Object.keys(fxr).find((k) => k.startsWith(`${cur}_per_`) && fxr[k]?.[r] !== undefined);
     const to = key ? key.slice(`${cur}_per_`.length) : 'the other currency';
     const alt = key ? fxr[key][r] : undefined;
-    return { ref: target, key: key ? `${key}.${r}` : null, value, from: cur, to, ...(isNum(alt) && alt !== value ? { fxRatesValue: alt } : {}) };
+    return { ref: target, key: key ? `${key}.${r}` : null, period: r, value, from: cur, to, ...(isNum(alt) && alt !== value ? { fxRatesValue: alt } : {}) };
   }
   if (byKey) {
     const [, a, b, r] = byKey;
     const value = fxr[`${a}_per_${b}`]?.[r];
     if (!isNum(value) || value <= 0) return unknown;
     const alt = fxp[a]?.[r];
-    return { ref: alt !== undefined ? `ref:fx.${a}.${r}` : null, key: `${a}_per_${b}.${r}`, value, from: a, to: b, ...(isNum(alt) && alt !== value ? { fxRatesValue: alt } : {}) };
+    return { ref: alt !== undefined ? `ref:fx.${a}.${r}` : null, key: `${a}_per_${b}.${r}`, period: r, value, from: a, to: b, ...(isNum(alt) && alt !== value ? { fxRatesValue: alt } : {}) };
   }
   return unknown;
 }
@@ -241,8 +242,14 @@ function convert(ix: PacketIndex, id: string, target: string | null): Obj {
   const t = term(ix, id, masker(ix));
   if ('error' in t) return t;
   const r = rate.value;
+  // The rate's period (its key's last part, e.g. a year's average) against the return's tax year: a rate of another
+  // year is visible without the model reading the key. Read from the packet, never an input.
+  const y = /(?:^|\D)(\d{4})(?:\D|$)/.exec(rate.period);
+  const year = y ? Number(y[1]) : null;
+  const tax = taxYear(ix);
   return {
     id, kind: t.kind, label: t.label, amount: t.value,
+    ratePeriod: { period: rate.period, year, taxYear: tax, periodYearMatchesTaxYear: year === null ? null : year === tax },
     rate: { ref: rate.ref, key: rate.key, value: r, per: `${rate.from} per ${rate.to}`, ...(rate.fxRatesValue !== undefined ? { fxRatesValue: rate.fxRatesValue } : {}) },
     results: [
       { from: rate.from, to: rate.to, operation: `amount / ${r}`, result: round2(t.value / r) },
