@@ -36,13 +36,13 @@ function everyResult(): string[] {
 }
 
 describe('agent tools: the tool set', () => {
-  it('has the seven planned tools, each strict with a closed input schema', () => {
+  it('has the seven planned tools, each with a closed input schema; strict except record_suggestion (the API refused 7 strict tools: "compiled grammar is too large", 24 Oct; code validates its input)', () => {
     const tools = agentTools(ix, { onHit: () => {} });
     expect(tools.map((t) => t.name).sort()).toEqual([...AGENT_TOOL_NAMES].sort());
     expect(AGENT_TOOL_NAMES).toEqual(['get_line', 'get_page', 'search_values', 'verify', 'run_checks', 'list_open_leftovers', 'record_suggestion']);
     for (const t of tools) {
       const tool = t as unknown as { strict?: boolean; input_schema: { additionalProperties: boolean; required: string[]; properties: Record<string, unknown> } };
-      expect(tool.strict, t.name).toBe(true);
+      expect(tool.strict, t.name).toBe(t.name !== 'record_suggestion');
       expect(tool.input_schema.additionalProperties, t.name).toBe(false);
       expect([...tool.input_schema.required].sort(), t.name).toEqual(Object.keys(tool.input_schema.properties).sort());
     }

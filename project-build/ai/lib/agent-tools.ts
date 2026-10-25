@@ -352,7 +352,8 @@ export function agentTools(ix: PacketIndex, guard: ToolGuard, opts: ToolOptions 
       },
     }),
     betaTool({
-      name: 'record_suggestion', strict: true, run: run('record_suggestion'),
+      // Not strict: seven strict tools exceed the API's grammar limit; validateRow and the verifier check every input.
+      name: 'record_suggestion', strict: false, run: run('record_suggestion'),
       description: 'Record one suggestion as soon as you have it. It is checked as the final answer will be (kind, claims, quotes copied verbatim from the cited page, authority, rationale length): accepted rows are kept for the final answer; a refused row comes back with the exact reasons, so fix it and record it again.',
       inputSchema: OUTPUT_SCHEMA.properties.suggestions.items as never,
     }),
