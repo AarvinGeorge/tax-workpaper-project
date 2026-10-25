@@ -249,6 +249,15 @@ describe('agent tools: record_suggestion', () => {
     expect(rows).toHaveLength(1);
   });
 
+  it('the same row recorded again is kept once and the model is told it is already recorded (Fable, 24 Oct)', () => {
+    const rows: unknown[] = [];
+    expect(rec(good(), rows).accepted).toBe(true);
+    const again = rec(good(), rows) as { accepted: boolean; note?: string };
+    expect(again.accepted).toBe(true);
+    expect(again.note).toMatch(/already recorded/i);
+    expect(rows).toHaveLength(1);
+  });
+
   it('a quote that is not on the cited page is refused with the verifier\'s reason', () => {
     const r = rec({ ...good(), evidence: [{ doc: docWithPages.id, page: docWithPages.pages[0].page, quote: 'These exact words are nowhere on this page 4711' }] });
     expect(r.accepted).toBe(false);

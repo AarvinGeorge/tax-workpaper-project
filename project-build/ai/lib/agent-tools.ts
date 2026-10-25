@@ -232,6 +232,9 @@ export interface ToolOptions {
   recorder?: Row[];
 }
 
+/** One suggestion, for dedupe: same kind, lines and first quote (used when recording and in the final answer). */
+export const rowKey = (r: Row) => `${r.kind}|${[...r.claims].sort().join(',')}|${r.evidence[0]?.doc}|${r.evidence[0]?.quote.replace(/\s+/g, ' ').trim()}`;
+
 /** Checks one suggestion as the final answer would be checked (the row's shape, then the verifier's grounding) and
  *  keeps it when it passes; otherwise says exactly why, so the model can fix it and record it again. */
 function recordSuggestion(ix: PacketIndex, raw: Obj, recorder?: Row[]): Obj {
@@ -240,6 +243,7 @@ function recordSuggestion(ix: PacketIndex, raw: Obj, recorder?: Row[]): Obj {
   const payload = { schemaVersion: 1, packetSha: '', model: '', promptVersion: '', runAt: '', suggestions: [{ id: 'recorded', ...v.row }], rejected: [] } as unknown as AiPayload;
   const [checked] = verifySuggestions(ix, payload);
   if (!isShown(checked)) return { accepted: false, reasons: checked.problems };
+  if (recorder?.some((r) => rowKey(r) === rowKey(v.row!))) return { accepted: true, recorded: recorder.length, note: 'Already recorded; kept once.' };
   recorder?.push(v.row);
   return { accepted: true, recorded: recorder ? recorder.length : null, note: 'Kept for the final answer; no need to repeat it there.' };
 }

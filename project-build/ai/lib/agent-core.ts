@@ -12,7 +12,7 @@ import type { BetaRunnableTool } from '@anthropic-ai/sdk/lib/tools/BetaRunnableT
 import { AI_AUTHORITIES, AI_KINDS, type AiPayload, type AiProposal, type AiRejected } from '../../src/domain/ai/contract';
 import { SSN_SHAPED, isShown, verifySuggestions } from '../../src/domain/ai/verify';
 import type { PacketIndex } from '../../src/domain/packet/load';
-import { agentTools, findingsFor, type ToolGuard } from './agent-tools';
+import { agentTools, findingsFor, rowKey, type ToolGuard } from './agent-tools';
 import { caseFile } from './case-file';
 import { DEFAULT_MODE, hiddenCheckIds, modeLabel, type AgentMode } from './modes';
 import {
@@ -149,7 +149,6 @@ export function finalizePayload(ix: PacketIndex, text: string, env: { packetSha:
   if (!isObj(parsed) || !Array.isArray(parsed.suggestions) || !Array.isArray(parsed.proposals)) throw new Error('final payload lacks the suggestions and proposals lists');
   const rows: Row[] = [...recorded]; const rejected: AiRejected[] = []; const proposals: AiProposal[] = [];
   // A row recorded during the run and repeated in the final JSON is one suggestion (same kind, lines and first quote).
-  const rowKey = (r: Row) => `${r.kind}|${[...r.claims].sort().join(',')}|${r.evidence[0]?.doc}|${r.evidence[0]?.quote.replace(/\s+/g, ' ').trim()}`;
   const seen = new Set(rows.map(rowKey));
   for (const raw of parsed.suggestions) {
     const v = validateRow(ix, raw);
