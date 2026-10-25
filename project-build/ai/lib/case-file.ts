@@ -9,7 +9,7 @@ import type { Finding } from '../../src/domain/contracts';
 import { proofsFor } from '../../src/domain/proofs';
 import { FLOW_RULES } from '../../src/domain/flow';
 import { documentLanding } from '../../src/domain/docs';
-import { DEFAULT_MODE, findingsFor, type AgentMode } from './modes';
+import { DEFAULT_MODE, findingsFor, isBlind, type AgentMode } from './modes';
 import { leftovers } from './agent-tools';
 import { clientContext, masker } from './reader-core';
 
@@ -76,13 +76,22 @@ function status(ix: PacketIndex, key: string, rule: string | null, inputs: strin
   return 'O';
 }
 
-function stateMap(ix: PacketIndex, findings: Finding[]): string {
+/** Wording for the agent-v4 independent run (v4 with a blind mode): it has no findings, so its case file neither
+ *  defines status F nor says that checks exist. Same lines, statuses and items; every other case file is unchanged. */
+export interface CaseFileWording { independent?: boolean }
+
+function stateMap(ix: PacketIndex, findings: Finding[], w: CaseFileWording = {}): string {
   const m = masker(ix);
   const claimed = new Set(findings.flatMap((f) => f.claims));
   const out = [
     `## State map: every line of the latest return (${ix.latest.version}), key | value | rule | status`,
-    'Status: P proved by our code (agreed to source, recalculated, prior year or a third-party record; agreement, not',
-    'correctness), F a deterministic check already raises an issue on it, O open (nothing has settled it), E computed by',
+    ...(w.independent ? [
+      'Status: P proved by our code (agreed to source, recalculated, prior year or a third-party record; agreement, not',
+      'correctness), O open (nothing has settled it), E computed by',
+    ] : [
+      'Status: P proved by our code (agreed to source, recalculated, prior year or a third-party record; agreement, not',
+      'correctness), F a deterministic check already raises an issue on it, O open (nothing has settled it), E computed by',
+    ]),
     'an engine rule past arithmetic. Labels, inputs and sources: get_line.',
   ];
   for (const l of ix.latest.lines) {
@@ -94,7 +103,7 @@ function stateMap(ix: PacketIndex, findings: Finding[]): string {
 
 const amountOf = (x: Obj) => (typeof x.value === 'number' ? Math.abs(x.value) : 0);
 
-function workList(ix: PacketIndex, open: Obj[]): string {
+function workList(ix: PacketIndex, open: Obj[], w: CaseFileWording = {}): string {
   const m = masker(ix);
   const kinds = ['unproven_line', 'uncovered_engine_warning', 'uncited_money'];
   const warnings = open.filter((x) => x.kind === 'uncovered_engine_warning');
@@ -115,7 +124,7 @@ function workList(ix: PacketIndex, open: Obj[]): string {
   return [
     '## Work list: what nothing deterministic has settled (list_open_leftovers pages through all of it)',
     `Counts: ${kinds.map((k) => `${k}: ${open.filter((x) => x.kind === k).length}`).join(', ')}.`,
-    `Every engine warning no check covers, then the ${WORK_LIST_TOP} largest other items by amount, open items before engine-only lines.`,
+    `${w.independent ? 'Every engine warning' : 'Every engine warning no check covers'}, then the ${WORK_LIST_TOP} largest other items by amount, open items before engine-only lines.`,
     'Informational fields (Social Security and Medicare wage boxes, mortgage principal, 1099-B summary totals) are left out.',
     ...warnings.map(item).map(m),
     ...rest.map(item).map(m),
@@ -137,20 +146,21 @@ function documents(ix: PacketIndex): string {
 export interface Section { name: string; text: string }
 
 /** The case file's sections, from given findings and open items (the mode decides both; see caseFileSections). */
-export function buildSections(ix: PacketIndex, digest: string, findings: Finding[], open: Obj[]): Section[] {
+export function buildSections(ix: PacketIndex, digest: string, findings: Finding[], open: Obj[], w: CaseFileWording = {}): Section[] {
   return [
     { name: 'Schema card', text: SCHEMA_CARD },
     { name: 'How to review + digest', text: routine(ix, digest) },
-    { name: 'State map', text: stateMap(ix, findings) },
-    { name: 'Work list', text: workList(ix, open) },
+    { name: 'State map', text: stateMap(ix, findings, w) },
+    { name: 'Work list', text: workList(ix, open, w) },
     { name: 'Documents', text: documents(ix) },
     { name: 'Client text', text: clientContext(ix) },
   ];
 }
-export const buildCaseFile = (ix: PacketIndex, digest: string, findings: Finding[], open: Obj[]) =>
-  buildSections(ix, digest, findings, open).map((s) => s.text).join('\n\n');
+export const buildCaseFile = (ix: PacketIndex, digest: string, findings: Finding[], open: Obj[], w: CaseFileWording = {}) =>
+  buildSections(ix, digest, findings, open, w).map((s) => s.text).join('\n\n');
 
-export const caseFileSections = (ix: PacketIndex, digest: string, mode: AgentMode = DEFAULT_MODE) =>
-  buildSections(ix, digest, findingsFor(ix, mode), leftovers(ix, mode));
-export const caseFile = (ix: PacketIndex, digest: string, mode: AgentMode = DEFAULT_MODE) =>
-  buildCaseFile(ix, digest, findingsFor(ix, mode), leftovers(ix, mode));
+export const caseFileSections = (ix: PacketIndex, digest: string, mode: AgentMode = DEFAULT_MODE, w: CaseFileWording = {}) =>
+  buildSections(ix, digest, findingsFor(ix, mode), leftovers(ix, mode), w);
+/** `independent` applies only where the mode has no findings (blind), so it can never hide a real F status. */
+export const caseFile = (ix: PacketIndex, digest: string, mode: AgentMode = DEFAULT_MODE, w: CaseFileWording = {}) =>
+  buildCaseFile(ix, digest, findingsFor(ix, mode), leftovers(ix, mode), isBlind(mode) ? w : {});

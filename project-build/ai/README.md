@@ -17,7 +17,7 @@ known mistakes before anyone trusts it.
 | `ai/lib/reader-core.ts` | Context building, masking, request, schema, row validation, retry, the run loop (pure apart from an injected fetch) |
 | `ai/lib/harness-core.ts` | Gold set, grounding, matching, scoring, the scorecard text (pure) |
 | `src/server/ai-reader.ts`, `src/app/api/internal/ai-reader/route.ts` | The reader in the cloud (see below) |
-| `ai/agent.ts` | CLI: the agent (one investigation over the whole packet with the deterministic tools); writes `ai/eval/agent-suggestions.json` and its run meta. Never run without an approved budget |
+| `ai/agent.ts` | CLI: the agent (one investigation over the whole packet with the deterministic tools); writes `ai/eval/runs/<version>/<mode>.<packet>.<n>.json` with its run meta and trace (the live `ai/eval/agent-suggestions.json` only with `--live`, agent-v3 default real only). Never run without an approved budget |
 | `ai/lib/agent-core.ts` | The agent loop on the Anthropic SDK tool runner: context, guards (iteration cap, wall-clock abort, cost budget, refusal and max_tokens stops), final-answer validation, proposals, writing only a finished run |
 | `ai/lib/agent-tools.ts` | The seven tools (`get_line`, `get_page`, `search_values`, `verify`, `run_checks`, `list_open_leftovers`, and `record_suggestion`, which checks a suggestion at once and keeps it): masked, labelled as data with the run's budget (turn k of N), bounded, SSN-scanned; findings leave without ledger, finding or check ids |
 | `ai/lib/calculator.ts` | The `verify` tool's methods (`recompute_line`, `sum_to`, `prior_year`, `fact_copies`, `glossary`): ids in, numbers computed by our code |
@@ -182,12 +182,17 @@ re-checked by the backend, a person accepts each suggestion, never blocks), but 
 - **Measurement modes** (`ai/lib/modes.ts`): `--blind` drops `run_checks`, gives agreements only from `verify` `fact_copies`, and computes leftovers
   with no findings (scored on all 27 beside reader-v2); `--hide-checks <seed>` hides a seeded half of the check ids from
   `run_checks`, the leftovers and the fact copies (scored on the ledger entries only those checks reach, recomputed by the
-  harness from the seed and the real checks). Default is production. Each mode writes its own file
-  (`agent-suggestions[.blind|.hide-<seed>].json`); the run meta records the mode, seed and hidden check ids.
+  harness from the seed and the real checks). Default is production. Every run writes its own file under
+  `ai/eval/runs/<version>/` (`<mode>.<real|altered|seed-<n>>.<n>.json`); no run, `--out` included, writes a committed
+  `ai/eval/agent-suggestions*.json` (the earlier measured runs stay as they were); the live payload takes `--live`.
+  The run meta records the mode, seed, hidden check ids and outcome (ok, truncated, failed).
 - **Suggestions on a finding's exact claims are kept** (a new issue can sit on a checked line) and counted in the run meta
   as `onFindingClaims`; the scoring tiers, not a filter, stop echoes from scoring.
-- **Guards**: `--max-iterations` (40), `--max-minutes` (40), `--max-cost` (12 USD). A partial, failed or over-budget run
-  writes nothing.
+- **Guards**: `--max-iterations` (40), `--max-minutes` (40), `--max-cost` (12 USD). No partial run writes a payload. A
+  failed run (error, SSN hit, refusal, cut or malformed answer) writes its trace and exits 1; a truncated run (a cost,
+  turn or time cap) writes its trace and run meta marked truncated and exits 3, so a batch can tell them apart.
+- **Summary of measurement runs**: `npx tsx ai/eval/summarize-runs.ts [runs dir] [--json]`, offline: every metric of the
+  plan's measurement design per run and as median/min/max per condition, each defined in `ai/lib/run-summary.ts`.
 - **Scoring**: `npx tsx ai/harness.ts --agent` writes `ai/eval/agent-scorecard.md`: per agent run, strict and same-issue
   recall with grounding on its mode's tier beside reader-v2 (default: mistakes no check reaches, empty on the delivered
   packet; blind: all 27; hide-checks: entries only the hidden checks reach, 11 for seed 7).

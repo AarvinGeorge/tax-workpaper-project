@@ -5,7 +5,7 @@ import type { AiPayload, AiSuggestion } from '../../src/domain/ai/contract';
 import type { PacketIndex } from '../../src/domain/packet/load';
 import { CHECKS, LEDGER, runChecks } from '../../src/domain/checks/index';
 import { isShown, supersession, verifySuggestions } from '../../src/domain/ai/verify';
-import { existsSync, readFileSync } from 'node:fs';
+import { existsSync, readFileSync, readdirSync } from 'node:fs';
 import path from 'node:path';
 import { isGrounded, redactNames } from './reader-core';
 import type { ProducerName } from './producer';
@@ -440,7 +440,32 @@ export interface AgentRunFigures { costUsd?: number | null; seconds?: number; ca
 export interface ScoredRun { label: string; score: Score; shown: ShownView; meta: AgentRunFigures; adjudication?: Adjudication }
 /** An agent run with its measurement mode and the ledger ids of the tier that mode is scored on (computed by the
  *  harness from the real checks and the ledger: never from the agent's output). */
-export interface ModeRun extends ScoredRun { mode: 'default' | 'blind' | 'hide-checks'; seed?: number; tier: string[] }
+export interface ModeRun extends ScoredRun { mode: 'default' | 'blind' | 'blind-v3' | 'hide-checks'; seed?: number; tier: string[] }
+
+const byCodePoint = (a: string, b: string) => (a < b ? -1 : a > b ? 1 : 0);
+/** The agent payloads the harness scores, relative to ai/eval: the committed ones (agent-suggestions[.blind|.blind-v3|
+ *  .hide-<seed>].json, production first; agent-suggestions.altered.json) and every run under runs/<version>/
+ *  (<mode>.real.<n>.json and <mode>.altered.<n>.json). Sidecars, truncated runs (no payload) and perturbed runs
+ *  (seed-<n>, scored by ai/eval/summarize-runs.ts against the planted list) are left out. */
+export function agentRunFiles(evalDir: string): { real: string[]; altered: string[] } {
+  const top = readdirSync(evalDir);
+  const real = top.filter((f) => /^agent-suggestions(\.blind|\.blind-v3|\.hide-\d+)?\.json$/.test(f))
+    .sort((x, y) => Number(x !== 'agent-suggestions.json') - Number(y !== 'agent-suggestions.json') || byCodePoint(x, y));
+  const altered = top.filter((f) => f === 'agent-suggestions.altered.json');
+  const runs = path.join(evalDir, 'runs');
+  if (existsSync(runs)) {
+    for (const v of readdirSync(runs).sort(byCodePoint)) {
+      const dir = path.join(runs, v);
+      let names: string[];
+      try { names = readdirSync(dir); } catch { continue; } // a stray file, not a version folder
+      for (const f of names.sort(byCodePoint)) {
+        const m = f.match(/^(?:default|blind|blind-v3|hide-\d+)\.(real|altered)\.\d+\.json$/);
+        if (m) (m[1] === 'real' ? real : altered).push(path.join('runs', v, f));
+      }
+    }
+  }
+  return { real, altered };
+}
 
 /** Ledger entries that some finding reaches and that only hidden checks reach: the hide-checks mode's tier. */
 export function hiddenOnlyLedger(ix: PacketIndex, hidden: string[]): string[] {
@@ -484,15 +509,15 @@ export function agentScorecardMarkdown(reader: ScoredRun, agents: ModeRun[], alt
           'and cannot rank the runs. Use the blind and hide-checks modes below, grounded suggestions beyond the ledger (read by a person),', 'and cost and time.', '');
         continue;
       }
-    } else if (a.mode === 'blind') {
-      L.push(`## Mode blind: all ${gold.length} ledger mistakes (no run_checks, no find_fact_copies)`, '',
+    } else if (a.mode === 'blind' || a.mode === 'blind-v3') {
+      L.push(a.mode === 'blind' ? `## Mode blind: all ${gold.length} ledger mistakes (no run_checks, no find_fact_copies)` : `## Mode blind-v3 (${a.label}): all ${gold.length} ledger mistakes, blind as the agent-v3 baseline ran it (fact_copies agreements only)`, '',
         'The agent sees none of our checks\' results, so recall on every ledger mistake is a fair comparison.',
         'The reader-v2 figures are those of docs/handin/ai-scorecard.md (same payload, same strict rule, same verdicts).', '');
     } else {
       L.push(`## Mode hide-checks, seed ${a.seed}: ledger entries reached only by hidden checks (${a.tier.length})`, '',
         'A seeded half of the check ids was hidden from the agent\'s tools; these are the ledger entries only those checks reach.', '');
     }
-    if (a.mode !== 'blind') L.push(`Entries: ${a.tier.join(', ') || 'none'}.`, '');
+    if (a.mode !== 'blind' && a.mode !== 'blind-v3') L.push(`Entries: ${a.tier.join(', ') || 'none'}.`, '');
     const fig = pair.map((r) => tierFigures(r.score, a.tier, r.adjudication, gold));
     L.push(...head(pair));
     L.push(`| Recall, strict | ${fig.map((f) => frac(f.strict.length, f.total)).join(' | ')} |`);

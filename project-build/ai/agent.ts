@@ -1,14 +1,18 @@
 // AI agent CLI (Step 2). Run from project-build, only with a budget Aarvin has approved (a run costs real money):
 //   npx tsx ai/agent.ts [--model claude-opus-5-5] [--packet real|altered|perturbed [--seed N]] [--out path] [--max-iterations 40] [--max-cost 12] [--max-minutes 40]
 //                       [--blind | --blind-v3 | --hide-checks <seed>]   (measurement modes, ai/lib/modes.ts; default is production)
-//                       [--prompt v3|v4]   (system prompt; default v3, the live producer; a v4 run writes ai/eval/agent-suggestions.v4[...].json)
+//                       [--prompt v3|v4]   (system prompt; default v3, the live producer)
+//                       [--live]   (write the live payload ai/eval/agent-suggestions.json: agent-v3, default mode, real packet only)
 // Reads ANTHROPIC_API_KEY from .env.local (never printed or written). One investigation over the whole packet with the
-// deterministic tools; writes ai/eval/agent-suggestions[.blind|.blind-v3|.hide-<seed>][.altered|.seed-<n>].json and a run-meta file (tokens,
-// cost, turns, seconds, served model, mode). A partial, failed or over-budget run writes nothing and exits 1.
+// deterministic tools. Every run, whatever its prompt or mode, writes ai/eval/runs/<version>/<mode>.<packet>.<n>.json
+// (packet real, altered or seed-<n>; n the next free number) with its run meta and trace, unless --live is given; --out
+// names another file but never a committed ai/eval/agent-suggestions*.json. A failed run (error, SSN hit, refusal, cut or
+// malformed answer) writes its trace only and exits 1; a truncated run (a cost, turn or time cap) writes its trace and
+// run meta, marked truncated, and exits 3; neither writes a payload.
 import { existsSync, readFileSync } from 'node:fs';
 import path from 'node:path';
 import { loadAgentPacket } from './lib/agent-packet';
-import { AGENT_DEFAULT_MODEL, DEFAULT_LIMITS, agentOutFile, agentPromptFrom, loadContextFiles, runAgent, writeRun } from './lib/agent-core';
+import { AGENT_DEFAULT_MODEL, DEFAULT_LIMITS, agentPromptFrom, loadContextFiles, resolveOutFile, runAgent, writeRun } from './lib/agent-core';
 import { modeLabel, type AgentMode } from './lib/modes';
 
 function arg(name: string): string | undefined {
@@ -66,7 +70,9 @@ async function main() {
   // The altered and perturbed copies are laptop measurements: refused in vault mode (agent-packet.ts).
   const got = await loadAgentPacket({ env: process.env, root, packet: which, seed });
   const { ix, packetSha, source } = got;
-  const out = arg('out') ? path.resolve(root, arg('out')!) : agentOutFile(root, mode, which, got.seed, prompt);
+  // Resolved before any spend: a refused output (a protected file, a --live outside the active producer) costs nothing.
+  const live = process.argv.includes('--live');
+  const out = resolveOutFile({ root, mode, packet: which, seed: got.seed, prompt, out: process.argv.includes('--out') ? (arg('out') ?? '') : undefined, live });
 
   console.log(`agent: ${which} packet from ${source} (sha ${packetSha.slice(0, 12)}), model ${model}, mode ${modeLabel(mode)}, prompt ${prompt}, limits ${JSON.stringify(limits)}`);
   const res = await runAgent({
@@ -74,11 +80,11 @@ async function main() {
   });
   const m = res.meta; const u = m.usage;
   console.log(`agent: ${m.turns} turn(s), ${m.toolCalls} tool call(s), ${m.seconds} s; served ${m.servedModels.join(', ') || 'none'}; tokens in ${u.input_tokens}, cache write ${u.cache_creation_input_tokens}, cache read ${u.cache_read_input_tokens}, out ${u.output_tokens}; approx cost $${m.costUsd.toFixed(3)}`);
-  writeRun(res, out); // the trace always; the payload and run meta only for a finished run
+  writeRun(res, out, { live }); // the trace always; the run meta for a finished or truncated run; the payload only when finished
   const tracePath = path.relative(root, out.replace(/\.json$/, '.trace.json'));
   if (!res.ok) {
-    console.error(`agent FAILED (${res.trace.endedBy}), payload not written; trace in ${tracePath}: ${res.reason}`);
-    process.exit(1);
+    console.error(`agent ${res.outcome.toUpperCase()} (${res.trace.endedBy}), payload not written; trace in ${tracePath}: ${res.reason}`);
+    process.exit(res.outcome === 'truncated' ? 3 : 1);
   }
   console.log(`agent: wrote ${path.relative(root, out)}: ${res.payload.suggestions.length} suggestion(s), ${res.payload.rejected.length} rejected (${m.onFindingClaims.count} on a finding's exact claims, kept), ${res.payload.proposals?.length ?? 0} proposal(s); verifier shows ${m.verifier?.shown}, holds back ${m.verifier?.heldBack}`);
 }

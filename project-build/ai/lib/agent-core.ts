@@ -4,7 +4,7 @@
 // reader's are) plus optional check proposals in words. Pure apart from the injected fetch, so tests need no network.
 // Guards: an iteration cap, a wall-clock abort, a cost budget, refusal and max_tokens stops, an SSN scan on every tool
 // result. A partial, failed or over-budget run returns { ok: false } and writeRun never writes it.
-import { readFileSync, writeFileSync } from 'node:fs';
+import { existsSync, mkdirSync, readFileSync, readdirSync, writeFileSync } from 'node:fs';
 import path from 'node:path';
 import Anthropic from '@anthropic-ai/sdk';
 import type { BetaMessage, BetaTextBlockParam } from '@anthropic-ai/sdk/resources/beta/messages/messages';
@@ -23,6 +23,7 @@ import {
 export { AGENT_PROMPT_VERSION, AGENT_V4_PROMPT_VERSION } from './versions';
 import { AGENT_PROMPT_VERSION, AGENT_V4_PROMPT_VERSION } from './versions';
 import { agentV4Prompt } from './prompt-v4';
+import { ACTIVE_PAYLOAD_FILE, ACTIVE_PROMPT_VERSION } from './producer';
 export const AGENT_DEFAULT_MODEL = 'claude-opus-5-5';
 /** Per turn. Non-streaming; with an explicit client timeout the SDK accepts it (its 10-minute guard applies only to
  *  the default timeout). Thinking counts toward it. */
@@ -117,15 +118,16 @@ export function loadContextFiles(root: string): ContextFiles {
   return { digest: readFileSync(path.join(root, 'ai', 'lib', 'domain-digest.md'), 'utf8') };
 }
 
-/** Shared by every turn and cached: the case file for the mode (case-file.ts). */
-export function agentContext(ix: PacketIndex, files: ContextFiles, mode: AgentMode = DEFAULT_MODE): string {
-  return caseFile(ix, files.digest, mode);
+/** Shared by every turn and cached: the case file for the mode (case-file.ts). v4 independent (v4 with a blind mode)
+ *  gets the independent wording (no F status, no word of our checks); every v3 context is unchanged. */
+export function agentContext(ix: PacketIndex, files: ContextFiles, mode: AgentMode = DEFAULT_MODE, prompt: AgentPrompt = 'v3'): string {
+  return caseFile(ix, files.digest, mode, { independent: prompt === 'v4' && isBlind(mode) });
 }
 
 export function agentSystem(ix: PacketIndex, files: ContextFiles, mode: AgentMode = DEFAULT_MODE, prompt: AgentPrompt = 'v3'): BetaTextBlockParam[] {
   return [
     { type: 'text', text: agentSystemPrompt(mode, prompt) },
-    { type: 'text', text: agentContext(ix, files, mode), cache_control: { type: 'ephemeral' } },
+    { type: 'text', text: agentContext(ix, files, mode, prompt), cache_control: { type: 'ephemeral' } },
   ];
 }
 
@@ -222,13 +224,21 @@ export interface AgentRunMeta {
   thinking: typeof AGENT_THINKING; effort: typeof AGENT_EFFORT; maxTokens: number;
   source: 'vault' | 'file' | null; mode: AgentMode['kind']; seed: number | null; hiddenCheckIds: string[];
   onFindingClaims: OnFindingClaims; verifier: { shown: number; heldBack: number } | null;
+  /** ok: a payload was written; truncated: a cost, turn or time cap ended it (evidence kept, nothing scored); failed: an
+   *  error, an SSN hit, a refusal, a cut or malformed answer. */
+  outcome: RunOutcome;
 }
+export type RunOutcome = 'ok' | 'truncated' | 'failed';
 /** What one tool call returned, in brief (never the result itself). */
 export interface TraceResult { bytes: number; error: boolean; total?: number; items?: number }
 export interface TraceTurn {
   turn: number; stopReason: string | null; model: string;
   toolCalls: { name: string; input: unknown; result: TraceResult | null }[];
   usage: Usage; costUsd: number; text: string | null;
+  /** Each line of the visible text that starts "unrecordable:" (v4's marker for an issue with no page to quote), kept
+   *  whole past the TRACE_TEXT_MAX cut, each at most UNRECORDABLE_MAX_CHARS, at most UNRECORDABLE_MAX_PER_TURN; masked.
+   *  Present only when the turn has one. */
+  unrecordable?: string[];
 }
 /** Per turn, for seeing where a run's turns went. Masked; visible text only (never thinking); SSN-scanned. */
 export interface AgentTrace {
@@ -236,12 +246,20 @@ export interface AgentTrace {
   /** end_turn: the model answered on its own; final_turn: it answered on the reserved last turn; iteration_cap: the
    *  turn limit ended it with no answer; stopped: a guard or error ended it. */
   endedBy: 'end_turn' | 'final_turn' | 'iteration_cap' | 'stopped'; reason: string | null;
+  outcome: RunOutcome;
 }
 export const TRACE_TEXT_MAX = 300;
+export const UNRECORDABLE_MAX_CHARS = 400;
+export const UNRECORDABLE_MAX_PER_TURN = 20;
+/** The "unrecordable:" lines of a turn's visible text, bounded (see TraceTurn.unrecordable). */
+export function unrecordableLines(text: string): string[] {
+  return text.split(/\r?\n/).map((l) => l.trim()).filter((l) => /^unrecordable:/i.test(l))
+    .slice(0, UNRECORDABLE_MAX_PER_TURN).map((l) => l.slice(0, UNRECORDABLE_MAX_CHARS));
+}
 export const FINAL_TURN_TEXT = 'Final turn: answer now with JSON only, matching the output schema. No tools are available.';
 export type AgentRunResult =
   | { ok: true; payload: AiPayload; meta: AgentRunMeta; trace: AgentTrace }
-  | { ok: false; reason: string; meta: AgentRunMeta; trace: AgentTrace };
+  | { ok: false; outcome: 'truncated' | 'failed'; reason: string; meta: AgentRunMeta; trace: AgentTrace };
 
 /** A tool result in brief: its size, whether it is an error, and a list's total and item count. */
 function summarize(result: unknown): TraceResult {
@@ -265,9 +283,12 @@ export async function runAgent(o: AgentRunOptions): Promise<AgentRunResult> {
   const client = makeClient(o.apiKey, o.fetchImpl);
   const controller = new AbortController();
   let failure: string | null = null;
+  // Truncated: the first stop was a cost, turn or time cap (not an error); see AgentRunMeta.outcome.
+  let truncated = false;
   const fail = (why: string) => { failure ??= why; controller.abort(); };
+  const truncate = (why: string) => { if (!failure) truncated = true; fail(why); };
   const guard: ToolGuard = { onHit: (tool) => fail(`SSN-shaped text in a ${tool} result`) };
-  const timer = setTimeout(() => fail(`wall-clock limit of ${Math.round(limits.wallClockMs / 1000)} s reached`), limits.wallClockMs);
+  const timer = setTimeout(() => truncate(`wall-clock limit of ${Math.round(limits.wallClockMs / 1000)} s reached`), limits.wallClockMs);
   const mode = o.mode ?? DEFAULT_MODE;
   const prompt = o.prompt ?? 'v3';
   const recorded: Row[] = [];
@@ -327,6 +348,7 @@ export async function runAgent(o: AgentRunOptions): Promise<AgentRunResult> {
       toolCalls += msg.content.filter((b) => b.type === 'tool_use').length;
       settle();
       const visible = msg.content.filter((b) => b.type === 'text').map((b) => (b as { text: string }).text).join('').trim();
+      const marks = visible ? unrecordableLines(visible).map(mask) : [];
       traceTurns.push({
         turn: turns, stopReason: msg.stop_reason, model: msg.model,
         toolCalls: msg.content.filter((b) => b.type === 'tool_use').map((b) => {
@@ -337,6 +359,7 @@ export async function runAgent(o: AgentRunOptions): Promise<AgentRunResult> {
         }),
         usage: u, costUsd: Math.round(cost * 10_000) / 10_000,
         text: visible ? mask(visible).slice(0, TRACE_TEXT_MAX) : null,
+        ...(marks.length ? { unrecordable: marks } : {}),
       });
       log(`turn ${turns}: ${msg.stop_reason}, ${toolCalls} tool call(s) so far, ~$${cost.toFixed(2)}`);
   };
@@ -346,7 +369,7 @@ export async function runAgent(o: AgentRunOptions): Promise<AgentRunResult> {
   try {
     for await (const msg of runner) {
       account(msg);
-      if (cost > limits.maxCostUsd) { fail(`over the cost budget ($${cost.toFixed(2)} > $${limits.maxCostUsd})`); break; }
+      if (cost > limits.maxCostUsd) { truncate(`over the cost budget ($${cost.toFixed(2)} > $${limits.maxCostUsd})`); break; }
       if (msg.stop_reason === 'refusal') { fail(`the model refused${msg.stop_details?.category ? ` (${msg.stop_details.category})` : ''}`); break; }
       if (msg.stop_reason === 'max_tokens') { fail('a response was cut at max_tokens'); break; }
       if (failure) break;
@@ -390,52 +413,122 @@ export async function runAgent(o: AgentRunOptions): Promise<AgentRunResult> {
     costUsd: cost, seconds: Math.round((Date.now() - started) / 1000), stopReason: last?.stop_reason ?? null, limits,
     thinking: AGENT_THINKING, effort: AGENT_EFFORT, maxTokens: AGENT_MAX_TOKENS,
     source: o.source ?? null, mode: mode.kind, seed: mode.kind === 'hide-checks' ? mode.seed : null, hiddenCheckIds: mode.kind === 'hide-checks' ? hiddenCheckIds(mode.seed) : [],
-    onFindingClaims: { count: 0, ids: [] }, verifier: null, ...extra,
+    onFindingClaims: { count: 0, ids: [] }, verifier: null, outcome: outcome(), ...extra,
   });
   settle();
   const capped = !failure && !!last && (last as BetaMessage).stop_reason === 'tool_use';
   if (!failure && !last) failure = 'no response';
-  if (capped) failure = `iteration cap of ${limits.maxIterations} reached before a final answer`;
+  if (capped) { failure = `iteration cap of ${limits.maxIterations} reached before a final answer`; truncated = true; }
   if (!failure && last!.stop_reason !== 'end_turn') failure = `stopped with ${last!.stop_reason}`;
+  let ssn = false;
+  function outcome(): RunOutcome { return !failure ? 'ok' : truncated && !ssn ? 'truncated' : 'failed'; }
   const trace = (): AgentTrace => {
-    const t: AgentTrace = { promptVersion: promptVersionFor(mode, prompt), runAt, turns: traceTurns, endedBy: capped ? 'iteration_cap' : failure ? 'stopped' : reservedUsed ? 'final_turn' : 'end_turn', reason: failure };
+    const t: AgentTrace = { promptVersion: promptVersionFor(mode, prompt), runAt, turns: traceTurns, endedBy: capped ? 'iteration_cap' : failure ? 'stopped' : reservedUsed ? 'final_turn' : 'end_turn', reason: failure, outcome: outcome() };
     // Fail closed, as tool results do: a trace holding an SSN shape is withheld and the run fails.
     if (SSN_SHAPED.test(JSON.stringify(t))) {
-      failure ??= 'SSN-shaped text in the trace';
-      return { promptVersion: t.promptVersion, runAt, turns: [], endedBy: 'stopped', reason: 'trace withheld: SSN-shaped text' };
+      failure ??= 'SSN-shaped text in the trace'; ssn = true;
+      return { promptVersion: t.promptVersion, runAt, turns: [], endedBy: 'stopped', reason: 'trace withheld: SSN-shaped text', outcome: 'failed' };
     }
     return t;
   };
   const tr = trace();
-  if (failure) return { ok: false, reason: failure, meta: meta(), trace: tr };
+  if (failure) return { ok: false, outcome: outcome() as 'truncated' | 'failed', reason: failure, meta: meta(), trace: tr };
   const text = last!.content.filter((b) => b.type === 'text').map((b) => (b as { text: string }).text).join('');
   let fin: Finalized;
   try {
     fin = finalizePayload(o.ix, text, { packetSha: o.packetSha, model: last!.model, runAt, mode, prompt }, recorded);
   } catch (e) {
     const why = e instanceof Error ? e.message : 'final payload rejected';
-    return { ok: false, reason: why, meta: meta(), trace: { ...tr, endedBy: 'stopped', reason: why } };
+    return { ok: false, outcome: 'failed', reason: why, meta: meta({ outcome: 'failed' }), trace: { ...tr, endedBy: 'stopped', reason: why, outcome: 'failed' } };
   }
   const verified = verifySuggestions(o.ix, fin.payload);
   const shown = verified.filter(isShown).length;
   return { ok: true, payload: fin.payload, meta: meta({ onFindingClaims: fin.onFindingClaims, verifier: { shown, heldBack: verified.length - shown } }), trace: tr };
 }
 
-/** Writes the trace beside the payload always (a failed run is when it is needed most), and the payload and its run
- *  meta only for a run that finished. Returns whether it wrote the payload. */
-export function writeRun(res: AgentRunResult, outFile: string): boolean {
-  writeFileSync(outFile.replace(/\.json$/, '.trace.json'), JSON.stringify(res.trace, null, 2) + '\n');
-  if (!res.ok) return false;
+/** The sidecars of a run file: its trace and run meta beside it. */
+const sidecars = (outFile: string) => ({ trace: outFile.replace(/\.json$/, '.trace.json'), meta: outFile.replace(/\.json$/, '.run-meta.json') });
+
+/** A committed agent output: any ai/eval/agent-suggestions*.json (the live payload, its sidecars, and the earlier
+ *  measured runs beside it). No run writes one unless it is the live payload and the run was given --live. */
+export function isProtectedEvalFile(file: string): boolean {
+  const abs = path.resolve(file);
+  return path.basename(abs).startsWith('agent-suggestions') && abs.endsWith('.json')
+    && path.basename(path.dirname(abs)) === 'eval' && path.basename(path.dirname(path.dirname(abs))) === 'ai';
+}
+const isLiveFile = (file: string) => {
+  const abs = path.resolve(file); const live = path.normalize(ACTIVE_PAYLOAD_FILE);
+  return [live, live.replace(/\.json$/, '.trace.json'), live.replace(/\.json$/, '.run-meta.json')].some((l) => abs.endsWith(path.sep + l));
+};
+
+/** Writes the trace beside the payload always (a failed run is when it is needed most); the run meta for a finished or
+ *  truncated run (marked so: a capped run's spend still yields evidence); the payload only for a finished run. Refuses,
+ *  before writing anything, any protected file (isProtectedEvalFile) unless `live` is given and the file is the live
+ *  payload or one of its sidecars. Returns whether it wrote the payload. */
+export function writeRun(res: AgentRunResult, outFile: string, o: { live?: boolean } = {}): boolean {
+  const side = sidecars(outFile);
+  for (const f of [outFile, side.trace, side.meta]) {
+    if (isProtectedEvalFile(f) && !(o.live && isLiveFile(f))) throw new Error(`refusing to write ${f}: a protected agent output (only the live payload, with --live)`);
+  }
+  if (!outFile.endsWith('.json')) throw new Error(`run file must end in .json: ${outFile}`);
+  mkdirSync(path.dirname(outFile), { recursive: true });
+  writeFileSync(side.trace, JSON.stringify(res.trace, null, 2) + '\n');
+  if (!res.ok) {
+    if (res.outcome === 'truncated') writeFileSync(side.meta, JSON.stringify({ payload: null, ...res.meta, reason: res.reason }, null, 2) + '\n');
+    return false;
+  }
   writeFileSync(outFile, JSON.stringify(res.payload, null, 2) + '\n');
-  writeFileSync(outFile.replace(/\.json$/, '.run-meta.json'), JSON.stringify({ payload: path.basename(outFile), ...res.meta }, null, 2) + '\n');
+  writeFileSync(side.meta, JSON.stringify({ payload: path.basename(outFile), ...res.meta }, null, 2) + '\n');
   return true;
 }
 
-/** Where the CLI writes a run: ai/eval/agent-suggestions[.v4][.blind|.hide-<seed>][.altered|.seed-<n>].json. A perturbed
- *  run is named by its seed only, so the payload name recorded in its run meta says nothing about the copy. A v4 run
- *  always carries .v4, so it never overwrites the live (agent-v3) payload. */
-export function agentOutFile(root: string, mode: AgentMode, packet: 'real' | 'altered' | 'perturbed', seed?: number, prompt: AgentPrompt = 'v3'): string {
-  const tag = (prompt === 'v4' ? '.v4' : '') + (mode.kind === 'default' ? '' : `.${modeLabel(mode)}`);
-  const which = packet === 'altered' ? '.altered' : packet === 'perturbed' ? `.seed-${seed ?? 'default'}` : '';
-  return path.join(root, 'ai', 'eval', `agent-suggestions${tag}${which}.json`);
+/** Where measurement runs go, relative to project-build. */
+export const RUNS_DIR = path.join('ai', 'eval', 'runs');
+type PacketName = 'real' | 'altered' | 'perturbed';
+/** The packet part of a run's name: real, altered, or seed-<n> (a perturbed copy is named by its seed only, so no file
+ *  name says anything about the copy). */
+const packetTag = (packet: PacketName, seed?: number) => (packet === 'perturbed' ? `seed-${seed ?? 'default'}` : packet);
+const runsFolder = (root: string, prompt: AgentPrompt) => path.join(root, RUNS_DIR, prompt === 'v4' ? AGENT_V4_PROMPT_VERSION : AGENT_PROMPT_VERSION);
+
+/** Where a run writes: ai/eval/runs/<version>/<mode>.<packet>.<n>.json, for every prompt, mode and packet. Never the
+ *  live payload (that takes resolveOutFile with live). */
+export function agentOutFile(root: string, mode: AgentMode, packet: PacketName, seed?: number, prompt: AgentPrompt = 'v3', n = 1): string {
+  return path.join(runsFolder(root, prompt), `${modeLabel(mode)}.${packetTag(packet, seed)}.${n}.json`);
+}
+
+/** The next free run number for a condition: one past the highest left in its folder by any file of a run (payload,
+ *  run meta or trace: a failed or truncated run keeps its number too). */
+export function nextRunNumber(root: string, mode: AgentMode, packet: PacketName, seed?: number, prompt: AgentPrompt = 'v3'): number {
+  const dir = runsFolder(root, prompt);
+  if (!existsSync(dir)) return 1;
+  const stem = `${modeLabel(mode)}.${packetTag(packet, seed)}.`;
+  let max = 0;
+  for (const f of readdirSync(dir)) {
+    if (!f.startsWith(stem)) continue;
+    const m = f.slice(stem.length).match(/^(\d+)\.(?:json|trace\.json|run-meta\.json)$/);
+    if (m) max = Math.max(max, Number(m[1]));
+  }
+  return max + 1;
+}
+
+export interface OutChoice { root: string; mode: AgentMode; packet: PacketName; seed?: number; prompt: AgentPrompt; out?: string; live: boolean }
+/** The CLI's output file. --live writes the live payload, and only for the active producer as it runs in production
+ *  (its prompt version, default mode, the real packet, no --out). Otherwise --out (never a protected file) or the next
+ *  run number under ai/eval/runs/<version>/. */
+export function resolveOutFile(o: OutChoice): string {
+  if (o.live) {
+    if (o.out !== undefined) throw new Error('--live writes the live payload only; drop --out.');
+    if (promptVersionFor(o.mode, o.prompt) !== ACTIVE_PROMPT_VERSION || o.packet !== 'real') {
+      throw new Error(`--live is only for the active producer (${ACTIVE_PROMPT_VERSION}: --prompt v3, default mode, --packet real).`);
+    }
+    return path.join(o.root, ACTIVE_PAYLOAD_FILE);
+  }
+  if (o.out !== undefined) {
+    const f = path.resolve(o.root, o.out);
+    if (!f.endsWith('.json')) throw new Error('--out must name a .json file.');
+    const side = sidecars(f);
+    if ([f, side.trace, side.meta].some(isProtectedEvalFile)) throw new Error(`--out ${o.out} is a protected agent output; the live payload takes --live.`);
+    return f;
+  }
+  return agentOutFile(o.root, o.mode, o.packet, o.seed, o.prompt, nextRunNumber(o.root, o.mode, o.packet, o.seed, o.prompt));
 }

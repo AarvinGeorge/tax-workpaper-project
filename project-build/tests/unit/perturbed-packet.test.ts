@@ -445,7 +445,7 @@ describe('perturbed packet: the CLI and loader', () => {
     expect(JSON.stringify(got.ix.packet)).toBe(JSON.stringify(base.packet));
     expect(got.packetSha).toBe(createHash('sha256').update(JSON.stringify(base.packet)).digest('hex'));
     const f = agentOutFile('/r', { kind: 'blind' }, 'perturbed', 5);
-    expect(f).toBe(path.join('/r', 'ai', 'eval', 'agent-suggestions.blind.seed-5.json'));
+    expect(f).toBe(path.join('/r', 'ai', 'eval', 'runs', 'agent-v3', 'blind.seed-5.1.json'));
     expect(/perturb|plant/i.test(f)).toBe(false);
   });
 

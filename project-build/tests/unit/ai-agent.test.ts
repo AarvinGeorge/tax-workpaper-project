@@ -317,10 +317,10 @@ describe('agent: measurement modes', () => {
     expect(res.ok && res.payload.promptVersion).toBe('agent-v3');
   });
 
-  it('the CLI writes each mode to its own file', () => {
-    expect(agentOutFile('/r', { kind: 'default' }, 'real')).toBe(path.join('/r', 'ai', 'eval', 'agent-suggestions.json'));
-    expect(agentOutFile('/r', { kind: 'blind' }, 'real')).toBe(path.join('/r', 'ai', 'eval', 'agent-suggestions.blind.json'));
-    expect(agentOutFile('/r', { kind: 'hide-checks', seed: 7 }, 'altered')).toBe(path.join('/r', 'ai', 'eval', 'agent-suggestions.hide-7.altered.json'));
+  it('the CLI writes each mode to its own file, under ai/eval/runs/<version>/ (Task 6: never the live payload without --live)', () => {
+    expect(agentOutFile('/r', { kind: 'default' }, 'real')).toBe(path.join('/r', 'ai', 'eval', 'runs', 'agent-v3', 'default.real.1.json'));
+    expect(agentOutFile('/r', { kind: 'blind' }, 'real')).toBe(path.join('/r', 'ai', 'eval', 'runs', 'agent-v3', 'blind.real.1.json'));
+    expect(agentOutFile('/r', { kind: 'hide-checks', seed: 7 }, 'altered')).toBe(path.join('/r', 'ai', 'eval', 'runs', 'agent-v3', 'hide-7.altered.1.json'));
   });
 });
 
@@ -411,7 +411,8 @@ describe('agent: prompt agent-v4 (a numbered CPA routine behind --prompt v4)', (
     expect(calls.length).toBeGreaterThanOrEqual(2);
     for (const c of calls) {
       expect(c.body.system[0].text).toBe(agentSystemPrompt(BLIND, 'v4'));
-      expect(c.body.system.at(-1)!.text).toBe(caseFile(ix, files.digest, BLIND));
+      expect(c.body.system.at(-1)!.text).toBe(agentContext(ix, files, BLIND, 'v4')); // the independent wording (Task 6)
+      expect(c.body.system.at(-1)!.text).toBe(caseFile(ix, files.digest, BLIND, { independent: true }));
       expect(c.body.tools.map((t) => t.name)).not.toContain('run_checks');
     }
     expect(res.meta.promptVersion).toBe('agent-v4-blind');
@@ -431,9 +432,9 @@ describe('agent: prompt agent-v4 (a numbered CPA routine behind --prompt v4)', (
     expect(agentPromptFrom('v3')).toBe('v3');
     expect(agentPromptFrom('v4')).toBe('v4');
     for (const bad of ['', 'v5', 'V4', 'agent-v4']) expect(() => agentPromptFrom(bad), bad).toThrow(/--prompt/);
-    expect(agentOutFile('/r', DEF, 'real', undefined, 'v4')).toBe(path.join('/r', 'ai', 'eval', 'agent-suggestions.v4.json'));
-    expect(agentOutFile('/r', BLIND, 'perturbed', 5, 'v4')).toBe(path.join('/r', 'ai', 'eval', 'agent-suggestions.v4.blind.seed-5.json'));
-    expect(agentOutFile('/r', DEF, 'real', undefined, 'v3')).toBe(path.join('/r', 'ai', 'eval', 'agent-suggestions.json'));
+    expect(agentOutFile('/r', DEF, 'real', undefined, 'v4')).toBe(path.join('/r', 'ai', 'eval', 'runs', 'agent-v4', 'default.real.1.json'));
+    expect(agentOutFile('/r', BLIND, 'perturbed', 5, 'v4')).toBe(path.join('/r', 'ai', 'eval', 'runs', 'agent-v4', 'blind.seed-5.1.json'));
+    expect(agentOutFile('/r', DEF, 'real', undefined, 'v3')).toBe(path.join('/r', 'ai', 'eval', 'runs', 'agent-v3', 'default.real.1.json'));
   });
 });
 

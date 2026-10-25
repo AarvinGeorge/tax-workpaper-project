@@ -2,13 +2,14 @@
 // --check is the CI eval gate: scores the payload, prints the gate result, writes nothing, exits 1 on any failure.
 // Scores the payload (default ai/eval/ai-suggestions.json) against the ledger, and the altered-packet payload when present,
 // writes ../docs/handin/ai-scorecard.md and prints a summary.
-// --agent scores every ai/eval/agent-suggestions[.blind|.hide-<seed>].json beside the reader's payload, each on its mode's
-// tier (and the altered copies when present), and writes ai/eval/agent-scorecard.md; the handed-in scorecard is not touched.
-import { existsSync, readFileSync, readdirSync, writeFileSync } from 'node:fs';
+// --agent scores every ai/eval/agent-suggestions[.blind|.blind-v3|.hide-<seed>].json and every ai/eval/runs/<version>/
+// <mode>.real|altered.<n>.json (harness-core agentRunFiles) beside the reader's payload, each on its mode's tier (and the
+// altered copies when present), and writes ai/eval/agent-scorecard.md; the handed-in scorecard is not touched.
+import { existsSync, readFileSync, writeFileSync } from 'node:fs';
 import path from 'node:path';
 import type { AiPayload } from '../src/domain/ai/contract';
 import { indexPacket, loadPacket } from '../src/domain/packet/load';
-import { GATE_BASELINES_FILE, agentScorecardMarkdown, baselineFrom, evalGate, gateBaseline, sidecarTexts, goldSet, hiddenOnlyLedger, uncheckedLedger, type ModeRun, type ScoredRun, scorecardMarkdown, scorePayload, shownView, summaryLine, type Adjudication, type RunMeta, type Score } from './lib/harness-core';
+import { GATE_BASELINES_FILE, agentRunFiles, agentScorecardMarkdown, baselineFrom, evalGate, gateBaseline, sidecarTexts, goldSet, hiddenOnlyLedger, uncheckedLedger, type ModeRun, type ScoredRun, scorecardMarkdown, scorePayload, shownView, summaryLine, type Adjudication, type RunMeta, type Score } from './lib/harness-core';
 import { redactNames } from './lib/reader-core';
 import { ACTIVE_PAYLOAD_FILE, ACTIVE_PRODUCER, ACTIVE_PROMPT_VERSION } from './lib/producer';
 import { hiddenCheckIds } from './lib/modes';
@@ -106,15 +107,16 @@ function adjudicationFor(root: string, version: string): Adjudication | undefine
 
 async function agentCard(root: string) {
   const ev = (f: string) => path.join(root, 'ai', 'eval', f);
-  const agentFiles = readdirSync(path.join(root, 'ai', 'eval')).filter((f) => /^agent-suggestions(\.blind|\.hide-\d+)?\.json$/.test(f))
-    .sort((x, y) => Number(x !== 'agent-suggestions.json') - Number(y !== 'agent-suggestions.json') || x.localeCompare(y)); // production first
+  const runFiles = agentRunFiles(path.join(root, 'ai', 'eval')); // production first, then the other committed runs, then runs/
+  const agentFiles = runFiles.real;
   if (!agentFiles.length) { console.error('No ai/eval/agent-suggestions*.json. Run the agent first (npx tsx ai/agent.ts, budget approved).'); process.exit(2); }
   const { alteredPacket } = await import('../tests/fixtures/altered');
   const realIx = indexPacket(loadPacket()); const altIx = indexPacket(alteredPacket());
   const gold = goldSet(realIx);
   const scored = (ix: typeof realIx, f: string): ScoredRun => {
     const p = JSON.parse(readFileSync(ev(f), 'utf8')) as AiPayload;
-    return { label: p.promptVersion, score: scorePayload(ix, p), shown: shownView(ix, p), meta: figures(ev(f)), adjudication: adjudicationFor(root, p.promptVersion) };
+    // A run under runs/ is labelled with its file, so repeated runs of one version stay apart.
+    return { label: f.startsWith('runs') ? `${p.promptVersion} ${path.basename(f, '.json')}` : p.promptVersion, score: scorePayload(ix, p), shown: shownView(ix, p), meta: figures(ev(f)), adjudication: adjudicationFor(root, p.promptVersion) };
   };
   const reader = scored(realIx, 'ai-suggestions.json');
   const agents: ModeRun[] = agentFiles.map((f) => {
@@ -122,7 +124,7 @@ async function agentCard(root: string) {
     const metaFile = ev(f).replace(/\.json$/, '.run-meta.json');
     const m = existsSync(metaFile) ? JSON.parse(readFileSync(metaFile, 'utf8')) as { mode?: ModeRun['mode']; seed?: number | null; hiddenCheckIds?: string[] } : {};
     const mode = m.mode ?? 'default';
-    if (mode === 'blind') return { ...run, mode, tier: gold.map((g) => g.id) };
+    if (mode === 'blind' || mode === 'blind-v3') return { ...run, mode, tier: gold.map((g) => g.id) };
     if (mode === 'hide-checks') {
       const seed = Number(m.seed);
       if (!Number.isInteger(seed)) throw new Error(`${f}: hide-checks run without a seed in its run meta`);
@@ -132,7 +134,7 @@ async function agentCard(root: string) {
     }
     return { ...run, mode: 'default', tier: uncheckedLedger(realIx) };
   });
-  const altered = ['ai-suggestions.altered.json', 'agent-suggestions.altered.json'].filter((f) => existsSync(ev(f))).map((f) => scored(altIx, f));
+  const altered = ['ai-suggestions.altered.json', ...runFiles.altered].filter((f) => existsSync(ev(f))).map((f) => scored(altIx, f));
   for (const r of [reader, ...agents, ...altered]) console.log(`${r.label}: ${summaryLine(r.score)}`);
   const out = ev('agent-scorecard.md');
   writeFileSync(out, agentScorecardMarkdown(reader, agents, altered, gold));
