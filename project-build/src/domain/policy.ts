@@ -373,14 +373,17 @@ function last4(raw: string, kind: string): string {
   return `${BULLET.repeat(4)} ${tail}`;
 }
 
-/** Last 4 only for identifier types; PINs fully hidden; EINs and everything else untouched. */
+/** Last 4 only for identifier types; EINs and everything else untouched. A cleared staff member who revealed (an
+ *  audited reveal event) sees identifiers including the IP PIN, which e-filing needs; signature/ERO PINs never. */
 export function maskValue(text: string, valueType: string, role: RoleInfo | null | undefined, revealed: boolean): string {
   if (!SENSITIVE_TYPE.test(valueType) || !text) return text;
   if (canUnmask(role, revealed) && !/signature|ero/i.test(valueType)) return text;
   return last4(String(text), valueType);
 }
 
-const RE_PIN = /\b((?:IP |ERO |[Ss]ignature |Identity Protection )?PIN)(\s*(?:is|:|#|no\.?)?\s*)(\d{4,8})\b/g;
+// The separator is either a short "for <period> is" / "for <period>:" clause (the IRS CP01A letter's phrasing; the
+// period's own digits are kept) or the usual is / : / # / no. / dash. A bare "PIN for tax year 2025" masks nothing.
+const RE_PIN = /\b((?:IP |ERO |[Ss]ignature |Identity Protection )?PIN)(\s+for\b[^.:\n]{0,80}?(?:\s+is|:)\s*|\s*(?:is|:|#|no\.?|[—–-])?\s*)(\d{4,8})\b/g;
 const RE_SSN = /\b\d{3}-\d{2}-(\d{4})\b/g;
 const RE_IBAN = /\b[A-Z]{2}\d{2}(?: ?[A-Z0-9]{4}){3,7}(?: ?[A-Z0-9]{1,3})?\b/g;
 const RE_LABELLED = /\b(routing|account|acct|IBAN)((?:\s+(?:number|no\.?|#))?[\s:#]*)(\d[\d -]{4,}\d)/gi;
@@ -404,7 +407,7 @@ export function redactText(text: string): string {
     .replace(RE_LONG, (m) => `${BULLET.repeat(4)} ${m.slice(-4)}`);
 }
 
-/** Regex pass over ANY text a role receives. A cleared staff member who revealed sees identifiers; PINs stay hidden. */
+/** Regex pass over ANY text a role receives. A cleared staff member who revealed sees identifiers; PINs in text stay hidden. */
 export function maskText(text: string, role: RoleInfo | null | undefined, revealed: boolean): string {
   if (!text) return text;
   return canUnmask(role, revealed) ? redactPins(text) : redactText(text);
