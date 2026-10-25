@@ -11,7 +11,7 @@ export type AgentMode = { kind: 'default' } | { kind: 'blind' } | { kind: 'hide-
 export const DEFAULT_MODE: AgentMode = { kind: 'default' };
 
 /** mulberry32: a small deterministic PRNG, so a seed always hides the same checks. */
-function rng(seed: number): () => number {
+export function rng(seed: number): () => number {
   let a = seed >>> 0;
   return () => {
     a = (a + 0x6d2b79f5) >>> 0;

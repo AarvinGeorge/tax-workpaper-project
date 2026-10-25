@@ -3,7 +3,8 @@
 //     sealed packet from the private Blob store, decrypts it and refuses it unless its SHA-256 equals RETURN_ID; then
 //     loadPacket() returns that packet. data/packet.json and the case-study package are never read. Read only: nothing
 //     is written to the Blob store (the agent's output stays the local eval file until a switch is approved).
-//   file mode (none set; laptop measurement): data/packet.json, or the in-memory altered copy.
+//   file mode (none set; laptop measurement): data/packet.json, or an in-memory copy: altered (renamed people, one form
+//     removed) or perturbed (a seeded copy with numeric mistakes, tests/fixtures/perturbed.ts; its answer list stays there).
 // A partial vault configuration throws PartialVaultConfigError (names only the missing variables), as the reader does.
 import { readFileSync } from 'node:fs';
 import path from 'node:path';
@@ -15,11 +16,14 @@ import { sha256 } from './reader-core';
 
 type Env = Record<string, string | undefined>;
 export type PacketSource = 'vault' | 'file';
-export interface AgentPacket { ix: PacketIndex; packetSha: string; source: PacketSource }
+/** seed: the perturbed copy's seed (absent for the real and altered packets). */
+export interface AgentPacket { ix: PacketIndex; packetSha: string; source: PacketSource; seed?: number }
 
-export async function loadAgentPacket(o: { env: Env; root: string; packet: 'real' | 'altered' }): Promise<AgentPacket> {
+export type PacketChoice = 'real' | 'altered' | 'perturbed';
+
+export async function loadAgentPacket(o: { env: Env; root: string; packet: PacketChoice; seed?: number }): Promise<AgentPacket> {
   if (isVaultMode(o.env)) {
-    if (o.packet === 'altered') throw new Error('--packet altered is a laptop measurement: run it in file mode (no vault variables set).');
+    if (o.packet !== 'real') throw new Error(`--packet ${o.packet} is a laptop measurement: run it in file mode (no vault variables set).`);
     await ensureReturnData(o.env);
     const packet = loadPacket();
     const sha = loadedPacketSha();
@@ -30,6 +34,12 @@ export async function loadAgentPacket(o: { env: Env; root: string; packet: 'real
     const { alteredPacket } = await import('../../tests/fixtures/altered');
     const packet = alteredPacket();
     return { ix: indexPacket(packet), packetSha: sha256(JSON.stringify(packet)), source: 'file' }; // in-memory: hash of its JSON
+  }
+  if (o.packet === 'perturbed') {
+    const { perturbedPacket, PERTURBED_SEED } = await import('../../tests/fixtures/perturbed');
+    const seed = o.seed ?? PERTURBED_SEED;
+    const { packet } = perturbedPacket(seed); // the copy only: the model never gets the answer list
+    return { ix: indexPacket(packet), packetSha: sha256(JSON.stringify(packet)), source: 'file', seed };
   }
   const bytes = readFileSync(path.join(o.root, 'data', 'packet.json'));
   return { ix: indexPacket(JSON.parse(bytes.toString('utf8')) as Packet), packetSha: sha256(bytes), source: 'file' };

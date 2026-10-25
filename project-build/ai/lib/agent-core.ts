@@ -414,8 +414,10 @@ export function writeRun(res: AgentRunResult, outFile: string): boolean {
   return true;
 }
 
-/** Where the CLI writes a run: ai/eval/agent-suggestions[.blind|.hide-<seed>][.altered].json. */
-export function agentOutFile(root: string, mode: AgentMode, packet: 'real' | 'altered'): string {
+/** Where the CLI writes a run: ai/eval/agent-suggestions[.blind|.hide-<seed>][.altered|.seed-<n>].json. A perturbed
+ *  run is named by its seed only, so the payload name recorded in its run meta says nothing about the copy. */
+export function agentOutFile(root: string, mode: AgentMode, packet: 'real' | 'altered' | 'perturbed', seed?: number): string {
   const tag = mode.kind === 'default' ? '' : `.${modeLabel(mode)}`;
-  return path.join(root, 'ai', 'eval', `agent-suggestions${tag}${packet === 'altered' ? '.altered' : ''}.json`);
+  const which = packet === 'altered' ? '.altered' : packet === 'perturbed' ? `.seed-${seed ?? 'default'}` : '';
+  return path.join(root, 'ai', 'eval', `agent-suggestions${tag}${which}.json`);
 }

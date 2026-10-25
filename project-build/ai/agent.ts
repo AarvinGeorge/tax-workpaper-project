@@ -1,8 +1,8 @@
 // AI agent CLI (Step 2). Run from project-build, only with a budget Aarvin has approved (a run costs real money):
-//   npx tsx ai/agent.ts [--model claude-opus-5-5] [--packet real|altered] [--out path] [--max-iterations 40] [--max-cost 12] [--max-minutes 40]
+//   npx tsx ai/agent.ts [--model claude-opus-5-5] [--packet real|altered|perturbed [--seed N]] [--out path] [--max-iterations 40] [--max-cost 12] [--max-minutes 40]
 //                       [--blind | --hide-checks <seed>]   (measurement modes, ai/lib/modes.ts; default is production)
 // Reads ANTHROPIC_API_KEY from .env.local (never printed or written). One investigation over the whole packet with the
-// deterministic tools; writes ai/eval/agent-suggestions[.blind|.hide-<seed>][.altered].json and a run-meta file (tokens,
+// deterministic tools; writes ai/eval/agent-suggestions[.blind|.hide-<seed>][.altered|.seed-<n>].json and a run-meta file (tokens,
 // cost, turns, seconds, served model, mode). A partial, failed or over-budget run writes nothing and exits 1.
 import { existsSync, readFileSync } from 'node:fs';
 import path from 'node:path';
@@ -53,10 +53,16 @@ async function main() {
   if (seedArg !== undefined && !/^\d+$/.test(seedArg)) throw new Error('--hide-checks needs a whole-number seed.');
   const mode: AgentMode = blind ? { kind: 'blind' } : seedArg !== undefined ? { kind: 'hide-checks', seed: Number(seedArg) } : { kind: 'default' };
   const which = arg('packet') ?? 'real';
-  if (which !== 'real' && which !== 'altered') throw new Error('--packet must be real or altered.');
+  if (which !== 'real' && which !== 'altered' && which !== 'perturbed') throw new Error('--packet must be real, altered or perturbed.');
+  const seedOpt = arg('seed');
+  if (seedOpt !== undefined && which !== 'perturbed') throw new Error('--seed applies to --packet perturbed only.');
+  if (seedOpt !== undefined && !/^\d+$/.test(seedOpt)) throw new Error('--seed needs a whole-number seed.');
+  const seed = seedOpt === undefined ? undefined : Number(seedOpt);
   // Vault mode (production) reads the sealed packet exactly as the cloud reader does; file mode reads data/packet.json.
-  const { ix, packetSha, source } = await loadAgentPacket({ env: process.env, root, packet: which });
-  const out = arg('out') ? path.resolve(root, arg('out')!) : agentOutFile(root, mode, which);
+  // The altered and perturbed copies are laptop measurements: refused in vault mode (agent-packet.ts).
+  const got = await loadAgentPacket({ env: process.env, root, packet: which, seed });
+  const { ix, packetSha, source } = got;
+  const out = arg('out') ? path.resolve(root, arg('out')!) : agentOutFile(root, mode, which, got.seed);
 
   console.log(`agent: ${which} packet from ${source} (sha ${packetSha.slice(0, 12)}), model ${model}, mode ${modeLabel(mode)}, limits ${JSON.stringify(limits)}`);
   const res = await runAgent({

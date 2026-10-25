@@ -154,7 +154,7 @@ describe('agent: the answer key never reaches the model', () => {
   });
 
   it('agent code never imports the ledger catalogue or reads the ground truth or the errors write-up', () => {
-    for (const f of ['ai/lib/agent-core.ts', 'ai/lib/agent-tools.ts', 'ai/lib/agent-packet.ts', 'ai/lib/modes.ts', 'ai/agent.ts']) {
+    for (const f of ['ai/lib/agent-core.ts', 'ai/lib/agent-tools.ts', 'ai/lib/agent-packet.ts', 'ai/lib/modes.ts', 'ai/agent.ts', 'ai/lib/planted-score.ts', 'tests/fixtures/perturbed.ts']) {
       const src = readFileSync(f, 'utf8').split('\n').filter((l) => !l.trim().startsWith('//')).join('\n');
       expect(src, f).not.toMatch(/catalogue|LEDGER|ground-truth|errors-found|ledgerIds:/);
     }

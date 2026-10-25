@@ -76,6 +76,12 @@ describe('agent packet: vault mode (production)', () => {
     const { loadAgentPacket } = await fresh();
     await expect(loadAgentPacket({ env: vaultEnv(), root: emptyRoot(), packet: 'altered' })).rejects.toThrow(/file mode/);
   });
+
+  it('refuses the perturbed packet (a laptop measurement) in vault mode', async () => {
+    const { loadAgentPacket } = await fresh();
+    await expect(loadAgentPacket({ env: vaultEnv(), root: emptyRoot(), packet: 'perturbed', seed: 1 })).rejects.toThrow(/--packet perturbed .*file mode/);
+    expect(calls.some((c) => c.op === 'get')).toBe(false); // refused before the vault is read
+  });
 });
 
 describe('agent packet: file mode (laptop measurement)', () => {
