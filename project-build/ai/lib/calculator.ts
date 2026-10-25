@@ -117,14 +117,20 @@ function sumTo(ix: PacketIndex, ids: string[], target: string | null): Obj {
 }
 
 // ---------- prior_year ----------
+/** Last year's return in prior_years, found by shape (the first return_YYYY key holding an object), never by a fixed
+ *  year: shared by lookup, verify prior_year and verify_all. name is its key, for py:/<name>/... pointers. */
+export function priorReturn(ix: PacketIndex): { name: string; ret: Obj } | null {
+  const py = ix.packet.prior_years as unknown as Obj;
+  const name = Object.keys(py ?? {}).find((k) => /^return_\d{4}$/.test(k) && !!py[k] && typeof py[k] === 'object' && !Array.isArray(py[k]));
+  return name ? { name, ret: py[name] as Obj } : null;
+}
 const pointer = (root: unknown, ptr: string): unknown =>
   ptr.split('/').slice(1).reduce<unknown>((o, k) => (o && typeof o === 'object' ? (o as Obj)[k.replace(/~1/g, '/').replace(/~0/g, '~')] : undefined), root);
 
 function priorYear(ix: PacketIndex, key: string): Obj {
   const l: ReturnLine | undefined = lineOf(ix, key);
   if (!l) return { error: `No line ${key} on the latest return (${ix.latest.version}).` };
-  const py = ix.packet.prior_years as { return_2024?: { lines?: Obj } };
-  const prior = py.return_2024?.lines?.[key];
+  const prior = (priorReturn(ix)?.ret.lines as Obj | undefined)?.[key];
   const records = (l.sources ?? []).filter((s) => s.startsWith('py:')).map((s) => ({ ref: s, value: pointer(ix.packet.prior_years, s.slice(3)) ?? null }));
   const vr = (ix.packet.firm.starter_standards.variance_review ?? {}) as { flag_if_change_over_percent?: number; and_over_amount?: number };
   const rule = { percent: vr.flag_if_change_over_percent ?? null, amount: vr.and_over_amount ?? null };

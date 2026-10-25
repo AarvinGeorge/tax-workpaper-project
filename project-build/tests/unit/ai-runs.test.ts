@@ -107,6 +107,31 @@ describe('run outputs: off the live file', () => {
     expect(readdirSync(path.join(root, 'ai', 'eval'))).toEqual([]);
   });
 
+  it('a symlinked FILE pointing at the live payload (or a sidecar, or a dangling link to one) is protected (final review)', async () => {
+    const { symlinkSync } = await import('node:fs');
+    const root = tmpRoot();
+    const [live, liveMeta, liveTrace] = LIVE(root);
+    writeFileSync(live, '{"sentinel":true}');
+    mkdirSync(path.join(root, 'elsewhere'));
+    const link = path.join(root, 'elsewhere', 'out.json');
+    symlinkSync(live, link);
+    const dangling = path.join(root, 'elsewhere', 'trace-link.json');
+    symlinkSync(liveTrace, dangling); // the sidecar does not exist yet: writing through it would create it
+    const chained = path.join(root, 'elsewhere', 'chain.json');
+    symlinkSync(link, chained);
+    for (const f of [link, dangling, chained]) expect(isProtectedEvalFile(f), f).toBe(true);
+    const res = await runAgent(opts(fake(() => final())));
+    for (const f of [link, dangling, chained]) expect(() => writeRun(res, f), f).toThrow(/protected/);
+    expect(readFileSync(live, 'utf8')).toBe('{"sentinel":true}');
+    expect(existsSync(liveTrace)).toBe(false);
+    expect(existsSync(liveMeta)).toBe(false);
+    // A symlink to an ordinary run file is not protected.
+    const runFile = path.join(root, 'ai', 'eval', 'runs', 'r.json');
+    mkdirSync(path.dirname(runFile), { recursive: true }); writeFileSync(runFile, '{}');
+    const ok = path.join(root, 'elsewhere', 'ok.json'); symlinkSync(runFile, ok);
+    expect(isProtectedEvalFile(ok)).toBe(false);
+  });
+
   it('resolveOutFile: without --live no path (given or default) reaches a protected file; --out at one is refused', () => {
     const root = '/r';
     const base = { root, mode: { kind: 'default' } as AgentMode, packet: 'real' as const, seed: undefined, prompt: 'v3' as AgentPrompt, live: false };

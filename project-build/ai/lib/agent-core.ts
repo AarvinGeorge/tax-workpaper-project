@@ -4,7 +4,7 @@
 // reader's are) plus optional check proposals in words. Pure apart from the injected fetch, so tests need no network.
 // Guards: an iteration cap, a wall-clock abort, a cost budget, refusal and max_tokens stops, an SSN scan on every tool
 // result. A partial, failed or over-budget run returns { ok: false } and writeRun never writes it.
-import { existsSync, mkdirSync, readFileSync, readdirSync, realpathSync, writeFileSync } from 'node:fs';
+import { existsSync, lstatSync, mkdirSync, readFileSync, readdirSync, readlinkSync, realpathSync, writeFileSync } from 'node:fs';
 import path from 'node:path';
 import Anthropic from '@anthropic-ai/sdk';
 import type { BetaMessage, BetaTextBlockParam } from '@anthropic-ai/sdk/resources/beta/messages/messages';
@@ -449,14 +449,21 @@ export async function runAgent(o: AgentRunOptions): Promise<AgentRunResult> {
 /** The sidecars of a run file: its trace and run meta beside it. */
 const sidecars = (outFile: string) => ({ trace: outFile.replace(/\.json$/, '.trace.json'), meta: outFile.replace(/\.json$/, '.run-meta.json') });
 
-/** The forms a path can take on disk: as given (resolved), and with its nearest existing folder resolved through
- *  symlinks to its real name. Compared case-folded, since macOS and Windows volumes are case-insensitive. */
-function pathForms(file: string): string[] {
+/** The forms a path can take on disk: as given (resolved), with its nearest existing folder resolved through symlinks
+ *  to its real name, and, when the file itself is a symlink (to an existing file or a dangling one), the forms of what
+ *  it points at, followed link by link. Compared case-folded, since macOS and Windows volumes are case-insensitive. */
+function pathForms(file: string, depth = 0): string[] {
   const abs = path.resolve(file);
   const forms = [abs];
   let dir = path.dirname(abs); const rest: string[] = [path.basename(abs)];
   while (!existsSync(dir) && path.dirname(dir) !== dir) { rest.unshift(path.basename(dir)); dir = path.dirname(dir); }
   try { forms.push(path.join(realpathSync.native(dir), ...rest)); } catch { /* unreadable: the given form only */ }
+  try {
+    if (lstatSync(abs).isSymbolicLink()) {
+      if (existsSync(abs)) forms.push(realpathSync.native(abs));
+      if (depth < 40) forms.push(...pathForms(path.resolve(path.dirname(abs), readlinkSync(abs)), depth + 1));
+    }
+  } catch { /* not there yet, or unreadable: the forms above */ }
   return forms.map((f) => f.toLowerCase());
 }
 /** A committed agent output: any ai/eval/agent-suggestions*.json (the live payload, its sidecars, and the earlier

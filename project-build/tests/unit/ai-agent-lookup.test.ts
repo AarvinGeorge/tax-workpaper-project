@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any -- tool results are loose JSON read field by field in these tests */
 // lookup (ai/lib/lookup.ts): id-only, read-only access to the packet's generic sections. Cases are picked by probing
 // the packet (and a perturbed copy), never from the ledger. No network.
 import { describe, expect, it } from 'vitest';

@@ -275,3 +275,23 @@ describe('agent tools: record_suggestion', () => {
     expect(r.reasons!.join(' ')).toMatch(/quote not found/);
   });
 });
+
+describe('docs match the code: tool count and verify methods (final review)', () => {
+  it('ai/README.md names every tool (nine default, eight blind) and every verify method; agent-tools.ts says nine', async () => {
+    const { readFileSync } = await import('node:fs');
+    const { AGENT_TOOL_NAMES: names, toolNamesFor: forMode } = await import('../../ai/lib/agent-tools');
+    const { VERIFY_METHODS } = await import('../../ai/lib/calculator');
+    expect(names).toHaveLength(9);
+    expect(forMode({ kind: 'blind' })).toHaveLength(8);
+    const readme = readFileSync('ai/README.md', 'utf8');
+    const row = readme.split('\n').find((l) => l.startsWith('| `ai/lib/agent-tools.ts`'))!;
+    expect(row).toMatch(/nine tools/);
+    expect(row).toMatch(/eight in blind/);
+    for (const n of names) expect(row, n).toContain(`\`${n}\``);
+    const calc = readme.split('\n').find((l) => l.startsWith('| `ai/lib/calculator.ts`'))!;
+    for (const m of VERIFY_METHODS) expect(calc, m).toContain(`\`${m}\``);
+    const src = readFileSync('ai/lib/agent-tools.ts', 'utf8');
+    expect(src).not.toMatch(/The six tools|The seven tools/);
+    expect(src).toMatch(/The nine tools/);
+  });
+});

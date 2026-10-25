@@ -243,7 +243,7 @@ describe('summariser: the perturbed packet', () => {
     expect(s.planted).toMatchObject({ considered: 4, matched: 1, attributable: 0, falsePositives: 3 }); // the shotgun buys nothing
     expect(s.planted!.precision).toBe(0.25);
     const text = report([s]);
-    expect(text).toMatch(/precision 0\.25 \(attributable 0, false positives 3\)/);
+    expect(text).toMatch(/precision 0\.25 \(attributable 0, cascade-only 0, false positives 3\)/);
     expect(text).toMatch(/planted: on line .*precision .*\(attributable /);
   });
 
@@ -257,7 +257,7 @@ describe('summariser: the perturbed packet', () => {
     const pert = offlineFigures('seed-1', BLIND, 'blind', { ix: pIx, planted: b.planted, realFindings });
     expect(pert.planted!.sweep.considered).toBeGreaterThan(0);
     expect(Object.keys(pert.planted!.perKind).sort()).toEqual([...new Set(b.planted.map((x) => x.kind))].sort());
-    expect(report([], [pert])).toMatch(/sweep: matched \d+ of \d+, precision [\d.]+ \(attributable \d+\)/);
+    expect(report([], [pert])).toMatch(/sweep: matched \d+ of \d+, precision [\d.]+ \(attributable \d+, cascade-only \d+\)/);
   });
 });
 
@@ -301,5 +301,30 @@ describe('summariser: aggregation and report', () => {
       expect(readFileSync(f, 'utf8'), f).not.toMatch(/run-summary|summarize-runs/);
     }
     expect(existsSync('ai/lib/run-summary.ts')).toBe(true);
+  });
+});
+
+describe('summariser: final review definitions', () => {
+  it('tool_surfaced states that an item\'s input-line ids count as surfaced lines (conservative)', () => {
+    const d = METRICS.find((m) => m.key === 'tool_surfaced')!.define;
+    expect(d).toMatch(/input lines/);
+    expect(d).toMatch(/conservative/i);
+  });
+  it('planted precision is defined with one match per plant and the cascade-only bucket, printed beside it', () => {
+    expect(METRICS.find((m) => m.key === 'planted_precision')!.define).toMatch(/at most one .*per plant/);
+    expect(METRICS.find((m) => m.key === 'planted_cascade_only')!.define).toMatch(/out of the precision denominator/);
+  });
+  it('the per-run planted line prints cascade-only beside attributable', () => {
+    const b = perturbedPacket(PERTURBED_SEED);
+    const pIx = indexPacket(b.packet);
+    const p = b.planted.find((x) => x.lines.includes('SchA.11'))!;
+    const doc = pIx.packet.documents.find((d) => d.id === shownQuote.doc)!;
+    expect(doc).toBeTruthy();
+    const payload = payloadOf([row(['SchA.14']), row(['SchA.14'])]);
+    const run: RunFile = { file: 'agent-v4/blind.seed-1.2.json', version: 'agent-v4', modeLabel: 'blind', mode: BLIND, packet: 'perturbed', seed: 1, n: 2, payload, meta: { outcome: 'ok' }, trace: { promptVersion: 'x', runAt: 'x', endedBy: 'end_turn', reason: null, outcome: 'ok', turns: [] }, adjudication: null };
+    const s = summarizeRun(run, { ix: pIx, planted: b.planted, realFindings: runChecks(ix) });
+    expect(p.claims).toContain('SchA.14');
+    expect(s.planted).toMatchObject({ considered: 2, matched: 0, cascadeOnly: 2, falsePositives: 0 });
+    expect(report([s])).toMatch(/attributable 0, cascade-only 2, false positives 0/);
   });
 });

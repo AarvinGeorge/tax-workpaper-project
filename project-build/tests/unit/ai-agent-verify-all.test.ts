@@ -425,3 +425,31 @@ describe('verify_all: perturbation (proves the non-zeros), altered and perturbed
     for (const seed of [1, 2]) expect(sweep(indexPacket(perturbedPacket(seed).packet), DEFAULT).byKind.version_change_unlisted, `seed ${seed}`).toBe(0);
   });
 });
+
+describe('generality: the prior return is found by shape (/^return_\\d{4}$/), not by the year 2024 (final review)', () => {
+  // A copy of the packet whose prior return key (and every py: pointer into it) is return_2023.
+  const renamed = indexPacket(JSON.parse(JSON.stringify(real).replace(/return_2024/g, 'return_2023')));
+  const py = (i: typeof ix) => i.packet.prior_years as Record<string, unknown>;
+  it('the copy really has return_2023 and no return_2024', () => {
+    expect(Object.keys(py(renamed))).toContain('return_2023');
+    expect(Object.keys(py(renamed))).not.toContain('return_2024');
+  });
+  it('verify prior_year reads last year\'s line from return_2023', () => {
+    const lines = (py(ix).return_2024 as { lines: Record<string, unknown> }).lines;
+    const l = ix.latest.lines.find((x) => typeof x.value === 'number' && typeof lines[x.key] === 'number')!;
+    const a = verify(ix, { method: 'prior_year', ids: [l.key], target: null });
+    const b = verify(renamed, { method: 'prior_year', ids: [l.key], target: null });
+    expect(a.priorReturnValue).toBe(lines[l.key]);
+    expect(b.priorReturnValue).toBe(a.priorReturnValue);
+    expect(b.overFirmThreshold).toBe(a.overFirmThreshold);
+  });
+  it('verify_all\'s prior-year family runs the same, and its ids point into return_2023', () => {
+    // Blind mode: the app's own checks (src/domain, typed on return_2024) are out of this scope and not run blind.
+    const items = (i: typeof ix) => sweep(i, BLIND).items.filter((t) => t.kind === 'variance_over_firm_rule');
+    const a = items(ix); const b = items(renamed);
+    expect(a.length).toBeGreaterThan(0);
+    expect(b.length).toBe(a.length);
+    expect(b.every((t) => (t.ids ?? []).every((id) => id.startsWith('py:/return_2023/lines/')))).toBe(true);
+    expect(JSON.stringify(b)).not.toContain('return_2024');
+  });
+});

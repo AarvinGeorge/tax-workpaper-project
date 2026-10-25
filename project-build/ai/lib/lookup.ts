@@ -5,7 +5,7 @@
 // runTool (agent-tools.ts) masks, labels, pages and scans what this returns.
 import type { PacketIndex } from '../../src/domain/packet/load';
 import { masker } from './reader-core';
-import { looksNumeric } from './calculator';
+import { looksNumeric, priorReturn } from './calculator';
 
 export const LOOKUP_SECTIONS = ['agency_record', 'prior_year', 'what_was_known', 'client_text', 'diagnostics_for', 'alternatives'] as const;
 export type LookupSection = (typeof LOOKUP_SECTIONS)[number];
@@ -51,12 +51,6 @@ function agencyRecord(ix: PacketIndex, id: string | null): Obj {
   const r = ptr === null ? { found: false } : resolvePointer(root, ptr);
   if (!r.found) return { error: `No agency record ${id}. ${shapes}` };
   return pointerResult(id, r.value);
-}
-
-function priorReturn(ix: PacketIndex): { name: string; ret: Obj } | null {
-  const py = ix.packet.prior_years as unknown as Obj;
-  const name = Object.keys(py ?? {}).find((k) => /^return_\d{4}$/.test(k) && isObj(py[k]));
-  return name ? { name, ret: py[name] as Obj } : null;
 }
 
 function priorYear(ix: PacketIndex, id: string | null): Obj {

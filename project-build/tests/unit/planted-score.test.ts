@@ -82,3 +82,53 @@ describe('planted score: attributable is per plant (a claim on a stale parent th
     expect(s).toMatchObject({ matched: 1, attributable: 0, falsePositives: 0 });
   });
 });
+
+describe('planted score: precision counts one on-line match per plant; cascade-only claims are their own bucket (final review)', () => {
+  const own = new Set(base.planted.flatMap((p) => p.lines));
+  const cascadeOnly = [...new Set(base.planted.flatMap((p) => p.claims))].filter((k) => !own.has(k)).sort();
+
+  it('probe 1: one claimant per cascade-only line, naming nothing, buys no precision (was matched 20, precision 1.00)', () => {
+    expect(cascadeOnly).toHaveLength(20);
+    for (const k of ['F1040.11', 'F1040.9', 'F540NR.13', 'SchA.14']) expect(cascadeOnly).toContain(k);
+    const shot = cascadeOnly.map((k, i) => ({ checkId: `C${i}`, claims: [`line:${k}`], evidence: [] as string[] }));
+    const s = plantedScore(pIx, base.planted, shot as never);
+    expect(s).toMatchObject({ considered: 20, matched: 0, cascadeOnly: 20, attributable: 0, falsePositives: 0, precision: 0 });
+    // Beside two real hits, the cascade shotgun is neutral: precision is the hits' alone.
+    const t = plantedScore(pIx, base.planted, [...hits, ...shot] as never);
+    expect(t).toMatchObject({ considered: 22, matched: 2, cascadeOnly: 20, falsePositives: 0 });
+    expect(t.precision).toBe(1);
+    // Beside one false positive, still neutral: 2 / 3, not 22 / 23.
+    const u = plantedScore(pIx, base.planted, [...hits, ...shot, { checkId: 'N', claims: ['line:NO.SUCH'], evidence: [] }] as never);
+    expect(u).toMatchObject({ matched: 2, cascadeOnly: 20, falsePositives: 1 });
+    expect(u.precision).toBeCloseTo(2 / 3, 10);
+  });
+
+  it('probe 2: ten claims on SchA.14 (a cascade line of the SchA.11 plant) are cascade-only, not ten matches (was 1.00)', () => {
+    const ten = Array.from({ length: 10 }, (_, i) => ({ checkId: `A${i}`, claims: ['line:SchA.14'], evidence: [] as string[] }));
+    const s = plantedScore(pIx, base.planted, ten as never);
+    expect(s).toMatchObject({ considered: 10, matched: 0, cascadeOnly: 10, falsePositives: 0, precision: 0 });
+    const i = base.planted.findIndex((p) => p.lines.includes('SchA.11'));
+    expect(s.perPlant[i]).toMatchObject({ onLine: false, onCascade: true }); // recall stays per plant, unchanged
+  });
+
+  it('at most one match per plant: ten claims on the planted line are one match and nine repeats (false positives)', () => {
+    const ten = Array.from({ length: 10 }, (_, i) => ({ checkId: `R${i}`, claims: ['line:SchA.11'], evidence: [] as string[] }));
+    const s = plantedScore(pIx, base.planted, ten as never);
+    expect(s).toMatchObject({ considered: 10, matched: 1, repeats: 9, cascadeOnly: 0, falsePositives: 9 });
+    expect(s.precision).toBeCloseTo(1 / 10, 10);
+  });
+
+  it('one claimant on two plants\' planted lines is one match (a claimant is matched once)', () => {
+    const s = plantedScore(pIx, base.planted, [{ checkId: 'D', claims: [`line:${base.planted[0].lines[0]}`, `line:${base.planted[1].lines[0]}`], evidence: [] }] as never);
+    expect(s).toMatchObject({ considered: 1, matched: 1, falsePositives: 0, precision: 1 });
+  });
+
+  it('a cascade claim that names the planted line\'s cited source id is an on-line match', () => {
+    const p = base.planted.find((x) => x.lines.includes('SchA.11'))!;
+    const cited = String(pIx.line(pIx.latest.version, 'SchA.11')!.sources[0]);
+    expect(cited).toMatch(/^ev-/);
+    const s = plantedScore(pIx, base.planted, [{ checkId: 'S', claims: ['line:SchA.14'], evidence: [cited] }] as never);
+    expect(s).toMatchObject({ considered: 1, matched: 1, cascadeOnly: 0, precision: 1 });
+    expect(p.claims).toContain('SchA.14');
+  });
+});

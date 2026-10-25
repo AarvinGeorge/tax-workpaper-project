@@ -172,7 +172,7 @@ export interface RunSummary {
   discipline: { recorded: number; covered: number; share: number | null };
   leak: { checked: number; leaks: { turn: number; tool: string; what: string }[] } | null;
   beyond: { candidates: number; verified: number; plausible: number; wrong: number; duplicate: number; unadjudicated: number } | null;
-  planted: { considered: number; matched: number; attributable: number; falsePositives: number; precision: number; perKind: Record<string, KindTally> } | null;
+  planted: { considered: number; matched: number; attributable: number; cascadeOnly: number; repeats: number; falsePositives: number; precision: number; perKind: Record<string, KindTally> } | null;
 }
 
 /** The packet a run was made on, and (perturbed) its planted list and the real packet's findings for the baseline. */
@@ -291,7 +291,7 @@ export function summarizeRun(run: RunFile, ctx: PacketContext): RunSummary {
   summary.beyond = { candidates: candidates.length, verified: count('verified'), plausible: count('plausible'), wrong: count('wrong'), duplicate: count('duplicate'), unadjudicated: candidates.filter((id) => !verdicts.get(id)).length };
   if (ctx.planted) {
     const s = plantedScore(ix, ctx.planted, p);
-    summary.planted = { considered: s.considered, matched: s.matched, attributable: s.attributable, falsePositives: s.falsePositives, precision: s.precision, perKind: s.perKind };
+    summary.planted = { considered: s.considered, matched: s.matched, attributable: s.attributable, cascadeOnly: s.cascadeOnly, repeats: s.repeats, falsePositives: s.falsePositives, precision: s.precision, perKind: s.perKind };
   }
   return summary;
 }
@@ -300,7 +300,7 @@ export function summarizeRun(run: RunFile, ctx: PacketContext): RunSummary {
 export interface OfflineFigures {
   packet: string; mode: string; differs: number; ledgerTouchedByDiffers: string[]; ledgerTotal: number;
   /** Perturbed only: runChecks (new findings vs the real packet) and the verify_all sweep scored on the planted list. */
-  planted: { checks: { considered: number; matched: number; attributable: number; precision: number }; sweep: { considered: number; matched: number; attributable: number; precision: number }; perKind: Record<string, { plants: number; checks: KindTally; sweep: KindTally | null }> } | null;
+  planted: { checks: PlantedPick; sweep: PlantedPick; perKind: Record<string, { plants: number; checks: KindTally; sweep: KindTally | null }> } | null;
 }
 export function offlineFigures(packet: string, mode: AgentMode, modeLabel: string, ctx: PacketContext): OfflineFigures {
   const { ix } = ctx;
@@ -310,13 +310,14 @@ export function offlineFigures(packet: string, mode: AgentMode, modeLabel: strin
   let planted: OfflineFigures['planted'] = null;
   if (ctx.planted && ctx.realFindings) {
     const r = plantedReport(ix, ctx.planted, { findings: runChecks(ix), baseline: ctx.realFindings, sweep: items as unknown as SweepItem[] });
-    const pick = (s: { considered: number; matched: number; attributable: number; precision: number }) => ({ considered: s.considered, matched: s.matched, attributable: s.attributable, precision: s.precision });
+    const pick = (s: PlantedPick) => ({ considered: s.considered, matched: s.matched, attributable: s.attributable, cascadeOnly: s.cascadeOnly, precision: s.precision });
     planted = { checks: pick(r.checks), sweep: pick(r.sweep!), perKind: Object.fromEntries(Object.entries(r.perKind).map(([k, v]) => [k, { plants: v.plants, checks: v.checks, sweep: v.sweep }])) };
   }
   return { packet, mode: modeLabel, differs: items.filter((i) => DIFFERS_KINDS.includes(i.kind)).length, ledgerTouchedByDiffers: gold.filter((g) => [...g.claimLines].some((l) => differsLines.has(l))).map((g) => g.id), ledgerTotal: gold.length, planted };
 }
 
 // ---------- Metrics, defined once ----------
+type PlantedPick = { considered: number; matched: number; attributable: number; cascadeOnly: number; precision: number };
 export interface Metric { key: string; define: string; get: (r: RunSummary) => number | null }
 const len = (x: string[] | undefined) => (x ? x.length : null);
 /** Every number the summary aggregates, with its definition. Ratios are null when their denominator is zero. */
@@ -326,7 +327,7 @@ export const METRICS: Metric[] = [
   { key: 'strict_found', define: 'Count of those entries.', get: (r) => len(r.ledger?.found) },
   { key: 'strict_recall_shown', define: 'Strict recall after the backend verifier (what a reviewer would see).', get: (r) => r.ledger?.shownRecall ?? null },
   { key: 'strict_precision', define: 'Grounded suggestions on any ledger entry\'s claim line, over all grounded suggestions (harness-core scorePayload). Unmatched ones may still be real: see beyond_*.', get: (r) => r.ledger?.precision ?? null },
-  { key: 'tool_surfaced', define: 'Strict finds where a replayed result showed a disagreement on one of the entry\'s claim lines in a turn strictly before the matching suggestion was accepted (record_suggestion) or, if never recorded, before the final answer: a verify_all differs item, a verify recompute_line/sum_to with agrees false or prior_year with agreesWithPriorRecords false, a fact_copies copy with agree false, or a duplicates item. Our generic code surfaced it; an agreeing check does not count.', get: (r) => len(r.ledger?.toolSurfaced) },
+  { key: 'tool_surfaced', define: 'Strict finds where a replayed result showed a disagreement on one of the entry\'s claim lines in a turn strictly before the matching suggestion was accepted (record_suggestion) or, if never recorded, before the final answer: a verify_all differs item, a verify recompute_line/sum_to with agrees false or prior_year with agreesWithPriorRecords false, a fact_copies copy with agree false, or a duplicates item. Our generic code surfaced it; an agreeing check does not count. An item\'s lines are every line key it carries (key, lines, claims, and ids that are line keys), so an arithmetic item\'s input lines count as surfaced lines too: conservative (it can only raise tool_surfaced and lower agent_found).', get: (r) => len(r.ledger?.toolSurfaced) },
   { key: 'agent_found', define: 'Strict finds with no such earlier disagreement: found by the agent reading (verifying an agreeing number first still counts here).', get: (r) => len(r.ledger?.agentFound) },
   { key: 'judgement_tier', define: 'Reachable ledger entries no verify_all differs item (full offline sweep, this mode) touches by claim line.', get: (r) => len(r.ledger?.untouchedByDiffers) },
   { key: 'judgement_recall', define: 'Agent-found strict finds in the judgement tier, over the judgement tier (the headline judgement figure).', get: (r) => r.ledger?.judgementRecall ?? null },
@@ -353,8 +354,9 @@ export const METRICS: Metric[] = [
   { key: 'rejected', define: 'Rows rejected while the payload was validated.', get: (r) => r.rejected },
   { key: 'blind_leaks', define: 'Blind modes: replayed tool results carrying a finding title or explanation, a check id, a ledger id or onCheck. Must be 0.', get: (r) => (r.leak ? r.leak.leaks.length : null) },
   { key: 'planted_on_line', define: 'Perturbed: plants with a grounded suggestion on the planted line itself (planted-score onLine).', get: (r) => (r.planted ? Object.values(r.planted.perKind).reduce((n, k) => n + k.onLine, 0) : null) },
-  { key: 'planted_precision', define: 'Perturbed: grounded suggestions on a plant\'s claim set, over grounded suggestions less the attributable ones (always printed with planted_attributable).', get: (r) => r.planted?.precision ?? null },
+  { key: 'planted_precision', define: 'Perturbed: on-line matches (a grounded suggestion on a plant\'s planted line, or on its claim set naming an id that line cites), at most one per plant and one plant per suggestion, over grounded suggestions less the attributable and cascade-only ones (always printed with planted_attributable and planted_cascade_only). Repeat claims on an already matched plant are false positives.', get: (r) => r.planted?.precision ?? null },
   { key: 'planted_attributable', define: 'Perturbed: suggestions on a plant\'s stale parent that also name that plant\'s source (planted-score, per plant): out of the precision denominator.', get: (r) => r.planted?.attributable ?? null },
+  { key: 'planted_cascade_only', define: 'Perturbed: suggestions on a plant\'s claim set (a moved ancestor) with no on-line match for any plant (planted-score cascadeOnly): neither a hit nor a false positive, out of the precision denominator.', get: (r) => r.planted?.cascadeOnly ?? null },
 ];
 
 export interface Stat { median: number; min: number; max: number; n: number }
@@ -402,7 +404,7 @@ export function report(runs: RunSummary[], offline: OfflineFigures[] = []): stri
     L.push('Median [min-max] over ok runs:', '');
     const s = c.stats;
     L.push(`- headline: strict recall ${st(s.strict_recall)} (over reachable ${st(s.strict_recall_reachable)}), precision ${st(s.strict_precision)}; tool-surfaced ${st(s.tool_surfaced)} vs agent-found ${st(s.agent_found)}; judgement recall ${st(s.judgement_recall)} of ${st(s.judgement_tier)} entries`);
-    if (s.planted_precision) L.push(`- planted: on line ${st(s.planted_on_line)}, precision ${st(s.planted_precision)} (attributable ${st(s.planted_attributable)})`);
+    if (s.planted_precision) L.push(`- planted: on line ${st(s.planted_on_line)}, precision ${st(s.planted_precision)} (attributable ${st(s.planted_attributable)}, cascade-only ${st(s.planted_cascade_only)})`);
     for (const m of METRICS) L.push(`- ${m.key}: ${st(s[m.key])}`);
     L.push('');
   }
@@ -419,7 +421,7 @@ export function report(runs: RunSummary[], offline: OfflineFigures[] = []): stri
     }
     if (r.beyond) L.push(`- beyond the ledger: ${r.beyond.candidates} shown on no entry; verified ${r.beyond.verified}, plausible ${r.beyond.plausible}, wrong ${r.beyond.wrong}, duplicate ${r.beyond.duplicate}, not adjudicated ${r.beyond.unadjudicated}`);
     if (r.planted) {
-      L.push(`- planted: matched ${r.planted.matched} of ${r.planted.considered} considered, precision ${fmt(r.planted.precision)} (attributable ${r.planted.attributable}, false positives ${r.planted.falsePositives})`);
+      L.push(`- planted: matched ${r.planted.matched} of ${r.planted.considered} considered, precision ${fmt(r.planted.precision)} (attributable ${r.planted.attributable}, cascade-only ${r.planted.cascadeOnly}, false positives ${r.planted.falsePositives})`);
       L.push(`- planted per kind (plants / agent on line / cascade only): ${Object.entries(r.planted.perKind).map(([k, t]) => `${k} ${t.plants}/${t.onLine}/${t.onCascadeOnly}`).join('; ')}`);
     }
     L.push(`- verify_all differs addressed ${frac(r.coverage.addressed, r.coverage.differs)} (unrecordable ${r.coverage.addressedUnrecordable}); unrecordable markers ${r.unrecordable.markers}${r.unrecordable.lines.length ? ` on ${r.unrecordable.lines.join(', ')}` : ''}`);
@@ -433,7 +435,7 @@ export function report(runs: RunSummary[], offline: OfflineFigures[] = []): stri
     for (const o of offline) {
       L.push(`- ${o.packet} ${o.mode}: verify_all differs items ${o.differs}; ledger entries a differs item touches ${frac(o.ledgerTouchedByDiffers.length, o.ledgerTotal)}`);
       if (o.planted) {
-        L.push(`  - planted, checks: matched ${o.planted.checks.matched} of ${o.planted.checks.considered}, precision ${fmt(o.planted.checks.precision)} (attributable ${o.planted.checks.attributable}); sweep: matched ${o.planted.sweep.matched} of ${o.planted.sweep.considered}, precision ${fmt(o.planted.sweep.precision)} (attributable ${o.planted.sweep.attributable})`);
+        L.push(`  - planted, checks: matched ${o.planted.checks.matched} of ${o.planted.checks.considered}, precision ${fmt(o.planted.checks.precision)} (attributable ${o.planted.checks.attributable}, cascade-only ${o.planted.checks.cascadeOnly}); sweep: matched ${o.planted.sweep.matched} of ${o.planted.sweep.considered}, precision ${fmt(o.planted.sweep.precision)} (attributable ${o.planted.sweep.attributable}, cascade-only ${o.planted.sweep.cascadeOnly})`);
         L.push(`  - per kind (plants / checks on line / sweep on line): ${Object.entries(o.planted.perKind).map(([k, v]) => `${k} ${v.plants}/${v.checks.onLine}/${v.sweep?.onLine ?? 'n/a'}`).join('; ')}`);
       }
     }

@@ -317,7 +317,7 @@ const listProps = {
   cursor: { ...nullableInt, description: 'Where to start: 0 or null for the first page, else the nextCursor of the previous page.' },
 } as const;
 
-/** The six tools. `guard.onHit` is told when a result is withheld for an SSN shape. */
+/** The nine tools (AGENT_TOOL_NAMES; eight in blind mode, which drops run_checks). `guard.onHit` is told when a result is withheld for an SSN shape. */
 export function agentTools(ix: PacketIndex, guard: ToolGuard, opts: ToolOptions = {}): BetaRunnableTool[] {
   const run = (name: AgentToolName) => (input: unknown) => {
     try { return runTool(ix, name, input as Obj, opts); } catch (e) { if (e instanceof SsnInToolResult) guard.onHit(name); throw e; }

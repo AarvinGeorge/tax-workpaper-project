@@ -6,8 +6,14 @@
 // plant P only when it claims one of P's stale parents (an input moved, the engine-only value did not) AND names P's
 // source (plantSources: an id or document P changed, or one P's planted lines cite), AND P is the only plant whose
 // source it names (naming several plants' sources is ambiguous: a false positive). A claim on a stale top line that
-// names nothing is a false positive, so a shotgun of top-line claims cannot buy precision. Scoring side only: agent
-// code never imports this file, and nothing here reaches the model.
+// names nothing is a false positive, so a shotgun of top-line claims cannot buy precision.
+// Precision (final review): a claimant is an on-line hit for plant P when it claims P's planted line, or claims a line of
+// P's claim set AND names an id P's planted lines cite (or P changed; ids, not whole documents). Matched is a one-to-one
+// matching of on-line hits to plants: each plant counts at most once and each claimant at most once, so ten claims on one
+// planted line are one match and nine repeats (false positives). A claimant on a claim set with no on-line hit for any
+// plant (a moved ancestor only, naming no cited source) is cascadeOnly: reported apart, like attributable neither a hit
+// nor a false positive, out of precision's denominator. Recall (perPlant onLine / onCascade) is unchanged.
+// Scoring side only: agent code never imports this file, and nothing here reaches the model.
 import type { AiPayload } from '../../src/domain/ai/contract';
 import type { Finding } from '../../src/domain/contracts';
 import type { PacketIndex } from '../../src/domain/packet/load';
@@ -29,8 +35,14 @@ export interface PlantedScore {
   considered: number; matched: number;
   /** Claimants attributable to a plant (see the header; no claim set hit): reported apart, out of precision's
    *  denominator. Every report prints it beside precision. */
-  attributable: number; falsePositives: number;
-  /** matched / (considered - attributable) */
+  attributable: number;
+  /** Claimants on a plant's claim set with no on-line hit for any plant (moved ancestors only): reported apart, out of
+   *  precision's denominator, so a shotgun of cascade lines buys nothing. */
+  cascadeOnly: number;
+  /** On-line hits left over once every plant has its one match (counted in falsePositives). */
+  repeats: number;
+  falsePositives: number;
+  /** matched / (considered - attributable - cascadeOnly); matched counts at most one claimant per plant */
   precision: number;
   perPlant: PlantMatch[]; perKind: Record<string, KindTally>;
 }
@@ -98,6 +110,27 @@ export function plantedScore(ix: PacketIndex, planted: Plant[], source: Finding[
     return c.lines.some((l) => (planted[i].stale ?? []).includes(l)) ? i : -1;
   };
   const owner = list.map(attributedTo);
+  /** The plants each claimant is an on-line hit for: their planted line, or their claim set plus a cited source id. */
+  const onLineFor = list.map((c) => planted.map((_, i) => i).filter((i) => {
+    const p = planted[i];
+    if (c.lines.some((l) => p.lines.includes(l))) return true;
+    return c.lines.some((l) => p.claims.includes(l)) && c.refs.some((r) => sources[i].ids.has(r));
+  }));
+  // Maximum one-to-one matching of claimants to plants (augmenting paths; a handful of plants).
+  const plantOf = new Map<number, number>(); // plant -> claimant
+  const augment = (c: number, seen: Set<number>): boolean => {
+    for (const i of onLineFor[c]) {
+      if (seen.has(i)) continue;
+      seen.add(i);
+      const held = plantOf.get(i);
+      if (held === undefined || augment(held, seen)) { plantOf.set(i, c); return true; }
+    }
+    return false;
+  };
+  list.forEach((_, c) => { if (onLineFor[c].length) augment(c, new Set()); });
+  const matched = plantOf.size;
+  const repeats = onLineFor.filter((x) => x.length).length - matched;
+  const cascadeOnly = list.filter((c, k) => isHit(c) && !onLineFor[k].length).length;
   const perPlant: PlantMatch[] = planted.map((p, i) => {
     const own = new Set(p.lines); const cascade = new Set(p.claims.filter((c) => !own.has(c)));
     const onLine = list.filter((c) => c.lines.some((l) => own.has(l)));
@@ -106,9 +139,8 @@ export function plantedScore(ix: PacketIndex, planted: Plant[], source: Finding[
     const onStale = list.some((c) => c.lines.some((l) => stale.has(l)));
     return { kind: p.kind, lines: p.lines, onLine: onLine.length > 0, onCascade: onLine.length === 0 && onCascade.length > 0, onStale, attributable: owner.filter((o) => o === i).length, by: [...onLine, ...onCascade].map((c) => c.id) };
   });
-  const matched = list.filter(isHit).length;
   const attributable = owner.filter((o) => o >= 0).length;
-  const scored = list.length - attributable;
+  const scored = list.length - attributable - cascadeOnly;
   const perKind: Record<string, KindTally> = {};
   planted.forEach((p, i) => {
     const t = (perKind[p.kind] ??= { plants: 0, onLine: 0, onCascadeOnly: 0 });
@@ -116,7 +148,7 @@ export function plantedScore(ix: PacketIndex, planted: Plant[], source: Finding[
     if (perPlant[i].onLine) t.onLine++;
     else if (perPlant[i].onCascade) t.onCascadeOnly++;
   });
-  return { source: kind, considered: list.length, matched, attributable, falsePositives: scored - matched, precision: scored ? matched / scored : 0, perPlant, perKind };
+  return { source: kind, considered: list.length, matched, attributable, cascadeOnly, repeats, falsePositives: scored - matched, precision: scored ? matched / scored : 0, perPlant, perKind };
 }
 
 export interface PlantedReport {

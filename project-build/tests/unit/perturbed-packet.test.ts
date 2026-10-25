@@ -369,7 +369,8 @@ describe('perturbed packet: scoring (offline)', () => {
     const realKeys = new Set(realFindings.map(key));
     expect(s.considered).toBe(pFindings.filter((f) => !realKeys.has(key(f))).length);
     expect(s.matched).toBeLessThanOrEqual(s.considered);
-    const scored = s.considered - s.attributable;
+    expect(s.matched).toBeLessThanOrEqual(base.planted.length); // one match per plant at most
+    const scored = s.considered - s.attributable - s.cascadeOnly;
     expect(s.precision).toBe(scored ? s.matched / scored : 0);
     expect(s.falsePositives).toBe(scored - s.matched);
     expect(s.perPlant).toHaveLength(base.planted.length);
@@ -411,7 +412,8 @@ describe('perturbed packet: scoring (offline)', () => {
     const b = plantedScore(pIx, base.planted, [onAncestor, nowhere] as never);
     expect(b.perPlant[i]).toMatchObject({ onLine: false, onCascade: true });
     expect(b).toMatchObject({ considered: 2 });
-    expect(b.matched).toBeGreaterThanOrEqual(1);
+    // Final review: a cascade-only claim is its own bucket, out of precision (planted-score.test.ts probes 1 and 2).
+    expect(b).toMatchObject({ matched: 0, cascadeOnly: 1, falsePositives: 1 });
     expect(b.perKind[withCascade.kind].onCascadeOnly).toBeGreaterThanOrEqual(1);
   });
 

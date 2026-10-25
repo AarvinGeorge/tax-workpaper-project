@@ -17,7 +17,7 @@ import { FLOW_RULES } from '../../src/domain/flow';
 import { sameFacts } from '../../src/domain/facts';
 import { sourceReceipt } from '../../src/domain/proofs';
 import { masker } from './reader-core';
-import { MAX_SIGNED_INPUTS, signsReaching, verify } from './calculator';
+import { MAX_SIGNED_INPUTS, priorReturn, signsReaching, verify } from './calculator';
 import { NEAR_WORDS, amountCopies, pagePairs } from './duplicates';
 import { DEFAULT_MODE, comparisonPayloadHidden, findingsFor, isBlind, modeLabel, type AgentMode } from './modes';
 
@@ -162,9 +162,11 @@ function base(ix: PacketIndex): Base {
     });
   }
 
-  // Prior year: a same-key line on the 2024 return or a cited py: record, through the calculator (prior_year).
-  const py = { definition: 'latest lines with a same-key line on the 2024 return or a cited py: record; prior_year over each: cited records compared (amount and sign), and the change against the firm variance rule', applicable: 0, ran: 0, agree: 0, differ: 0, needsEngine: 0, notComparable: 0, recordsCompared: 0, recordsDiffer: 0, overFirmRule: 0 };
-  const prior = (ix.packet.prior_years as { return_2024?: { lines?: Obj } }).return_2024?.lines ?? {};
+  // Prior year: a same-key line on last year's return (priorReturn: return_YYYY) or a cited py: record, through the
+  // calculator (prior_year).
+  const pr = priorReturn(ix);
+  const py = { definition: `latest lines with a same-key line on last year's return (${pr?.name ?? 'none in this packet'}) or a cited py: record; prior_year over each: cited records compared (amount and sign), and the change against the firm variance rule`, applicable: 0, ran: 0, agree: 0, differ: 0, needsEngine: 0, notComparable: 0, recordsCompared: 0, recordsDiffer: 0, overFirmRule: 0 };
+  const prior = (pr?.ret.lines as Obj | undefined) ?? {};
   for (const l of lines) {
     const records = (l.sources ?? []).filter((s) => s.startsWith('py:'));
     if (!(l.key in prior) && !records.length) continue;
@@ -189,7 +191,7 @@ function base(ix: PacketIndex): Base {
     if (r.overFirmThreshold === true) {
       py.overFirmRule++;
       items.push({
-        kind: 'variance_over_firm_rule', ...head(l), ids: [`py:/return_2024/lines/${l.key}`],
+        kind: 'variance_over_firm_rule', ...head(l), ids: [`py:/${pr!.name}/lines/${l.key.replace(/~/g, '~0').replace(/\//g, '~1')}`],
         compared: 'the change from last year\'s return line against the firm variance rule (a reason is needed, not a mistake)',
         numbers: { value: l.value, priorReturnValue: r.priorReturnValue, changePercent: r.changePercent, firmVarianceRule: r.firmVarianceRule },
         difference: r.change as number,

@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any -- tool results are loose JSON read field by field in these tests */
 // Task 4: verify_all and lookup in the agent's tool list. Offline, no network. Cases come from probing the packet.
 import { describe, expect, it } from 'vitest';
 import { indexPacket, loadPacket } from '@/domain/packet/load';
