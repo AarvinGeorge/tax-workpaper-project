@@ -1,0 +1,8 @@
+{
+  "agent": {
+    "producer": "agent",
+    "promptVersion": "agent-v3",
+    "minStrict": 0,
+    "maxHeldBack": 0
+  }
+}

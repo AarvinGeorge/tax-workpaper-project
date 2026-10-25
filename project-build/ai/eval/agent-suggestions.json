@@ -2,69 +2,115 @@
   "schemaVersion": 1,
   "packetSha": "ee01f8508bd2fd9854754b82fd9c4a055bdc55e2778a132002a25381c412ad19",
   "model": "claude-opus-5-5",
-  "promptVersion": "agent-v2",
-  "runAt": "2026-10-24T23:58:29.690Z",
-  "suggestions": [],
+  "promptVersion": "agent-v3",
+  "runAt": "2026-10-25T00:41:53.014Z",
+  "suggestions": [
+    {
+      "id": "ai-limit_or_eligibility-1",
+      "kind": "limit_or_eligibility",
+      "otherKind": null,
+      "claims": [
+        "SchA.11"
+      ],
+      "evidence": [
+        {
+          "doc": "D64",
+          "page": 1,
+          "quote": "The first digit is ambiguous (could be read as 1 or 7). No goods or services line."
+        }
+      ],
+      "rationale": "The parish receipt for a gift over 250 lacks the required goods-or-services statement and its amount is illegible; a phone confirmation does not substitute.",
+      "authority": "IRS Pub 526 (2025): Charitable Contributions",
+      "confidence": 0.65
+    },
+    {
+      "id": "ai-other-1",
+      "kind": "other",
+      "otherKind": "crypto lot identification",
+      "claims": [
+        "F8949.H.C2",
+        "F8949.H.C3",
+        "F8949.H.C5",
+        "F8949.K.C1"
+      ],
+      "evidence": [
+        {
+          "doc": "D35",
+          "page": 1,
+          "quote": "CSV export, cost basis by lot (FIFO)."
+        },
+        {
+          "doc": "D35",
+          "page": 1,
+          "quote": "C2 ETH 1.25 acquired 2024-11-30 cost 4,680.00 sold 2025-02-14 proceeds 3,412.00"
+        },
+        {
+          "doc": "D35",
+          "page": 1,
+          "quote": "Buy 3 ETH acquired 2021-11-27 cost 1,060.30"
+        }
+      ],
+      "rationale": "Sold crypto lots carry later, higher-cost acquisitions while older lots remain held, contradicting the stated FIFO method; confirm specific identification or recompute basis.",
+      "authority": null,
+      "confidence": 0.4
+    },
+    {
+      "id": "ai-document_not_reflected-1",
+      "kind": "document_not_reflected",
+      "otherKind": null,
+      "claims": [
+        "F7203.1"
+      ],
+      "evidence": [
+        {
+          "doc": "D40",
+          "page": 1,
+          "quote": "Box 1 ordinary business income 14,100. Box 4 interest income 0. Box 16D distributions 20,000."
+        }
+      ],
+      "rationale": "This 2023 K-1 surfaced only in 2026 and the prior preparer never had it; confirm its income was reported for 2023 before relying on the basis roll-forward.",
+      "authority": null,
+      "confidence": 0.35
+    }
+  ],
   "rejected": [
     {
       "raw": {
-        "kind": "other",
-        "otherKind": "digital_asset_lot_identification",
-        "claims": [
-          "F8949.H.C2",
-          "F8949.H.C3",
-          "F8949.H.C5",
-          "F8949.H.C12",
-          "F8949.K.C1"
-        ],
-        "evidence": [
-          {
-            "doc": "D35",
-            "page": 1
-          },
-          {
-            "doc": "D35",
-            "page": 1
-          },
-          {
-            "doc": "D35",
-            "page": 1
-          },
-          {
-            "doc": "D35",
-            "page": 1
-          },
-          {
-            "doc": "D35",
-            "page": 1
-          },
-          {
-            "doc": "D34",
-            "page": 1
-          }
-        ],
-        "grounded": true,
-        "rationaleWords": 31,
-        "authority": null,
-        "confidence": 0.6
+        "proposal": true,
+        "compares": [
+          "donation_receipt printed text (goods or services statement)",
+          "extracted amount confidence",
+          "SchA.11 sources"
+        ]
       },
-      "reason": "rationale over 30 words"
+      "reason": "proposal reads as code, not words"
+    },
+    {
+      "raw": {
+        "proposal": true,
+        "compares": [
+          "K-1 tax year and box 1 income",
+          "prior-year return lines for the same entity",
+          "prior preparer notes saying the K-1 was not provided"
+        ]
+      },
+      "reason": "proposal reads as code, not words"
     }
   ],
   "proposals": [
     {
-      "rule": "When a broker or exchange export states its lot method (FIFO), check each sold lot against the lots of the same asset still held at year end. Flag any sale that used a later lot while an earlier lot of that asset was still held.",
+      "rule": "Crypto lot method check: when an exchange export says it uses FIFO, no lot sold on a given date should be newer than a lot of the same asset that is still held.",
       "compares": [
-        "sold lot asset code and date acquired (transaction export)",
-        "held lot asset code and date acquired (transaction export)",
-        "stated cost basis method printed on the export",
-        "Form 8949 lot basis and holding period"
+        "D35 sold-lot acquired dates",
+        "D35 held-lot (Buy n) acquired dates",
+        "asset code",
+        "sale date",
+        "stated method text"
       ],
-      "firesWhen": "The export prints FIFO (or no method, which defaults to FIFO) and, for some asset, a sold lot's acquisition date is later than a lot of that asset that is still held after the sale date.",
-      "silentWhen": "The export or a client document records specific identification made by the sale date, or no earlier lot of that asset is held at the sale date, or the method printed is specific ID or HIFO with a broker confirmation of standing orders.",
+      "firesWhen": "The export says it uses FIFO, and a lot was sold while an older lot of the same asset, bought before that sale, is still held.",
+      "silentWhen": "The export says it uses specific identification, or every lot still held was bought after each sale of that asset.",
       "refs": [
         "D35",
-        "D34",
         "F8949.H.C2",
         "F8949.H.C3",
         "F8949.H.C5",
