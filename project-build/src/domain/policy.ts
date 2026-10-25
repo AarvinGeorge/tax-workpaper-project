@@ -380,7 +380,9 @@ export function maskValue(text: string, valueType: string, role: RoleInfo | null
   return last4(String(text), valueType);
 }
 
-const RE_PIN = /\b((?:IP |ERO |[Ss]ignature |Identity Protection )?PIN)(\s*(?:is|:|#|no\.?)?\s*)(\d{4,8})\b/g;
+// The separator is either a short "for <period> is" / "for <period>:" clause (the IRS CP01A letter's phrasing; the
+// period's own digits are kept) or the usual is / : / # / no. / dash. A bare "PIN for tax year 2025" masks nothing.
+const RE_PIN = /\b((?:IP |ERO |[Ss]ignature |Identity Protection )?PIN)(\s+for\b[^.:\n]{0,80}?(?:\s+is|:)\s*|\s*(?:is|:|#|no\.?|[—–-])?\s*)(\d{4,8})\b/g;
 const RE_SSN = /\b\d{3}-\d{2}-(\d{4})\b/g;
 const RE_IBAN = /\b[A-Z]{2}\d{2}(?: ?[A-Z0-9]{4}){3,7}(?: ?[A-Z0-9]{1,3})?\b/g;
 const RE_LABELLED = /\b(routing|account|acct|IBAN)((?:\s+(?:number|no\.?|#))?[\s:#]*)(\d[\d -]{4,}\d)/gi;
