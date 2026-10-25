@@ -28,7 +28,7 @@ export const AMOUNT_TYPES = AMOUNTS;
 export const MAX_SIGNED_INPUTS = 12;
 const NEAR = 1;
 const isNum = (x: unknown): x is number => typeof x === 'number' && Number.isFinite(x);
-const looksNumeric = (x: unknown) => typeof x === 'number' || (typeof x === 'string' && /^[\s$€£(+-]*[\d.,]+[)%\s]*$/.test(x));
+export const looksNumeric = (x: unknown) => typeof x === 'number' || (typeof x === 'string' && /^[\s$€£(+-]*[\d.,]+[)%\s]*$/.test(x));
 const round2 = (n: number) => Math.round(n * 100) / 100;
 
 const lineOf = (ix: PacketIndex, key: string) => ix.line(ix.latest.version, key);

@@ -20,6 +20,7 @@ import type { AiPayload } from '../../src/domain/ai/contract';
 import { OUTPUT_SCHEMA, masker, maskingRole, validateRow, type Row } from './reader-core';
 import { DEFAULT_MODE, findingsFor, isBlind, modeLabel, type AgentMode } from './modes';
 import { VERIFY_METHODS, verify } from './calculator';
+import { lookup } from './lookup';
 
 export { findingsFor };
 
@@ -277,6 +278,13 @@ export function runTool(ix: PacketIndex, name: string, input: Obj, opts: ToolOpt
       text = Array.isArray(r.items) && (input.method === 'fact_copies' || input.method === 'duplicates' || input.method === 'glossary')
         ? page(name, (r.items as Obj[]).map(mask), input, { method: input.method, ...(r.target ? { target: r.target, ...(r.kind ? { kind: r.kind } : {}), ...(r.note ? { note: r.note } : {}) } : { term: r.term }) })
         : shrink(name, mask({ method: input.method, ...r }));
+      break;
+    }
+    case 'lookup': {
+      // Raw packet sections, the same in every mode. Lists page like the other lists; a record is one result.
+      const r = lookup(ix, input);
+      const { items, ...rest } = r;
+      text = Array.isArray(items) ? page(name, (items as Obj[]).map(mask), input, mask(rest)) : shrink(name, mask(r));
       break;
     }
     case 'run_checks': text = page(name, checkRows(ix, mode).map(mask), input); break;
