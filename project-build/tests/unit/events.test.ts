@@ -113,4 +113,18 @@ describe('API payloads', () => {
     expect(r.newEvents.map((e) => e.seq)).toEqual([2]);
     expect(r.lastSeq).toBe(2);
   });
+
+  it('the head poll returns only the change markers, matching the full response', async () => {
+    const { stateResponse, stateHead } = await import('@/server/state');
+    const ws = freshWs();
+    await postEvent(ws, 'daniel', { type: 'review_note', claimId: `line:${lineKey}`, payload: { text: 'a' } });
+    for (const role of ['daniel', 'ngozi', 'marcus'] as const) {
+      const full = await stateResponse(ws, role);
+      const head = await stateHead(ws, role);
+      expect(Object.keys(head).sort()).toEqual(['lastSeq', 'state']);
+      expect(Object.keys(head.state)).toEqual(['storyAt']);
+      expect(head).toEqual({ lastSeq: full.lastSeq, state: { storyAt: full.state.storyAt } });
+      expect(JSON.stringify(head).length).toBeLessThan(200);
+    }
+  });
 });

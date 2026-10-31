@@ -167,3 +167,9 @@ export async function stateResponse(ws: string, role: RoleKey, after = 0) {
   const lastSeq = w.state.events.reduce((m, e) => Math.max(m, e.seq), 0);
   return { ws, role: w.role, state: w.state, findings, lastSeq, newEvents: w.state.events.filter((e) => e.seq > after) };
 }
+
+/** What LiveRefresh polls for: only the markers that say whether to re-render (same values as stateResponse). */
+export async function stateHead(ws: string, role: RoleKey) {
+  const w = await loadWorkspace(ws, role);
+  return { lastSeq: w.state.events.reduce((m, e) => Math.max(m, e.seq), 0), state: { storyAt: w.state.storyAt } };
+}
